@@ -5,10 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import (
-    Member, DefaultCall, DefaultStatic, DefaultMember_Object, ValidateInstance,
-    ValidateMember_ObjectOldNew
-)
+from .catom import Member, DefaultValue, Validate
 
 
 class Instance(Member):
@@ -23,18 +20,13 @@ class Instance(Member):
     """
     __slots__ = ()
 
-    def __init__(self, kind, factory=None, args=None, kwargs=None):
+    def __init__(self, kind, args=None, kwargs=None, factory=None):
         """ Initialize an Instance.
 
         Parameters
         ----------
         kind : type or tuple of types
             The allowed type or types for the instance.
-
-        factory : callable, optional
-            An optional factory to use for creating the default value.
-            If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be None.
 
         args : tuple, optional
             If 'factory' is None, then 'kind' is a callable type and
@@ -46,17 +38,22 @@ class Instance(Member):
             these keywords will be passed to the constructor to create
             the default value.
 
+        factory : callable, optional
+            An optional factory to use for creating the default value.
+            If this is not provided and 'args' and 'kwargs' is None,
+            then the default value will be None.
+
         """
         if factory is not None:
-            self.set_default_kind(DefaultCall, factory)
+            self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif args is not None or kwargs is not None:
             args = args or ()
             kwargs = kwargs or {}
             factory = lambda: kind(*args, **kwargs)
-            self.set_default_kind(DefaultCall, factory)
+            self.set_default_value_mode(DefaultValue.CallObject, factory)
         else:
-            self.set_default_kind(DefaultStatic, None)
-        self.set_validate_kind(ValidateInstance, kind)
+            self.set_default_value_mode(DefaultValue.Static, None)
+        self.set_validate_mode(Validate.Instance, kind)
 
 
 class ForwardInstance(Instance):
@@ -69,17 +66,12 @@ class ForwardInstance(Instance):
     """
     __slots__ = ('resolve', 'args', 'kwargs')
 
-    def __init__(self, resolve, factory=None, args=None, kwargs=None):
+    def __init__(self, resolve, args=None, kwargs=None, factory=None):
         """ Initialize a ForwardInstance.
 
         resolve : callable
             A callable which takes no arguments and returns the type or
             tuple of types to use for validating the values.
-
-        factory : callable, optional
-            An optional factory to use for creating the default value.
-            If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be None.
 
         args : tuple, optional
             If 'factory' is None, then 'resolve' will return a callable
@@ -91,17 +83,23 @@ class ForwardInstance(Instance):
             type and these keywords will be passed to the constructor to
             create the default value.
 
+        factory : callable, optional
+            An optional factory to use for creating the default value.
+            If this is not provided and 'args' and 'kwargs' is None,
+            then the default value will be None.
+
         """
         self.resolve = resolve
         self.args = args
         self.kwargs = kwargs
         if factory is not None:
-            self.set_default_kind(DefaultCall, factory)
+            self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif args is not None or kwargs is not None:
-            self.set_default_kind(DefaultMember_Object, "default")
+            mode = DefaultValue.MemberMethod_Object
+            self.set_default_value_mode(mode, "default")
         else:
-            self.set_default_kind(DefaultStatic, None)
-        self.set_validate_kind(ValidateMember_ObjectOldNew, "validate")
+            self.set_default_value_mode(DefaultValue.Static, None)
+        self.set_validate_mode(Validate.MemberMethod_ObjectOldNew, "validate")
 
     def default(self, owner):
         """ Called to retrieve the default value.
@@ -115,8 +113,9 @@ class ForwardInstance(Instance):
         args = self.args or ()
         kwargs = self.kwargs or {}
         value = kind(*args, **kwargs)
-        self.set_default_kind(DefaultCall, lambda: kind(*args, **kwargs))
-        self.set_validate_kind(ValidateInstance, kind)
+        factory = lambda: kind(*args, **kwargs)
+        self.set_default_value_mode(DefaultValue.CallObject, factory)
+        self.set_validate_mode(Validate.Instance, kind)
         return value
 
     def validate(self, owner, old, new):
@@ -128,12 +127,10 @@ class ForwardInstance(Instance):
 
         """
         kind = self.resolve()
-        if not isinstance(new, kind):
-            raise TypeError('invalid instance type')
-        self.set_validate_kind(ValidateInstance, kind)
-        if self.default_kind[0] == DefaultMember_Object:
+        if self.default_value_mode[0] == DefaultValue.MemberMethod_Object:
             args = self.args or ()
             kwargs = self.kwargs or {}
             factory = lambda: kind(*args, **kwargs)
-            self.set_default_kind(DefaultCall, factory)
-        return new
+            self.set_default_value_mode(DefaultValue.CallObject, factory)
+        self.set_validate_mode(Validate.Instance, kind)
+        return self.do_validate(owner, old, new)
