@@ -11,6 +11,9 @@ from .catom import Member, DefaultValue, Validate
 class Coerced(Member):
     """ A member which will coerce a value to a given instance type.
 
+    Unlike Typed or Instance, a Coerced value is not intended to be
+    set to null.
+
     """
     def __init__(self, kind, args=None, kwargs=None, factory=None, coercer=None):
         """ Initialize a Coerced.
