@@ -279,17 +279,17 @@ public:
 
     bool hasattr( PyObject* attr )
     {
-        return PyObject_HasAttr( m_pyobj, attr );
+        return PyObject_HasAttr( m_pyobj, attr ) == 1;
     }
 
     bool hasattr( PyObjectPtr& attr )
     {
-        return PyObject_HasAttr( m_pyobj, attr.get() );
+        return PyObject_HasAttr( m_pyobj, attr.get() ) == 1;
     }
 
     bool hasattr( const char* attr )
     {
-        return PyObject_HasAttrString( m_pyobj, attr );
+        return PyObject_HasAttrString( m_pyobj, attr ) == 1;
     }
 
     bool hasattr( std::string& attr )
