@@ -5,11 +5,11 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, DefaultStatic, ValidateEnum
+from .catom import Member, DefaultValue, Validate
 
 
 class Enum(Member):
-    """ A member where the value can be one in a group of items.
+    """ A member where the value can be one in a sequence of items.
 
     """
     __slots__ = ()
@@ -25,18 +25,18 @@ class Enum(Member):
         """
         if len(items) == 0:
             raise ValueError('an Enum requires at least 1 item')
-        self.set_default_kind(DefaultStatic, items[0])
-        self.set_validate_kind(ValidateEnum, items)
+        self.set_default_value_mode(DefaultValue.Static, items[0])
+        self.set_validate_mode(Validate.Enum, items)
 
     @property
     def items(self):
         """ A readonly property which returns the items in the enum.
 
         """
-        return self.validate_kind[1]
+        return self.validate_mode[1]
 
-    def extended(self, *items):
-        """ Create a clone of the Enum with additional items.
+    def added(self, *items):
+        """ Create a clone of the Enum with added items.
 
         Parameters
         ----------
@@ -53,7 +53,7 @@ class Enum(Member):
         olditems = self.items
         newitems = olditems + items
         clone = self.clone()
-        clone.set_validate_kind(ValidateEnum, newitems)
+        clone.set_validate_mode(Validate.Enum, newitems)
         return clone
 
     def removed(self, *items):
@@ -71,13 +71,12 @@ class Enum(Member):
             but with the given items removed.
 
         """
-        olditems = self.items
-        newitems = tuple(i for i in olditems if i not in items)
+        newitems = tuple(i for i in self.items if i not in items)
         if len(newitems) == 0:
             raise ValueError('an Enum requires at least 1 item')
         clone = self.clone()
-        clone.set_default_kind(DefaultStatic, newitems[0])
-        clone.set_validate_kind(ValidateEnum, newitems)
+        clone.set_default_value_mode(DefaultValue.Static, newitems[0])
+        clone.set_validate_mode(Validate.Enum, newitems)
         return clone
 
     def __call__(self, item):
@@ -90,9 +89,8 @@ class Enum(Member):
             of the valid enum items.
 
         """
-        olditems = self.items
-        if item not in olditems:
+        if item not in self.items:
             raise TypeError('invalid enum value')
         clone = self.clone()
-        clone.set_default_kind(DefaultStatic, item)
+        clone.set_default_value_mode(DefaultValue.Static, item)
         return clone
