@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, DefaultValue, Validate
+from .catom import Member, DefaultValue, Validate, SetAttr, null
 
 
 class Value(Member):
@@ -47,9 +47,9 @@ class ReadOnly(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=None, factory=None):
+    def __init__(self, default=null, factory=None):
         super(ReadOnly, self).__init__(default, factory)
-        self.set_validate_mode(Validate.ReadOnly, None)
+        self.set_setattr_mode(SetAttr.ReadOnly, None)
 
 
 class Constant(Value):
@@ -60,7 +60,7 @@ class Constant(Value):
 
     def __init__(self, default=None, factory=None):
         super(Constant, self).__init__(default, factory)
-        self.set_validate_mode(Validate.Constant, None)
+        self.set_setattr_mode(SetAttr.Constant, None)
 
 
 class Callable(Value):
@@ -129,7 +129,7 @@ class Range(Value):
             default = low
         elif high is not None:
             default = high
-        self.set_default_value_mode(DefaultValue.Static, default)
+        super(Range, self).__init__(default)
         self.set_validate_mode(Validate.Range, (low, high))
 
 
@@ -159,7 +159,6 @@ class Str(Value):
     def __init__(self, default='', factory=None):
         super(Str, self).__init__(default, factory)
         self.set_validate_mode(Validate.Str, None)
-        self.set_validate_default(True)
 
 
 class Unicode(Value):
