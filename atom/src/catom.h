@@ -7,10 +7,7 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#ifdef __MINGW32__
-#include <stdint.h>
-#endif
-
+#include "inttypes.h"
 #include "pythonhelpers.h"
 #include "observerpool.h"
 

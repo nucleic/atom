@@ -7,11 +7,8 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#ifdef __MINGW32__
-#include <stdint.h>
-#endif
-
 #include <vector>
+#include "inttypes.h"
 #include "pythonhelpers.h"
 #include "behaviors.h"
 #include "catom.h"
