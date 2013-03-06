@@ -11,16 +11,15 @@ from .catom import (
     Validate, PostValidate, null
 )
 from .coerced import Coerced
-#from .dict import Dict
-#from .enum import Enum
+from .dict import Dict
+from .enum import Enum
 from .event import Event
-#from .instance import Instance, ForwardInstance
-#from .list import List
-#from .property import CachedProperty
+from .instance import Instance, ForwardInstance
+from .list import List
 from .scalars import (
     Value, ReadOnly, Constant, Callable, Bool, Int, Long, Range, Float, Str,
     Unicode,
 )
 from .signal import Signal
-#from .tuple import Tuple
-#from .typed import Typed, ForwardTyped
+from .tuple import Tuple
+from .typed import Typed, ForwardTyped
