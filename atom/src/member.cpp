@@ -1,0 +1,825 @@
+/*-----------------------------------------------------------------------------
+| Copyright (c) 2013, Nucleic Development Team.
+|
+| Distributed under the terms of the Modified BSD License.
+|
+| The full license is in the file COPYING.txt, distributed with this software.
+|----------------------------------------------------------------------------*/
+#pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#include "member.h"
+#include "pynull.h"
+
+
+using namespace PythonHelpers;
+
+
+static PyObject* undefined;
+
+
+static PyObject*
+Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
+{
+    PyObjectPtr selfptr( PyType_GenericNew( type, args, kwargs ) );
+    if( !selfptr )
+        return 0;
+    Member* member = member_cast( selfptr.get() );
+    member->name = newref( undefined );
+    member->set_getattr_mode( GetAttr::Slot );
+    member->set_setattr_mode( SetAttr::Slot );
+    return selfptr.release();
+}
+
+
+static void
+Member_clear( Member* self )
+{
+    Py_CLEAR( self->name );
+    Py_CLEAR( self->getattr_context );
+    Py_CLEAR( self->setattr_context );
+    Py_CLEAR( self->validate_context );
+    Py_CLEAR( self->post_getattr_context );
+    Py_CLEAR( self->post_setattr_context );
+    Py_CLEAR( self->default_value_context );
+    Py_CLEAR( self->post_validate_context );
+    if( self->static_observers )
+        self->static_observers->clear();
+}
+
+
+static int
+Member_traverse( Member* self, visitproc visit, void* arg )
+{
+    Py_VISIT( self->name );
+    Py_VISIT( self->getattr_context );
+    Py_VISIT( self->setattr_context );
+    Py_VISIT( self->validate_context );
+    Py_VISIT( self->post_getattr_context );
+    Py_VISIT( self->post_setattr_context );
+    Py_VISIT( self->default_value_context );
+    Py_VISIT( self->post_validate_context );
+    if( self->static_observers )
+    {
+        std::vector<PyObjectPtr>::iterator it;
+        std::vector<PyObjectPtr>::iterator end = self->static_observers->end();
+        for( it = self->static_observers->begin(); it != end; ++it )
+            Py_VISIT( it->get() );
+    }
+    return 0;
+}
+
+
+static void
+Member_dealloc( Member* self )
+{
+    PyObject_GC_UnTrack( self );
+    Member_clear( self );
+    delete self->static_observers;
+    self->static_observers = 0;
+    self->ob_type->tp_free( pyobject_cast( self ) );
+}
+
+
+static PyObject*
+Member_copy_static_observers( Member* self, PyObject* other )
+{
+    if( !Member::TypeCheck( other ) )
+        return py_expected_type_fail( other, "Member" );
+    Member* member = member_cast( other );
+    if( self == member )
+        Py_RETURN_NONE;
+    if( !member->static_observers )
+    {
+        delete self->static_observers;
+        self->static_observers = 0;
+    }
+    else
+    {
+        if( !self->static_observers )
+            self->static_observers = new std::vector<PyObjectPtr>();
+        *self->static_observers = *member->static_observers;
+    }
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_static_observers( Member* self )
+{
+    if( !self->static_observers )
+        return PyTuple_New( 0 );
+    std::vector<PyObjectPtr>& observers( *self->static_observers );
+    size_t size = observers.size();
+    PyObject* items = PyTuple_New( size );
+    if( !items )
+        return 0;
+    for( size_t i = 0; i < size; ++i )
+        PyTuple_SET_ITEM( items, i, observers[ i ].newref() );
+    return items;
+}
+
+
+static PyObject*
+Member_add_static_observer( Member* self, PyObject* name )
+{
+    if( self->modify_guard )
+        return py_runtime_fail( "attempted to modify static observers during notification" );
+    if( !PyString_Check( name ) )
+        return py_expected_type_fail( name, "str" );
+    if( !self->static_observers )
+        self->static_observers = new std::vector<PyObjectPtr>();
+    PyObjectPtr nameptr( newref( name ) );
+    std::vector<PyObjectPtr>::iterator it;
+    std::vector<PyObjectPtr>::iterator end = self->static_observers->end();
+    for( it = self->static_observers->begin(); it != end; ++it )
+    {
+        if( *it == nameptr || it->richcompare( nameptr, Py_EQ ) )
+            Py_RETURN_NONE;
+    }
+    self->static_observers->push_back( nameptr );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_remove_static_observer( Member* self, PyObject* name )
+{
+    if( self->modify_guard )
+        return py_runtime_fail( "attempted to modify static observers during notification" );
+    if( !PyString_Check( name ) )
+        return py_expected_type_fail( name, "str" );
+    if( self->static_observers )
+    {
+        PyObjectPtr nameptr( newref( name ) );
+        std::vector<PyObjectPtr>::iterator it;
+        std::vector<PyObjectPtr>::iterator end = self->static_observers->end();
+        for( it = self->static_observers->begin(); it != end; ++it )
+        {
+            if( *it == nameptr || it->richcompare( nameptr, Py_EQ ) )
+            {
+                self->static_observers->erase( it );
+                if( self->static_observers->size() == 0 )
+                {
+                    delete self->static_observers;
+                    self->static_observers = 0;
+                }
+                break;
+            }
+        }
+    }
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_get_slot( Member* self, PyObject* object )
+{
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    CAtom* atom = catom_cast( object );
+    if( self->index >= atom->get_slot_count() )
+        return py_no_attr_fail( object, PyString_AsString( self->name ) );
+    PyObjectPtr value( atom->get_slot( self->index ) );
+    if( value )
+        return value.release();
+    return newref( py_null );
+}
+
+
+static PyObject*
+Member_set_slot( Member* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 2 )
+        return py_type_fail( "set_slot() takes exactly 2 arguments" );
+    PyObject* object = PyTuple_GET_ITEM( args, 0 );
+    PyObject* value = PyTuple_GET_ITEM( args, 1 );
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    CAtom* atom = catom_cast( object );
+    if( self->index >= atom->get_slot_count() )
+        return py_no_attr_fail( object, PyString_AsString( self->name ) );
+    if( value == py_null )
+        value = 0;
+    atom->set_slot( self->index, value );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_do_getattr( Member* self, PyObject* object )
+{
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    return self->getattr( catom_cast( object ) );
+}
+
+
+static PyObject*
+Member_do_setattr( Member* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 2 )
+        return py_type_fail( "do_setattr() takes exactly 2 arguments" );
+    PyObject* object = PyTuple_GET_ITEM( args, 0 );
+    PyObject* value = PyTuple_GET_ITEM( args, 1 );
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    if( self->setattr( catom_cast( object ), value ) < 0 )
+        return 0;
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_do_post_getattr( Member* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 2 )
+        return py_type_fail( "do_post_getattr() takes exactly 2 arguments" );
+    PyObject* object = PyTuple_GET_ITEM( args, 0 );
+    PyObject* value = PyTuple_GET_ITEM( args, 1 );
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    return self->post_getattr( catom_cast( object ), value );
+}
+
+
+static PyObject*
+Member_do_post_setattr( Member* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 3 )
+        return py_type_fail( "do_post_setattr() takes exactly 3 arguments" );
+    PyObject* object = PyTuple_GET_ITEM( args, 0 );
+    PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
+    PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    if( self->post_setattr( catom_cast( object ), oldvalue, newvalue ) < 0 )
+        return 0;
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_do_default_value( Member* self, PyObject* object )
+{
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    return self->default_value( catom_cast( object ) );
+}
+
+
+static PyObject*
+Member_do_validate( Member* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 3 )
+        return py_type_fail( "do_validate() takes exactly 3 arguments" );
+    PyObject* object = PyTuple_GET_ITEM( args, 0 );
+    PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
+    PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    return self->validate( catom_cast( object ), oldvalue, newvalue );
+}
+
+
+static PyObject*
+Member_do_post_validate( Member* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 3 )
+        return py_type_fail( "do_post_validate() takes exactly 3 arguments" );
+    PyObject* object = PyTuple_GET_ITEM( args, 0 );
+    PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
+    PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    return self->post_validate( catom_cast( object ), oldvalue, newvalue );
+}
+
+
+static PyObject*
+Member_clone( Member* self )
+{
+    // reimplement in a subclass to clone additional Python state
+    PyObject* pyclone = PyType_GenericNew( self->ob_type, 0, 0 );
+    if( !pyclone )
+        return 0;
+    Member* clone = member_cast( pyclone );
+    clone->modes = self->modes;
+    clone->index = self->index;
+    clone->name = newref( self->name );
+    clone->getattr_context = xnewref( self->getattr_context );
+    clone->setattr_context = xnewref( self->setattr_context );
+    clone->validate_context = xnewref( self->validate_context );
+    clone->post_getattr_context = xnewref( self->post_getattr_context );
+    clone->post_setattr_context = xnewref( self->post_setattr_context );
+    clone->default_value_context = xnewref( self->default_value_context );
+    clone->post_validate_context = xnewref( self->post_validate_context );
+    if( self->static_observers )
+    {
+        clone->static_observers = new std::vector<PyObjectPtr>();
+        *clone->static_observers = *self->static_observers;
+    }
+    return pyclone;
+}
+
+
+static PyObject*
+Member_get_name( Member* self, void* context )
+{
+    return newref( self->name );
+}
+
+
+static PyObject*
+Member_set_name( Member* self, PyObject* value )
+{
+    if( !PyString_CheckExact( value ) )
+        return py_expected_type_fail( value, "string" );
+    Py_INCREF( value ); // incref before interning or segfault!
+    PyString_InternInPlace( &value );
+    PyObject* old = self->name;
+    self->name = value;
+    Py_DECREF( old );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_get_index( Member* self, void* context )
+{
+    return PyInt_FromSsize_t( static_cast<Py_ssize_t>( self->index ) );
+}
+
+
+static PyObject*
+Member_set_index( Member* self, PyObject* value )
+{
+    if( !PyInt_Check( value ) )
+        return py_expected_type_fail( value, "int" );
+    Py_ssize_t index = PyInt_AsSsize_t( value );
+    if( index < 0 && PyErr_Occurred() )
+        return 0;
+    self->index = static_cast<uint32_t>( index < 0 ? 0 : index );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_get_getattr_mode( Member* self, void* ctxt )
+{
+    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    if( !tuple )
+        return 0;
+    tuple.set_item( 0, PyInt_FromLong( self->get_getattr_mode() ) );
+    PyObject* context = self->getattr_context;
+    tuple.set_item( 1, newref( context ? context : py_null ) );
+    return tuple.release();
+}
+
+
+static PyObject*
+Member_set_getattr_mode( Member* self, PyObject* args )
+{
+    GetAttr::Mode mode;
+    PyObject* context;
+    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
+        return 0;
+    if( mode < GetAttr::NoOp || mode >= GetAttr::Last )
+        return py_value_fail( "invalid getattr mode" );
+    if( !Member::check_context( mode, context ) )
+        return 0;
+    self->set_getattr_mode( mode );
+    PyObject* old = self->getattr_context;
+    self->getattr_context = context;
+    Py_INCREF( context );
+    Py_XDECREF( old );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_get_setattr_mode( Member* self, void* ctxt )
+{
+    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    if( !tuple )
+        return 0;
+    tuple.set_item( 0, PyInt_FromLong( self->get_setattr_mode() ) );
+    PyObject* context = self->setattr_context;
+    tuple.set_item( 1, newref( context ? context : py_null ) );
+    return tuple.release();
+}
+
+
+static PyObject*
+Member_set_setattr_mode( Member* self, PyObject* args )
+{
+    SetAttr::Mode mode;
+    PyObject* context;
+    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
+        return 0;
+    if( mode < SetAttr::NoOp || mode >= SetAttr::Last )
+        return py_value_fail( "invalid setattr mode" );
+    if( !Member::check_context( mode, context ) )
+        return 0;
+    self->set_setattr_mode( mode );
+    PyObject* old = self->setattr_context;
+    self->setattr_context = context;
+    Py_INCREF( context );
+    Py_XDECREF( old );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_get_post_getattr_mode( Member* self, void* ctxt )
+{
+    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    if( !tuple )
+        return 0;
+    tuple.set_item( 0, PyInt_FromLong( self->get_post_getattr_mode() ) );
+    PyObject* context = self->post_getattr_context;
+    tuple.set_item( 1, newref( context ? context : py_null ) );
+    return tuple.release();
+}
+
+
+static PyObject*
+Member_set_post_getattr_mode( Member* self, PyObject* args )
+{
+    PostGetAttr::Mode mode;
+    PyObject* context;
+    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
+        return 0;
+    if( mode < PostGetAttr::NoOp || mode >= PostGetAttr::Last )
+        return py_value_fail( "invalid post getattr mode" );
+    if( !Member::check_context( mode, context ) )
+        return 0;
+    self->set_post_getattr_mode( mode );
+    PyObject* old = self->post_getattr_context;
+    self->post_getattr_context = context;
+    Py_INCREF( context );
+    Py_XDECREF( old );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_get_post_setattr_mode( Member* self, void* ctxt )
+{
+    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    if( !tuple )
+        return 0;
+    tuple.set_item( 0, PyInt_FromLong( self->get_post_setattr_mode() ) );
+    PyObject* context = self->post_setattr_context;
+    tuple.set_item( 1, newref( context ? context : py_null ) );
+    return tuple.release();
+}
+
+
+static PyObject*
+Member_set_post_setattr_mode( Member* self, PyObject* args )
+{
+    PostSetAttr::Mode mode;
+    PyObject* context;
+    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
+        return 0;
+    if( mode < PostSetAttr::NoOp || mode >= PostSetAttr::Last )
+        return py_value_fail( "invalid post setattr mode" );
+    if( !Member::check_context( mode, context ) )
+        return 0;
+    self->set_post_setattr_mode( mode );
+    PyObject* old = self->post_setattr_context;
+    self->post_setattr_context = context;
+    Py_INCREF( context );
+    Py_XDECREF( old );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_get_default_value_mode( Member* self, void* ctxt )
+{
+    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    if( !tuple )
+        return 0;
+    tuple.set_item( 0, PyInt_FromLong( self->get_default_value_mode() ) );
+    PyObject* context = self->default_value_context;
+    tuple.set_item( 1, newref( context ? context : py_null ) );
+    return tuple.release();
+}
+
+
+static PyObject*
+Member_set_default_value_mode( Member* self, PyObject* args )
+{
+    DefaultValue::Mode mode;
+    PyObject* context;
+    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
+        return 0;
+    if( mode < DefaultValue::NoOp || mode >= DefaultValue::Last )
+        return py_value_fail( "invalid default value mode" );
+    if( !Member::check_context( mode, context ) )
+        return 0;
+    self->set_default_value_mode( mode );
+    PyObject* old = self->default_value_context;
+    self->default_value_context = context;
+    Py_INCREF( context );
+    Py_XDECREF( old );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_get_validate_mode( Member* self, void* ctxt )
+{
+    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    if( !tuple )
+        return 0;
+    tuple.set_item( 0, PyInt_FromLong( self->get_validate_mode() ) );
+    PyObject* context = self->validate_context;
+    tuple.set_item( 1, newref( context ? context : py_null ) );
+    return tuple.release();
+}
+
+
+static PyObject*
+Member_set_validate_mode( Member* self, PyObject* args )
+{
+    Validate::Mode mode;
+    PyObject* context;
+    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
+        return 0;
+    if( mode < Validate::NoOp || mode >= Validate::Last )
+        return py_value_fail( "invalid validate mode" );
+    if( !Member::check_context( mode, context ) )
+        return 0;
+    self->set_validate_mode( mode );
+    PyObject* old = self->validate_context;
+    self->validate_context = context;
+    Py_INCREF( context );
+    Py_XDECREF( old );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_get_post_validate_mode( Member* self, void* ctxt )
+{
+    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    if( !tuple )
+        return 0;
+    tuple.set_item( 0, PyInt_FromLong( self->get_post_validate_mode() ) );
+    PyObject* context = self->post_validate_context;
+    tuple.set_item( 1, newref( context ? context : py_null ) );
+    return tuple.release();
+}
+
+
+static PyObject*
+Member_set_post_validate_mode( Member* self, PyObject* args )
+{
+    PostValidate::Mode mode;
+    PyObject* context;
+    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
+        return 0;
+    if( mode < PostValidate::NoOp || mode >= PostValidate::Last )
+        return py_value_fail( "invalid post validate mode" );
+    if( !Member::check_context( mode, context ) )
+        return 0;
+    self->set_post_validate_mode( mode );
+    PyObject* old = self->post_validate_context;
+    self->post_validate_context = context;
+    Py_INCREF( context );
+    Py_XDECREF( old );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member__get__( Member* self, PyObject* object, PyObject* type )
+{
+    if( !object )
+        return newref( pyobject_cast( self ) );
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    return self->getattr( catom_cast( object ) );
+}
+
+
+static int
+Member__set__( Member* self, PyObject* object, PyObject* value )
+{
+    if( !CAtom::TypeCheck( object ) )
+    {
+        py_expected_type_fail( object, "CAtom" );
+        return -1;
+    }
+    return self->setattr( catom_cast( object ), value );
+}
+
+
+static PyGetSetDef
+Member_getset[] = {
+    { "name", ( getter )Member_get_name, 0,
+      "Get the name to which the member is bound." },
+    { "index", ( getter )Member_get_index, 0,
+      "Get the index to which the member is bound" },
+    { "getattr_mode", ( getter )Member_get_getattr_mode, 0,
+      "Get the getattr mode for the member." },
+    { "setattr_mode", ( getter )Member_get_setattr_mode, 0,
+      "Get the setattr mode for the member." },
+    { "default_value_mode", ( getter )Member_get_default_value_mode, 0,
+      "Get the default value mode for the member." },
+    { "validate_mode", ( getter )Member_get_validate_mode, 0,
+      "Get the validate mode for the member." },
+    { "post_getattr_mode", ( getter )Member_get_post_getattr_mode, 0,
+      "Get the post getattr mode for the member." },
+    { "post_setattr_mode", ( getter )Member_get_post_setattr_mode, 0,
+      "Get the post setattr mode for the member." },
+    { "post_validate_mode", ( getter )Member_get_post_validate_mode, 0,
+      "Get the post validate mode for the member." },
+    { 0 } // sentinel
+};
+
+
+static PyMethodDef
+Member_methods[] = {
+    { "set_name", ( PyCFunction )Member_set_name, METH_O,
+      "Set the name to which the member is bound. Use with extreme caution!" },
+    { "set_index", ( PyCFunction )Member_set_index, METH_O,
+      "Set the index to which the member is bound. Use with extreme caution!" },
+    { "get_slot", ( PyCFunction )Member_get_slot, METH_O,
+      "Get the atom's slot value directly." },
+    { "set_slot", ( PyCFunction )Member_set_slot, METH_VARARGS,
+      "Set the atom's slot value directly." },
+    { "copy_static_observers", ( PyCFunction )Member_copy_static_observers, METH_O,
+      "Copy the static observers from one member into this member." },
+    { "static_observers", ( PyCFunction )Member_static_observers, METH_NOARGS,
+      "Get a tuple of the static observers defined for this member" },
+    { "add_static_observer", ( PyCFunction )Member_add_static_observer, METH_O,
+      "Add the name of a method to call on all atoms when the member changes." },
+    { "remove_static_observer", ( PyCFunction )Member_remove_static_observer, METH_O,
+      "Remove the name of a method to call on all atoms when the member changes." },
+    { "clone", ( PyCFunction )Member_clone, METH_NOARGS,
+      "Create a clone of this member." },
+    { "do_getattr", ( PyCFunction )Member_do_getattr, METH_O,
+      "Run the getattr handler for the member." },
+    { "do_setattr", ( PyCFunction )Member_do_setattr, METH_VARARGS,
+      "Run the setattr handler for the member." },
+    { "do_default_value", ( PyCFunction )Member_do_default_value, METH_O,
+      "Run the default value handler for member." },
+    { "do_validate", ( PyCFunction )Member_do_validate, METH_VARARGS,
+      "Run the validation handler for the member." },
+    { "do_post_getattr", ( PyCFunction )Member_do_post_getattr, METH_VARARGS,
+      "Run the post getattr handler for the member." },
+    { "do_post_setattr", ( PyCFunction )Member_do_post_setattr, METH_VARARGS,
+      "Run the post setattr handler for the member." },
+    { "do_post_validate", ( PyCFunction )Member_do_post_validate, METH_VARARGS,
+      "Run the post validation handler for the member." },
+    { "set_getattr_mode", ( PyCFunction )Member_set_getattr_mode, METH_VARARGS,
+      "Set the getattr mode for the member." },
+    { "set_setattr_mode", ( PyCFunction )Member_set_setattr_mode, METH_VARARGS,
+      "Set the setattr mode for the member." },
+    { "set_default_value_mode", ( PyCFunction )Member_set_default_value_mode, METH_VARARGS,
+      "Set the default value mode for the member." },
+    { "set_validate_mode", ( PyCFunction )Member_set_validate_mode, METH_VARARGS,
+      "Set the validate mode for the member." },
+    { "set_post_getattr_mode", ( PyCFunction )Member_set_post_getattr_mode, METH_VARARGS,
+      "Set the post getattr mode for the member." },
+    { "set_post_setattr_mode", ( PyCFunction )Member_set_post_setattr_mode, METH_VARARGS,
+      "Set the post setattr mode for the member." },
+    { "set_post_validate_mode", ( PyCFunction )Member_set_post_validate_mode, METH_VARARGS,
+      "Set the post validate mode for the member." },
+    { 0 } // sentinel
+};
+
+
+PyTypeObject Member_Type = {
+    PyObject_HEAD_INIT( &PyType_Type )
+    0,                                      /* ob_size */
+    "catom.Member",                         /* tp_name */
+    sizeof( Member ),                       /* tp_basicsize */
+    0,                                      /* tp_itemsize */
+    (destructor)Member_dealloc,             /* tp_dealloc */
+    (printfunc)0,                           /* tp_print */
+    (getattrfunc)0,                         /* tp_getattr */
+    (setattrfunc)0,                         /* tp_setattr */
+    (cmpfunc)0,                             /* tp_compare */
+    (reprfunc)0,                            /* tp_repr */
+    (PyNumberMethods*)0,                    /* tp_as_number */
+    (PySequenceMethods*)0,                  /* tp_as_sequence */
+    (PyMappingMethods*)0,                   /* tp_as_mapping */
+    (hashfunc)0,                            /* tp_hash */
+    (ternaryfunc)0,                         /* tp_call */
+    (reprfunc)0,                            /* tp_str */
+    (getattrofunc)0,                        /* tp_getattro */
+    (setattrofunc)0,                        /* tp_setattro */
+    (PyBufferProcs*)0,                      /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /* tp_flags */
+    0,                                      /* Documentation string */
+    (traverseproc)Member_traverse,          /* tp_traverse */
+    (inquiry)Member_clear,                  /* tp_clear */
+    (richcmpfunc)0,                         /* tp_richcompare */
+    0,                                      /* tp_weaklistoffset */
+    (getiterfunc)0,                         /* tp_iter */
+    (iternextfunc)0,                        /* tp_iternext */
+    (struct PyMethodDef*)Member_methods,    /* tp_methods */
+    (struct PyMemberDef*)0,                 /* tp_members */
+    Member_getset,                          /* tp_getset */
+    0,                                      /* tp_base */
+    0,                                      /* tp_dict */
+    (descrgetfunc)Member__get__,            /* tp_descr_get */
+    (descrsetfunc)Member__set__,            /* tp_descr_set */
+    0,                                      /* tp_dictoffset */
+    (initproc)0,                            /* tp_init */
+    (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
+    (newfunc)Member_new,                    /* tp_new */
+    (freefunc)PyObject_GC_Del,              /* tp_free */
+    (inquiry)0,                             /* tp_is_gc */
+    0,                                      /* tp_bases */
+    0,                                      /* tp_mro */
+    0,                                      /* tp_cache */
+    0,                                      /* tp_subclasses */
+    0,                                      /* tp_weaklist */
+    (destructor)0                           /* tp_del */
+};
+
+
+int
+import_member()
+{
+    if( PyType_Ready( &Member_Type ) < 0 )
+        return -1;
+    undefined = PyString_FromString( "<undefined>" );
+    if( !undefined )
+        return -1;
+    return 0;
+}
+
+
+PyObject*
+Member::full_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    PyObjectPtr result( newref( newvalue ) );
+    if( get_validate_mode() )
+    {
+        result = validate( atom, oldvalue, result.get() );
+        if( !result )
+            return 0;
+    }
+    if( get_post_validate_mode() )
+    {
+        result = post_validate( atom, oldvalue, result.get() );
+        if( !result )
+            return 0;
+    }
+    return result.release();
+}
+
+
+class StaticModifyGuard
+{
+
+public:
+
+    StaticModifyGuard( Member* member ) : m_member( member )
+    {
+        if( m_member && !m_member->modify_guard )
+            m_member->modify_guard = this;
+    }
+
+    ~StaticModifyGuard()
+    {
+        if( m_member && m_member->modify_guard == this )
+            m_member->modify_guard = 0;
+    }
+
+private:
+
+    Member* m_member;
+
+};
+
+
+bool
+Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
+{
+    if( static_observers && atom->get_notifications_enabled() )
+    {
+        PyObjectPtr argsptr( newref( args ) );
+        PyObjectPtr kwargsptr( xnewref( kwargs ) );
+        PyObjectPtr objectptr( newref( pyobject_cast( atom ) ) );
+        StaticModifyGuard guard( this );
+        std::vector<PyObjectPtr>::iterator it;
+        std::vector<PyObjectPtr>::iterator end = static_observers->end();
+        for( it = static_observers->begin(); it != end; ++it )
+        {
+            PyObjectPtr method( objectptr.getattr( *it ) );
+            if( !method )
+                return false;
+            if( !method( argsptr, kwargsptr ) )
+                return false;
+        }
+    }
+    return true;
+}
+

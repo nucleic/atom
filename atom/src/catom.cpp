@@ -1,0 +1,349 @@
+/*-----------------------------------------------------------------------------
+| Copyright (c) 2013, Nucleic Development Team.
+|
+| Distributed under the terms of the Modified BSD License.
+|
+| The full license is in the file COPYING.txt, distributed with this software.
+|----------------------------------------------------------------------------*/
+#pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#include "catom.h"
+#include "methodwrapper.h"
+
+
+using namespace PythonHelpers;
+
+
+static PyObject* atom_members;
+
+
+static PyObject*
+CAtom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
+{
+    PyDictPtr membersptr( PyObject_GetAttr( pyobject_cast( type ), atom_members ) );
+    if( !membersptr )
+        return 0;
+    if( !membersptr.check_exact() )
+        return py_bad_internal_call( "atom members" );
+    PyObjectPtr selfptr( PyType_GenericNew( type, args, kwargs ) );
+    if( !selfptr )
+        return 0;
+    CAtom* atom = catom_cast( selfptr.get() );
+    uint32_t count = static_cast<uint32_t>( membersptr.size() );
+    if( count > 0 )
+    {
+        if( count > MAX_MEMBER_COUNT )
+            return py_type_fail( "too many members" );
+        size_t size = sizeof( PyObject* ) * count;
+        void* slots = PyObject_MALLOC( size );
+        if( !slots )
+            return PyErr_NoMemory();
+        memset( slots, 0, size );
+        atom->slots = reinterpret_cast<PyObject**>( slots );
+        atom->set_slot_count( count );
+    }
+    atom->set_notifications_enabled( true );
+    return selfptr.release();
+}
+
+
+static int
+CAtom_init( CAtom* self, PyObject* args, PyObject* kwargs )
+{
+    if( kwargs )
+    {
+        PyObjectPtr selfptr( newref( pyobject_cast( self ) ) );
+        PyObject* key;
+        PyObject* value;
+        Py_ssize_t pos = 0;
+        while( PyDict_Next( kwargs, &pos, &key, &value ) )
+        {
+            if( !selfptr.setattr( key, value ) )
+                return -1;
+        }
+    }
+    return 0;
+}
+
+
+static void
+CAtom_clear( CAtom* self )
+{
+    uint32_t count = self->get_slot_count();
+    for( uint32_t i = 0; i < count; ++i )
+        Py_CLEAR( self->slots[ i ] );
+    if( self->observers )
+        self->observers->py_clear();
+}
+
+
+static int
+CAtom_traverse( CAtom* self, visitproc visit, void* arg )
+{
+    uint32_t count = self->get_slot_count();
+    for( uint32_t i = 0; i < count; ++i )
+        Py_VISIT( self->slots[ i ] );
+    if( self->observers )
+        return self->observers->py_traverse( visit, arg );
+    return 0;
+}
+
+
+static void
+CAtom_dealloc( CAtom* self )
+{
+    PyObject_GC_UnTrack( self );
+    CAtom_clear( self );
+    if( self->slots )
+        PyObject_FREE( self->slots );
+    delete self->observers;
+    self->observers = 0;
+    self->ob_type->tp_free( pyobject_cast( self ) );
+}
+
+
+static PyObject*
+CAtom_notifications_enabled( CAtom* self )
+{
+    return py_bool( self->get_notifications_enabled() );
+}
+
+
+static PyObject*
+CAtom_set_notifications_enabled( CAtom* self, PyObject* arg )
+{
+    if( !PyBool_Check( arg ) )
+        return py_expected_type_fail( arg, "bool" );
+    bool old = self->get_notifications_enabled();
+    self->set_notifications_enabled( arg == Py_True ? true : false );
+    return py_bool( old );
+}
+
+
+static PyObject*
+CAtom_observe( CAtom* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 2 )
+        return py_type_fail( "observe() takes exactly 2 arguments" );
+    PyObject* topic = PyTuple_GET_ITEM( args, 0 );
+    PyObject* callback = PyTuple_GET_ITEM( args, 1 );
+    if( PyString_Check( topic ) )
+    {
+        if( !self->observe( topic, callback ) )
+            return 0;
+    }
+    else
+    {
+        PyObjectPtr iterator( PyObject_GetIter( topic ) );
+        if( !iterator )
+            return 0;
+        PyObjectPtr topicptr;
+        while( ( topicptr = PyIter_Next( iterator.get() ) ) )
+        {
+            if( !self->observe( topicptr.get(), callback ) )
+                return 0;
+        }
+        if( PyErr_Occurred() )
+            return 0;
+    }
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+CAtom_unobserve( CAtom* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 2 )
+        return py_type_fail( "unobserve() takes exactly 2 arguments" );
+    PyObject* topic = PyTuple_GET_ITEM( args, 0 );
+    PyObject* callback = PyTuple_GET_ITEM( args, 1 );
+    if( PyString_Check( topic ) )
+    {
+        if( !self->unobserve( topic, callback ) )
+            return 0;
+    }
+    else
+    {
+        PyObjectPtr iterator( PyObject_GetIter( topic ) );
+        if( !iterator )
+            return 0;
+        PyObjectPtr topicptr;
+        while( ( topicptr = PyIter_Next( iterator.get() ) ) )
+        {
+            if( !self->unobserve( topicptr.get(), callback ) )
+                return 0;
+        }
+        if( PyErr_Occurred() )
+            return 0;
+    }
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+CAtom_has_observers( CAtom* self, PyObject* topic )
+{
+    return py_bool( self->has_observers( topic ) );
+}
+
+
+static PyObject*
+CAtom_notify( CAtom* self, PyObject* args, PyObject* kwargs )
+{
+    if( PyTuple_GET_SIZE( args ) < 1 )
+        return py_type_fail( "notify() requires at least 1 argument" );
+    PyObject* topic = PyTuple_GET_ITEM( args, 0 );
+    PyObjectPtr argsptr( PyTuple_GetSlice( args, 1, PyTuple_GET_SIZE( args ) ) );
+    if( !argsptr )
+        return 0;
+    if( !self->notify( topic, argsptr.get(), kwargs ) )
+        return 0;
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+CAtom_sizeof( CAtom* self, PyObject* args )
+{
+    Py_ssize_t size = self->ob_type->tp_basicsize;
+    size += sizeof( PyObject* ) * self->get_slot_count();
+    if( self->observers )
+        size += self->observers->py_sizeof();
+    return PyInt_FromSsize_t( size );
+}
+
+
+static PyMethodDef
+CAtom_methods[] = {
+    { "notifications_enabled", ( PyCFunction )CAtom_notifications_enabled, METH_NOARGS,
+      "Get whether notification is enabled for the atom." },
+    { "set_notifications_enabled", ( PyCFunction )CAtom_set_notifications_enabled, METH_O,
+      "Enable or disable notifications for the atom." },
+    { "observe", ( PyCFunction )CAtom_observe, METH_VARARGS,
+      "Register an observer callback to observe changes on the given topic(s)." },
+    { "unobserve", ( PyCFunction )CAtom_unobserve, METH_VARARGS,
+      "Unregister an observer callback for the given topic(s)." },
+    { "has_observers", ( PyCFunction )CAtom_has_observers, METH_O,
+      "Get whether the atom has observers for a given topic." },
+    { "notify", ( PyCFunction )CAtom_notify, METH_VARARGS | METH_KEYWORDS,
+      "Call the registered observers for a given topic with positional and keyword arguments." },
+    { "__sizeof__", ( PyCFunction )CAtom_sizeof, METH_NOARGS,
+      "__sizeof__() -> size of object in memory, in bytes" },
+    { 0 } // sentinel
+};
+
+
+PyTypeObject CAtom_Type = {
+    PyObject_HEAD_INIT( &PyType_Type )
+    0,                                      /* ob_size */
+    "catom.CAtom",                          /* tp_name */
+    sizeof( CAtom ),                        /* tp_basicsize */
+    0,                                      /* tp_itemsize */
+    (destructor)CAtom_dealloc,              /* tp_dealloc */
+    (printfunc)0,                           /* tp_print */
+    (getattrfunc)0,                         /* tp_getattr */
+    (setattrfunc)0,                         /* tp_setattr */
+    (cmpfunc)0,                             /* tp_compare */
+    (reprfunc)0,                            /* tp_repr */
+    (PyNumberMethods*)0,                    /* tp_as_number */
+    (PySequenceMethods*)0,                  /* tp_as_sequence */
+    (PyMappingMethods*)0,                   /* tp_as_mapping */
+    (hashfunc)0,                            /* tp_hash */
+    (ternaryfunc)0,                         /* tp_call */
+    (reprfunc)0,                            /* tp_str */
+    (getattrofunc)0,                        /* tp_getattro */
+    (setattrofunc)0,                        /* tp_setattro */
+    (PyBufferProcs*)0,                      /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /* tp_flags */
+    0,                                      /* Documentation string */
+    (traverseproc)CAtom_traverse,           /* tp_traverse */
+    (inquiry)CAtom_clear,                   /* tp_clear */
+    (richcmpfunc)0,                         /* tp_richcompare */
+    0,                                      /* tp_weaklistoffset */
+    (getiterfunc)0,                         /* tp_iter */
+    (iternextfunc)0,                        /* tp_iternext */
+    (struct PyMethodDef*)CAtom_methods,     /* tp_methods */
+    (struct PyMemberDef*)0,                 /* tp_members */
+    0,                                      /* tp_getset */
+    0,                                      /* tp_base */
+    0,                                      /* tp_dict */
+    (descrgetfunc)0,                        /* tp_descr_get */
+    (descrsetfunc)0,                        /* tp_descr_set */
+    0,                                      /* tp_dictoffset */
+    (initproc)CAtom_init,                   /* tp_init */
+    (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
+    (newfunc)CAtom_new,                     /* tp_new */
+    (freefunc)PyObject_GC_Del,              /* tp_free */
+    (inquiry)0,                             /* tp_is_gc */
+    0,                                      /* tp_bases */
+    0,                                      /* tp_mro */
+    0,                                      /* tp_cache */
+    0,                                      /* tp_subclasses */
+    0,                                      /* tp_weaklist */
+    (destructor)0                           /* tp_del */
+};
+
+
+int
+import_catom()
+{
+    if( import_methodwrapper() < 0 )
+        return -1;
+    if( PyType_Ready( &CAtom_Type ) < 0 )
+        return -1;
+    atom_members = PyString_FromString( "__atom_members__" );
+    if( !atom_members )
+        return -1;
+    return 0;
+}
+
+
+static PyObject*
+wrap_callback( PyObject* callback )
+{
+    if( PyMethod_Check( callback ) && PyMethod_GET_SELF( callback ) )
+        return MethodWrapper_New( callback );
+    return newref( callback );
+}
+
+
+bool
+CAtom::observe( PyObject* topic, PyObject* callback )
+{
+    PyObjectPtr topicptr( newref( topic ) );
+    PyObjectPtr callbackptr( wrap_callback( callback ) );
+    if( !callbackptr )
+        return false;
+    if( !observers )
+        observers = new ObserverPool();
+    observers->add( topicptr, callbackptr );
+    return true;
+}
+
+
+bool
+CAtom::unobserve( PyObject* topic, PyObject* callback )
+{
+    if( !observers )
+        return true;
+    PyObjectPtr topicptr( newref( topic ) );
+    PyObjectPtr callbackptr( newref( callback ) );
+    observers->remove( topicptr, callbackptr );
+    return true;
+}
+
+
+bool
+CAtom::notify( PyObject* topic, PyObject* args, PyObject* kwargs )
+{
+    if( observers && get_notifications_enabled() )
+    {
+        PyObjectPtr topicptr( newref( topic ) );
+        PyObjectPtr argsptr( newref( args ) );
+        PyObjectPtr kwargsptr( xnewref( kwargs ) );
+        if( !observers->notify( topicptr, argsptr, kwargsptr ) )
+            return false;
+    }
+    return true;
+}
+

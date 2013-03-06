@@ -1,0 +1,80 @@
+/*-----------------------------------------------------------------------------
+| Copyright (c) 2013, Nucleic Development Team.
+|
+| Distributed under the terms of the Modified BSD License.
+|
+| The full license is in the file COPYING.txt, distributed with this software.
+|----------------------------------------------------------------------------*/
+#pragma once
+
+#ifdef __MINGW32__
+#include <stdint.h>
+#endif
+
+#include <vector>
+#include "pythonhelpers.h"
+
+
+using PythonHelpers::PyObjectPtr;
+
+
+class ModifyGuard;
+
+
+class ObserverPool
+{
+
+    struct Topic
+    {
+        Topic( PyObjectPtr& topic ) : m_topic( topic ), m_count( 0 ) {}
+        Topic( PyObjectPtr& topic, uint32_t count ) : m_topic( topic ), m_count( count ) {}
+        ~Topic() {}
+        bool match( PyObjectPtr& topic )
+        {
+            return m_topic == topic || m_topic.richcompare( topic, Py_EQ );
+        }
+        PyObjectPtr m_topic;
+        uint32_t m_count;
+    };
+
+    friend class ModifyGuard;
+
+public:
+
+    ObserverPool() : m_modify_guard( 0 ) {}
+
+    ~ObserverPool() {}
+
+    bool has_topic( PyObjectPtr& topic );
+
+    void add( PyObjectPtr& topic, PyObjectPtr& observer );
+
+    void remove( PyObjectPtr& topic, PyObjectPtr& observer );
+
+    bool notify( PyObjectPtr& topic, PyObjectPtr& args, PyObjectPtr& kwargs );
+
+    Py_ssize_t py_sizeof()
+    {
+        Py_ssize_t size = sizeof( ModifyGuard* );
+        size += sizeof( std::vector<Topic> ) + sizeof( Topic ) * m_topics.capacity();
+        size += sizeof( std::vector<PyObjectPtr> ) + sizeof( PyObjectPtr ) * m_observers.capacity();
+        return size;
+    };
+
+    int py_traverse( visitproc visit, void* arg );
+
+    void py_clear()
+    {
+        m_topics.clear();
+        m_observers.clear();
+    }
+
+private:
+
+    ModifyGuard* m_modify_guard;
+    std::vector<Topic> m_topics;
+    std::vector<PyObjectPtr> m_observers;
+    ObserverPool(const ObserverPool& other);
+    ObserverPool& operator=(const ObserverPool&);
+
+};
