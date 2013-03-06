@@ -5,9 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import (
-    Member, DEFAULT_FACTORY, VALIDATE_TYPED, VALIDATE_MEMBER_METHOD
-)
+from .catom import Member, DefaultValue, Validate
 
 
 class Typed(Member):
@@ -15,22 +13,31 @@ class Typed(Member):
 
     Values will be tested using the `PyObject_TypeCheck` C API call.
     This call is equivalent to `type(obj) in cls.mro()`. It is less
-    flexible but faster than Instance.
+    flexible but faster than Instance. Use Instance when allowing
+    heterogenous values and Typed when the value type is explicit.
 
-    A typed value may not be set to None. However, it may be set to
-    null. This is chosen to more explicititly indicate the intent of
-    Typed versus Instance.
+    The value of a Typed may be set to null.
 
     """
     __slots__ = ()
 
-    def __init__(self, kind, factory=None):
-        """ Initialize an Instance.
+    def __init__(self, kind, args=None, kwargs=None, factory=None):
+        """ Initialize an Typed.
 
         Parameters
         ----------
         kind : type
-            The allowed type for the instance.
+            The allowed type for the value.
+
+        args : tuple, optional
+            If 'factory' is None, then 'kind' is a callable type and
+            these arguments will be passed to the constructor to create
+            the default value.
+
+        kwargs : dict, optional
+            If 'factory' is None, then 'kind' is a callable type and
+            these keywords will be passed to the constructor to create
+            the default value.
 
         factory : callable, optional
             An optional factory to use for creating the default value.
@@ -39,50 +46,88 @@ class Typed(Member):
 
         """
         if factory is not None:
-            self.set_default_kind(DEFAULT_FACTORY, factory)
-        self.set_validate_kind(VALIDATE_TYPED, kind)
+            self.set_default_value_mode(DefaultValue.CallObject, factory)
+        elif args is not None or kwargs is not None:
+            args = args or ()
+            kwargs = kwargs or {}
+            factory = lambda: kind(*args, **kwargs)
+            self.set_default_value_mode(DefaultValue.CallObject, factory)
+        self.set_validate_mode(Validate.Typed, kind)
 
 
 class ForwardTyped(Typed):
     """ A Typed which delays resolving the type definition.
 
     The first time the value is accessed or modified, the type will
-    be resolved and the forward instance will behave identically to
-    a normal instance.
+    be resolved and the forward typed will behave identically to a
+    normal typed.
 
     """
-    __slots__ = 'resolve'
+    __slots__ = ('resolve', 'args', 'kwargs')
 
-    def __init__(self, resolve, factory=None):
+    def __init__(self, resolve, args=None, kwargs=None, factory=None):
         """ Initialize a ForwardTyped.
 
         resolve : callable
             A callable which takes no arguments and returns the type to
             use for validating the values.
 
+        args : tuple, optional
+            If 'factory' is None, then 'resolve' will return a callable
+            type and these arguments will be passed to the constructor
+            to create the default value.
+
+        kwargs : dict, optional
+            If 'factory' is None, then 'resolve' will return a callable
+            type and these keywords will be passed to the constructor to
+            create the default value.
+
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be None.
+            then the default value will be null.
 
         """
         self.resolve = resolve
+        self.args = args
+        self.kwargs = kwargs
         if factory is not None:
-            self.set_default_kind(DEFAULT_FACTORY, factory)
-        self.set_validate_kind(VALIDATE_MEMBER_METHOD, "validate")
+            self.set_default_value_mode(DefaultValue.CallObject, factory)
+        elif args is not None or kwargs is not None:
+            mode = DefaultValue.MemberMethod_Object
+            self.set_default_value_mode(mode, "default")
+        self.set_validate_mode(Validate.MemberMethod_ObjectOldNew, "validate")
+
+    def default(self, owner):
+        """ Called to retrieve the default value.
+
+        This will resolve and instantiate the type. It will then update
+        the internal default and validate handlers to behave like a
+        normal typed member.
+
+        """
+        kind = self.resolve()
+        args = self.args or ()
+        kwargs = self.kwargs or {}
+        value = kind(*args, **kwargs)
+        factory = lambda: kind(*args, **kwargs)
+        self.set_default_value_mode(DefaultValue.CallObject, factory)
+        self.set_validate_mode(Validate.Typed, kind)
+        return value
 
     def validate(self, owner, old, new):
         """ Called to validate the value.
 
         This will resolve the type and validate the new value. It will
         then update the internal default and validate handlers to behave
-        like a normal instance member.
+        like a normal typed member.
 
         """
-        resolve = self.validate_kind[1]
-        kind = resolve()
-        if type(new) not in kind.mro():
-            raise TypeError('invalid type')
-        self.set_validate_kind(VALIDATE_TYPED, kind)
-        return new
-
+        kind = self.resolve()
+        if self.default_value_mode[0] == DefaultValue.MemberMethod_Object:
+            args = self.args or ()
+            kwargs = self.kwargs or {}
+            factory = lambda: kind(*args, **kwargs)
+            self.set_default_value_mode(DefaultValue.CallObject, factory)
+        self.set_validate_mode(Validate.Typed, kind)
+        return self.do_validate(owner, old, new)
