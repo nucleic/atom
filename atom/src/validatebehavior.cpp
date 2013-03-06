@@ -77,16 +77,38 @@ Member::check_context( Validate::Mode mode, PyObject* context )
                 py_expected_type_fail( context, "2-tuple of int or None" );
                 return false;
             }
-            PyObject* s = PyTuple_GET_ITEM( context, 0 );
-            PyObject* e = PyTuple_GET_ITEM( context, 1 );
-            if( s != Py_None && !PyInt_Check( s ) )
+            PyObject* start = PyTuple_GET_ITEM( context, 0 );
+            PyObject* end = PyTuple_GET_ITEM( context, 1 );
+            if( start != Py_None && !PyInt_Check( start ) )
             {
                 py_expected_type_fail( context, "2-tuple of int or None" );
                 return false;
             }
-            if( e != Py_None && !PyInt_Check( e ) )
+            if( end != Py_None && !PyInt_Check( end ) )
             {
                 py_expected_type_fail( context, "2-tuple of int or None" );
+                return false;
+            }
+            break;
+        }
+        case Validate::Coerced:
+        {
+            if( !PyTuple_Check( context ) )
+            {
+                py_expected_type_fail( context, "2-tuple of (type, callable)" );
+                return false;
+            }
+            if( PyTuple_GET_SIZE( context ) != 2 )
+            {
+                py_expected_type_fail( context, "2-tuple of (type, callable)" );
+                return false;
+            }
+            PyObject* type = PyTuple_GET_ITEM( context, 0 );
+            PyObject* coercer = PyTuple_GET_ITEM( context, 1 );
+            // XXX validate type as valid for isinstance(..., type)
+            if( !PyCallable_Check( coercer ) )
+            {
+                py_expected_type_fail( context, "2-tuple of (type, callable)" );
                 return false;
             }
             break;
@@ -421,6 +443,33 @@ range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 
 
 static PyObject*
+coerced_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    PyObject* type = PyTuple_GET_ITEM( member->validate_context, 0 );
+    int res = PyObject_IsInstance( newvalue, type );
+    if( res == 1 )
+        return newref( newvalue );
+    if( res == -1 )
+        return 0;
+    PyTuplePtr argsptr( PyTuple_New( 1 ) );
+    if( !argsptr )
+        return 0;
+    argsptr.initialize( 0, newref( newvalue ) );
+    PyObject* coercer = PyTuple_GET_ITEM( member->validate_context, 1 );
+    PyObjectPtr callable( newref( coercer ) );
+    PyObjectPtr coerced( callable( argsptr ) );
+    if( !coerced )
+        return 0;
+    res = PyObject_IsInstance( coerced.get(), type );
+    if( res == 1 )
+        return coerced.release();
+    if( res == -1 )
+        return 0;
+    return py_type_fail( "could not coerce value to an appropriate type" );
+}
+
+
+static PyObject*
 delegate_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     Member* delegate = member_cast( member->validate_context );
@@ -502,6 +551,7 @@ handlers[] = {
     enum_handler,
     callable_handler,
     range_handler,
+    coerced_handler,
     delegate_handler,
     object_method_old_new_handler,
     object_method_name_old_new_handler,

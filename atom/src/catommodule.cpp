@@ -196,6 +196,7 @@ initcatom( void )
         AddEnum( PyValidate, Enum );
         AddEnum( PyValidate, Callable );
         AddEnum( PyValidate, Range );
+        AddEnum( PyValidate, Coerced );
         AddEnum( PyValidate, Delegate );
         AddEnum( PyValidate, ObjectMethod_OldNew );
         AddEnum( PyValidate, ObjectMethod_NameOldNew );

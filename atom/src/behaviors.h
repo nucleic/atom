@@ -129,6 +129,7 @@ enum Mode
     Enum,
     Callable,
     Range,
+    Coerced,
     Delegate,
     ObjectMethod_OldNew,
     ObjectMethod_NameOldNew,
