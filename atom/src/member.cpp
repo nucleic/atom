@@ -296,6 +296,20 @@ Member_do_post_validate( Member* self, PyObject* args )
 
 
 static PyObject*
+Member_do_full_validate( Member* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 3 )
+        return py_type_fail( "do_full_validate() takes exactly 3 arguments" );
+    PyObject* object = PyTuple_GET_ITEM( args, 0 );
+    PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
+    PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    return self->full_validate( catom_cast( object ), oldvalue, newvalue );
+}
+
+
+static PyObject*
 Member_clone( Member* self )
 {
     // reimplement in a subclass to clone additional Python state
@@ -675,6 +689,8 @@ Member_methods[] = {
       "Run the post setattr handler for the member." },
     { "do_post_validate", ( PyCFunction )Member_do_post_validate, METH_VARARGS,
       "Run the post validation handler for the member." },
+    { "do_full_validate", ( PyCFunction )Member_do_full_validate, METH_VARARGS,
+      "Run the validation and post validation handlers for the member." },
     { "set_getattr_mode", ( PyCFunction )Member_set_getattr_mode, METH_VARARGS,
       "Set the getattr mode for the member." },
     { "set_setattr_mode", ( PyCFunction )Member_set_setattr_mode, METH_VARARGS,
