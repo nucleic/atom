@@ -17,6 +17,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
 {
     switch( mode )
     {
+        case Validate::Tuple:
         case Validate::List:
             if( context != Py_None && !Member::TypeCheck( context ) )
             {
@@ -256,9 +257,27 @@ unicode_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObje
 static PyObject*
 tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( PyTuple_Check( newvalue ) )
-        return newref( newvalue );
-    return validate_type_fail( member, atom, newvalue, "tuple" );
+    if( !PyTuple_Check( newvalue ) )
+        return validate_type_fail( member, atom, newvalue, "tuple" );
+    PyTuplePtr tupleptr( newref( newvalue ) );
+    if( member->validate_context != Py_None )
+    {
+        Py_ssize_t size = PyTuple_GET_SIZE( newvalue );
+        PyTuplePtr tuplecopy = PyTuple_New( size );
+        if( !tuplecopy )
+            return 0;
+        Member* item_member = member_cast( member->validate_context );
+        for( Py_ssize_t i = 0; i < size; ++i )
+        {
+            PyObjectPtr item( tupleptr.get_item( i ) );
+            PyObjectPtr valid_item( item_member->full_validate( atom, py_null, item.get() ) );
+            if( !valid_item )
+                return 0;
+            tuplecopy.set_item( i, valid_item );
+        }
+        tupleptr = tuplecopy;
+    }
+    return tupleptr.release();
 }
 
 
@@ -376,7 +395,7 @@ dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 static PyObject*
 instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( newvalue == Py_None )
+    if( newvalue == py_null )
         return newref( newvalue );
     int res = PyObject_IsInstance( newvalue, member->validate_context );
     if( res < 0 )
