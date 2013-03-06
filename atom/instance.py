@@ -15,7 +15,7 @@ class Instance(Member):
     This call is equivalent to `isinstance(value, kind)` and all the
     same rules apply.
 
-    The value of an Instance may also be set to None.
+    The value of an Instance may be set to null.
 
     """
     __slots__ = ()
@@ -41,7 +41,7 @@ class Instance(Member):
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be None.
+            then the default value will be null.
 
         """
         if factory is not None:
@@ -51,8 +51,6 @@ class Instance(Member):
             kwargs = kwargs or {}
             factory = lambda: kind(*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
-        else:
-            self.set_default_value_mode(DefaultValue.Static, None)
         self.set_validate_mode(Validate.Instance, kind)
 
 
@@ -86,7 +84,7 @@ class ForwardInstance(Instance):
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be None.
+            then the default value will be null.
 
         """
         self.resolve = resolve
@@ -97,8 +95,6 @@ class ForwardInstance(Instance):
         elif args is not None or kwargs is not None:
             mode = DefaultValue.MemberMethod_Object
             self.set_default_value_mode(mode, "default")
-        else:
-            self.set_default_value_mode(DefaultValue.Static, None)
         self.set_validate_mode(Validate.MemberMethod_ObjectOldNew, "validate")
 
     def default(self, owner):
