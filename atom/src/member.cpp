@@ -609,6 +609,23 @@ Member_set_post_validate_mode( Member* self, PyObject* args )
 
 
 static PyObject*
+Member_notify( Member* self, PyObject* args, PyObject* kwargs )
+{
+    if( PyTuple_GET_SIZE( args ) < 1 )
+        return py_type_fail( "notify() requires at least 1 argument" );
+    PyObject* owner = PyTuple_GET_ITEM( args, 0 );
+    if( !CAtom::TypeCheck( owner ) )
+        return py_expected_type_fail( owner, "CAtom" );
+    PyObjectPtr argsptr( PyTuple_GetSlice( args, 1, PyTuple_GET_SIZE( args ) ) );
+    if( !argsptr )
+        return 0;
+    if( !self->notify( catom_cast( owner ), argsptr.get(), kwargs ) )
+        return 0;
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
 Member__get__( Member* self, PyObject* object, PyObject* type )
 {
     if( !object )
@@ -705,6 +722,8 @@ Member_methods[] = {
       "Set the post setattr mode for the member." },
     { "set_post_validate_mode", ( PyCFunction )Member_set_post_validate_mode, METH_VARARGS,
       "Set the post validate mode for the member." },
+    { "notify", ( PyCFunction )Member_notify, METH_VARARGS | METH_KEYWORDS,
+      "Notify the static observers for the given member and atom." },
     { 0 } // sentinel
 };
 
