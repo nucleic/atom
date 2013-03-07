@@ -16,6 +16,7 @@ from .enum import Enum
 from .event import Event
 from .instance import Instance, ForwardInstance
 from .list import List
+from .property import Property
 from .scalars import (
     Value, ReadOnly, Constant, Callable, Bool, Int, Long, Range, Float, Str,
     Unicode,
