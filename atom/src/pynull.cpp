@@ -20,6 +20,28 @@ PyNull_repr( PyNull* self )
 }
 
 
+static int
+PyNull__nonzero__( PyNull* self )
+{
+    return 0;
+}
+
+
+PyNumberMethods PyNull_as_number = {
+     ( binaryfunc )0,                       /* nb_add */
+     ( binaryfunc )0,                       /* nb_subtract */
+     ( binaryfunc )0,                       /* nb_multiply */
+     ( binaryfunc )0,                       /* nb_divide */
+     ( binaryfunc )0,                       /* nb_remainder */
+     ( binaryfunc )0,                       /* nb_divmod */
+     ( ternaryfunc )0,                      /* nb_power */
+     ( unaryfunc )0,                        /* nb_negative */
+     ( unaryfunc )0,                        /* nb_positive */
+     ( unaryfunc )0,                        /* nb_absolute */
+     ( inquiry )PyNull__nonzero__           /* nb_nonzero */
+};
+
+
 PyTypeObject PyNull_Type = {
     PyObject_HEAD_INIT( &PyType_Type )
     0,                                      /* ob_size */
@@ -32,7 +54,7 @@ PyTypeObject PyNull_Type = {
     (setattrfunc)0,                         /* tp_setattr */
     (cmpfunc)0,                             /* tp_compare */
     (reprfunc)PyNull_repr,                  /* tp_repr */
-    (PyNumberMethods*)0,                    /* tp_as_number */
+    (PyNumberMethods*)&PyNull_as_number,    /* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */
     (PyMappingMethods*)0,                   /* tp_as_mapping */
     (hashfunc)0,                            /* tp_hash */
