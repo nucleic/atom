@@ -121,6 +121,23 @@ CAtom_set_notifications_enabled( CAtom* self, PyObject* arg )
 
 
 static PyObject*
+CAtom_get_member( PyObject* self, PyObject* name )
+{
+    if( !PyString_Check( name ) )
+        return py_expected_type_fail( name, "str" );
+    PyDictPtr membersptr( PyObject_GetAttr( pyobject_cast( self->ob_type ), atom_members ) );
+    if( !membersptr )
+        return 0;
+    if( !membersptr.check_exact() )
+        return py_bad_internal_call( "atom members" );
+    PyObjectPtr member( membersptr.get_item( name ) );
+    if( !member )
+        Py_RETURN_NONE;
+    return member.release();
+}
+
+
+static PyObject*
 CAtom_observe( CAtom* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 2 )
@@ -219,6 +236,8 @@ CAtom_methods[] = {
       "Get whether notification is enabled for the atom." },
     { "set_notifications_enabled", ( PyCFunction )CAtom_set_notifications_enabled, METH_O,
       "Enable or disable notifications for the atom." },
+    { "get_member", ( PyCFunction )CAtom_get_member, METH_O,
+      "Get the named member for the atom." },
     { "observe", ( PyCFunction )CAtom_observe, METH_VARARGS,
       "Register an observer callback to observe changes on the given topic(s)." },
     { "unobserve", ( PyCFunction )CAtom_unobserve, METH_VARARGS,
