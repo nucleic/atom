@@ -180,16 +180,20 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
         return -1;
     }
     PyObjectPtr oldptr( atom->get_slot( member->index ) );
-    PyObjectPtr newptr( xnewref( value != py_null ? value : 0 ) );
-    if( oldptr == newptr )
-        return 0;
+    PyObjectPtr newptr( xnewref( value ) );
     if( !oldptr )
         oldptr.set( newref( py_null ) );
     if( !newptr )
         newptr.set( newref( py_null ) );
-    newptr = member->full_validate( atom, oldptr.get(), newptr.get() );
-    if( !newptr )
-        return -1;
+    if( oldptr == newptr )
+        return 0;
+    if( newptr != py_null )
+    {
+        // Only validate the value if it's not being deleting
+        newptr = member->full_validate( atom, oldptr.get(), newptr.get() );
+        if( !newptr )
+            return -1;
+    }
     atom->set_slot( member->index, newptr != py_null ? newptr.get() : 0 );
     if( member->get_post_setattr_mode() )
     {
