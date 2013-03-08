@@ -171,6 +171,8 @@ static PyObject*
 member_method_object_handler( Member* member, CAtom* atom )
 {
     PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( member ), member->default_value_context ) );
+    if( !callable )
+        return 0;
     PyTuplePtr args( PyTuple_New( 1 ) );
     if( !args )
         return 0;
