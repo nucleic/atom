@@ -12,7 +12,7 @@ class Property(Member):
     """ A Member which behaves similar to a Python property.
 
     """
-    # XXX these behaviors could be moved to C++
+    # XXX move these behaviors down to C++.
     __slots__ = ('fget', 'fset', 'cached')
 
     def __init__(self, fget=None, fset=None, cached=False):
@@ -65,6 +65,27 @@ class Property(Member):
     #--------------------------------------------------------------------------
     # Public API
     #--------------------------------------------------------------------------
+    def getter(self, func):
+        """ Use the given function as the property getter.
+
+        This method is intented to be used as a decorator.
+
+        """
+        self.fget = func
+        if not self.cached:
+            self.set_getattr_mode(GetAttr.CallObject_Object, func)
+        return self
+
+    def setter(self, func):
+        """ Use the given function as the property getter.
+
+        This method is intented to be used as a decorator.
+
+        """
+        self.fset = func
+        self.set_setattr_mode(GetAttr.CallObject_ObjectValue, func)
+        return self
+
     def clone(self):
         """ Create a clone of the property.
 
@@ -80,20 +101,39 @@ class Property(Member):
 
         If the property is cached, the old value will be cleared and
         the notifiers (if any) will be run. If the property is not
-        cached, this method is a no-op.
+        cached, then the notifications will be unconditionally run
+        using the null as the old value.
 
         """
         if self.cached:
             oldvalue = self.get_slot(owner)
             self.set_slot(owner, null)
-            newvalue = self.do_getattr(owner)
+            if self.has_observers() or owner.has_observers(self.name):
+                newvalue = self.do_getattr(owner)
+                if oldvalue != newvalue:
+                    change = {
+                        'type': 'property',
+                        'name': self.name,
+                        'object': owner,
+                        'oldvalue': oldvalue,
+                        'newvalue': newvalue,
+                    }
+                    self.notify(owner, change)       # static observers
+                    owner.notify(self.name, change)  # dynamic observers
+        elif self.has_observers() or owner.has_observers(self.name):
             change = {
                 'type': 'property',
                 'name': self.name,
                 'object': owner,
-                'oldvalue': oldvalue,
-                'newvalue': newvalue,
+                'oldvalue': null,
+                'newvalue': self.do_getattr(owner),
             }
             self.notify(owner, change)       # static observers
             owner.notify(self.name, change)  # dynamic observers
 
+
+def cached_property(func):
+    """ A decorator which converts a function into a cached Property.
+
+    """
+    return Property(fget=func, cached=True)
