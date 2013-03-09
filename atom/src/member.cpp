@@ -81,6 +81,13 @@ Member_dealloc( Member* self )
 
 
 static PyObject*
+Member_has_observers( Member* self )
+{
+    return py_bool( self->static_observers && self->static_observers->size() > 0 );
+}
+
+
+static PyObject*
 Member_copy_static_observers( Member* self, PyObject* other )
 {
     if( !Member::TypeCheck( other ) )
@@ -682,6 +689,8 @@ Member_methods[] = {
       "Get the atom's slot value directly." },
     { "set_slot", ( PyCFunction )Member_set_slot, METH_VARARGS,
       "Set the atom's slot value directly." },
+    { "has_observers", ( PyCFunction )Member_has_observers, METH_NOARGS,
+      "Get whether or not this member has observers." },
     { "copy_static_observers", ( PyCFunction )Member_copy_static_observers, METH_O,
       "Copy the static observers from one member into this member." },
     { "static_observers", ( PyCFunction )Member_static_observers, METH_NOARGS,
