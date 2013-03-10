@@ -433,6 +433,8 @@ enum_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 static PyObject*
 callable_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
+    if( newvalue == py_null )
+        return newref( newvalue );
     if( PyCallable_Check( newvalue ) )
         return newref( newvalue );
     return validate_type_fail( member, atom, newvalue, "callable" );

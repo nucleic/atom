@@ -69,7 +69,7 @@ class Callable(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=None, factory=None):
+    def __init__(self, default=null, factory=None):
         super(Callable, self).__init__(default, factory)
         self.set_validate_mode(Validate.Callable, None)
 
