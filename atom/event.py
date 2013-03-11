@@ -33,3 +33,27 @@ class Event(Member):
                 self.set_validate_mode(Validate.Delegate, kind)
             else:
                 self.set_validate_mode(Validate.Instance, kind)
+
+    def set_name(self, name):
+        """ A reimplemented parent class method.
+
+        This method ensures that the delegate name is also set, if a
+        delegate validator is being used.
+
+        """
+        super(Event, self).set_name(name)
+        mode, kind = self.validate_mode
+        if isinstance(kind, Member):
+            kind.set_name(name)
+
+    def set_index(self, index):
+        """ A reimplemented parent class method.
+
+        This method ensures that the delegate index is also set, if a
+        delegate validator is being used.
+
+        """
+        super(Event, self).set_index(index)
+        mode, kind = self.validate_mode
+        if isinstance(kind, Member):
+            kind.set_index(index)
