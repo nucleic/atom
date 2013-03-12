@@ -39,6 +39,24 @@ class Delegator(Member):
         sup.set_validate_mode(Validate.Delegate, delegate)
         sup.set_post_validate_mode(PostValidate.Delegate, delegate)
 
+    def add_static_observer(self, observer):
+        """ Add a static observer to the member.
+
+        This method also adds the static observer to the delegate.
+
+        """
+        super(Delegator, self).add_static_observer(observer)
+        self.delegate.add_static_observer(observer)
+
+    def remove_static_observer(self, observer):
+        """ Remove a static observer from the member.
+
+        This method also removes the static observer from the delegate.
+
+        """
+        super(Delegator, self).remove_static_observer(observer)
+        self.delegate.remove_static_observer(observer)
+
     def set_name(self, name):
         """ Assign the name to this member.
 
