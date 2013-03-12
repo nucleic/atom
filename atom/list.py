@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, null, PostGetAttr, DefaultValue, Validate
+from .catom import Member, PostGetAttr, DefaultValue, Validate, null
 from .instance import Instance
 
 
@@ -17,7 +17,7 @@ class List(Member):
     operator on the C++ STL container classes.
 
     """
-    __slots__ = ()
+    __slots__ = 'item'
 
     def __init__(self, item=None, default=None):
         """ Initialize a List.
@@ -37,103 +37,192 @@ class List(Member):
         """
         if item is not None and not isinstance(item, Member):
             item = Instance(item)
+        self.item = item
         self.set_default_value_mode(DefaultValue.List, default)
         self.set_validate_mode(Validate.List, item)
+
+        # Only use the post getattr handler if there is a validator
+        # item. This prevents unneeded creation of ListProxy objects.
         if item is not None:
-            mode = PostGetAttr.MemberMethod_ObjectValue
-            self.set_post_getattr_mode(mode, 'post_getattr')
-
-    def post_getattr(self, owner, data):
-        """ A post getattr handler.
-
-        If the list performs item validation, then this handler will
-        be called to wrap the list in a proxy object on the fly.
-
-        """
-        member = self.validate_mode[1]
-        return _ListProxy(owner, member, data)
+            self.set_post_getattr_mode(
+                PostGetAttr.MemberMethod_ObjectValue, "post_getattr"
+            )
 
     def set_name(self, name):
-        """ Assign the name to this member.
+        """ Set the name of the member.
 
-        This method is called by the Atom metaclass when a class is
-        created. This makes sure the name of the internal member is
-        also updated.
+        This method ensures that the item member name is also updated.
 
         """
         super(List, self).set_name(name)
-        member = self.validate_mode[1]
-        if member is not None:
-            member.set_name(name + "|item")
+        if self.item is not None:
+            self.item.set_name(name + "|item")
 
     def set_index(self, index):
         """ Assign the index to this member.
 
-        This method is called by the Atom metaclass when a class is
-        created. This makes sure the index of the internal member is
-        also updated.
+        This method ensures that the item member index is also updated.
 
         """
         super(List, self).set_index(index)
-        member = self.validate_mode[1]
-        if member is not None:
-            member.set_index(index)
+        if self.item is not None:
+            self.item.set_index(index)
+
+    def post_getattr(self, owner, value):
+        """ A post getattr handler.
+
+        This handler is only invoked if the list uses an item validator.
+
+        """
+        return ListProxy(self, owner, value)
 
 
-class _ListProxy(object):
-    """ A private proxy object which validates list modifications.
+class ListProxy(object):
+    """ A proxy object which validates in-place list operations.
 
-    Instances of this class should not be created by user code.
+    Instances of this class are created on the fly by the post getattr
+    handler of a List which has an item validator.
 
     """
-    # XXX move this class to C++
-    def __init__(self, owner, member, data):
-        self._owner = owner
-        self._member = member
-        self._data = data
+    # TODO move this class to C++
+    __slots__ = ('_member', '_owner', '_value')
 
-    def __repr__(self):
-        return repr(self._data)
+    def __init__(self, member, owner, value):
+        """ Initialize a ProxyList.
+
+        Parameters
+        ----------
+        member : List
+            The List member which created this ListProxy.
+
+        owner : Atom
+            The atom object which owns the list value.
+
+        value : list
+            The data value for the member.
+
+        """
+        self._member = member
+        self._owner = owner
+        self._value = value
+
+    def __add__(self, other):
+        return self._value + other
 
     def __call__(self):
-        return self._data
+        """ Retrieve the raw list object wrapped by the proxy.
 
-    def __iter__(self):
-        return iter(self._data)
+        """
+        return self._value
 
-    def __getitem__(self, index):
-        return self._data[index]
-
-    def __setitem__(self, index, item):
-        item = self._member.do_full_validate(self._owner, null, item)
-        self._data[index] = item
+    def __contains__(self, item):
+        return item in self._value
 
     def __delitem__(self, index):
-        del self._data[index]
+        del self._value[index]
+
+    def __eq__(self, other):
+        return self._value == other
+
+    def __ge__(self, other):
+        return self._value >= other
+
+    def __getitem__(self, index):
+        return self._value[index]
+
+    def __gt__(self, other):
+        return self._value > other
+
+    def __hash__(self, other):
+        return hash(self._value)
+
+    def __iadd__(self, items):
+        validator = self._member.item
+        if validator is not None:
+            owner = self._owner
+            validate = validator.do_full_validate
+            items = [validate(owner, null, i) for i in items]
+        self._value += items
+        return self._value
+
+    def __imul__(self, count):
+        self._value *= count
+        return self._value
+
+    def __iter__(self):
+        return iter(self._value)
+
+    def __le__(self, other):
+        return self._value <= other
+
+    def __len__(self):
+        return len(self._value)
+
+    def __lt__(self, other):
+        return self._value < other
+
+    def __mul__(self, other):
+        return self._value * other
+
+    def __ne__(self, other):
+        return self._value != other
+
+    def __repr__(self):
+        return repr(self._value)
+
+    def __rmul__(self, other):
+        return other * self._value
+
+    def __setitem__(self, index, item):
+        validator = self._member.item
+        if validator is not None:
+            owner = self._owner
+            validate = validator.do_full_validate
+            if isinstance(index, slice):
+                item = [validate(owner, null, i) for i in item]
+            else:
+                item = validate(owner, null, item)
+        self._value[index] = item
+
+    def __str__(self):
+        return str(self._value)
 
     def append(self, item):
-        item = self._member.do_full_validate(self._owner, null, item)
-        self._data.append(item)
+        validator = self._member.item
+        if validator is not None:
+            validate = validator.do_full_validate
+            item = validate(self._owner, null, item)
+        self._value.append(item)
 
-    def insert(self, index, item):
-        item = self._member.do_full_validate(self._owner, null, item)
-        self._data.insert(index, item)
+    def count(self, item):
+        return self._value.count(item)
 
     def extend(self, items):
-        owner = self._owner
-        validate = self._member.do_full_validate
-        items = [validate(owner, null, item) for item in items]
-        self._data.extend(items)
+        validator = self._member.item
+        if validator is not None:
+            owner = self._owner
+            validate = validator.do_full_validate
+            items = [validate(owner, null, i) for i in items]
+        self._value.extend(items)
+
+    def index(self, item):
+        return self._value.index(item)
+
+    def insert(self, index, item):
+        validator = self._member.item
+        if validator is not None:
+            validate = validator.do_full_validate
+            item = validate(self._owner, null, item)
+        self._value.insert(index, item)
 
     def pop(self, *args):
-        self._data.pop(*args)
+        return self._value.pop(*args)
 
     def remove(self, item):
-        self._data.remove(item)
+        self._value.remove(item)
 
     def reverse(self):
-        self._data.reverse()
+        self._value.reverse()
 
-    def sort(self, *args, **kwargs):
-        self._data.sort(*args, **kwargs)
-
+    def sort(self, cmp=None, key=None, reverse=False):
+        self._value.sort(cmp, key, reverse)
