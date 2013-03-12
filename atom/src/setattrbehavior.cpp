@@ -55,9 +55,9 @@ no_op_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static PyObject* createdstr;
-static PyObject* updatedstr;
-static PyObject* deletedstr;
+static PyObject* createstr;
+static PyObject* updatestr;
+static PyObject* deletestr;
 static PyObject* eventstr;
 static PyObject* typestr;
 static PyObject* objectstr;
@@ -73,22 +73,22 @@ make_static_strs()
     static bool alloced = false;
     if( alloced )
         return true;
-    if( !createdstr )
+    if( !createstr )
     {
-        createdstr = PyString_InternFromString( "created" );
-        if( !createdstr )
+        createstr = PyString_InternFromString( "create" );
+        if( !createstr )
             return false;
     }
-    if( !updatedstr )
+    if( !updatestr )
     {
-        updatedstr = PyString_InternFromString( "updated" );
-        if( !updatedstr )
+        updatestr = PyString_InternFromString( "update" );
+        if( !updatestr )
             return false;
     }
-    if( !deletedstr )
+    if( !deletestr )
     {
-        deletedstr = PyString_InternFromString( "deleted" );
-        if( !deletedstr )
+        deletestr = PyString_InternFromString( "delete" );
+        if( !deletestr )
             return false;
     }
     if( !eventstr )
@@ -151,11 +151,11 @@ make_change_args( CAtom* atom, PyObject* name, PyObject* oldvalue, PyObject* new
         return 0;
     PyObject* changetype;
     if( oldvalue == py_null )
-        changetype = createdstr;
+        changetype = createstr;
     else if( newvalue == py_null )
-        changetype = deletedstr;
+        changetype = deletestr;
     else
-        changetype = updatedstr;
+        changetype = updatestr;
     if( !dict.set_item( typestr, changetype ) )
         return 0;
     if( !dict.set_item( objectstr, pyobject_cast( atom ) ) )
