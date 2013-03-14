@@ -190,6 +190,7 @@ initcatom( void )
         AddEnum( PyValidate, UnicodePromote );
         AddEnum( PyValidate, Tuple );
         AddEnum( PyValidate, List );
+        AddEnum( PyValidate, ListNoCopy );
         AddEnum( PyValidate, Dict );
         AddEnum( PyValidate, Instance );
         AddEnum( PyValidate, Typed );

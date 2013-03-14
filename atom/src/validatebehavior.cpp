@@ -19,6 +19,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
     {
         case Validate::Tuple:
         case Validate::List:
+        case Validate::ListNoCopy:
             if( context != Py_None && !Member::TypeCheck( context ) )
             {
                 py_expected_type_fail( context, "Member or None" );
@@ -308,6 +309,30 @@ list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 
 
 static PyObject*
+list_no_copy_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( !PyList_Check( newvalue ) )
+        return validate_type_fail( member, atom, newvalue, "list" );
+    Py_ssize_t size = PyList_GET_SIZE( newvalue );
+    PyListPtr listptr( newref( newvalue ) );
+    if( member->validate_context != Py_None )
+    {
+        Member* item_member = member_cast( member->validate_context );
+        for( Py_ssize_t i = 0; i < size; ++i )
+        {
+            PyObjectPtr item( listptr.get_item( i ) );
+            PyObjectPtr valid_item( item_member->full_validate( atom, py_null, item.get() ) );
+            if( !valid_item )
+                return 0;
+            if( valid_item != item )
+                listptr.set_item( i, valid_item );
+        }
+    }
+    return listptr.release();
+}
+
+
+static PyObject*
 validate_dict_key_value( Member* keymember, Member* valmember, CAtom* atom, PyObject* dict )
 {
     PyObject* key;
@@ -566,6 +591,7 @@ handlers[] = {
     unicode_promote_handler,
     tuple_handler,
     list_handler,
+    list_no_copy_handler,
     dict_handler,
     instance_handler,
     typed_handler,

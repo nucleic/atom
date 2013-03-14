@@ -123,6 +123,7 @@ enum Mode
     UnicodePromote,
     Tuple,
     List,
+    ListNoCopy,
     Dict,
     Instance,
     Typed,

@@ -15,11 +15,11 @@ class ContainerList(List):
     """
     __slots__ = ()
 
-    def __init__(self, item=None, default=None):
+    def __init__(self, item=None, default=None, copy=True):
         """ Initialize a ContainerList.
 
         """
-        super(ContainerList, self).__init__(item, default)
+        super(ContainerList, self).__init__(item, default, copy)
         self.set_post_getattr_mode(
             PostGetAttr.MemberMethod_ObjectValue, "post_getattr"
         )
