@@ -29,6 +29,7 @@ struct Member
     uint64_t modes;
     uint32_t index;
     PyObject* name;
+    PyObject* metadata;
     PyObject* getattr_context;
     PyObject* setattr_context;
     PyObject* validate_context;

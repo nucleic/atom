@@ -35,6 +35,7 @@ static void
 Member_clear( Member* self )
 {
     Py_CLEAR( self->name );
+    Py_CLEAR( self->metadata );
     Py_CLEAR( self->getattr_context );
     Py_CLEAR( self->setattr_context );
     Py_CLEAR( self->validate_context );
@@ -51,6 +52,7 @@ static int
 Member_traverse( Member* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->name );
+    Py_VISIT( self->metadata );
     Py_VISIT( self->getattr_context );
     Py_VISIT( self->setattr_context );
     Py_VISIT( self->validate_context );
@@ -327,6 +329,8 @@ Member_clone( Member* self )
     clone->modes = self->modes;
     clone->index = self->index;
     clone->name = newref( self->name );
+    if( self->metadata )
+        clone->metadata = PyDict_Copy( self->metadata );
     clone->getattr_context = xnewref( self->getattr_context );
     clone->setattr_context = xnewref( self->setattr_context );
     clone->validate_context = xnewref( self->validate_context );
@@ -633,6 +637,34 @@ Member_notify( Member* self, PyObject* args, PyObject* kwargs )
 
 
 static PyObject*
+Member_get_metadata( Member* self, void* ctxt )
+{
+    if( !self->metadata )
+        Py_RETURN_NONE;
+    Py_INCREF( self->metadata );
+    return self->metadata;
+}
+
+
+static int
+Member_set_metadata( Member* self, PyObject* value, void* ctxt )
+{
+    if( value && value != Py_None && !PyDict_Check( value ) )
+    {
+        py_expected_type_fail( value, "dict or None" );
+        return -1;
+    }
+    if( value == Py_None )
+        value = 0;
+    PyObject* old = self->metadata;
+    self->metadata = value;
+    Py_XINCREF( value );
+    Py_XDECREF( old );
+    return 0;
+}
+
+
+static PyObject*
 Member__get__( Member* self, PyObject* object, PyObject* type )
 {
     if( !object )
@@ -659,6 +691,8 @@ static PyGetSetDef
 Member_getset[] = {
     { "name", ( getter )Member_get_name, 0,
       "Get the name to which the member is bound." },
+    { "metadata", ( getter )Member_get_metadata, ( setter )Member_set_metadata,
+      "Get and set the metadata for the member." },
     { "index", ( getter )Member_get_index, 0,
       "Get the index to which the member is bound" },
     { "getattr_mode", ( getter )Member_get_getattr_mode, 0,
