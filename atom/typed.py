@@ -131,3 +131,13 @@ class ForwardTyped(Typed):
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         self.set_validate_mode(Validate.Typed, kind)
         return self.do_validate(owner, old, new)
+
+    def clone(self):
+        """ Create a clone of the ForwardTyped instance.
+
+        """
+        clone = super(ForwardTyped, self).clone()
+        clone.resolve = self.resolve
+        clone.args = self.args
+        clone.kwargs = self.kwargs
+        return clone

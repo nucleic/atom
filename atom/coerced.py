@@ -15,6 +15,8 @@ class Coerced(Member):
     set to null.
 
     """
+    __slots__ = ()
+
     def __init__(self, kind, args=None, kwargs=None, factory=None, coercer=None):
         """ Initialize a Coerced.
 

@@ -130,3 +130,13 @@ class ForwardInstance(Instance):
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         self.set_validate_mode(Validate.Instance, kind)
         return self.do_validate(owner, old, new)
+
+    def clone(self):
+        """ Create a clone of the ForwardInstance object.
+
+        """
+        clone = super(ForwardInstance, self).clone()
+        clone.resolve = self.resolve
+        clone.args = self.args
+        clone.kwargs = self.kwargs
+        return clone
