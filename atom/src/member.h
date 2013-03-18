@@ -13,6 +13,9 @@
 #include "behaviors.h"
 #include "catom.h"
 
+#ifndef UINT64_C
+#define UINT64_C( c ) ( c ## ULL )
+#endif
 
 #define member_cast( o ) ( reinterpret_cast<Member*>( o ) )
 
@@ -47,7 +50,7 @@ struct Member
 
     void set_getattr_mode( GetAttr::Mode mode )
     {
-        uint64_t mask = 0xffffffffffffff00;
+        uint64_t mask = UINT64_C( 0xffffffffffffff00 );
         modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) );
     }
 
@@ -58,7 +61,7 @@ struct Member
 
     void set_setattr_mode( SetAttr::Mode mode )
     {
-        uint64_t mask = 0xffffffffffff00ff;
+        uint64_t mask = UINT64_C( 0xffffffffffff00ff );
         modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 8 );
     }
 
@@ -69,7 +72,7 @@ struct Member
 
     void set_post_getattr_mode( PostGetAttr::Mode mode )
     {
-        uint64_t mask = 0xffffffffff00ffff;
+        uint64_t mask = UINT64_C( 0xffffffffff00ffff );
         modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 16 );
     }
 
@@ -80,7 +83,7 @@ struct Member
 
     void set_post_setattr_mode( PostSetAttr::Mode mode )
     {
-        uint64_t mask = 0xffffffff00ffffff;
+        uint64_t mask = UINT64_C( 0xffffffff00ffffff );
         modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 24 );
     }
 
@@ -91,7 +94,7 @@ struct Member
 
     void set_default_value_mode( DefaultValue::Mode mode )
     {
-        uint64_t mask = 0xffffff00ffffffff;
+        uint64_t mask = UINT64_C( 0xffffff00ffffffff );
         modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 32 );
     }
 
@@ -102,7 +105,7 @@ struct Member
 
     void set_validate_mode( Validate::Mode mode )
     {
-        uint64_t mask = 0xffff00ffffffffff;
+        uint64_t mask = UINT64_C( 0xffff00ffffffffff );
         modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 40 );
     }
 
@@ -113,7 +116,7 @@ struct Member
 
     void set_post_validate_mode( PostValidate::Mode mode )
     {
-        uint64_t mask = 0xff00ffffffffffff;
+        uint64_t mask = UINT64_C( 0xff00ffffffffffff );
         modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 48 );
     }
 
