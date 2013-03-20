@@ -104,15 +104,24 @@ ObserverPool::add( PyObjectPtr& topic, PyObjectPtr& observer )
         {
             std::vector<PyObjectPtr>::iterator obs_it;
             std::vector<PyObjectPtr>::iterator obs_end;
+            std::vector<PyObjectPtr>::iterator obs_free;
             obs_it = m_observers.begin() + obs_offset;
             obs_end = obs_it + topic_it->m_count;
+            obs_free = obs_end;
             for( ; obs_it != obs_end; ++obs_it )
             {
                 if( *obs_it == observer || obs_it->richcompare( observer, Py_EQ ) )
                     return;
+                if( !obs_it->is_true() )
+                    obs_free = obs_it;
             }
-            m_observers.insert( obs_end, observer );
-            ++topic_it->m_count;
+            if( obs_free == obs_end )
+            {
+                m_observers.insert( obs_end, observer );
+                ++topic_it->m_count;
+            }
+            else
+                *obs_free = observer;
             return;
         }
         obs_offset += topic_it->m_count;
