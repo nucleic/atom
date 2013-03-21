@@ -77,6 +77,22 @@ class List(Member):
         if self.item is not None:
             self.item.set_index(index)
 
+    def clone(self):
+        """ Create a clone of the list.
+
+        This will clone the internal list item if one is in use.
+
+        """
+        clone = super(List, self).clone()
+        item = self.item
+        if item is not None:
+            clone.item = item_clone = item.clone()
+            mode, ctxt = self.validate_mode
+            clone.set_validate_mode(mode, item_clone)
+        else:
+            clone.item = None
+        return clone
+
     def post_getattr(self, owner, value):
         """ A post getattr handler.
 
