@@ -29,6 +29,11 @@ ext_modules = [
          ],
         language='c++',
     ),
+    Extension(
+        'atom.sortedmap',
+        ['atom/src/sortedmap.cpp'],
+        language='c++',
+    ),
 ]
 
 
