@@ -265,9 +265,9 @@ public:
         return true;
     }
 
-    bool richcompare( PyObjectPtr& other, int opid, bool clear_err=true )
+    bool richcompare( PyObject* other, int opid, bool clear_err=true )
     {
-        int r = PyObject_RichCompareBool( m_pyobj, other.m_pyobj, opid );
+        int r = PyObject_RichCompareBool( m_pyobj, other, opid );
         if( r == 1 )
             return true;
         if( r == 0 )
@@ -275,6 +275,11 @@ public:
         if( clear_err && PyErr_Occurred() )
             PyErr_Clear();
         return false;
+    }
+
+    bool richcompare( PyObjectPtr& other, int opid, bool clear_err=true )
+    {
+        return richcompare( other.m_pyobj, opid, clear_err );
     }
 
     bool hasattr( PyObject* attr )
