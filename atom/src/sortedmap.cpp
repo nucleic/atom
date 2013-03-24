@@ -239,12 +239,12 @@ struct SortedMap
 static PyObject*
 SortedMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-    PyObjectPtr mapptr( PyType_GenericNew( type, args, kwargs ) );
-    if( !mapptr )
+    PyObject* self = PyType_GenericNew( type, args, kwargs );
+    if( !self )
         return 0;
-    SortedMap* self = reinterpret_cast<SortedMap*>( mapptr.get() );
-    self->sortedmap = new sortedmap_t();
-    return mapptr.release();
+    SortedMap* cself = reinterpret_cast<SortedMap*>( self );
+    cself->sortedmap = new sortedmap_t();
+    return self;
 }
 
 
@@ -406,6 +406,20 @@ SortedMap_items( SortedMap* self )
 
 
 static PyObject*
+SortedMap_copy( SortedMap* self )
+{
+    PyTypeObject* type = pytype_cast( self->ob_type );
+    PyObject* copy = type->tp_alloc( type, 0 );
+    if( !copy )
+        return 0;
+    SortedMap* ccopy = reinterpret_cast<SortedMap*>( copy );
+    ccopy->sortedmap = new sortedmap_t();
+    *ccopy->sortedmap = *self->sortedmap;
+    return copy;
+}
+
+
+static PyObject*
 SortedMap_repr( SortedMap* self )
 {
     std::ostringstream ostr;
@@ -462,6 +476,8 @@ SortedMap_methods[] = {
     { "values", ( PyCFunction )SortedMap_values, METH_NOARGS,
       "" },
     { "items", ( PyCFunction )SortedMap_items, METH_NOARGS,
+      "" },
+    { "copy", ( PyCFunction )SortedMap_copy, METH_NOARGS,
       "" },
     { "__contains__", ( PyCFunction )SortedMap_contains_bool, METH_O | METH_COEXIST,
       "" },
