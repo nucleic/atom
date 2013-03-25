@@ -50,6 +50,11 @@ CAtom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 static int
 CAtom_init( CAtom* self, PyObject* args, PyObject* kwargs )
 {
+    if( PyTuple_GET_SIZE( args ) > 0 )
+    {
+        py_type_fail( "__init__() takes no positional arguments" );
+        return -1;
+    }
     if( kwargs )
     {
         PyObjectPtr selfptr( newref( pyobject_cast( self ) ) );
