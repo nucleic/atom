@@ -8,7 +8,7 @@
 #include "pythonhelpers.h"
 #include "catom.h"
 #include "member.h"
-#include "pynull.h"
+#include "memberchange.h"
 #include "eventbinder.h"
 #include "signalconnector.h"
 
@@ -67,9 +67,9 @@ initcatom( void )
     PyObject* mod = Py_InitModule( "catom", catom_methods );
     if( !mod )
         return;
-    if( import_pynull() < 0 )
-        return;
     if( import_member() < 0 )
+        return;
+    if( import_memberchange() < 0 )
         return;
     if( import_catom() < 0 )
         return;
@@ -80,16 +80,17 @@ initcatom( void )
 
     Py_INCREF( &Member_Type );
     Py_INCREF( &CAtom_Type );
-    Py_INCREF( py_null );
     PyModule_AddObject( mod, "Member", reinterpret_cast<PyObject*>( &Member_Type ) );
     PyModule_AddObject( mod, "CAtom", reinterpret_cast<PyObject*>( &CAtom_Type ) );
-    PyModule_AddObject( mod, "null", py_null );
 
     PyObject* PyGetAttr = new_enum_class( "GetAttr" );
     if( !PyGetAttr )
         return;
     PyObject* PySetAttr = new_enum_class( "SetAttr" );
     if( !PySetAttr )
+        return;
+    PyObject* PyDelAttr = new_enum_class( "DelAttr" );
+    if( !PyDelAttr )
         return;
     PyObject* PyPostGetAttr = new_enum_class( "PostGetAttr" );
     if( !PyPostGetAttr )
@@ -141,6 +142,17 @@ initcatom( void )
         AddEnum( PySetAttr, ObjectMethod_Value );
         AddEnum( PySetAttr, ObjectMethod_NameValue );
         AddEnum( PySetAttr, MemberMethod_ObjectValue );
+    }
+
+    {
+        using namespace DelAttr;
+        AddEnum( PyDelAttr, NoOp );
+        AddEnum( PyDelAttr, Slot );
+        AddEnum( PyDelAttr, Constant );
+        AddEnum( PyDelAttr, ReadOnly );
+        AddEnum( PyDelAttr, Event );
+        AddEnum( PyDelAttr, Signal );
+        AddEnum( PyDelAttr, Delegate );
     }
 
     {
@@ -215,6 +227,7 @@ initcatom( void )
 
     PyModule_AddObject( mod, "GetAttr", PyGetAttr );
     PyModule_AddObject( mod, "SetAttr", PySetAttr );
+    PyModule_AddObject( mod, "DelAttr", PyDelAttr );
     PyModule_AddObject( mod, "PostGetAttr", PyPostGetAttr );
     PyModule_AddObject( mod, "PostSetAttr", PyPostSetAttr );
     PyModule_AddObject( mod, "DefaultValue", PyDefaultValue );

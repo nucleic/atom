@@ -6,7 +6,6 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "member.h"
-#include "pynull.h"
 
 
 using namespace PythonHelpers;
@@ -66,7 +65,7 @@ Member::check_context( DefaultValue::Mode mode, PyObject* context )
 static PyObject*
 no_op_handler( Member* member, CAtom* atom )
 {
-    return newref( py_null );
+    return newref( Py_None );
 }
 
 
@@ -208,4 +207,3 @@ Member::default_value( CAtom* atom )
         return no_op_handler( this, atom );
     return handlers[ get_default_value_mode() ]( this, atom );
 }
-

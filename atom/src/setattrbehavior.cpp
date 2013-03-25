@@ -6,7 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "member.h"
-#include "pynull.h"
+#include "memberchange.h"
 
 
 using namespace PythonHelpers;
@@ -55,119 +55,31 @@ no_op_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static PyObject* createstr;
-static PyObject* updatestr;
-static PyObject* deletestr;
-static PyObject* eventstr;
-static PyObject* typestr;
-static PyObject* objectstr;
-static PyObject* namestr;
-static PyObject* valuestr;
-static PyObject* oldvaluestr;
-static PyObject* newvaluestr;
-
-
-static bool
-make_static_strs()
+static PyObject*
+created_args( CAtom* atom, Member* member, PyObject* value )
 {
-    static bool alloced = false;
-    if( alloced )
-        return true;
-    if( !createstr )
-    {
-        createstr = PyString_InternFromString( "create" );
-        if( !createstr )
-            return false;
-    }
-    if( !updatestr )
-    {
-        updatestr = PyString_InternFromString( "update" );
-        if( !updatestr )
-            return false;
-    }
-    if( !deletestr )
-    {
-        deletestr = PyString_InternFromString( "delete" );
-        if( !deletestr )
-            return false;
-    }
-    if( !eventstr )
-    {
-        eventstr = PyString_InternFromString( "event" );
-        if( !eventstr )
-            return false;
-    }
-    if( !typestr )
-    {
-        typestr = PyString_InternFromString( "type" );
-        if( !typestr )
-            return false;
-    }
-    if( !objectstr )
-    {
-        objectstr = PyString_InternFromString( "object" );
-        if( !objectstr )
-            return false;
-    }
-    if( !namestr )
-    {
-        namestr = PyString_InternFromString( "name" );
-        if( !namestr )
-            return false;
-    }
-    if( !valuestr )
-    {
-        valuestr = PyString_InternFromString( "value" );
-        if( !valuestr )
-            return false;
-    }
-    if( !oldvaluestr )
-    {
-        oldvaluestr = PyString_InternFromString( "oldvalue" );
-        if( !oldvaluestr )
-            return false;
-    }
-    if( !newvaluestr )
-    {
-        newvaluestr = PyString_InternFromString( "newvalue" );
-        if( !newvaluestr )
-            return false;
-    }
-    alloced = true;
-    return true;
+    PyTuplePtr argsptr( PyTuple_New( 1 ) );
+    if( !argsptr )
+        return 0;
+    PyObjectPtr changeptr( MemberChange::created( atom, member, value ) );
+    if( !changeptr )
+        return 0;
+    argsptr.initialize( 0, changeptr );
+    return argsptr.release();
 }
 
 
 static PyObject*
-make_change_args( CAtom* atom, PyObject* name, PyObject* oldvalue, PyObject* newvalue )
+updated_args( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( !make_static_strs() )
+    PyTuplePtr argsptr( PyTuple_New( 1 ) );
+    if( !argsptr )
         return 0;
-    PyDictPtr dict( PyDict_New() );
-    if( !dict )
+    PyObjectPtr changeptr( MemberChange::updated( atom, member, oldvalue, newvalue ) );
+    if( !changeptr )
         return 0;
-    PyTuplePtr args( PyTuple_New( 1 ) );
-    if( !args )
-        return 0;
-    PyObject* changetype;
-    if( oldvalue == py_null )
-        changetype = createstr;
-    else if( newvalue == py_null )
-        changetype = deletestr;
-    else
-        changetype = updatestr;
-    if( !dict.set_item( typestr, changetype ) )
-        return 0;
-    if( !dict.set_item( objectstr, pyobject_cast( atom ) ) )
-        return 0;
-    if( !dict.set_item( namestr, name ) )
-        return 0;
-    if( !dict.set_item( oldvaluestr, oldvalue ) )
-        return 0;
-    if( !dict.set_item( newvaluestr, newvalue ) )
-        return 0;
-    args.initialize( 0, dict );
-    return args.release();
+    argsptr.initialize( 0, changeptr );
+    return argsptr.release();
 }
 
 
@@ -180,34 +92,32 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
         return -1;
     }
     PyObjectPtr oldptr( atom->get_slot( member->index ) );
-    PyObjectPtr newptr( xnewref( value ) );
-    if( !oldptr )
-        oldptr.set( newref( py_null ) );
-    if( !newptr )
-        newptr.set( newref( py_null ) );
+    PyObjectPtr newptr( newref( value ) );
     if( oldptr == newptr )
         return 0;
-    if( newptr != py_null )
-    {
-        // Only validate the value if it's not being deleting
-        newptr = member->full_validate( atom, oldptr.get(), newptr.get() );
-        if( !newptr )
-            return -1;
-    }
-    atom->set_slot( member->index, newptr != py_null ? newptr.get() : 0 );
+    bool valid_old = oldptr.get() != 0;
+    if( !valid_old )
+        oldptr.set( newref( Py_None ) );
+    newptr = member->full_validate( atom, oldptr.get(), newptr.get() );
+    if( !newptr )
+        return -1;
+    atom->set_slot( member->index, newptr.get() );
     if( member->get_post_setattr_mode() )
     {
         if( member->post_setattr( atom, oldptr.get(), newptr.get() ) < 0 )
             return -1;
     }
-    if( oldptr != newptr && atom->get_notifications_enabled() )
+    if( ( !valid_old || oldptr != newptr ) && atom->get_notifications_enabled() )
     {
         PyObjectPtr argsptr;
         if( member->has_observers() )
         {
-            if( oldptr.richcompare( newptr, Py_EQ ) )
+            if( valid_old && oldptr.richcompare( newptr, Py_EQ ) )
                 return 0;
-            argsptr = make_change_args( atom, member->name, oldptr.get(), newptr.get() );
+            if( valid_old )
+                argsptr = updated_args( atom, member, oldptr.get(), newptr.get() );
+            else
+                argsptr = created_args( atom, member, newptr.get() );
             if( !argsptr )
                 return -1;
             if( !member->notify( atom, argsptr.get(), 0 ) )
@@ -217,9 +127,12 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
         {
             if( !argsptr )
             {
-                if( oldptr.richcompare( newptr, Py_EQ ) )
+                if( valid_old && oldptr.richcompare( newptr, Py_EQ ) )
                     return 0;
-                argsptr = make_change_args( atom, member->name, oldptr.get(), newptr.get() );
+                if( valid_old )
+                    argsptr = updated_args( atom, member, oldptr.get(), newptr.get() );
+                else
+                    argsptr = created_args( atom, member, newptr.get() );
                 if( !argsptr )
                     return -1;
             }
@@ -258,33 +171,23 @@ read_only_handler( Member* member, CAtom* atom, PyObject* value )
 
 
 static PyObject*
-make_event_args( CAtom* atom, PyObject* name, PyObject* value )
+event_args( CAtom* atom, Member* member, PyObject* value )
 {
-    if( !make_static_strs() )
+    PyTuplePtr argsptr( PyTuple_New( 1 ) );
+    if( !argsptr )
         return 0;
-    PyDictPtr dict( PyDict_New() );
-    if( !dict )
+    PyObjectPtr changeptr( MemberChange::event( atom, member, value ) );
+    if( !changeptr )
         return 0;
-    PyTuplePtr args( PyTuple_New( 1 ) );
-    if( !args )
-        return 0;
-    if( !dict.set_item( typestr, eventstr ) )
-        return 0;
-    if( !dict.set_item( objectstr, pyobject_cast( atom ) ) )
-        return 0;
-    if( !dict.set_item( namestr, name ) )
-        return 0;
-    if( !dict.set_item( valuestr, value ) )
-        return 0;
-    args.initialize( 0, dict );
-    return args.release();
+    argsptr.initialize( 0, changeptr );
+    return argsptr.release();
 }
 
 
 static int
 event_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    PyObjectPtr valueptr( member->full_validate( atom, py_null, value ? value : py_null ) );
+    PyObjectPtr valueptr( member->full_validate( atom, Py_None, value ) );
     if( !valueptr )
         return -1;
     if( atom->get_notifications_enabled() )
@@ -292,7 +195,7 @@ event_handler( Member* member, CAtom* atom, PyObject* value )
         PyObjectPtr argsptr;
         if( member->has_observers() )
         {
-            argsptr = make_event_args( atom, member->name, valueptr.get() );
+            argsptr = event_args( atom, member, valueptr.get() );
             if( !argsptr )
                 return -1;
             if( !member->notify( atom, argsptr.get(), 0 ) )
@@ -302,7 +205,7 @@ event_handler( Member* member, CAtom* atom, PyObject* value )
         {
             if( !argsptr )
             {
-                argsptr = make_event_args( atom, member->name, valueptr.get() );
+                argsptr = event_args( atom, member, valueptr.get() );
                 if( !argsptr )
                     return -1;
             }
@@ -317,7 +220,7 @@ event_handler( Member* member, CAtom* atom, PyObject* value )
 static int
 signal_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    py_type_fail( "cannot assign to a Signal" );
+    py_type_fail( "cannot set the value of a signal" );
     return -1;
 }
 
@@ -333,16 +236,16 @@ delegate_handler( Member* member, CAtom* atom, PyObject* value )
 static int
 call_object_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    PyObjectPtr newptr( newref( value ? value : py_null ) );
-    newptr = member->full_validate( atom, py_null, newptr.get() );
-    if( !newptr )
+    PyObjectPtr valueptr( newref( value ) );
+    valueptr = member->full_validate( atom, Py_None, valueptr.get() );
+    if( !valueptr )
         return -1;
     PyObjectPtr callable( newref( member->setattr_context ) );
     PyTuplePtr args( PyTuple_New( 2 ) );
     if( !args )
         return -1;
     args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    args.initialize( 1, newptr );
+    args.initialize( 1, valueptr );
     if( !callable( args ) )
         return -1;
     return 0;
@@ -352,9 +255,9 @@ call_object_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 static int
 call_object_object_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    PyObjectPtr newptr( newref( value ? value : py_null ) );
-    newptr = member->full_validate( atom, py_null, newptr.get() );
-    if( !newptr )
+    PyObjectPtr valueptr( newref( value ) );
+    valueptr = member->full_validate( atom, Py_None, valueptr.get() );
+    if( !valueptr )
         return -1;
     PyObjectPtr callable( newref( member->setattr_context ) );
     PyTuplePtr args( PyTuple_New( 2 ) );
@@ -362,7 +265,7 @@ call_object_object_name_value_handler( Member* member, CAtom* atom, PyObject* va
         return -1;
     args.initialize( 0, newref( pyobject_cast( atom ) ) );
     args.initialize( 1, newref( member->name ) );
-    args.initialize( 2, newptr );
+    args.initialize( 2, valueptr );
     if( !callable( args ) )
         return -1;
     return 0;
@@ -372,9 +275,9 @@ call_object_object_name_value_handler( Member* member, CAtom* atom, PyObject* va
 static int
 object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    PyObjectPtr newptr( newref( value ? value : py_null ) );
-    newptr = member->full_validate( atom, py_null, newptr.get() );
-    if( !newptr )
+    PyObjectPtr valueptr( newref( value ) );
+    valueptr = member->full_validate( atom, Py_None, valueptr.get() );
+    if( !valueptr )
         return -1;
     PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->setattr_context ) );
     if( !callable )
@@ -382,7 +285,7 @@ object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
     PyTuplePtr args( PyTuple_New( 1 ) );
     if( !args )
         return -1;
-    args.initialize( 0, newptr );
+    args.initialize( 0, valueptr );
     if( !callable( args ) )
         return -1;
     return 0;
@@ -392,9 +295,9 @@ object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
 static int
 object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    PyObjectPtr newptr( newref( value ? value : py_null ) );
-    newptr = member->full_validate( atom, py_null, newptr.get() );
-    if( !newptr )
+    PyObjectPtr valueptr( newref( value ) );
+    valueptr = member->full_validate( atom, Py_None, valueptr.get() );
+    if( !valueptr )
         return -1;
     PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->setattr_context ) );
     if( !callable )
@@ -403,7 +306,7 @@ object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
     if( !args )
         return -1;
     args.initialize( 0, newref( member->name ) );
-    args.initialize( 1, newptr );
+    args.initialize( 1, valueptr );
     if( !callable( args ) )
         return -1;
     return 0;
@@ -413,9 +316,9 @@ object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 static int
 member_method_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    PyObjectPtr newptr( newref( value ? value : py_null ) );
-    newptr = member->full_validate( atom, py_null, newptr.get() );
-    if( !newptr )
+    PyObjectPtr valueptr( newref( value ) );
+    valueptr = member->full_validate( atom, Py_None, valueptr.get() );
+    if( !valueptr )
         return -1;
     PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( member ), member->setattr_context ) );
     if( !callable )
@@ -424,7 +327,7 @@ member_method_object_value_handler( Member* member, CAtom* atom, PyObject* value
     if( !args )
         return -1;
     args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    args.initialize( 1, newptr );
+    args.initialize( 1, valueptr );
     if( !callable( args ) )
         return -1;
     return 0;

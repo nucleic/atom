@@ -23,7 +23,7 @@ enum Mode
     ObjectMethod,
     ObjectMethod_Name,
     MemberMethod_Object,
-    Last  // sentinel
+    Last // sentinel
 };
 
 } // namespace GetAttr
@@ -62,7 +62,7 @@ enum Mode
     ObjectMethod_Value,
     ObjectMethod_NameValue,
     MemberMethod_ObjectValue,
-    Last  // sentinel
+    Last // sentinel
 };
 
 } // namespace SetAttr
@@ -100,7 +100,7 @@ enum Mode
     ObjectMethod,
     ObjectMethod_Name,
     MemberMethod_Object,
-    Last  // sentinel
+    Last // sentinel
 };
 
 } // namespace DefaultValue
@@ -135,7 +135,7 @@ enum Mode
     ObjectMethod_OldNew,
     ObjectMethod_NameOldNew,
     MemberMethod_ObjectOldNew,
-    Last  // sentinel
+    Last // sentinel
 };
 
 } // namespace Validate
@@ -155,3 +155,21 @@ enum Mode
 };
 
 } // namespace PostValidate
+
+
+namespace DelAttr
+{
+
+enum Mode
+{
+    NoOp,
+    Slot,
+    Constant,
+    ReadOnly,
+    Event,
+    Signal,
+    Delegate,
+    Last // sentinel
+};
+
+} // namespace DelAttr

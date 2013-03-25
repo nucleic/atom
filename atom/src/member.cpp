@@ -8,7 +8,6 @@
 #pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #include "member.h"
-#include "pynull.h"
 
 
 using namespace PythonHelpers;
@@ -27,6 +26,7 @@ Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     member->name = newref( undefined );
     member->set_getattr_mode( GetAttr::Slot );
     member->set_setattr_mode( SetAttr::Slot );
+    member->set_delattr_mode( DelAttr::Slot );
     return selfptr.release();
 }
 
@@ -38,6 +38,7 @@ Member_clear( Member* self )
     Py_CLEAR( self->metadata );
     Py_CLEAR( self->getattr_context );
     Py_CLEAR( self->setattr_context );
+    Py_CLEAR( self->delattr_context );
     Py_CLEAR( self->validate_context );
     Py_CLEAR( self->post_getattr_context );
     Py_CLEAR( self->post_setattr_context );
@@ -55,6 +56,7 @@ Member_traverse( Member* self, visitproc visit, void* arg )
     Py_VISIT( self->metadata );
     Py_VISIT( self->getattr_context );
     Py_VISIT( self->setattr_context );
+    Py_VISIT( self->delattr_context );
     Py_VISIT( self->validate_context );
     Py_VISIT( self->post_getattr_context );
     Py_VISIT( self->post_setattr_context );
@@ -191,7 +193,7 @@ Member_get_slot( Member* self, PyObject* object )
     PyObjectPtr value( atom->get_slot( self->index ) );
     if( value )
         return value.release();
-    return newref( py_null );
+    Py_RETURN_NONE;
 }
 
 
@@ -207,9 +209,20 @@ Member_set_slot( Member* self, PyObject* args )
     CAtom* atom = catom_cast( object );
     if( self->index >= atom->get_slot_count() )
         return py_no_attr_fail( object, PyString_AsString( self->name ) );
-    if( value == py_null )
-        value = 0;
     atom->set_slot( self->index, value );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_del_slot( Member* self, PyObject* object )
+{
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    CAtom* atom = catom_cast( object );
+    if( self->index >= atom->get_slot_count() )
+        return py_no_attr_fail( object, PyString_AsString( self->name ) );
+    atom->set_slot( self->index, 0 );
     Py_RETURN_NONE;
 }
 
@@ -233,6 +246,17 @@ Member_do_setattr( Member* self, PyObject* args )
     if( !CAtom::TypeCheck( object ) )
         return py_expected_type_fail( object, "CAtom" );
     if( self->setattr( catom_cast( object ), value ) < 0 )
+        return 0;
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+Member_do_delattr( Member* self, PyObject* object )
+{
+    if( !CAtom::TypeCheck( object ) )
+        return py_expected_type_fail( object, "CAtom" );
+    if( self->delattr( catom_cast( object ) ) < 0 )
         return 0;
     Py_RETURN_NONE;
 }
@@ -333,6 +357,7 @@ Member_clone( Member* self )
         clone->metadata = PyDict_Copy( self->metadata );
     clone->getattr_context = xnewref( self->getattr_context );
     clone->setattr_context = xnewref( self->setattr_context );
+    clone->delattr_context = xnewref( self->delattr_context );
     clone->validate_context = xnewref( self->validate_context );
     clone->post_getattr_context = xnewref( self->post_getattr_context );
     clone->post_setattr_context = xnewref( self->post_setattr_context );
@@ -396,7 +421,7 @@ Member_get_getattr_mode( Member* self, void* ctxt )
         return 0;
     tuple.set_item( 0, PyInt_FromLong( self->get_getattr_mode() ) );
     PyObject* context = self->getattr_context;
-    tuple.set_item( 1, newref( context ? context : py_null ) );
+    tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
 }
 
@@ -429,7 +454,7 @@ Member_get_setattr_mode( Member* self, void* ctxt )
         return 0;
     tuple.set_item( 0, PyInt_FromLong( self->get_setattr_mode() ) );
     PyObject* context = self->setattr_context;
-    tuple.set_item( 1, newref( context ? context : py_null ) );
+    tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
 }
 
@@ -455,6 +480,39 @@ Member_set_setattr_mode( Member* self, PyObject* args )
 
 
 static PyObject*
+Member_get_delattr_mode( Member* self, void* ctxt )
+{
+    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    if( !tuple )
+        return 0;
+    tuple.set_item( 0, PyInt_FromLong( self->get_delattr_mode() ) );
+    PyObject* context = self->delattr_context;
+    tuple.set_item( 1, newref( context ? context : Py_None ) );
+    return tuple.release();
+}
+
+
+static PyObject*
+Member_set_delattr_mode( Member* self, PyObject* args )
+{
+    DelAttr::Mode mode;
+    PyObject* context;
+    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
+        return 0;
+    if( mode < DelAttr::NoOp || mode >= DelAttr::Last )
+        return py_value_fail( "invalid delattr mode" );
+    if( !Member::check_context( mode, context ) )
+        return 0;
+    self->set_delattr_mode( mode );
+    PyObject* old = self->delattr_context;
+    self->delattr_context = context;
+    Py_INCREF( context );
+    Py_XDECREF( old );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
 Member_get_post_getattr_mode( Member* self, void* ctxt )
 {
     PyTuplePtr tuple( PyTuple_New( 2 ) );
@@ -462,7 +520,7 @@ Member_get_post_getattr_mode( Member* self, void* ctxt )
         return 0;
     tuple.set_item( 0, PyInt_FromLong( self->get_post_getattr_mode() ) );
     PyObject* context = self->post_getattr_context;
-    tuple.set_item( 1, newref( context ? context : py_null ) );
+    tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
 }
 
@@ -495,7 +553,7 @@ Member_get_post_setattr_mode( Member* self, void* ctxt )
         return 0;
     tuple.set_item( 0, PyInt_FromLong( self->get_post_setattr_mode() ) );
     PyObject* context = self->post_setattr_context;
-    tuple.set_item( 1, newref( context ? context : py_null ) );
+    tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
 }
 
@@ -528,7 +586,7 @@ Member_get_default_value_mode( Member* self, void* ctxt )
         return 0;
     tuple.set_item( 0, PyInt_FromLong( self->get_default_value_mode() ) );
     PyObject* context = self->default_value_context;
-    tuple.set_item( 1, newref( context ? context : py_null ) );
+    tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
 }
 
@@ -561,7 +619,7 @@ Member_get_validate_mode( Member* self, void* ctxt )
         return 0;
     tuple.set_item( 0, PyInt_FromLong( self->get_validate_mode() ) );
     PyObject* context = self->validate_context;
-    tuple.set_item( 1, newref( context ? context : py_null ) );
+    tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
 }
 
@@ -594,7 +652,7 @@ Member_get_post_validate_mode( Member* self, void* ctxt )
         return 0;
     tuple.set_item( 0, PyInt_FromLong( self->get_post_validate_mode() ) );
     PyObject* context = self->post_validate_context;
-    tuple.set_item( 1, newref( context ? context : py_null ) );
+    tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
 }
 
@@ -683,7 +741,9 @@ Member__set__( Member* self, PyObject* object, PyObject* value )
         py_expected_type_fail( object, "CAtom" );
         return -1;
     }
-    return self->setattr( catom_cast( object ), value );
+    if( value )
+        return self->setattr( catom_cast( object ), value );
+    return self->delattr( catom_cast( object ) );
 }
 
 
@@ -699,6 +759,8 @@ Member_getset[] = {
       "Get the getattr mode for the member." },
     { "setattr_mode", ( getter )Member_get_setattr_mode, 0,
       "Get the setattr mode for the member." },
+    { "delattr_mode", ( getter )Member_get_delattr_mode, 0,
+      "Get the delattr mode for the member." },
     { "default_value_mode", ( getter )Member_get_default_value_mode, 0,
       "Get the default value mode for the member." },
     { "validate_mode", ( getter )Member_get_validate_mode, 0,
@@ -723,6 +785,8 @@ Member_methods[] = {
       "Get the atom's slot value directly." },
     { "set_slot", ( PyCFunction )Member_set_slot, METH_VARARGS,
       "Set the atom's slot value directly." },
+    { "del_slot", ( PyCFunction )Member_del_slot, METH_O,
+      "Delete the atom's slot value directly." },
     { "has_observers", ( PyCFunction )Member_has_observers, METH_NOARGS,
       "Get whether or not this member has observers." },
     { "copy_static_observers", ( PyCFunction )Member_copy_static_observers, METH_O,
@@ -739,6 +803,8 @@ Member_methods[] = {
       "Run the getattr handler for the member." },
     { "do_setattr", ( PyCFunction )Member_do_setattr, METH_VARARGS,
       "Run the setattr handler for the member." },
+    { "do_delattr", ( PyCFunction )Member_do_delattr, METH_O,
+      "Run the delattr handler for the member." },
     { "do_default_value", ( PyCFunction )Member_do_default_value, METH_O,
       "Run the default value handler for member." },
     { "do_validate", ( PyCFunction )Member_do_validate, METH_VARARGS,
@@ -755,6 +821,8 @@ Member_methods[] = {
       "Set the getattr mode for the member." },
     { "set_setattr_mode", ( PyCFunction )Member_set_setattr_mode, METH_VARARGS,
       "Set the setattr mode for the member." },
+    { "set_delattr_mode", ( PyCFunction )Member_set_delattr_mode, METH_VARARGS,
+      "Set the delattr mode for the member." },
     { "set_default_value_mode", ( PyCFunction )Member_set_default_value_mode, METH_VARARGS,
       "Set the default value mode for the member." },
     { "set_validate_mode", ( PyCFunction )Member_set_validate_mode, METH_VARARGS,
@@ -900,4 +968,3 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
     }
     return true;
 }
-

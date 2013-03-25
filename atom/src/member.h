@@ -35,6 +35,7 @@ struct Member
     PyObject* metadata;
     PyObject* getattr_context;
     PyObject* setattr_context;
+    PyObject* delattr_context;
     PyObject* validate_context;
     PyObject* post_getattr_context;
     PyObject* post_setattr_context;
@@ -120,9 +121,22 @@ struct Member
         modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 48 );
     }
 
+    DelAttr::Mode get_delattr_mode()
+    {
+        return static_cast<DelAttr::Mode>( ( modes >> 56 ) & 0xff );
+    }
+
+    void set_delattr_mode( DelAttr::Mode mode )
+    {
+        uint64_t mask = UINT64_C( 0x00ffffffffffffff );
+        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 56 );
+    }
+
     PyObject* getattr( CAtom* atom );
 
     int setattr( CAtom* atom, PyObject* value );
+
+    int delattr( CAtom* atom );
 
     PyObject* post_getattr( CAtom* atom, PyObject* value );
 
@@ -158,6 +172,8 @@ struct Member
     static bool check_context( Validate::Mode mode, PyObject* context );
 
     static bool check_context( PostValidate::Mode mode, PyObject* context );
+
+    static bool check_context( DelAttr::Mode mode, PyObject* context );
 
     static int TypeCheck( PyObject* object )
     {

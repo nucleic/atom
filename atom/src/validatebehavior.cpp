@@ -6,7 +6,6 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "member.h"
-#include "pynull.h"
 
 
 using namespace PythonHelpers;
@@ -271,7 +270,7 @@ tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
         for( Py_ssize_t i = 0; i < size; ++i )
         {
             PyObjectPtr item( tupleptr.get_item( i ) );
-            PyObjectPtr valid_item( item_member->full_validate( atom, py_null, item.get() ) );
+            PyObjectPtr valid_item( item_member->full_validate( atom, Py_None, item.get() ) );
             if( !valid_item )
                 return 0;
             tuplecopy.set_item( i, valid_item );
@@ -297,7 +296,7 @@ list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
         for( Py_ssize_t i = 0; i < size; ++i )
         {
             PyObjectPtr item( listcopy.get_item( i ) );
-            PyObjectPtr valid_item( item_member->full_validate( atom, py_null, item.get() ) );
+            PyObjectPtr valid_item( item_member->full_validate( atom, Py_None, item.get() ) );
             if( !valid_item )
                 return 0;
             if( valid_item != item )
@@ -321,7 +320,7 @@ list_no_copy_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject*
         for( Py_ssize_t i = 0; i < size; ++i )
         {
             PyObjectPtr item( listptr.get_item( i ) );
-            PyObjectPtr valid_item( item_member->full_validate( atom, py_null, item.get() ) );
+            PyObjectPtr valid_item( item_member->full_validate( atom, Py_None, item.get() ) );
             if( !valid_item )
                 return 0;
             if( valid_item != item )
@@ -343,10 +342,10 @@ validate_dict_key_value( Member* keymember, Member* valmember, CAtom* atom, PyOb
         return 0;
     while( PyDict_Next( dict, &pos, &key, &value ) )
     {
-        PyObjectPtr keyptr( keymember->full_validate( atom, py_null, key ) );
+        PyObjectPtr keyptr( keymember->full_validate( atom, Py_None, key ) );
         if( !keyptr )
             return 0;
-        PyObjectPtr valptr( valmember->full_validate( atom, py_null, value ) );
+        PyObjectPtr valptr( valmember->full_validate( atom, Py_None, value ) );
         if( !valptr )
             return 0;
         if( !newptr.set_item( keyptr, valptr ) )
@@ -368,7 +367,7 @@ validate_dict_value( Member* valmember, CAtom* atom, PyObject* dict )
     while( PyDict_Next( dict, &pos, &key, &value ) )
     {
         PyObjectPtr keyptr( newref( key ) );
-        PyObjectPtr valptr( valmember->full_validate( atom, py_null, value ) );
+        PyObjectPtr valptr( valmember->full_validate( atom, Py_None, value ) );
         if( !valptr )
             return 0;
         if( !newptr.set_item( keyptr, valptr ) )
@@ -389,7 +388,7 @@ validate_dict_key( Member* keymember, CAtom* atom, PyObject* dict )
         return 0;
     while( PyDict_Next( dict, &pos, &key, &value ) )
     {
-        PyObjectPtr keyptr( keymember->full_validate( atom, py_null, key ) );
+        PyObjectPtr keyptr( keymember->full_validate( atom, Py_None, key ) );
         if( !keyptr )
             return 0;
         PyObjectPtr valptr( newref( value ) );
@@ -420,7 +419,7 @@ dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 static PyObject*
 instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( newvalue == py_null )
+    if( newvalue == Py_None )
         return newref( newvalue );
     int res = PyObject_IsInstance( newvalue, member->validate_context );
     if( res < 0 )
@@ -434,7 +433,7 @@ instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
 static PyObject*
 typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( newvalue == py_null )
+    if( newvalue == Py_None )
         return newref( newvalue );
     PyTypeObject* type = pytype_cast( member->validate_context );
     if( PyObject_TypeCheck( newvalue, type ) )
@@ -458,7 +457,7 @@ enum_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 static PyObject*
 callable_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( newvalue == py_null )
+    if( newvalue == Py_None )
         return newref( newvalue );
     if( PyCallable_Check( newvalue ) )
         return newref( newvalue );

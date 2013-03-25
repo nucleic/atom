@@ -6,7 +6,6 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "eventbinder.h"
-#include "pynull.h"
 
 
 using namespace PythonHelpers;
@@ -102,7 +101,7 @@ EventBinder__call__( EventBinder* self, PyObject* args, PyObject* kwargs )
     Py_ssize_t size = PyTuple_GET_SIZE( args );
     if( size > 1 )
         return py_type_fail( "An event can be triggered with at most 1 argument" );
-    PyObject* value = size == 0 ? py_null : PyTuple_GET_ITEM( args, 0 );
+    PyObject* value = size == 0 ? Py_None : PyTuple_GET_ITEM( args, 0 );
     if( self->member->setattr( self->atom, value ) < 0 )
         return 0;
     Py_RETURN_NONE;

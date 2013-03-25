@@ -7,7 +7,6 @@
 |----------------------------------------------------------------------------*/
 #include "eventbinder.h"
 #include "member.h"
-#include "pynull.h"
 #include "signalconnector.h"
 
 
@@ -53,7 +52,7 @@ Member::check_context( GetAttr::Mode mode, PyObject* context )
 static PyObject*
 no_op_handler( Member* member, CAtom* atom )
 {
-    return newref( py_null );
+    return newref( Py_None );
 }
 
 
@@ -72,11 +71,10 @@ slot_handler( Member* member, CAtom* atom )
     value = member->default_value( atom );
     if( !value )
         return 0;
-    value = member->full_validate( atom, py_null, value.get() );
+    value = member->full_validate( atom, Py_None, value.get() );
     if( !value )
         return 0;
-    if( value != py_null )
-        atom->set_slot( member->index, value.get() );
+    atom->set_slot( member->index, value.get() );
     if( member->get_post_getattr_mode() )
         value = member->post_getattr( atom, value.get() );
     return value.release();
@@ -116,7 +114,7 @@ call_object_object_handler( Member* member, CAtom* atom )
     PyObjectPtr result( callable( args ) );
     if( !result )
         return 0;
-    return member->full_validate( atom, py_null, result.get() );
+    return member->full_validate( atom, Py_None, result.get() );
 }
 
 
@@ -132,7 +130,7 @@ call_object_object_name_handler( Member* member, CAtom* atom )
     PyObjectPtr result( callable( args ) );
     if( !result )
         return 0;
-    return member->full_validate( atom, py_null, result.get() );
+    return member->full_validate( atom, Py_None, result.get() );
 }
 
 
@@ -148,7 +146,7 @@ object_method_handler( Member* member, CAtom* atom )
     PyObjectPtr result( callable( args ) );
     if( !result )
         return 0;
-    return member->full_validate( atom, py_null, result.get() );
+    return member->full_validate( atom, Py_None, result.get() );
 }
 
 
@@ -165,7 +163,7 @@ object_method_name_handler( Member* member, CAtom* atom )
     PyObjectPtr result( callable( args ) );
     if( !result )
         return 0;
-    return member->full_validate( atom, py_null, result.get() );
+    return member->full_validate( atom, Py_None, result.get() );
 }
 
 
@@ -182,7 +180,7 @@ member_method_object_handler( Member* member, CAtom* atom )
     PyObjectPtr result( callable( args ) );
     if( !result )
         return 0;
-    return member->full_validate( atom, py_null, result.get() );
+    return member->full_validate( atom, Py_None, result.get() );
 }
 
 
