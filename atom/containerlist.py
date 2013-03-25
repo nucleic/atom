@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import PostGetAttr, null
+from .catom import PostGetAttr
 from .list import List, ListProxy
 
 
@@ -73,7 +73,7 @@ class ContainerListProxy(ListProxy):
         if validator is not None:
             owner = self._owner
             validate = validator.do_full_validate
-            items = [validate(owner, null, i) for i in items]
+            items = [validate(owner, None, i) for i in items]
         owner = self._owner
         obss = member.has_observers()
         obsd = owner.has_observers(member.name)
@@ -124,9 +124,9 @@ class ContainerListProxy(ListProxy):
             owner = self._owner
             validate = validator.do_full_validate
             if isinstance(index, slice):
-                item = [validate(owner, null, i) for i in item]
+                item = [validate(owner, None, i) for i in item]
             else:
-                item = validate(owner, null, item)
+                item = validate(owner, None, item)
         owner = self._owner
         obss = member.has_observers()
         obsd = owner.has_observers(member.name)
@@ -157,7 +157,7 @@ class ContainerListProxy(ListProxy):
         validator = member.item
         if validator is not None:
             validate = validator.do_full_validate
-            item = validate(self._owner, null, item)
+            item = validate(self._owner, None, item)
         self._value.append(item)
         owner = self._owner
         obss = member.has_observers()
@@ -182,7 +182,7 @@ class ContainerListProxy(ListProxy):
         if validator is not None:
             owner = self._owner
             validate = validator.do_full_validate
-            items = [validate(owner, null, i) for i in items]
+            items = [validate(owner, None, i) for i in items]
         owner = self._owner
         obss = member.has_observers()
         obsd = owner.has_observers(member.name)
@@ -210,7 +210,7 @@ class ContainerListProxy(ListProxy):
         validator = member.item
         if validator is not None:
             validate = validator.do_full_validate
-            item = validate(self._owner, null, item)
+            item = validate(self._owner, None, item)
         self._value.insert(index, item)
         owner = self._owner
         obss = member.has_observers()
@@ -243,7 +243,7 @@ class ContainerListProxy(ListProxy):
                 'object': owner,
                 'value': self._value,
                 'operation': 'pop',
-                'index': args[0] if args else null,
+                'index': args[0] if args else None,
                 'item': item,
             }
             if obss:

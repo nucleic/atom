@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, PostGetAttr, DefaultValue, Validate, null
+from .catom import Member, PostGetAttr, DefaultValue, Validate
 from .instance import Instance
 
 
@@ -166,7 +166,7 @@ class ListProxy(object):
         if validator is not None:
             owner = self._owner
             validate = validator.do_full_validate
-            items = [validate(owner, null, i) for i in items]
+            items = [validate(owner, None, i) for i in items]
         self._value += items
         return self._value
 
@@ -204,9 +204,9 @@ class ListProxy(object):
             owner = self._owner
             validate = validator.do_full_validate
             if isinstance(index, slice):
-                item = [validate(owner, null, i) for i in item]
+                item = [validate(owner, None, i) for i in item]
             else:
-                item = validate(owner, null, item)
+                item = validate(owner, None, item)
         self._value[index] = item
 
     def __str__(self):
@@ -216,7 +216,7 @@ class ListProxy(object):
         validator = self._member.item
         if validator is not None:
             validate = validator.do_full_validate
-            item = validate(self._owner, null, item)
+            item = validate(self._owner, None, item)
         self._value.append(item)
 
     def count(self, item):
@@ -227,7 +227,7 @@ class ListProxy(object):
         if validator is not None:
             owner = self._owner
             validate = validator.do_full_validate
-            items = [validate(owner, null, i) for i in items]
+            items = [validate(owner, None, i) for i in items]
         self._value.extend(items)
 
     def index(self, item):
@@ -237,7 +237,7 @@ class ListProxy(object):
         validator = self._member.item
         if validator is not None:
             validate = validator.do_full_validate
-            item = validate(self._owner, null, item)
+            item = validate(self._owner, None, item)
         self._value.insert(index, item)
 
     def pop(self, *args):

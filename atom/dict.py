@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 from UserDict import DictMixin
 
-from .catom import Member, PostGetAttr, DefaultValue, Validate, null
+from .catom import Member, PostGetAttr, DefaultValue, Validate
 from .instance import Instance
 
 
@@ -112,9 +112,9 @@ class _DictProxy(object, DictMixin):
     def __setitem__(self, key, value):
         owner = self._owner
         if self._keymember is not None:
-            key = self._keymember.do_full_validate(owner, null, key)
+            key = self._keymember.do_full_validate(owner, None, key)
         if self._valmember is not None:
-            value = self._valmember.do_full_validate(owner, null, value)
+            value = self._valmember.do_full_validate(owner, None, value)
         self._data[key] = value
 
     def __delitem__(self, key):

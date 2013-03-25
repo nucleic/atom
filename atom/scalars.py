@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, DefaultValue, Validate, SetAttr, null
+from .catom import Member, DefaultValue, Validate, SetAttr
 
 
 class Value(Member):
@@ -47,7 +47,7 @@ class ReadOnly(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=null, factory=None):
+    def __init__(self, default=None, factory=None):
         super(ReadOnly, self).__init__(default, factory)
         self.set_setattr_mode(SetAttr.ReadOnly, None)
 
@@ -69,7 +69,7 @@ class Callable(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=null, factory=None):
+    def __init__(self, default=None, factory=None):
         super(Callable, self).__init__(default, factory)
         self.set_validate_mode(Validate.Callable, None)
 

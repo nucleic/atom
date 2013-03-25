@@ -15,7 +15,7 @@ class Instance(Member):
     This call is equivalent to `isinstance(value, kind)` and all the
     same rules apply.
 
-    The value of an Instance may be set to null.
+    The value of an Instance may be set to None.
 
     """
     __slots__ = ()
@@ -41,7 +41,7 @@ class Instance(Member):
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be null.
+            then the default value will be None.
 
         """
         if factory is not None:
@@ -84,7 +84,7 @@ class ForwardInstance(Instance):
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be null.
+            then the default value will be None.
 
         """
         self.resolve = resolve

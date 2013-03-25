@@ -12,7 +12,7 @@ class Coerced(Member):
     """ A member which will coerce a value to a given instance type.
 
     Unlike Typed or Instance, a Coerced value is not intended to be
-    set to null.
+    set to None.
 
     """
     __slots__ = ()

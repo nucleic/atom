@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, GetAttr, SetAttr, null
+from .catom import Member, GetAttr, SetAttr
 
 
 class Property(Member):
@@ -38,7 +38,7 @@ class Property(Member):
     #--------------------------------------------------------------------------
     def _cached_getter(self, owner):
         value = self.get_slot(owner)
-        if value is not null:
+        if value is not None: # FIXME None might be the cached value
             return value
         value = self._lookup_getter(owner)
         self.set_slot(owner, value)
@@ -102,12 +102,12 @@ class Property(Member):
         If the property is cached, the old value will be cleared and
         the notifiers (if any) will be run. If the property is not
         cached, then the notifications will be unconditionally run
-        using the null as the old value.
+        using the None as the old value.
 
         """
         if self.cached:
             oldvalue = self.get_slot(owner)
-            self.set_slot(owner, null)
+            self.del_slot(owner)
             if self.has_observers() or owner.has_observers(self.name):
                 newvalue = self.do_getattr(owner)
                 if oldvalue != newvalue:
@@ -125,7 +125,7 @@ class Property(Member):
                 'type': 'property',
                 'name': self.name,
                 'object': owner,
-                'oldvalue': null,
+                'oldvalue': None,
                 'newvalue': self.do_getattr(owner),
             }
             self.notify(owner, change)       # static observers

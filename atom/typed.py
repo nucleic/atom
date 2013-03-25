@@ -16,7 +16,7 @@ class Typed(Member):
     flexible but faster than Instance. Use Instance when allowing
     heterogenous values and Typed when the value type is explicit.
 
-    The value of a Typed may be set to null.
+    The value of a Typed may be set to None
 
     """
     __slots__ = ()
@@ -42,7 +42,7 @@ class Typed(Member):
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be null.
+            then the default value will be None.
 
         """
         if factory is not None:
@@ -85,7 +85,7 @@ class ForwardTyped(Typed):
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be null.
+            then the default value will be None.
 
         """
         self.resolve = resolve
