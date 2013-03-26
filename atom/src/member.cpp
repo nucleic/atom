@@ -900,7 +900,8 @@ Member::full_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
     return result.release();
 }
 
-namespace MemberTasks
+
+namespace
 {
 
 struct BaseTask : public ModifyTask
@@ -936,7 +937,7 @@ struct RemoveTask : public BaseTask
     }
 };
 
-} // MemberTasks
+} // namespace
 
 
 void
@@ -944,7 +945,7 @@ Member::add_observer( PyStringObject* name )
 {
     if( modify_guard )
     {
-        ModifyTask* task = new MemberTasks::AddTask( this, name );
+        ModifyTask* task = new AddTask( this, name );
         modify_guard->add_task( task );
         return;
     }
@@ -968,7 +969,7 @@ Member::remove_observer( PyStringObject* name )
 {
     if( modify_guard )
     {
-        ModifyTask* task = new MemberTasks::RemoveTask( this, name );
+        ModifyTask* task = new RemoveTask( this, name );
         modify_guard->add_task( task );
         return;
     }

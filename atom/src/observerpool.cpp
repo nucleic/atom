@@ -8,7 +8,7 @@
 #include "observerpool.h"
 
 
-namespace PoolTasks
+namespace
 {
 
 struct BaseTask : public ModifyTask
@@ -36,7 +36,7 @@ struct RemoveTask : public BaseTask
     void run() { m_pool.remove( m_topic, m_observer ); }
 };
 
-} // namespace PoolTasks
+} // namespace
 
 
 bool
@@ -58,7 +58,7 @@ ObserverPool::add( PyObjectPtr& topic, PyObjectPtr& observer )
 {
     if( m_modify_guard )
     {
-        ModifyTask* task = new PoolTasks::AddTask( *this, topic, observer );
+        ModifyTask* task = new AddTask( *this, topic, observer );
         m_modify_guard->add_task( task );
         return;
     }
@@ -103,7 +103,7 @@ ObserverPool::remove( PyObjectPtr& topic, PyObjectPtr& observer )
 {
     if( m_modify_guard )
     {
-        ModifyTask* task = new PoolTasks::RemoveTask( *this, topic, observer );
+        ModifyTask* task = new RemoveTask( *this, topic, observer );
         m_modify_guard->add_task( task );
         return;
     }
@@ -159,7 +159,7 @@ ObserverPool::notify( PyObjectPtr& topic, PyObjectPtr& args, PyObjectPtr& kwargs
                 }
                 else
                 {
-                    ModifyTask* task = new PoolTasks::RemoveTask( *this, topic, *obs_it );
+                    ModifyTask* task = new RemoveTask( *this, topic, *obs_it );
                     m_modify_guard->add_task( task );
                 }
             }
