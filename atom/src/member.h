@@ -12,6 +12,7 @@
 #include "pythonhelpers.h"
 #include "behaviors.h"
 #include "catom.h"
+#include "modifyguard.h"
 
 #ifndef UINT64_C
 #define UINT64_C( c ) ( c ## ULL )
@@ -21,9 +22,6 @@
 
 
 extern PyTypeObject Member_Type;
-
-
-class StaticModifyGuard;
 
 
 struct Member
@@ -41,8 +39,12 @@ struct Member
     PyObject* post_setattr_context;
     PyObject* default_value_context;
     PyObject* post_validate_context;
-    StaticModifyGuard* modify_guard;
+    ModifyGuard<Member>* modify_guard;
     std::vector<PythonHelpers::PyObjectPtr>* static_observers;
+
+    // ModifyGuard template interface
+    ModifyGuard<Member>* get_modify_guard() { return modify_guard; }
+    void set_modify_guard( ModifyGuard<Member>* guard ) { modify_guard = guard; }
 
     GetAttr::Mode get_getattr_mode()
     {
@@ -156,6 +158,10 @@ struct Member
             return true;
         return false;
     }
+
+    void add_observer( PyStringObject* name );
+
+    void remove_observer( PyStringObject* name );
 
     bool notify( CAtom* atom, PyObject* args, PyObject* kwargs );
 

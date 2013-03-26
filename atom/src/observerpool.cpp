@@ -8,67 +8,29 @@
 #include "observerpool.h"
 
 
-struct ModifyTask
+struct BaseTask : public ModifyTask
 {
-    ModifyTask( ObserverPool& pool, PyObjectPtr& topic, PyObjectPtr& observer ) :
+    BaseTask( ObserverPool& pool, PyObjectPtr& topic, PyObjectPtr& observer ) :
         m_pool( pool ), m_topic( topic ), m_observer( observer ) {}
-    virtual ~ModifyTask() {}
-    virtual void run() = 0;
     ObserverPool& m_pool;
     PyObjectPtr m_topic;
     PyObjectPtr m_observer;
 };
 
 
-struct AddTask : public ModifyTask
+struct AddTask : public BaseTask
 {
     AddTask( ObserverPool& pool, PyObjectPtr& topic, PyObjectPtr& observer ) :
-        ModifyTask( pool, topic, observer ) {}
+        BaseTask( pool, topic, observer ) {}
     void run() { m_pool.add( m_topic, m_observer ); }
 };
 
 
-struct RemoveTask : public ModifyTask
+struct RemoveTask : public BaseTask
 {
     RemoveTask( ObserverPool& pool, PyObjectPtr& topic, PyObjectPtr& observer ) :
-        ModifyTask( pool, topic, observer ) {}
+        BaseTask( pool, topic, observer ) {}
     void run() { m_pool.remove( m_topic, m_observer ); }
-};
-
-
-class ModifyGuard
-{
-
-public:
-
-    ModifyGuard( ObserverPool& pool ) : m_pool( pool )
-    {
-        if( !m_pool.m_modify_guard )
-            m_pool.m_modify_guard = this;
-    }
-
-    ~ModifyGuard()
-    {
-        if( m_pool.m_modify_guard == this )
-        {
-            m_pool.m_modify_guard = 0;
-            std::vector<ModifyTask*>::iterator it;
-            std::vector<ModifyTask*>::iterator end = m_tasks.end();
-            for( it = m_tasks.begin(); it != end; ++it )
-            {
-                ( *it )->run();
-                delete *it;
-            }
-        }
-    }
-
-    void add_task( ModifyTask* task ) { m_tasks.push_back( task ); }
-
-private:
-
-    ObserverPool& m_pool;
-    std::vector<ModifyTask*> m_tasks;
-
 };
 
 
@@ -171,7 +133,7 @@ ObserverPool::remove( PyObjectPtr& topic, PyObjectPtr& observer )
 bool
 ObserverPool::notify( PyObjectPtr& topic, PyObjectPtr& args, PyObjectPtr& kwargs )
 {
-    ModifyGuard guard( *this );
+    ModifyGuard<ObserverPool> guard( *this );
     uint32_t obs_offset = 0;
     std::vector<Topic>::iterator topic_it;
     std::vector<Topic>::iterator topic_end = m_topics.end();

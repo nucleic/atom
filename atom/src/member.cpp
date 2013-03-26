@@ -133,21 +133,9 @@ Member_static_observers( Member* self )
 static PyObject*
 Member_add_static_observer( Member* self, PyObject* name )
 {
-    if( self->modify_guard )
-        return py_runtime_fail( "attempted to modify static observers during notification" );
-    if( !PyString_Check( name ) )
+    if( !PyString_CheckExact( name ) )
         return py_expected_type_fail( name, "str" );
-    if( !self->static_observers )
-        self->static_observers = new std::vector<PyObjectPtr>();
-    PyObjectPtr nameptr( newref( name ) );
-    std::vector<PyObjectPtr>::iterator it;
-    std::vector<PyObjectPtr>::iterator end = self->static_observers->end();
-    for( it = self->static_observers->begin(); it != end; ++it )
-    {
-        if( *it == nameptr || it->richcompare( nameptr, Py_EQ ) )
-            Py_RETURN_NONE;
-    }
-    self->static_observers->push_back( nameptr );
+    self->add_observer( reinterpret_cast<PyStringObject*>( name ) );
     Py_RETURN_NONE;
 }
 
@@ -155,29 +143,9 @@ Member_add_static_observer( Member* self, PyObject* name )
 static PyObject*
 Member_remove_static_observer( Member* self, PyObject* name )
 {
-    if( self->modify_guard )
-        return py_runtime_fail( "attempted to modify static observers during notification" );
-    if( !PyString_Check( name ) )
+    if( !PyString_CheckExact( name ) )
         return py_expected_type_fail( name, "str" );
-    if( self->static_observers )
-    {
-        PyObjectPtr nameptr( newref( name ) );
-        std::vector<PyObjectPtr>::iterator it;
-        std::vector<PyObjectPtr>::iterator end = self->static_observers->end();
-        for( it = self->static_observers->begin(); it != end; ++it )
-        {
-            if( *it == nameptr || it->richcompare( nameptr, Py_EQ ) )
-            {
-                self->static_observers->erase( it );
-                if( self->static_observers->size() == 0 )
-                {
-                    delete self->static_observers;
-                    self->static_observers = 0;
-                }
-                break;
-            }
-        }
-    }
+    self->remove_observer( reinterpret_cast<PyStringObject*>( name ) );
     Py_RETURN_NONE;
 }
 
@@ -922,28 +890,93 @@ Member::full_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 }
 
 
-class StaticModifyGuard
+struct BaseTask : public ModifyTask
 {
-
-public:
-
-    StaticModifyGuard( Member* member ) : m_member( member )
-    {
-        if( m_member && !m_member->modify_guard )
-            m_member->modify_guard = this;
-    }
-
-    ~StaticModifyGuard()
-    {
-        if( m_member && m_member->modify_guard == this )
-            m_member->modify_guard = 0;
-    }
-
-private:
-
-    Member* m_member;
-
+    BaseTask( Member* member, PyStringObject* name ) :
+        m_member( newref( pyobject_cast( member ) ) ),
+        m_name( newref( pyobject_cast( name ) ) ) {}
+    PyObjectPtr m_member;
+    PyObjectPtr m_name;
 };
+
+
+struct AddTask : public BaseTask
+{
+    AddTask( Member* member, PyStringObject* name ) :
+        BaseTask( member, name ) {}
+    void run()
+    {
+        Member* member = member_cast( m_member.get() );
+        member->add_observer( reinterpret_cast<PyStringObject*>( m_name.get() ) );
+    }
+};
+
+
+struct RemoveTask : public BaseTask
+{
+    RemoveTask( Member* member, PyStringObject* name ) :
+        BaseTask( member, name ) {}
+    void run()
+    {
+        Member* member = member_cast( m_member.get() );
+        member->remove_observer( reinterpret_cast<PyStringObject*>( m_name.get() ) );
+    }
+};
+
+
+void
+Member::add_observer( PyStringObject* name )
+{
+    if( modify_guard )
+    {
+        ModifyTask* task = new AddTask( this, name );
+        modify_guard->add_task( task );
+        return;
+    }
+    if( !static_observers )
+        static_observers = new std::vector<PyObjectPtr>();
+    PyObjectPtr nameptr( newref( pyobject_cast( name ) ) );
+    std::vector<PyObjectPtr>::iterator it;
+    std::vector<PyObjectPtr>::iterator end = static_observers->end();
+    for( it = static_observers->begin(); it != end; ++it )
+    {
+        if( *it == nameptr || it->richcompare( nameptr, Py_EQ ) )
+            return;
+    }
+    static_observers->push_back( nameptr );
+    return;
+}
+
+
+void
+Member::remove_observer( PyStringObject* name )
+{
+    if( modify_guard )
+    {
+        ModifyTask* task = new RemoveTask( this, name );
+        modify_guard->add_task( task );
+        return;
+    }
+    if( static_observers )
+    {
+        PyObjectPtr nameptr( newref( pyobject_cast( name ) ) );
+        std::vector<PyObjectPtr>::iterator it;
+        std::vector<PyObjectPtr>::iterator end = static_observers->end();
+        for( it = static_observers->begin(); it != end; ++it )
+        {
+            if( *it == nameptr || it->richcompare( nameptr, Py_EQ ) )
+            {
+                static_observers->erase( it );
+                if( static_observers->size() == 0 )
+                {
+                    delete static_observers;
+                    static_observers = 0;
+                }
+                break;
+            }
+        }
+    }
+}
 
 
 bool
@@ -951,10 +984,10 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
 {
     if( static_observers && atom->get_notifications_enabled() )
     {
+        ModifyGuard<Member> guard( *this );
         PyObjectPtr argsptr( newref( args ) );
         PyObjectPtr kwargsptr( xnewref( kwargs ) );
         PyObjectPtr objectptr( newref( pyobject_cast( atom ) ) );
-        StaticModifyGuard guard( this );
         std::vector<PyObjectPtr>::iterator it;
         std::vector<PyObjectPtr>::iterator end = static_observers->end();
         for( it = static_observers->begin(); it != end; ++it )

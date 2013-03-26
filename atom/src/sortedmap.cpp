@@ -78,6 +78,12 @@ private:
 };
 
 
+// msvcc doesn't recognize the static definition in the class body.
+#if defined(_MSC_VER)
+MapItem::_CompLess MapItem::CompLess;
+#endif
+
+
 typedef std::vector<MapItem> sortedmap_t;
 
 

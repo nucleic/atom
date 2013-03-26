@@ -10,12 +10,10 @@
 #include <vector>
 #include "inttypes.h"
 #include "pythonhelpers.h"
+#include "modifyguard.h"
 
 
 using PythonHelpers::PyObjectPtr;
-
-
-class ModifyGuard;
 
 
 class ObserverPool
@@ -34,7 +32,10 @@ class ObserverPool
         uint32_t m_count;
     };
 
-    friend class ModifyGuard;
+    // ModifyGuard template interface
+    friend class ModifyGuard<ObserverPool>;
+    ModifyGuard<ObserverPool>* get_modify_guard() { return m_modify_guard; }
+    void set_modify_guard( ModifyGuard<ObserverPool>* guard ) { m_modify_guard = guard; }
 
 public:
 
@@ -52,7 +53,7 @@ public:
 
     Py_ssize_t py_sizeof()
     {
-        Py_ssize_t size = sizeof( ModifyGuard* );
+        Py_ssize_t size = sizeof( ModifyGuard<ObserverPool>* );
         size += sizeof( std::vector<Topic> ) + sizeof( Topic ) * m_topics.capacity();
         size += sizeof( std::vector<PyObjectPtr> ) + sizeof( PyObjectPtr ) * m_observers.capacity();
         return size;
@@ -68,7 +69,7 @@ public:
 
 private:
 
-    ModifyGuard* m_modify_guard;
+    ModifyGuard<ObserverPool>* m_modify_guard;
     std::vector<Topic> m_topics;
     std::vector<PyObjectPtr> m_observers;
     ObserverPool(const ObserverPool& other);
