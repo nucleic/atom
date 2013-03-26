@@ -154,10 +154,10 @@ struct Member
 
     bool has_observers()
     {
-        if( static_observers && static_observers->size() > 0 )
-            return true;
-        return false;
+        return static_observers && static_observers->size() > 0;
     }
+
+    bool has_observer( PyStringObject* name );
 
     void add_observer( PyStringObject* name );
 

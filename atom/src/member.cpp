@@ -87,7 +87,16 @@ Member_dealloc( Member* self )
 static PyObject*
 Member_has_observers( Member* self )
 {
-    return py_bool( self->static_observers && self->static_observers->size() > 0 );
+    return py_bool( self->has_observers() );
+}
+
+
+static PyObject*
+Member_has_observer( Member* self, PyObject* name )
+{
+    if( !PyString_CheckExact( name ) )
+        return py_expected_type_fail( name, "str" );
+    return py_bool( self->has_observer( reinterpret_cast<PyStringObject*>( name ) ) );
 }
 
 
@@ -757,6 +766,8 @@ Member_methods[] = {
       "Delete the atom's slot value directly." },
     { "has_observers", ( PyCFunction )Member_has_observers, METH_NOARGS,
       "Get whether or not this member has observers." },
+    { "has_observer", ( PyCFunction )Member_has_observer, METH_O,
+      "Get whether or not the member already has the given observer." },
     { "copy_static_observers", ( PyCFunction )Member_copy_static_observers, METH_O,
       "Copy the static observers from one member into this member." },
     { "static_observers", ( PyCFunction )Member_static_observers, METH_NOARGS,
@@ -976,6 +987,23 @@ Member::remove_observer( PyStringObject* name )
             }
         }
     }
+}
+
+
+bool
+Member::has_observer( PyStringObject* name )
+{
+    if( !static_observers )
+        return false;
+    PyObjectPtr nameptr( newref( pyobject_cast( name ) ) );
+    std::vector<PyObjectPtr>::iterator it;
+    std::vector<PyObjectPtr>::iterator end = static_observers->end();
+    for( it = static_observers->begin(); it != end; ++it )
+    {
+        if( *it == nameptr || it->richcompare( nameptr, Py_EQ ) )
+            return true;
+    }
+    return false;
 }
 
 
