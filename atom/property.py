@@ -116,7 +116,7 @@ class Property(Member):
                         'name': self.name,
                         'object': owner,
                         'oldvalue': oldvalue,
-                        'newvalue': newvalue,
+                        'value': newvalue,
                     }
                     self.notify(owner, change)       # static observers
                     owner.notify(self.name, change)  # dynamic observers
@@ -126,7 +126,7 @@ class Property(Member):
                 'name': self.name,
                 'object': owner,
                 'oldvalue': None,
-                'newvalue': self.do_getattr(owner),
+                'value': self.do_getattr(owner),
             }
             self.notify(owner, change)       # static observers
             owner.notify(self.name, change)  # dynamic observers

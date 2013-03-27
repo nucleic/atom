@@ -23,7 +23,6 @@ static PyObject* objectstr;
 static PyObject* namestr;
 static PyObject* valuestr;
 static PyObject* oldvaluestr;
-static PyObject* newvaluestr;
 
 
 PyObject*
@@ -58,7 +57,7 @@ updated( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
         return 0;
     if( !dict.set_item( oldvaluestr, oldvalue ) )
         return 0;
-    if( !dict.set_item( newvaluestr, newvalue ) )
+    if( !dict.set_item( valuestr, newvalue ) )
         return 0;
     return dict.release();
 }
@@ -134,9 +133,6 @@ import_memberchange()
         return -1;
     MemberChange::oldvaluestr = PyString_InternFromString( "oldvalue" );
     if( !MemberChange::oldvaluestr )
-        return -1;
-    MemberChange::newvaluestr = PyString_InternFromString( "newvalue" );
-    if( !MemberChange::newvaluestr )
         return -1;
     alloced = true;
     return 0;
