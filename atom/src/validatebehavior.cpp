@@ -249,7 +249,7 @@ unicode_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObje
     if( PyUnicode_Check( newvalue ) )
         return newref( newvalue );
     if( PyString_Check( newvalue ) )
-        return PyUnicode_FromObject( newvalue );
+        return PyUnicode_FromString( PyString_AS_STRING( newvalue ) );
     return validate_type_fail( member, atom, newvalue, "unicode" );
 }
 
