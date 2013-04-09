@@ -96,7 +96,7 @@ EventBinder_unbind( EventBinder* self, PyObject* callback )
 static PyObject*
 EventBinder__call__( EventBinder* self, PyObject* args, PyObject* kwargs )
 {
-    if( kwargs )
+    if( kwargs && ( PyDict_Size( kwargs ) > 0 ) )
         return py_type_fail( "An event cannot be triggered with keyword arguments" );
     Py_ssize_t size = PyTuple_GET_SIZE( args );
     if( size > 1 )
