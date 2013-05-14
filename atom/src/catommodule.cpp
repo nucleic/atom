@@ -12,6 +12,7 @@
 #include "eventbinder.h"
 #include "signalconnector.h"
 #include "atomref.h"
+#include "atomlist.h"
 
 
 using namespace PythonHelpers;
@@ -80,6 +81,8 @@ initcatom( void )
         return;
     if( import_atomref() < 0 )
         return;
+    if( import_atomlist() < 0 )
+        return;
 
     Py_INCREF( &Member_Type );
     Py_INCREF( &CAtom_Type );
@@ -87,6 +90,8 @@ initcatom( void )
     PyModule_AddObject( mod, "Member", pyobject_cast( &Member_Type ) );
     PyModule_AddObject( mod, "CAtom", pyobject_cast( &CAtom_Type ) );
     PyModule_AddObject( mod, "AtomRef", pyobject_cast( &AtomRef_Type ) );
+    PyModule_AddObject( mod, "atomlist", pyobject_cast( &AtomList_Type ) );
+
     PyObject* PyGetAttr = new_enum_class( "GetAttr" );
     if( !PyGetAttr )
         return;
