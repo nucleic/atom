@@ -11,6 +11,7 @@
 #include "memberchange.h"
 #include "eventbinder.h"
 #include "signalconnector.h"
+#include "atomref.h"
 
 
 using namespace PythonHelpers;
@@ -77,12 +78,15 @@ initcatom( void )
         return;
     if( import_signalconnector() < 0 )
         return;
+    if( import_atomref() < 0 )
+        return;
 
     Py_INCREF( &Member_Type );
     Py_INCREF( &CAtom_Type );
-    PyModule_AddObject( mod, "Member", reinterpret_cast<PyObject*>( &Member_Type ) );
-    PyModule_AddObject( mod, "CAtom", reinterpret_cast<PyObject*>( &CAtom_Type ) );
-
+    Py_INCREF( &AtomRef_Type );
+    PyModule_AddObject( mod, "Member", pyobject_cast( &Member_Type ) );
+    PyModule_AddObject( mod, "CAtom", pyobject_cast( &CAtom_Type ) );
+    PyModule_AddObject( mod, "AtomRef", pyobject_cast( &AtomRef_Type ) );
     PyObject* PyGetAttr = new_enum_class( "GetAttr" );
     if( !PyGetAttr )
         return;
@@ -202,7 +206,6 @@ initcatom( void )
         AddEnum( PyValidate, UnicodePromote );
         AddEnum( PyValidate, Tuple );
         AddEnum( PyValidate, List );
-        AddEnum( PyValidate, ListNoCopy );
         AddEnum( PyValidate, Dict );
         AddEnum( PyValidate, Instance );
         AddEnum( PyValidate, Typed );
