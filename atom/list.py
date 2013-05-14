@@ -19,7 +19,7 @@ class List(Member):
     """
     __slots__ = 'item'
 
-    def __init__(self, item=None, default=None, copy=True):
+    def __init__(self, item=None, default=None):
         """ Initialize a List.
 
         Parameters
@@ -34,21 +34,12 @@ class List(Member):
             The default list of values. A new copy of this list will be
             created for each atom instance.
 
-        copy : bool, optional
-            Whether the list should be copied on assignment so that the
-            member has full ownership of the list. If this is False, it
-            is possible for validation to mutate the original list in
-            place. The default is True.
-
         """
         if item is not None and not isinstance(item, Member):
             item = Instance(item)
         self.item = item
         self.set_default_value_mode(DefaultValue.List, default)
-        if copy:
-            self.set_validate_mode(Validate.List, item)
-        else:
-            self.set_validate_mode(Validate.ListNoCopy, item)
+        self.set_validate_mode(Validate.List, item)
 
         # Only use the post getattr handler if there is a validator
         # item. This prevents unneeded creation of ListProxy objects.
@@ -102,7 +93,7 @@ class List(Member):
         return ListProxy(self, owner, value)
 
 
-class ListProxy(object):
+class ListProxy(list):
     """ A proxy object which validates in-place list operations.
 
     Instances of this class are created on the fly by the post getattr
