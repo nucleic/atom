@@ -374,6 +374,9 @@ CAtom::notify( PyObject* topic, PyObject* args, PyObject* kwargs )
 }
 
 
+namespace
+{
+
 template<typename T>
 class GlobalStatic
 {
@@ -382,6 +385,8 @@ public:
     inline GlobalStatic( T *p ) : pointer( p ) {}
     inline ~GlobalStatic() { pointer = 0; }
 };
+
+}  // namespace
 
 
 // shamelessly derived from qobject.h
@@ -404,8 +409,8 @@ void CAtom::add_guard( CAtom** ptr )
         *ptr = 0;
         return;
     }
-    ( *ptr )->set_has_guards( true );
     map->insert( GuardMap::value_type( *ptr, ptr ) );
+    ( *ptr )->set_has_guards( true );
 }
 
 
@@ -416,9 +421,9 @@ void CAtom::remove_guard( CAtom** ptr )
     GuardMap* map = guard_map();
     if( !map || map->empty() )
         return;
+    bool more = false;  // if the CAtom has more pointers attached to it.
     GuardMap::iterator it = map->find( *ptr );
     const GuardMap::iterator end = map->end();
-    bool more = false; // if the CAtom has more pointers attached to it.
     for( ; it != end && it->first == *ptr; ++it )
     {
         if( it->second == ptr )
@@ -452,29 +457,7 @@ void CAtom::change_guard( CAtom** ptr, CAtom* o )
         map->insert( GuardMap::value_type( o, ptr ) );
         o->set_has_guards( true );
     }
-    if( *ptr )
-    {
-        bool more = false; // if the CAtom has more pointers attached to it.
-        GuardMap::iterator it = map->find( *ptr );
-        const GuardMap::iterator end = map->end();
-        for( ; it != end && it->first == *ptr; ++it )
-        {
-            if( it->second == ptr )
-            {
-                if( !more )
-                {
-                    ++it;
-                    more = ( it != end ) && ( it->first == *ptr );
-                    --it;
-                }
-                map->erase( it );
-                break;
-            }
-            more = true;
-        }
-        if( !more )
-            ( *ptr )->set_has_guards( false );
-    }
+    CAtom::remove_guard( ptr );
     *ptr = o;
 }
 
