@@ -13,6 +13,10 @@
 
 
 #define MAX_MEMBER_COUNT ( static_cast<uint32_t>( 0xffff ) )
+#define SLOT_COUNT_MASK ( static_cast<uint32_t>( 0xffff ) )
+#define FLAGS_MASK ( static_cast<uint32_t>( 0xffff0000 ) )
+#define NOTIFICATION_BIT ( static_cast<uint32_t>( 1 << 16 ) )
+#define GUARD_BIT ( static_cast<uint32_t>( 1 << 17 ) )
 #define catom_cast( o ) ( reinterpret_cast<CAtom*>( o ) )
 
 
@@ -28,12 +32,12 @@ struct CAtom
 
     uint32_t get_slot_count()
     {
-        return bitfield & 0xffff;
+        return bitfield & SLOT_COUNT_MASK;
     }
 
     void set_slot_count( uint32_t count )
     {
-        bitfield |= ( count & 0xffff );
+        bitfield = ( bitfield & FLAGS_MASK ) | ( count & SLOT_COUNT_MASK );
     }
 
     PyObject* get_slot( uint32_t index )
@@ -51,15 +55,28 @@ struct CAtom
 
     bool get_notifications_enabled()
     {
-        return bool( ( bitfield >> 16 ) & 1 );
+        return bool( bitfield & NOTIFICATION_BIT );
     }
 
     void set_notifications_enabled( bool enabled )
     {
         if( enabled )
-            bitfield |= ( 1 << 16 );
+            bitfield |= NOTIFICATION_BIT;
         else
-            bitfield &= ~( 1 << 16 );
+            bitfield &= ~NOTIFICATION_BIT;
+    }
+
+    bool has_guards()
+    {
+        return bool( bitfield & GUARD_BIT );
+    }
+
+    void set_has_guards( bool has_guards )
+    {
+        if( has_guards )
+            bitfield |= GUARD_BIT;
+        else
+            bitfield &= ~GUARD_BIT;
     }
 
     bool has_observers( PyObject* topic )
@@ -82,6 +99,14 @@ struct CAtom
     {
         return PyObject_TypeCheck( object, &CAtom_Type );
     }
+
+    static void add_guard( CAtom** ptr );
+
+    static void remove_guard( CAtom** ptr );
+
+    static void change_guard( CAtom** ptr, CAtom* o );
+
+    static void clear_guards( CAtom* o );
 };
 
 

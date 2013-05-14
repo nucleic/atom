@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
+#include <map>
 #include "catom.h"
 #include "methodwrapper.h"
 
@@ -97,6 +98,7 @@ CAtom_traverse( CAtom* self, visitproc visit, void* arg )
 static void
 CAtom_dealloc( CAtom* self )
 {
+    CAtom::clear_guards( self );
     PyObject_GC_UnTrack( self );
     CAtom_clear( self );
     if( self->slots )
@@ -371,3 +373,130 @@ CAtom::notify( PyObject* topic, PyObject* args, PyObject* kwargs )
     return true;
 }
 
+
+template<typename T>
+class GlobalStatic
+{
+public:
+    T *pointer;
+    inline GlobalStatic( T *p ) : pointer( p ) {}
+    inline ~GlobalStatic() { pointer = 0; }
+};
+
+
+// shamelessly derived from qobject.h
+typedef std::multimap<CAtom*, CAtom**> GuardMap;
+static GuardMap* guard_map()
+{
+    static GuardMap map;
+    static GlobalStatic<GuardMap> static_map( &map );
+    return static_map.pointer;
+}
+
+
+void CAtom::add_guard( CAtom** ptr )
+{
+    if( !*ptr )
+        return;
+    GuardMap* map = guard_map();
+    if( !map )
+    {
+        *ptr = 0;
+        return;
+    }
+    ( *ptr )->set_has_guards( true );
+    map->insert( GuardMap::value_type( *ptr, ptr ) );
+}
+
+
+void CAtom::remove_guard( CAtom** ptr )
+{
+    if( !*ptr )
+        return;
+    GuardMap* map = guard_map();
+    if( !map || map->empty() )
+        return;
+    GuardMap::iterator it = map->find( *ptr );
+    const GuardMap::iterator end = map->end();
+    bool more = false; // if the CAtom has more pointers attached to it.
+    for( ; it != end && it->first == *ptr; ++it )
+    {
+        if( it->second == ptr )
+        {
+            if( !more )
+            {
+                ++it;
+                more = ( it != end ) && ( it->first == *ptr );
+                --it;
+            }
+            map->erase( it );
+            break;
+        }
+        more = true;
+    }
+    if( !more )
+        ( *ptr )->set_has_guards( false );
+}
+
+
+void CAtom::change_guard( CAtom** ptr, CAtom* o )
+{
+    GuardMap* map = guard_map();
+    if( !map )
+    {
+        *ptr = 0;
+        return;
+    }
+    if( o )
+    {
+        map->insert( GuardMap::value_type( o, ptr ) );
+        o->set_has_guards( true );
+    }
+    if( *ptr )
+    {
+        bool more = false; // if the CAtom has more pointers attached to it.
+        GuardMap::iterator it = map->find( *ptr );
+        const GuardMap::iterator end = map->end();
+        for( ; it != end && it->first == *ptr; ++it )
+        {
+            if( it->second == ptr )
+            {
+                if( !more )
+                {
+                    ++it;
+                    more = ( it != end ) && ( it->first == *ptr );
+                    --it;
+                }
+                map->erase( it );
+                break;
+            }
+            more = true;
+        }
+        if( !more )
+            ( *ptr )->set_has_guards( false );
+    }
+    *ptr = o;
+}
+
+
+void CAtom::clear_guards( CAtom* o )
+{
+    GuardMap* map = 0;
+    try
+    {
+        map = guard_map();
+    }
+    catch( std::bad_alloc& )
+    {
+        // do nothing in case of OOM - code below is safe
+    }
+    if( !map || map->empty() )
+        return;
+    GuardMap::iterator it = map->find( o );
+    GuardMap::iterator first = it;
+    const GuardMap::iterator end = map->end();
+    for( ; it != end && it->first == o; ++it )
+        *it->second = 0;
+    map->erase( first, it );
+    o->set_has_guards( false );
+}
