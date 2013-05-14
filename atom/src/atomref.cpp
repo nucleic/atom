@@ -55,9 +55,7 @@ AtomRef_call( AtomRef* self, PyObject* args, PyObject* kwargs )
     if( !PyArg_ParseTupleAndKeywords( args, kwargs, ":__call__", kwlist ) )
         return 0;
     PyObject* obj = pyobject_cast( self->pointer->data() );
-    if( obj )
-        return newref( obj );
-    Py_RETURN_NONE;
+    return newref( obj ? obj : Py_None );
 }
 
 
@@ -65,7 +63,7 @@ static PyObject*
 AtomRef_repr( AtomRef* self )
 {
     std::ostringstream ostr;
-    ostr << "AtomRef(object=";
+    ostr << "AtomRef(atom=";
     if( self->pointer->is_null() )
         ostr << "None";
     else
@@ -93,9 +91,7 @@ AtomRef_sizeof( AtomRef* self, PyObject* args )
 static int
 AtomRef__nonzero__( AtomRef* self )
 {
-    if( self->pointer->is_null() )
-        return 0;
-    return 1;
+    return self->pointer->is_null() ? 0 : 1;
 }
 
 
