@@ -490,12 +490,12 @@ public:
 
     PyListPtr( PyObject* pylist ) : PyObjectPtr( pylist ) {}
 
-    bool check()
+    bool check() const
     {
         return PyList_Check( m_pyobj );
     }
 
-    bool check_exact()
+    bool check_exact() const
     {
         return PyList_CheckExact( m_pyobj );
     }
@@ -510,7 +510,14 @@ public:
         return PyObjectPtr( PythonHelpers::newref( PyList_GET_ITEM( m_pyobj, index ) ) );
     }
 
-    void set_item( Py_ssize_t index, PyObjectPtr& item )
+    void set_item( Py_ssize_t index, PyObject* pyobj ) const
+    {
+        PyObject* old_item = PyList_GET_ITEM( m_pyobj, index );
+        PyList_SET_ITEM( m_pyobj, index, pyobj );
+        Py_XDECREF( old_item );
+    }
+
+    void set_item( Py_ssize_t index, PyObjectPtr& item ) const
     {
         PyObject* old_item = PyList_GET_ITEM( m_pyobj, index );
         PyList_SET_ITEM( m_pyobj, index, item.get() );
