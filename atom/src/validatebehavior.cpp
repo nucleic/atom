@@ -5,7 +5,9 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <iostream>
 #include "member.h"
+#include "atomlist.h"
 
 
 using namespace PythonHelpers;
@@ -285,24 +287,30 @@ list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 {
     if( !PyList_Check( newvalue ) )
         return validate_type_fail( member, atom, newvalue, "list" );
-    Py_ssize_t size = PyList_GET_SIZE( newvalue );
-    PyListPtr listcopy( PyList_GetSlice( newvalue, 0, size ) );
-    if( !listcopy )
-        return 0;
+    Member* validator = 0;
     if( member->validate_context != Py_None )
+        validator = member_cast( member->validate_context );
+    Py_ssize_t size = PyList_GET_SIZE( newvalue );
+    PyListPtr listptr( AtomList_New( size, atom, validator ) );
+    if( !listptr )
+        return 0;
+    if( !validator )
     {
-        Member* item_member = member_cast( member->validate_context );
+        for( Py_ssize_t i = 0; i < size; ++i )
+            listptr.set_item( i, newref( PyList_GET_ITEM( newvalue, i ) ) );
+    }
+    else
+    {
         for( Py_ssize_t i = 0; i < size; ++i )
         {
-            PyObjectPtr item( listcopy.get_item( i ) );
-            PyObjectPtr valid_item( item_member->full_validate( atom, Py_None, item.get() ) );
+            PyObject* item = PyList_GET_ITEM( newvalue, i );
+            PyObjectPtr valid_item( validator->full_validate( atom, Py_None, item ) );
             if( !valid_item )
                 return 0;
-            if( valid_item != item )
-                listcopy.set_item( i, valid_item );
+            listptr.set_item( i, valid_item );
         }
     }
-    return listcopy.release();
+    return listptr.release();
 }
 
 
