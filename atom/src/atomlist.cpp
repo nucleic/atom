@@ -5,105 +5,45 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-#include <iostream>
 #include "atomlist.h"
 
 
 using namespace PythonHelpers;
 
 
-#define _LIST_METHOD( n, list, ... ) ( \
-    PyList_Type.tp_methods[ n ].ml_meth( pyobject_cast( list ), __VA_ARGS__ ) )
-#define LIST_APPEND( list, args ) _LIST_METHOD( 3, list, args )
-#define LIST_INSERT( list, args ) _LIST_METHOD( 4, list, args )
-#define LIST_EXTEND( list, args ) _LIST_METHOD( 5, list, args )
-
-
-namespace
+namespace ListMethods
 {
 
-static PyObject*
-mnf_args( PyObject* self, PyObject* args )
+static PyCFunction append = 0;
+static PyCFunction insert = 0;
+static PyCFunction extend = 0;
+
+
+static bool
+init_methods()
 {
-    return py_bad_internal_call( "method not found" );
-}
-
-
-static PyObject*
-mnf_keywords( PyObject* self, PyObject* args, PyObject* kwargs )
-{
-    return py_bad_internal_call( "method not found" );
-}
-
-
-template<typename FuncType>
-FuncType method_not_found();
-
-
-template<>
-PyCFunction method_not_found<PyCFunction>()
-{
-    return mnf_args;
-}
-
-
-template<>
-PyCFunctionWithKeywords method_not_found<PyCFunctionWithKeywords>()
-{
-    return mnf_keywords;
-}
-
-
-template<typename FuncType>
-FuncType resolve_method( PyTypeObject* type, const char* name )
-{
-    PyMethodDef* method = type->tp_methods;
-    while( method->ml_name != 0 )
+    append = lookup_method( &PyList_Type, "append" );
+    if( !append )
     {
-        if( strcmp( method->ml_name, name ) == 0 )
-            return reinterpret_cast<FuncType>( method->ml_meth );
-        ++method;
+        py_bad_internal_call( "failed to load list 'append' method" );
+        return false;
     }
-    return method_not_found<FuncType>();
-}
-
-
-template<typename FuncType>
-class CMethod
-{
-
-public:
-
-    CMethod( PyTypeObject* type, const char* name ) : m_method( 0 )
+    insert = lookup_method( &PyList_Type, "insert" );
+    if( !insert )
     {
-        m_method = resolve_method<FuncType>( type, name );
+        py_bad_internal_call( "failed to load list 'insert' method" );
+        return false;
     }
-
-    PyObject* operator()( PyObject* self, PyObject* args, PyObject* kwargs=0 );
-
-private:
-
-    CMethod() {};
-    FuncType m_method;
-};
-
-
-template<>
-PyObject* CMethod<PyCFunction>::operator()(
-    PyObject* self, PyObject* args, PyObject* kwargs )
-{
-    return m_method( self, args );
+    extend = lookup_method( &PyList_Type, "extend" );
+    if( !extend )
+    {
+        py_bad_internal_call( "failed to load list 'extend' method" );
+        return false;
+    }
+    return true;
 }
 
-
-template<>
-PyObject* CMethod<PyCFunctionWithKeywords>::operator()(
-    PyObject* self, PyObject* args, PyObject* kwargs )
-{
-    return m_method( self, args, kwargs );
-}
-
-}  // namespace CMethod
+}  // namespace ListMethods
 
 
 static PyObject*
@@ -135,28 +75,58 @@ AtomList_append( AtomList* self, PyObject* value )
         if( !item )
             return 0;
     }
-    static CMethod<PyCFunction> list_append( &PyList_Type, "append" );
-    return list_append( pyobject_cast( self ), item.get() );
+    return ListMethods::append( pyobject_cast( self ), item.get() );
 }
 
 
-// FINISH ME
 static PyObject*
 AtomList_insert( AtomList* self, PyObject* args )
 {
     PyObjectPtr item( newref( args ) );
-    /*
     if( self->validator && !self->pointer->is_null() )
     {
-        item = self->validator->full_validate(
-            self->pointer->data(), Py_None, item.get()
+        Py_ssize_t index;
+        PyObject* value;
+        if( !PyArg_ParseTuple( args, "nO:insert", &index, &value ) )
+            return 0;
+        value = self->validator->full_validate(
+            self->pointer->data(), Py_None, value
         );
+        if( !value )
+            return 0;
+        // value is now an owned reference
+        item = PyTuple_New( 2 );
         if( !item )
             return 0;
+        PyTuple_SET_ITEM( item.get(), 0, PyInt_FromSsize_t( index ) );
+        PyTuple_SET_ITEM( item.get(), 1, value );
     }
-    */
-    static CMethod<PyCFunction> list_insert( &PyList_Type, "insert" );
-    return list_insert( pyobject_cast( self ), item.get() );
+    return ListMethods::insert( pyobject_cast( self ), item.get() );
+}
+
+
+static PyObject*
+AtomList_extend( AtomList* self, PyObject* value )
+{
+    PyObjectPtr item( newref( value ) );
+    if( self->validator && !self->pointer->is_null() )
+    {
+        PyListPtr templist( PyList_New( 0 ) );
+        if( !templist.extend( value ) )
+            return 0;
+        Py_ssize_t size = templist.size();
+        for( Py_ssize_t i = 0; i < size; ++i )
+        {
+            PyObject* value = self->validator->full_validate(
+                self->pointer->data(), Py_None, templist.borrow_item( i )
+            );
+            if( !value )
+                return 0;
+            templist.set_item( i, value );
+        }
+        item = templist;
+    }
+    return ListMethods::extend( pyobject_cast( self ), item.get() );
 }
 
 
@@ -164,12 +134,15 @@ PyDoc_STRVAR(append_doc,
 "L.append(object) -- append object to end");
 PyDoc_STRVAR(insert_doc,
 "L.insert(index, object) -- insert object before index");
+PyDoc_STRVAR(extend_doc,
+"L.extend(iterable) -- extend list by appending elements from the iterable");
 
 
 static PyMethodDef
 AtomList_methods[] = {
-    { "append", ( PyCFunction )AtomList_append,  METH_O, append_doc },
+    { "append", ( PyCFunction )AtomList_append, METH_O, append_doc },
     { "insert", ( PyCFunction )AtomList_insert, METH_VARARGS, insert_doc },
+    { "extend", ( PyCFunction )AtomList_extend, METH_O, extend_doc },
     { 0 }           /* sentinel */
 };
 
@@ -264,6 +237,8 @@ int
 import_atomlist()
 {
     if( PyType_Ready( &AtomList_Type ) < 0 )
+        return -1;
+    if( !ListMethods::init_methods() )
         return -1;
     return 0;
 }
