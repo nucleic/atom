@@ -7,6 +7,7 @@
 #------------------------------------------------------------------------------
 from .catom import Member, DefaultValue, Validate
 from .instance import Instance
+from .typed import Typed
 
 
 class List(Member):
@@ -36,7 +37,10 @@ class List(Member):
 
         """
         if item is not None and not isinstance(item, Member):
-            item = Instance(item)
+            if isinstance(item, type):
+                item = Typed(item)
+            else:
+                item = Instance(item)
         self.item = item
         self.set_default_value_mode(DefaultValue.List, default)
         self.set_validate_mode(Validate.List, item)
@@ -76,75 +80,3 @@ class List(Member):
         else:
             clone.item = None
         return clone
-
-
-class ListProxy(list):
-    """ A proxy object which validates in-place list operations.
-
-    Instances of this class are created on the fly by the post getattr
-    handler of a List which has an item validator.
-
-    """
-    # TODO move this class to C++
-    __slots__ = ('_member', '_owner', '_value')
-
-    def __init__(self, member, owner, value):
-        """ Initialize a ProxyList.
-
-        Parameters
-        ----------
-        member : List
-            The List member which created this ListProxy.
-
-        owner : Atom
-            The atom object which owns the list value.
-
-        value : list
-            The data value for the member.
-
-        """
-        self._member = member
-        self._owner = owner
-        self._value = value
-
-    def __iadd__(self, items):
-        validator = self._member.item
-        if validator is not None:
-            owner = self._owner
-            validate = validator.do_full_validate
-            items = [validate(owner, None, i) for i in items]
-        self._value += items
-        return self._value
-
-    def __setitem__(self, index, item):
-        validator = self._member.item
-        if validator is not None:
-            owner = self._owner
-            validate = validator.do_full_validate
-            if isinstance(index, slice):
-                item = [validate(owner, None, i) for i in item]
-            else:
-                item = validate(owner, None, item)
-        self._value[index] = item
-
-    def append(self, item):
-        validator = self._member.item
-        if validator is not None:
-            validate = validator.do_full_validate
-            item = validate(self._owner, None, item)
-        self._value.append(item)
-
-    def extend(self, items):
-        validator = self._member.item
-        if validator is not None:
-            owner = self._owner
-            validate = validator.do_full_validate
-            items = [validate(owner, None, i) for i in items]
-        self._value.extend(items)
-
-    def insert(self, index, item):
-        validator = self._member.item
-        if validator is not None:
-            validate = validator.do_full_validate
-            item = validate(self._owner, None, item)
-        self._value.insert(index, item)
