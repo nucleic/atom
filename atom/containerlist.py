@@ -5,8 +5,10 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import PostGetAttr
-from .list import List, ListProxy
+from .catom import Member, DefaultValue, Validate
+from .list import List#, ListProxy
+from .instance import Instance
+from .typed import Typed
 
 
 class ContainerList(List):
@@ -15,25 +17,21 @@ class ContainerList(List):
     """
     __slots__ = ()
 
-    def __init__(self, item=None, default=None, copy=True):
+    def __init__(self, item=None, default=None):
         """ Initialize a ContainerList.
 
         """
-        super(ContainerList, self).__init__(item, default, copy)
-        self.set_post_getattr_mode(
-            PostGetAttr.MemberMethod_ObjectValue, "post_getattr"
-        )
-
-    def post_getattr(self, owner, value):
-        """ A post getattr handler.
-
-        This handler is only invoked if the list uses an item validator.
-
-        """
-        return ContainerListProxy(self, owner, value)
+        if item is not None and not isinstance(item, Member):
+            if isinstance(item, type):
+                item = Typed(item)
+            else:
+                item = Instance(item)
+        self.item = item
+        self.set_default_value_mode(DefaultValue.List, default)
+        self.set_validate_mode(Validate.ContainerList, item)
 
 
-class ContainerListProxy(ListProxy):
+class ContainerListProxy(list):#ListProxy):
     """ A proxy which validates and notifies in-place list operations.
 
     Instances of this class are created on the fly by the post getattr
@@ -42,30 +40,6 @@ class ContainerListProxy(ListProxy):
     """
     # TODO move this class to C++
     __slots__ = ()
-
-    def __delitem__(self, index):
-        owner = self._owner
-        member = self._member
-        obss = member.has_observers()
-        obsd = owner.has_observers(member.name)
-        if obss or obsd:
-            listitem = self._value[index]
-            del self._value[index]
-            change = {
-                'type': 'container',
-                'name': member.name,
-                'object': owner,
-                'value': self._value,
-                'operation': '__delitem__',
-                'index': index,
-                'item': listitem,
-            }
-            if obss:
-                member.notify(owner, change)
-            if obsd:
-                owner.notify(member.name, change)
-        else:
-            del self._value[index]
 
     def __iadd__(self, items):
         member = self._member
@@ -152,163 +126,26 @@ class ContainerListProxy(ListProxy):
         else:
             self._value[index] = item
 
-    def append(self, item):
-        member = self._member
-        validator = member.item
-        if validator is not None:
-            validate = validator.do_full_validate
-            item = validate(self._owner, None, item)
-        self._value.append(item)
+    def __delitem__(self, index):
         owner = self._owner
+        member = self._member
         obss = member.has_observers()
         obsd = owner.has_observers(member.name)
         if obss or obsd:
+            listitem = self._value[index]
+            del self._value[index]
             change = {
                 'type': 'container',
                 'name': member.name,
                 'object': owner,
                 'value': self._value,
-                'operation': 'append',
-                'item': item,
-            }
-            if obss:
-                member.notify(owner, change)
-            if obsd:
-                owner.notify(member.name, change)
-
-    def extend(self, items):
-        member = self._member
-        validator = member.item
-        if validator is not None:
-            owner = self._owner
-            validate = validator.do_full_validate
-            items = [validate(owner, None, i) for i in items]
-        owner = self._owner
-        obss = member.has_observers()
-        obsd = owner.has_observers(member.name)
-        if obss or obsd:
-            if not isinstance(items, list):
-                items = list(items)
-            self._value.extend(items)
-            change = {
-                'type': 'container',
-                'name': member.name,
-                'object': owner,
-                'value': self._value,
-                'operation': 'extend',
-                'items': items,
+                'operation': '__delitem__',
+                'index': index,
+                'item': listitem,
             }
             if obss:
                 member.notify(owner, change)
             if obsd:
                 owner.notify(member.name, change)
         else:
-            self._value.extend(items)
-
-    def insert(self, index, item):
-        member = self._member
-        validator = member.item
-        if validator is not None:
-            validate = validator.do_full_validate
-            item = validate(self._owner, None, item)
-        self._value.insert(index, item)
-        owner = self._owner
-        obss = member.has_observers()
-        obsd = owner.has_observers(member.name)
-        if obss or obsd:
-            change = {
-                'type': 'container',
-                'name': member.name,
-                'object': owner,
-                'value': self._value,
-                'operation': 'insert',
-                'index': index,
-                'item': item,
-            }
-            if obss:
-                member.notify(owner, change)
-            if obsd:
-                owner.notify(member.name, change)
-
-    def pop(self, *args):
-        item = self._value.pop(*args)
-        owner = self._owner
-        member = self._member
-        obss = member.has_observers()
-        obsd = owner.has_observers(member.name)
-        if obss or obsd:
-            change = {
-                'type': 'container',
-                'name': member.name,
-                'object': owner,
-                'value': self._value,
-                'operation': 'pop',
-                'index': args[0] if args else None,
-                'item': item,
-            }
-            if obss:
-                member.notify(owner, change)
-            if obsd:
-                owner.notify(member.name, change)
-        return item
-
-    def remove(self, item):
-        self._value.remove(item)
-        owner = self._owner
-        member = self._member
-        obss = member.has_observers()
-        obsd = owner.has_observers(member.name)
-        if obss or obsd:
-            change = {
-                'type': 'container',
-                'name': member.name,
-                'object': owner,
-                'value': self._value,
-                'operation': 'remove',
-                'item': item,
-            }
-            if obss:
-                member.notify(owner, change)
-            if obsd:
-                owner.notify(member.name, change)
-
-    def reverse(self):
-        self._value.reverse()
-        owner = self._owner
-        member = self._member
-        obss = member.has_observers()
-        obsd = owner.has_observers(member.name)
-        if obss or obsd:
-            change = {
-                'type': 'container',
-                'name': member.name,
-                'object': owner,
-                'value': self._value,
-                'operation': 'reverse',
-            }
-            if obss:
-                member.notify(owner, change)
-            if obsd:
-                owner.notify(member.name, change)
-
-    def sort(self, cmp=None, key=None, reverse=False):
-        self._value.sort(cmp, key, reverse)
-        owner = self._owner
-        member = self._member
-        obss = member.has_observers()
-        obsd = owner.has_observers(member.name)
-        if obss or obsd:
-            change = {
-                'type': 'container',
-                'name': member.name,
-                'object': owner,
-                'value': self._value,
-                'operation': 'sort',
-                'cmp': cmp,
-                'key': key,
-                'reverse': reverse,
-            }
-            if obss:
-                member.notify(owner, change)
-            if obsd:
-                owner.notify(member.name, change)
+            del self._value[index]
