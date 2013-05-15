@@ -557,15 +557,6 @@ public:
         return false;
     }
 
-    bool extend( PyObject* iter ) const
-    {
-        PyListObject* op = reinterpret_cast<PyListObject*>( m_pyobj );
-        PyObjectPtr res( _PyList_Extend( op, iter ) );
-        if( !res )
-            return false;
-        return true;
-    }
-
     Py_ssize_t index( PyObjectPtr& item ) const
     {
         Py_ssize_t maxidx = size();
