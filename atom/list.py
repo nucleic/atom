@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, PostGetAttr, DefaultValue, Validate
+from .catom import Member, DefaultValue, Validate
 from .instance import Instance
 
 
@@ -40,13 +40,6 @@ class List(Member):
         self.item = item
         self.set_default_value_mode(DefaultValue.List, default)
         self.set_validate_mode(Validate.List, item)
-
-        # Only use the post getattr handler if there is a validator
-        # item. This prevents unneeded creation of ListProxy objects.
-        if item is not None:
-            self.set_post_getattr_mode(
-                PostGetAttr.MemberMethod_ObjectValue, "post_getattr"
-            )
 
     def set_name(self, name):
         """ Set the name of the member.
@@ -84,14 +77,6 @@ class List(Member):
             clone.item = None
         return clone
 
-    def post_getattr(self, owner, value):
-        """ A post getattr handler.
-
-        This handler is only invoked if the list uses an item validator.
-
-        """
-        return ListProxy(self, owner, value)
-
 
 class ListProxy(list):
     """ A proxy object which validates in-place list operations.
@@ -122,36 +107,6 @@ class ListProxy(list):
         self._owner = owner
         self._value = value
 
-    def __add__(self, other):
-        return self._value + other
-
-    def __call__(self):
-        """ Retrieve the raw list object wrapped by the proxy.
-
-        """
-        return self._value
-
-    def __contains__(self, item):
-        return item in self._value
-
-    def __delitem__(self, index):
-        del self._value[index]
-
-    def __eq__(self, other):
-        return self._value == other
-
-    def __ge__(self, other):
-        return self._value >= other
-
-    def __getitem__(self, index):
-        return self._value[index]
-
-    def __gt__(self, other):
-        return self._value > other
-
-    def __hash__(self, other):
-        return hash(self._value)
-
     def __iadd__(self, items):
         validator = self._member.item
         if validator is not None:
@@ -160,34 +115,6 @@ class ListProxy(list):
             items = [validate(owner, None, i) for i in items]
         self._value += items
         return self._value
-
-    def __imul__(self, count):
-        self._value *= count
-        return self._value
-
-    def __iter__(self):
-        return iter(self._value)
-
-    def __le__(self, other):
-        return self._value <= other
-
-    def __len__(self):
-        return len(self._value)
-
-    def __lt__(self, other):
-        return self._value < other
-
-    def __mul__(self, other):
-        return self._value * other
-
-    def __ne__(self, other):
-        return self._value != other
-
-    def __repr__(self):
-        return repr(self._value)
-
-    def __rmul__(self, other):
-        return other * self._value
 
     def __setitem__(self, index, item):
         validator = self._member.item
@@ -200,18 +127,12 @@ class ListProxy(list):
                 item = validate(owner, None, item)
         self._value[index] = item
 
-    def __str__(self):
-        return str(self._value)
-
     def append(self, item):
         validator = self._member.item
         if validator is not None:
             validate = validator.do_full_validate
             item = validate(self._owner, None, item)
         self._value.append(item)
-
-    def count(self, item):
-        return self._value.count(item)
 
     def extend(self, items):
         validator = self._member.item
@@ -221,24 +142,9 @@ class ListProxy(list):
             items = [validate(owner, None, i) for i in items]
         self._value.extend(items)
 
-    def index(self, item):
-        return self._value.index(item)
-
     def insert(self, index, item):
         validator = self._member.item
         if validator is not None:
             validate = validator.do_full_validate
             item = validate(self._owner, None, item)
         self._value.insert(index, item)
-
-    def pop(self, *args):
-        return self._value.pop(*args)
-
-    def remove(self, item):
-        self._value.remove(item)
-
-    def reverse(self):
-        self._value.reverse()
-
-    def sort(self, cmp=None, key=None, reverse=False):
-        self._value.sort(cmp, key, reverse)
