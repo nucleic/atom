@@ -20,6 +20,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
     {
         case Validate::Tuple:
         case Validate::List:
+        case Validate::ContainerList:
             if( context != Py_None && !Member::TypeCheck( context ) )
             {
                 py_expected_type_fail( context, "Member or None" );
@@ -282,8 +283,9 @@ tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 }
 
 
-static PyObject*
-list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+template<typename ListFactory>
+PyObject*
+common_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyList_Check( newvalue ) )
         return validate_type_fail( member, atom, newvalue, "list" );
@@ -291,7 +293,7 @@ list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
     if( member->validate_context != Py_None )
         validator = member_cast( member->validate_context );
     Py_ssize_t size = PyList_GET_SIZE( newvalue );
-    PyListPtr listptr( AtomList_New( size, atom, validator ) );
+    PyListPtr listptr( ListFactory()( member, atom, validator, size ) );
     if( !listptr )
         return 0;
     if( !validator )
@@ -311,6 +313,40 @@ list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
         }
     }
     return listptr.release();
+}
+
+
+class AtomListFactory
+{
+public:
+    PyObject* operator()( Member* member, CAtom* atom, Member* validator, Py_ssize_t size )
+    {
+        return AtomList_New( size, atom, validator );
+    }
+};
+
+
+class AtomCListFactory
+{
+public:
+    PyObject* operator()( Member* member, CAtom* atom, Member* validator, Py_ssize_t size )
+    {
+        return AtomCList_New( size, atom, validator, member );
+    }
+};
+
+
+static PyObject*
+list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    return common_list_handler<AtomListFactory>( member, atom, oldvalue, newvalue );
+}
+
+
+static PyObject*
+container_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    return common_list_handler<AtomCListFactory>( member, atom, oldvalue, newvalue );
 }
 
 
@@ -573,6 +609,7 @@ handlers[] = {
     unicode_promote_handler,
     tuple_handler,
     list_handler,
+    container_list_handler,
     dict_handler,
     instance_handler,
     typed_handler,
