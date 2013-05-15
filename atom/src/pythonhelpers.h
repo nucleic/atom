@@ -118,6 +118,19 @@ py_bool( bool val )
 }
 
 
+inline PyCFunction
+lookup_method( PyTypeObject* type, const char* name )
+{
+    PyMethodDef* method = type->tp_methods;
+    for( ; method->ml_name != 0; ++method )
+    {
+        if( strcmp( method->ml_name, name ) == 0 )
+            return method->ml_meth;
+    }
+    return 0;
+}
+
+
 /*-----------------------------------------------------------------------------
 | Object Ptr
 |----------------------------------------------------------------------------*/
@@ -505,6 +518,11 @@ public:
         return PyList_GET_SIZE( m_pyobj );
     }
 
+    PyObject* borrow_item( Py_ssize_t index ) const
+    {
+        return PyList_GET_ITEM( m_pyobj, index );
+    }
+
     PyObjectPtr get_item( Py_ssize_t index ) const
     {
         return PyObjectPtr( PythonHelpers::newref( PyList_GET_ITEM( m_pyobj, index ) ) );
@@ -537,6 +555,15 @@ public:
         if( PyList_Append( m_pyobj, pyobj.get() ) == 0 )
             return true;
         return false;
+    }
+
+    bool extend( PyObject* iter ) const
+    {
+        PyListObject* op = reinterpret_cast<PyListObject*>( m_pyobj );
+        PyObjectPtr res( _PyList_Extend( op, iter ) );
+        if( !res )
+            return false;
+        return true;
     }
 
     Py_ssize_t index( PyObjectPtr& item ) const
