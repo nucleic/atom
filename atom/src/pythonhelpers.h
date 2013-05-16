@@ -627,6 +627,20 @@ public:
         return false;
     }
 
+    bool set_item( PyObject* key, PyObjectPtr& value ) const
+    {
+        if( PyDict_SetItem( m_pyobj, key, value.get() ) == 0 )
+            return true;
+        return false;
+    }
+
+    bool set_item( PyObjectPtr& key, PyObject* value ) const
+    {
+        if( PyDict_SetItem( m_pyobj, key.get(), value ) == 0 )
+            return true;
+        return false;
+    }
+
     bool set_item( PyObjectPtr& key, PyObjectPtr& value ) const
     {
         if( PyDict_SetItem( m_pyobj, key.get(), value.get() ) == 0 )
