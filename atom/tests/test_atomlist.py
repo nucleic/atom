@@ -9,7 +9,7 @@ from functools import wraps
 
 from nose.tools import eq_, ok_, raises
 
-from atom.api import Atom, List, ContainerList
+from atom.api import Atom, List, Int, ContainerList
 
 
 class StandardModel(Atom):
@@ -20,7 +20,7 @@ class StandardModel(Atom):
     untyped = List()
 
     #: A standard list of integers.
-    ints = List(int)
+    typed = List(Int())
 
 
 class ContainerModel(Atom):
@@ -31,7 +31,7 @@ class ContainerModel(Atom):
     untyped = ContainerList()
 
     #: A container list of integers.
-    ints = ContainerList(int)
+    typed = ContainerList(Int())
 
 
 class ListTestBase(object):
@@ -41,7 +41,24 @@ class ListTestBase(object):
     #: Set this to one of the models defined above in setUp.
     model = None
 
-    def test_copy_on_assign(self):
+    #--------------------------------------------------------------------------
+    # Untyped Tests
+    #--------------------------------------------------------------------------
+    def test_untyped_any_data(self):
+        data = [object(), object, type, 12.0, 'wfoo', 9j, 10, {}, [], ()]
+        self.model.untyped = data
+        eq_(self.model.untyped, data)
+
+    def test_untyped_convert_to_list(self):
+        self.model.untyped = range(10)
+        eq_(list(self.model.untyped), range(10))
+
+    def test_untyped_iterate(self):
+        self.model.untyped = range(10)
+        data = [i for i in self.model.untyped]
+        eq_(data, range(10))
+
+    def test_untyped_copy_on_assign(self):
         data = range(10)
         self.model.untyped = data
         eq_(self.model.untyped, data)
@@ -115,13 +132,13 @@ class ListTestBase(object):
 
     def test_untyped_set_slice(self):
         self.model.untyped = range(5)
-        self.model.untyped[3:5] = [None, None]
-        eq_(self.model.untyped, [0, 1, 2, None, None])
+        self.model.untyped[3:5] = [42, 42]
+        eq_(self.model.untyped, [0, 1, 2, 42, 42])
 
     def test_untyped_set_slice_step(self):
         self.model.untyped = range(5)
-        self.model.untyped[::2] = [None, None, None]
-        eq_(self.model.untyped, [None, 1, None, 3, None])
+        self.model.untyped[::2] = [42, 42, 42]
+        eq_(self.model.untyped, [42, 1, 42, 3, 42])
 
     def test_untyped_del_item(self):
         self.model.untyped = range(5)
@@ -148,6 +165,125 @@ class ListTestBase(object):
         self.model.untyped *= 3
         eq_(self.model.untyped, range(10) * 3)
 
+    #--------------------------------------------------------------------------
+    # Typed Tests
+    #--------------------------------------------------------------------------
+    def test_typed_convert_to_list(self):
+        self.model.typed = range(10)
+        eq_(list(self.model.typed), range(10))
+
+    def test_typed_iterate(self):
+        self.model.typed = range(10)
+        data = [i for i in self.model.typed]
+        eq_(data, range(10))
+
+    def test_typed_copy_on_assign(self):
+        data = range(10)
+        self.model.typed = data
+        eq_(self.model.typed, data)
+        ok_(self.model.typed is not data)
+
+    def test_typed_append(self):
+        self.model.typed.append(1)
+        eq_(self.model.typed, [1])
+
+    def test_typed_extend(self):
+        self.model.typed.extend(range(10))
+        eq_(self.model.typed, range(10))
+
+    def test_typed_insert(self):
+        self.model.typed = range(10)
+        self.model.typed.insert(0, 19)
+        eq_(self.model.typed, [19] + range(10))
+
+    def test_typed_remove(self):
+        self.model.typed = range(10)
+        self.model.typed.remove(5)
+        data = range(10)
+        data.remove(5)
+        eq_(self.model.typed, data)
+
+    def test_typed_pop(self):
+        self.model.typed = range(10)
+        self.model.typed.pop()
+        eq_(self.model.typed, range(9))
+        self.model.typed.pop(0)
+        eq_(self.model.typed, range(1, 9))
+
+    def test_typed_index(self):
+        self.model.typed = range(10)
+        index = self.model.typed.index(5)
+        eq_(index, 5)
+
+    def test_typed_count(self):
+        self.model.typed = [1] * 10
+        count = self.model.typed.count(1)
+        eq_(count, 10)
+
+    def test_typed_reverse(self):
+        self.model.typed = range(10)
+        self.model.typed.reverse()
+        eq_(self.model.typed, list(reversed(range(10))))
+
+    def test_typed_sort(self):
+        self.model.typed = [8, 3, 2, 5, 9]
+        self.model.typed.sort()
+        eq_(self.model.typed, [2, 3, 5, 8, 9])
+        self.model.typed.sort(reverse=True)
+        eq_(self.model.typed, [9, 8, 5, 3, 2])
+
+    def test_typed_get_item(self):
+        self.model.typed = range(10)
+        eq_(self.model.typed[3], 3)
+
+    def test_typed_get_slice(self):
+        self.model.typed = range(10)
+        eq_(self.model.typed[3:8], range(3, 8))
+
+    def test_typed_get_slice_step(self):
+        self.model.typed = range(10)
+        eq_(self.model.typed[3::2], range(3, 10, 2))
+
+    def test_typed_set_item(self):
+        self.model.typed = range(10)
+        self.model.typed[5] = 42
+        eq_(self.model.typed[5], 42)
+
+    def test_typed_set_slice(self):
+        self.model.typed = range(5)
+        self.model.typed[3:5] = [42, 42]
+        eq_(self.model.typed, [0, 1, 2, 42, 42])
+
+    def test_typed_set_slice_step(self):
+        self.model.typed = range(5)
+        self.model.typed[::2] = [42, 42, 42]
+        eq_(self.model.typed, [42, 1, 42, 3, 42])
+
+    def test_typed_del_item(self):
+        self.model.typed = range(5)
+        del self.model.typed[3]
+        eq_(self.model.typed, [0, 1, 2, 4])
+
+    def test_typed_del_slice(self):
+        self.model.typed = range(5)
+        del self.model.typed[3:]
+        eq_(self.model.typed, range(3))
+
+    def test_typed_del_slice_step(self):
+        self.model.typed = range(10)
+        del self.model.typed[::2]
+        eq_(self.model.typed, range(1, 10, 2))
+
+    def test_typed_concat(self):
+        self.model.typed = range(10)
+        self.model.typed += range(5)
+        eq_(self.model.typed, range(10) + range(5))
+
+    def test_typed_repeat(self):
+        self.model.typed = range(10)
+        self.model.typed *= 3
+        eq_(self.model.typed, range(10) * 3)
+
 
 class TestStandardList(ListTestBase):
     """ A test class for the List member.
@@ -159,139 +295,38 @@ class TestStandardList(ListTestBase):
     def tearDown(self):
         self.model = None
 
-    def test_ints_append(self):
-        self.model.ints.append(1)
-        eq_(self.model.ints, [1])
-
-    def test_ints_extend(self):
-        self.model.ints.extend(range(10))
-        eq_(self.model.ints, range(10))
-
-    def test_ints_insert(self):
-        self.model.ints = range(10)
-        self.model.ints.insert(0, 19)
-        eq_(self.model.ints, [19] + range(10))
-
-    def test_ints_remove(self):
-        self.model.ints = range(10)
-        self.model.ints.remove(5)
-        data = range(10)
-        data.remove(5)
-        eq_(self.model.ints, data)
-
-    def test_ints_pop(self):
-        self.model.ints = range(10)
-        self.model.ints.pop()
-        eq_(self.model.ints, range(9))
-        self.model.ints.pop(0)
-        eq_(self.model.ints, range(1, 9))
-
-    def test_ints_index(self):
-        self.model.ints = range(10)
-        index = self.model.ints.index(5)
-        eq_(index, 5)
-
-    def test_ints_count(self):
-        self.model.ints = [1] * 10
-        count = self.model.ints.count(1)
-        eq_(count, 10)
-
-    def test_ints_reverse(self):
-        self.model.ints = range(10)
-        self.model.ints.reverse()
-        eq_(self.model.ints, list(reversed(range(10))))
-
-    def test_ints_sort(self):
-        self.model.ints = [8, 3, 2, 5, 9]
-        self.model.ints.sort()
-        eq_(self.model.ints, [2, 3, 5, 8, 9])
-        self.model.ints.sort(reverse=True)
-        eq_(self.model.ints, [9, 8, 5, 3, 2])
-
-    def test_ints_get_item(self):
-        self.model.ints = range(10)
-        eq_(self.model.ints[3], 3)
-
-    def test_ints_get_slice(self):
-        self.model.ints = range(10)
-        eq_(self.model.ints[3:8], range(3, 8))
-
-    def test_ints_get_slice_step(self):
-        self.model.ints = range(10)
-        eq_(self.model.ints[3::2], range(3, 10, 2))
-
-    def test_ints_set_item(self):
-        self.model.ints = range(10)
-        self.model.ints[5] = 42
-        eq_(self.model.ints[5], 42)
-
-    def test_ints_set_slice(self):
-        self.model.ints = range(5)
-        self.model.ints[3:5] = [19, 19]
-        eq_(self.model.ints, [0, 1, 2, 19, 19])
-
-    def test_ints_set_slice_step(self):
-        self.model.ints = range(5)
-        self.model.ints[::2] = [42, 42, 42]
-        eq_(self.model.ints, [42, 1, 42, 3, 42])
-
-    def test_ints_del_item(self):
-        self.model.ints = range(5)
-        del self.model.ints[3]
-        eq_(self.model.ints, [0, 1, 2, 4])
-
-    def test_ints_del_slice(self):
-        self.model.ints = range(5)
-        del self.model.ints[3:]
-        eq_(self.model.ints, range(3))
-
-    def test_ints_del_slice_step(self):
-        self.model.ints = range(10)
-        del self.model.ints[::2]
-        eq_(self.model.ints, range(1, 10, 2))
-
-    def test_ints_concat(self):
-        self.model.ints = range(10)
-        self.model.ints += range(5)
-        eq_(self.model.ints, range(10) + range(5))
-
-    def test_ints_repeat(self):
-        self.model.ints = range(10)
-        self.model.ints *= 3
-        eq_(self.model.ints, range(10) * 3)
+    @raises(TypeError)
+    def test_typed_bad_append(self):
+        self.model.typed.append(1.0)
 
     @raises(TypeError)
-    def test_bad_append(self):
-        self.model.ints.append(1.0)
+    def test_typed_bad_extend(self):
+        self.model.typed.extend([1, 2, 3, 'four'])
 
     @raises(TypeError)
-    def test_bad_extend(self):
-        self.model.ints.extend([1, 2, 3, 'four'])
+    def test_typed_bad_insert(self):
+        self.model.typed = range(10)
+        self.model.typed.insert(0, object())
 
     @raises(TypeError)
-    def test_bad_insert(self):
-        self.model.ints = range(10)
-        self.model.ints.insert(0, object())
+    def test_typed_bad_set_item(self):
+        self.model.typed = range(10)
+        self.model.typed[5] = 42j
 
     @raises(TypeError)
-    def test_bad_set_item(self):
-        self.model.ints = range(10)
-        self.model.ints[5] = 42j
+    def test_typed_bad_set_slice(self):
+        self.model.typed = range(5)
+        self.model.typed[3:5] = ['None', 'None']
 
     @raises(TypeError)
-    def test_bad_set_slice(self):
-        self.model.ints = range(5)
-        self.model.ints[3:5] = ['None', 'None']
+    def test_typed_bad_set_slice_step(self):
+        self.model.typed = range(5)
+        self.model.typed[::2] = [56.7, 56.7, 56.7]
 
     @raises(TypeError)
-    def test_bad_set_slice_step(self):
-        self.model.ints = range(5)
-        self.model.ints[::2] = [56.7, 56.7, 56.7]
-
-    @raises(TypeError)
-    def test_bad_concat(self):
-        self.model.ints = range(10)
-        self.model.ints += [12, 14, 'bad']
+    def test_typed_bad_concat(self):
+        self.model.typed = range(10)
+        self.model.typed += [12, 14, 'bad']
 
 
 class TestContainerList(TestStandardList):
@@ -327,13 +362,13 @@ class TestContainerNotify(object):
     def setUp(self):
         self.model = ContainerModel()
         self.model.untyped = range(10)
-        self.model.ints = range(10)
+        self.model.typed = range(10)
         self.model.observe('untyped', self._changed)
-        self.model.observe('ints', self._changed)
+        self.model.observe('typed', self._changed)
 
     def tearDown(self):
         self.model.unobserve('untyped', self._changed)
-        self.model.unobserve('ints', self._changed)
+        self.model.unobserve('typed', self._changed)
         self.model = None
 
     def _changed(self, change):
@@ -353,7 +388,7 @@ class TestContainerNotify(object):
 
     def test_container_append(self):
         yield (self.container_append, 'untyped')
-        yield (self.container_append, 'ints')
+        yield (self.container_append, 'typed')
 
     @containertest
     def container_insert(self, mlist):
@@ -364,7 +399,7 @@ class TestContainerNotify(object):
 
     def test_container_insert(self):
         yield (self.container_insert, 'untyped')
-        yield (self.container_insert, 'ints')
+        yield (self.container_insert, 'typed')
 
     @containertest
     def container_extend(self, mlist):
@@ -374,7 +409,7 @@ class TestContainerNotify(object):
 
     def test_container_extend(self):
         yield (self.container_extend, 'untyped')
-        yield (self.container_extend, 'ints')
+        yield (self.container_extend, 'typed')
 
     @containertest
     def container_remove(self, mlist):
@@ -384,7 +419,7 @@ class TestContainerNotify(object):
 
     def test_container_remove(self):
         yield (self.container_remove, 'untyped')
-        yield (self.container_remove, 'ints')
+        yield (self.container_remove, 'typed')
 
     @containertest
     def container_pop(self, mlist):
@@ -395,7 +430,7 @@ class TestContainerNotify(object):
 
     def test_container_pop(self):
         yield (self.container_pop, 'untyped')
-        yield (self.container_pop, 'ints')
+        yield (self.container_pop, 'typed')
 
     @containertest
     def container_reverse(self, mlist):
@@ -404,70 +439,127 @@ class TestContainerNotify(object):
 
     def test_container_reverse(self):
         yield (self.container_reverse, 'untyped')
-        yield (self.container_reverse, 'ints')
+        yield (self.container_reverse, 'typed')
 
-    #@containertest
-    #def container_sort()
-    # def test_ints_reverse(self):
-    #     self.model.ints = range(10)
-    #     self.model.ints.reverse()
-    #     eq_(self.model.ints, list(reversed(range(10))))
+    @containertest
+    def container_sort(self, mlist):
+        mlist.sort()
+        eq_(self.change['operation'], 'sort')
+        eq_(self.change['cmp'], None)
+        eq_(self.change['key'], None)
+        eq_(self.change['reverse'], False)
 
-    # def test_ints_sort(self):
-    #     self.model.ints = [8, 3, 2, 5, 9]
-    #     self.model.ints.sort()
-    #     eq_(self.model.ints, [2, 3, 5, 8, 9])
-    #     self.model.ints.sort(reverse=True)
-    #     eq_(self.model.ints, [9, 8, 5, 3, 2])
+    @containertest
+    def container_key_sort(self, mlist):
+        key = lambda i: i
+        mlist.sort(key=key, reverse=True)
+        eq_(self.change['operation'], 'sort')
+        eq_(self.change['cmp'], None)
+        eq_(self.change['key'], key)
+        eq_(self.change['reverse'], True)
 
-    # def test_ints_get_item(self):
-    #     self.model.ints = range(10)
-    #     eq_(self.model.ints[3], 3)
+    @containertest
+    def container_cmp_sort(self, mlist):
+        cmpfunc = lambda a, b: a < b
+        mlist.sort(cmp=cmpfunc, reverse=True)
+        eq_(self.change['operation'], 'sort')
+        eq_(self.change['cmp'], cmpfunc)
+        eq_(self.change['key'], None)
+        eq_(self.change['reverse'], True)
 
-    # def test_ints_get_slice(self):
-    #     self.model.ints = range(10)
-    #     eq_(self.model.ints[3:8], range(3, 8))
+    def test_container_sort(self):
+        yield (self.container_sort, 'untyped')
+        yield (self.container_sort, 'typed')
+        yield (self.container_key_sort, 'untyped')
+        yield (self.container_key_sort, 'typed')
+        yield (self.container_cmp_sort, 'untyped')
+        yield (self.container_cmp_sort, 'typed')
 
-    # def test_ints_get_slice_step(self):
-    #     self.model.ints = range(10)
-    #     eq_(self.model.ints[3::2], range(3, 10, 2))
+    @containertest
+    def container_set_item(self, mlist):
+        mlist[0] = 42
+        eq_(self.change['operation'], '__setitem__')
+        eq_(self.change['index'], 0)
+        eq_(self.change['olditem'], 0)
+        eq_(self.change['newitem'], 42)
 
-    # def test_ints_set_item(self):
-    #     self.model.ints = range(10)
-    #     self.model.ints[5] = 42
-    #     eq_(self.model.ints[5], 42)
+    def test_container_set_item(self):
+        yield (self.container_set_item, 'untyped')
+        yield (self.container_set_item, 'typed')
 
-    # def test_ints_set_slice(self):
-    #     self.model.ints = range(5)
-    #     self.model.ints[3:5] = [19, 19]
-    #     eq_(self.model.ints, [0, 1, 2, 19, 19])
+    @containertest
+    def container_set_slice(self, mlist):
+        mlist[3:5] = [1, 2, 3]
+        eq_(self.change['operation'], '__setitem__')
+        eq_(self.change['index'], slice(3, 5, None))
+        eq_(self.change['olditem'], [3, 4])
+        eq_(self.change['newitem'], [1, 2, 3])
 
-    # def test_ints_set_slice_step(self):
-    #     self.model.ints = range(5)
-    #     self.model.ints[::2] = [42, 42, 42]
-    #     eq_(self.model.ints, [42, 1, 42, 3, 42])
+    def test_container_set_slice(self):
+        yield (self.container_set_slice, 'untyped')
+        yield (self.container_set_slice, 'typed')
 
-    # def test_ints_del_item(self):
-    #     self.model.ints = range(5)
-    #     del self.model.ints[3]
-    #     eq_(self.model.ints, [0, 1, 2, 4])
+    @containertest
+    def container_set_slice_step(self, mlist):
+        mlist[::2] = [1, 2, 3, 4, 5]
+        eq_(self.change['operation'], '__setitem__')
+        eq_(self.change['index'], slice(None, None, 2))
+        eq_(self.change['olditem'], [0, 2, 4, 6, 8])
+        eq_(self.change['newitem'], [1, 2, 3, 4, 5])
 
-    # def test_ints_del_slice(self):
-    #     self.model.ints = range(5)
-    #     del self.model.ints[3:]
-    #     eq_(self.model.ints, range(3))
+    def test_container_set_slice_step(self):
+        yield (self.container_set_slice_step, 'untyped')
+        yield (self.container_set_slice_step, 'typed')
 
-    # def test_ints_del_slice_step(self):
-    #     self.model.ints = range(10)
-    #     del self.model.ints[::2]
-    #     eq_(self.model.ints, range(1, 10, 2))
+    @containertest
+    def container_del_item(self, mlist):
+        del mlist[0]
+        eq_(self.change['operation'], '__delitem__')
+        eq_(self.change['index'], 0)
+        eq_(self.change['item'], 0)
 
-    # def test_ints_concat(self):
-    #     self.model.ints = range(10)
-    #     self.model.ints += range(5)
-    #     eq_(self.model.ints, range(10) + range(5))
+    def test_container_del_item(self):
+        yield (self.container_del_item, 'untyped')
+        yield (self.container_del_item, 'typed')
 
-    # def test_ints_repeat(self):
-    #     self.model.ints = range(10)
-    #     self.model.ints *= 3
-    #     eq_(self.model.ints, range(10) * 3)
+    @containertest
+    def container_del_slice(self, mlist):
+        del mlist[0:5]
+        eq_(self.change['operation'], '__delitem__')
+        eq_(self.change['index'], slice(0, 5, None))
+        eq_(self.change['item'], range(5))
+
+    def test_container_del_slice(self):
+        yield (self.container_del_slice, 'untyped')
+        yield (self.container_del_slice, 'typed')
+
+    @containertest
+    def container_del_slice_step(self, mlist):
+        del mlist[::2]
+        eq_(self.change['operation'], '__delitem__')
+        eq_(self.change['index'], slice(None, None, 2))
+        eq_(self.change['item'], range(10)[::2])
+
+    def test_container_del_slice_step(self):
+        yield (self.container_del_slice_step, 'untyped')
+        yield (self.container_del_slice_step, 'typed')
+
+    @containertest
+    def container_concat(self, mlist):
+        mlist += [1, 2, 3]
+        eq_(self.change['operation'], '__iadd__')
+        eq_(self.change['items'], [1, 2, 3])
+
+    def test_container_concat(self):
+        yield (self.container_concat, 'untyped')
+        yield (self.container_concat, 'typed')
+
+    @containertest
+    def container_repeat(self, mlist):
+        mlist *= 2
+        eq_(self.change['operation'], '__imul__')
+        eq_(self.change['count'], 2)
+
+    def test_container_repeat(self):
+        yield (self.container_repeat, 'untyped')
+        yield (self.container_repeat, 'typed')
