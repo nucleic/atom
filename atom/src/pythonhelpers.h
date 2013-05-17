@@ -118,6 +118,19 @@ py_bool( bool val )
 }
 
 
+inline PyCFunction
+lookup_method( PyTypeObject* type, const char* name )
+{
+    PyMethodDef* method = type->tp_methods;
+    for( ; method->ml_name != 0; ++method )
+    {
+        if( strcmp( method->ml_name, name ) == 0 )
+            return method->ml_meth;
+    }
+    return 0;
+}
+
+
 /*-----------------------------------------------------------------------------
 | Object Ptr
 |----------------------------------------------------------------------------*/
@@ -490,12 +503,12 @@ public:
 
     PyListPtr( PyObject* pylist ) : PyObjectPtr( pylist ) {}
 
-    bool check()
+    bool check() const
     {
         return PyList_Check( m_pyobj );
     }
 
-    bool check_exact()
+    bool check_exact() const
     {
         return PyList_CheckExact( m_pyobj );
     }
@@ -505,12 +518,24 @@ public:
         return PyList_GET_SIZE( m_pyobj );
     }
 
+    PyObject* borrow_item( Py_ssize_t index ) const
+    {
+        return PyList_GET_ITEM( m_pyobj, index );
+    }
+
     PyObjectPtr get_item( Py_ssize_t index ) const
     {
         return PyObjectPtr( PythonHelpers::newref( PyList_GET_ITEM( m_pyobj, index ) ) );
     }
 
-    void set_item( Py_ssize_t index, PyObjectPtr& item )
+    void set_item( Py_ssize_t index, PyObject* pyobj ) const
+    {
+        PyObject* old_item = PyList_GET_ITEM( m_pyobj, index );
+        PyList_SET_ITEM( m_pyobj, index, pyobj );
+        Py_XDECREF( old_item );
+    }
+
+    void set_item( Py_ssize_t index, PyObjectPtr& item ) const
     {
         PyObject* old_item = PyList_GET_ITEM( m_pyobj, index );
         PyList_SET_ITEM( m_pyobj, index, item.get() );
@@ -598,6 +623,20 @@ public:
     bool set_item( PyObject* key, PyObject* value ) const
     {
         if( PyDict_SetItem( m_pyobj, key, value ) == 0 )
+            return true;
+        return false;
+    }
+
+    bool set_item( PyObject* key, PyObjectPtr& value ) const
+    {
+        if( PyDict_SetItem( m_pyobj, key, value.get() ) == 0 )
+            return true;
+        return false;
+    }
+
+    bool set_item( PyObjectPtr& key, PyObject* value ) const
+    {
+        if( PyDict_SetItem( m_pyobj, key.get(), value ) == 0 )
             return true;
         return false;
     }

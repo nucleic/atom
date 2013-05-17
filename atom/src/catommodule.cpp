@@ -11,6 +11,8 @@
 #include "memberchange.h"
 #include "eventbinder.h"
 #include "signalconnector.h"
+#include "atomref.h"
+#include "atomlist.h"
 
 
 using namespace PythonHelpers;
@@ -77,11 +79,21 @@ initcatom( void )
         return;
     if( import_signalconnector() < 0 )
         return;
+    if( import_atomref() < 0 )
+        return;
+    if( import_atomlist() < 0 )
+        return;
 
     Py_INCREF( &Member_Type );
     Py_INCREF( &CAtom_Type );
-    PyModule_AddObject( mod, "Member", reinterpret_cast<PyObject*>( &Member_Type ) );
-    PyModule_AddObject( mod, "CAtom", reinterpret_cast<PyObject*>( &CAtom_Type ) );
+    Py_INCREF( &AtomRef_Type );
+    Py_INCREF( &AtomList_Type );
+    Py_INCREF( &AtomCList_Type );
+    PyModule_AddObject( mod, "Member", pyobject_cast( &Member_Type ) );
+    PyModule_AddObject( mod, "CAtom", pyobject_cast( &CAtom_Type ) );
+    PyModule_AddObject( mod, "atomref", pyobject_cast( &AtomRef_Type ) );
+    PyModule_AddObject( mod, "atomlist", pyobject_cast( &AtomList_Type ) );
+    PyModule_AddObject( mod, "atomclist", pyobject_cast( &AtomCList_Type ) );
 
     PyObject* PyGetAttr = new_enum_class( "GetAttr" );
     if( !PyGetAttr )
@@ -202,7 +214,7 @@ initcatom( void )
         AddEnum( PyValidate, UnicodePromote );
         AddEnum( PyValidate, Tuple );
         AddEnum( PyValidate, List );
-        AddEnum( PyValidate, ListNoCopy );
+        AddEnum( PyValidate, ContainerList );
         AddEnum( PyValidate, Dict );
         AddEnum( PyValidate, Instance );
         AddEnum( PyValidate, Typed );

@@ -5,7 +5,9 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <iostream>
 #include "member.h"
+#include "atomlist.h"
 
 
 using namespace PythonHelpers;
@@ -18,7 +20,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
     {
         case Validate::Tuple:
         case Validate::List:
-        case Validate::ListNoCopy:
+        case Validate::ContainerList:
             if( context != Py_None && !Member::TypeCheck( context ) )
             {
                 py_expected_type_fail( context, "Member or None" );
@@ -281,53 +283,70 @@ tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 }
 
 
-static PyObject*
-list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+template<typename ListFactory>
+PyObject*
+common_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyList_Check( newvalue ) )
         return validate_type_fail( member, atom, newvalue, "list" );
-    Py_ssize_t size = PyList_GET_SIZE( newvalue );
-    PyListPtr listcopy( PyList_GetSlice( newvalue, 0, size ) );
-    if( !listcopy )
-        return 0;
+    Member* validator = 0;
     if( member->validate_context != Py_None )
+        validator = member_cast( member->validate_context );
+    Py_ssize_t size = PyList_GET_SIZE( newvalue );
+    PyListPtr listptr( ListFactory()( member, atom, validator, size ) );
+    if( !listptr )
+        return 0;
+    if( !validator )
     {
-        Member* item_member = member_cast( member->validate_context );
+        for( Py_ssize_t i = 0; i < size; ++i )
+            listptr.set_item( i, newref( PyList_GET_ITEM( newvalue, i ) ) );
+    }
+    else
+    {
         for( Py_ssize_t i = 0; i < size; ++i )
         {
-            PyObjectPtr item( listcopy.get_item( i ) );
-            PyObjectPtr valid_item( item_member->full_validate( atom, Py_None, item.get() ) );
+            PyObject* item = PyList_GET_ITEM( newvalue, i );
+            PyObjectPtr valid_item( validator->full_validate( atom, Py_None, item ) );
             if( !valid_item )
                 return 0;
-            if( valid_item != item )
-                listcopy.set_item( i, valid_item );
+            listptr.set_item( i, valid_item );
         }
     }
-    return listcopy.release();
+    return listptr.release();
+}
+
+
+class AtomListFactory
+{
+public:
+    PyObject* operator()( Member* member, CAtom* atom, Member* validator, Py_ssize_t size )
+    {
+        return AtomList_New( size, atom, validator );
+    }
+};
+
+
+class AtomCListFactory
+{
+public:
+    PyObject* operator()( Member* member, CAtom* atom, Member* validator, Py_ssize_t size )
+    {
+        return AtomCList_New( size, atom, validator, member );
+    }
+};
+
+
+static PyObject*
+list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    return common_list_handler<AtomListFactory>( member, atom, oldvalue, newvalue );
 }
 
 
 static PyObject*
-list_no_copy_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+container_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( !PyList_Check( newvalue ) )
-        return validate_type_fail( member, atom, newvalue, "list" );
-    Py_ssize_t size = PyList_GET_SIZE( newvalue );
-    PyListPtr listptr( newref( newvalue ) );
-    if( member->validate_context != Py_None )
-    {
-        Member* item_member = member_cast( member->validate_context );
-        for( Py_ssize_t i = 0; i < size; ++i )
-        {
-            PyObjectPtr item( listptr.get_item( i ) );
-            PyObjectPtr valid_item( item_member->full_validate( atom, Py_None, item.get() ) );
-            if( !valid_item )
-                return 0;
-            if( valid_item != item )
-                listptr.set_item( i, valid_item );
-        }
-    }
-    return listptr.release();
+    return common_list_handler<AtomCListFactory>( member, atom, oldvalue, newvalue );
 }
 
 
@@ -590,7 +609,7 @@ handlers[] = {
     unicode_promote_handler,
     tuple_handler,
     list_handler,
-    list_no_copy_handler,
+    container_list_handler,
     dict_handler,
     instance_handler,
     typed_handler,
