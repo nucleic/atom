@@ -7,8 +7,8 @@
 #------------------------------------------------------------------------------
 from .atom import AtomMeta, Atom, observe, set_default
 from .catom import (
-    CAtom, AtomRef, Member, GetAttr, SetAttr, PostGetAttr, PostSetAttr,
-    DefaultValue, Validate, PostValidate
+    CAtom, Member, GetAttr, SetAttr, PostGetAttr, PostSetAttr,
+    DefaultValue, Validate, PostValidate, atomref, atomlist, atomclist
 )
 from .coerced import Coerced
 from .containerlist import ContainerList
