@@ -98,7 +98,8 @@ CAtom_traverse( CAtom* self, visitproc visit, void* arg )
 static void
 CAtom_dealloc( CAtom* self )
 {
-    CAtom::clear_guards( self );
+    if( self->has_guards() )
+        CAtom::clear_guards( self );
     PyObject_GC_UnTrack( self );
     CAtom_clear( self );
     if( self->slots )
