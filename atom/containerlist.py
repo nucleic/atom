@@ -5,10 +5,8 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, DefaultValue, Validate
-from .list import List#, ListProxy
-from .instance import Instance
-from .typed import Typed
+from .catom import Validate
+from .list import List
 
 
 class ContainerList(List):
@@ -21,11 +19,5 @@ class ContainerList(List):
         """ Initialize a ContainerList.
 
         """
-        if item is not None and not isinstance(item, Member):
-            if isinstance(item, type):
-                item = Typed(item)
-            else:
-                item = Instance(item)
-        self.item = item
-        self.set_default_value_mode(DefaultValue.List, default)
+        super(ContainerList, self).__init__(item, default)
         self.set_validate_mode(Validate.ContainerList, item)

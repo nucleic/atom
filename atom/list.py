@@ -37,10 +37,7 @@ class List(Member):
 
         """
         if item is not None and not isinstance(item, Member):
-            if isinstance(item, type):
-                item = Typed(item)
-            else:
-                item = Instance(item)
+            item = Typed(item) if isinstance(item, type) else Instance(item)
         self.item = item
         self.set_default_value_mode(DefaultValue.List, default)
         self.set_validate_mode(Validate.List, item)
