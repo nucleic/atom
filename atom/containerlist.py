@@ -20,4 +20,4 @@ class ContainerList(List):
 
         """
         super(ContainerList, self).__init__(item, default)
-        self.set_validate_mode(Validate.ContainerList, item)
+        self.set_validate_mode(Validate.ContainerList, self.item)
