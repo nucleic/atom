@@ -5,11 +5,12 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+from cPickle import dumps, loads
 from functools import wraps
 
 from nose.tools import eq_, ok_, raises
 
-from atom.api import Atom, List, Int, ContainerList
+from atom.api import Atom, List, Int, ContainerList, atomlist, atomclist
 
 
 class StandardModel(Atom):
@@ -295,6 +296,21 @@ class TestStandardList(ListTestBase):
     def tearDown(self):
         self.model = None
 
+    def test_list_types(self):
+        eq_(type(self.model.untyped), atomlist)
+        eq_(type(self.model.typed), atomlist)
+
+    def test_pickle(self):
+        data = range(10)
+        self.model.untyped = data
+        self.model.typed = data
+        eq_(data, loads(dumps(self.model.untyped, 0)))
+        eq_(data, loads(dumps(self.model.untyped, 1)))
+        eq_(data, loads(dumps(self.model.untyped, 2)))
+        eq_(data, loads(dumps(self.model.typed, 0)))
+        eq_(data, loads(dumps(self.model.typed, 1)))
+        eq_(data, loads(dumps(self.model.typed, 2)))
+
     @raises(TypeError)
     def test_typed_bad_append(self):
         self.model.typed.append(1.0)
@@ -341,6 +357,9 @@ class TestContainerList(TestStandardList):
     def tearDown(self):
         self.model = None
 
+    def test_list_types(self):
+        eq_(type(self.model.untyped), atomclist)
+        eq_(type(self.model.typed), atomclist)
 
 def containertest(func):
     @wraps(func)
