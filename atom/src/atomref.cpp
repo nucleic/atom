@@ -121,7 +121,7 @@ AtomRef_methods[] = {
 PyTypeObject AtomRef_Type = {
     PyObject_HEAD_INIT( 0 )
     0,                                      /* ob_size */
-    "catom.AtomRef",                        /* tp_name */
+    "catom.atomref",                        /* tp_name */
     sizeof( AtomRef ),                      /* tp_basicsize */
     0,                                      /* tp_itemsize */
     (destructor)AtomRef_dealloc,            /* tp_dealloc */
