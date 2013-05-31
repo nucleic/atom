@@ -301,7 +301,11 @@ private:
 static PyObject*
 AtomList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-    return AtomList_New( 0, 0, 0 );
+    PyObjectPtr ptr( PyList_Type.tp_new( type, args, kwargs ) );
+    if( !ptr )
+        return 0;
+    atomlist_cast( ptr.get() )->pointer = new CAtomPointer();
+    return ptr.release();
 }
 
 
@@ -943,7 +947,7 @@ private:
 static PyObject*
 AtomCList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-    return AtomCList_New( 0, 0, 0, 0 );
+    return AtomList_Type.tp_new( type, args, kwargs );
 }
 
 
