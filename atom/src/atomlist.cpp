@@ -78,31 +78,24 @@ init_methods()
 static PyObject*
 ListSubtype_New( PyTypeObject* subtype, Py_ssize_t size )
 {
-    // The list's internal pointer array can't be malloced directly,
-    // or the internal list_resize method will blow up when two heaps
-    // are in use. This can happen when using this extension compiled
-    // with MinGW on a Python compiled with MSVCC, for example. So, a
-    // slave list is allocated and it's pointer array is stolen. This
-    // ensures the pointer array is malloced, resized, and freed by
-    // the same CRT.
-    PyObjectPtr slave( PyList_New( size ) );
-    if( !slave )
-        return 0;
-
+    if( size < 0 )
+        return py_bad_internal_call( "negative list size" );
+    if( static_cast<size_t>( size ) > PY_SIZE_MAX / sizeof( PyObject* ) )
+        return PyErr_NoMemory();
     PyObjectPtr ptr( PyType_GenericNew( subtype, 0, 0 ) );
     if( !ptr )
         return 0;
-
     PyListObject* op = reinterpret_cast<PyListObject*>( ptr.get() );
-    PyListObject* slave_op = reinterpret_cast<PyListObject*>( slave.get() );
-    op->ob_item = slave_op->ob_item;
-    op->allocated = size;
+    if( size > 0 )
+    {
+        size_t nbytes = size * sizeof( PyObject* );
+        op->ob_item = reinterpret_cast<PyObject**>( PyMem_Malloc( nbytes ) );
+        if( !op->ob_item )
+            return PyErr_NoMemory();
+        memset( op->ob_item, 0, nbytes );
+    }
     Py_SIZE( op ) = size;
-
-    slave_op->ob_item = 0;
-    slave_op->allocated = 0;
-    Py_SIZE( slave_op ) = 0;
-
+    op->allocated = size;
     return ptr.release();
 }
 
