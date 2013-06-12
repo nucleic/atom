@@ -12,11 +12,13 @@ ext_modules = [
     Extension(
         'atom.catom',
         ['atom/src/atomlist.cpp',
+         #'atom/src/atomdict.cpp',
          'atom/src/atomref.cpp',
          'atom/src/catom.cpp',
          'atom/src/catommodule.cpp',
          'atom/src/defaultvaluebehavior.cpp',
          'atom/src/delattrbehavior.cpp',
+         'atom/src/enumtypes.cpp',
          'atom/src/eventbinder.cpp',
          'atom/src/getattrbehavior.cpp',
          'atom/src/member.cpp',

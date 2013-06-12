@@ -10,7 +10,7 @@
 #include "pythonhelpers.h"
 #include "catom.h"
 #include "catompointer.h"
-
+#include "packagenaming.h"
 
 using namespace PythonHelpers;
 
@@ -121,7 +121,7 @@ AtomRef_methods[] = {
 PyTypeObject AtomRef_Type = {
     PyObject_HEAD_INIT( 0 )
     0,                                      /* ob_size */
-    "catom.atomref",                        /* tp_name */
+    PACKAGE_TYPENAME( "atomref" ),          /* tp_name */
     sizeof( AtomRef ),                      /* tp_basicsize */
     0,                                      /* tp_itemsize */
     (destructor)AtomRef_dealloc,            /* tp_dealloc */

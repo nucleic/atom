@@ -283,8 +283,7 @@ tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 }
 
 
-template<typename ListFactory>
-PyObject*
+template<typename ListFactory> PyObject*
 common_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyList_Check( newvalue ) )

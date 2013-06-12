@@ -8,7 +8,8 @@
 #pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #include "member.h"
-
+#include "enumtypes.h"
+#include "packagenaming.h"
 
 using namespace PythonHelpers;
 
@@ -403,16 +404,26 @@ Member_get_getattr_mode( Member* self, void* ctxt )
 }
 
 
+template<typename T> bool
+parse_mode_and_context( PyObject* args, PyObject** context, T& mode )
+{
+    PyObject* pymode;
+    if( !PyArg_ParseTuple( args, "OO", &pymode, context ) )
+        return false;
+    if( !EnumTypes::convert( pymode, mode ) )
+        return false;
+    if( !Member::check_context( mode, *context ) )
+        return false;
+    return true;
+}
+
+
 static PyObject*
 Member_set_getattr_mode( Member* self, PyObject* args )
 {
     GetAttr::Mode mode;
     PyObject* context;
-    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
-        return 0;
-    if( mode < GetAttr::NoOp || mode >= GetAttr::Last )
-        return py_value_fail( "invalid getattr mode" );
-    if( !Member::check_context( mode, context ) )
+    if( !parse_mode_and_context( args, &context, mode ) )
         return 0;
     self->set_getattr_mode( mode );
     PyObject* old = self->getattr_context;
@@ -441,11 +452,7 @@ Member_set_setattr_mode( Member* self, PyObject* args )
 {
     SetAttr::Mode mode;
     PyObject* context;
-    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
-        return 0;
-    if( mode < SetAttr::NoOp || mode >= SetAttr::Last )
-        return py_value_fail( "invalid setattr mode" );
-    if( !Member::check_context( mode, context ) )
+    if( !parse_mode_and_context( args, &context, mode ) )
         return 0;
     self->set_setattr_mode( mode );
     PyObject* old = self->setattr_context;
@@ -474,11 +481,7 @@ Member_set_delattr_mode( Member* self, PyObject* args )
 {
     DelAttr::Mode mode;
     PyObject* context;
-    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
-        return 0;
-    if( mode < DelAttr::NoOp || mode >= DelAttr::Last )
-        return py_value_fail( "invalid delattr mode" );
-    if( !Member::check_context( mode, context ) )
+    if( !parse_mode_and_context( args, &context, mode ) )
         return 0;
     self->set_delattr_mode( mode );
     PyObject* old = self->delattr_context;
@@ -507,11 +510,7 @@ Member_set_post_getattr_mode( Member* self, PyObject* args )
 {
     PostGetAttr::Mode mode;
     PyObject* context;
-    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
-        return 0;
-    if( mode < PostGetAttr::NoOp || mode >= PostGetAttr::Last )
-        return py_value_fail( "invalid post getattr mode" );
-    if( !Member::check_context( mode, context ) )
+    if( !parse_mode_and_context( args, &context, mode ) )
         return 0;
     self->set_post_getattr_mode( mode );
     PyObject* old = self->post_getattr_context;
@@ -540,11 +539,7 @@ Member_set_post_setattr_mode( Member* self, PyObject* args )
 {
     PostSetAttr::Mode mode;
     PyObject* context;
-    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
-        return 0;
-    if( mode < PostSetAttr::NoOp || mode >= PostSetAttr::Last )
-        return py_value_fail( "invalid post setattr mode" );
-    if( !Member::check_context( mode, context ) )
+    if( !parse_mode_and_context( args, &context, mode ) )
         return 0;
     self->set_post_setattr_mode( mode );
     PyObject* old = self->post_setattr_context;
@@ -573,11 +568,7 @@ Member_set_default_value_mode( Member* self, PyObject* args )
 {
     DefaultValue::Mode mode;
     PyObject* context;
-    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
-        return 0;
-    if( mode < DefaultValue::NoOp || mode >= DefaultValue::Last )
-        return py_value_fail( "invalid default value mode" );
-    if( !Member::check_context( mode, context ) )
+    if( !parse_mode_and_context( args, &context, mode ) )
         return 0;
     self->set_default_value_mode( mode );
     PyObject* old = self->default_value_context;
@@ -606,11 +597,7 @@ Member_set_validate_mode( Member* self, PyObject* args )
 {
     Validate::Mode mode;
     PyObject* context;
-    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
-        return 0;
-    if( mode < Validate::NoOp || mode >= Validate::Last )
-        return py_value_fail( "invalid validate mode" );
-    if( !Member::check_context( mode, context ) )
+    if( !parse_mode_and_context( args, &context, mode ) )
         return 0;
     self->set_validate_mode( mode );
     PyObject* old = self->validate_context;
@@ -639,11 +626,7 @@ Member_set_post_validate_mode( Member* self, PyObject* args )
 {
     PostValidate::Mode mode;
     PyObject* context;
-    if( !PyArg_ParseTuple( args, "lO", &mode, &context ) )
-        return 0;
-    if( mode < PostValidate::NoOp || mode >= PostValidate::Last )
-        return py_value_fail( "invalid post validate mode" );
-    if( !Member::check_context( mode, context ) )
+    if( !parse_mode_and_context( args, &context, mode ) )
         return 0;
     self->set_post_validate_mode( mode );
     PyObject* old = self->post_validate_context;
@@ -821,7 +804,7 @@ Member_methods[] = {
 PyTypeObject Member_Type = {
     PyObject_HEAD_INIT( &PyType_Type )
     0,                                      /* ob_size */
-    "catom.Member",                         /* tp_name */
+    PACKAGE_TYPENAME( "Member" ),           /* tp_name */
     sizeof( Member ),                       /* tp_basicsize */
     0,                                      /* tp_itemsize */
     (destructor)Member_dealloc,             /* tp_dealloc */

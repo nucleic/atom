@@ -10,7 +10,7 @@
 #include <map>
 #include "catom.h"
 #include "methodwrapper.h"
-
+#include "packagenaming.h"
 
 using namespace PythonHelpers;
 
@@ -263,7 +263,7 @@ CAtom_methods[] = {
 PyTypeObject CAtom_Type = {
     PyObject_HEAD_INIT( &PyType_Type )
     0,                                      /* ob_size */
-    "catom.CAtom",                          /* tp_name */
+    PACKAGE_TYPENAME( "CAtom" ),            /* tp_name */
     sizeof( CAtom ),                        /* tp_basicsize */
     0,                                      /* tp_itemsize */
     (destructor)CAtom_dealloc,              /* tp_dealloc */

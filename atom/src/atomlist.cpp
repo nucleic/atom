@@ -6,6 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "atomlist.h"
+#include "packagenaming.h"
 
 
 using namespace PythonHelpers;
@@ -158,14 +159,14 @@ public:
         PyObject* value;
         if( !PyArg_ParseTuple( args, "nO:insert", &index, &value ) )
             return 0;
-        value = validate_single( value );
-        if( !value )
+        PyObjectPtr valptr( validate_single( value ) );
+        if( !valptr )
             return 0;
-        PyObjectPtr nargs( PyTuple_New( 2 ) );
+        PyTuplePtr nargs( PyTuple_New( 2 ) );
         if( !nargs )
             return 0;
-        PyTuple_SET_ITEM( nargs.get(), 0, PyInt_FromSsize_t( index ) );
-        PyTuple_SET_ITEM( nargs.get(), 1, value );
+        nargs.initialize( 0, PyInt_FromSsize_t( index ) );
+        nargs.initialize( 1, valptr.release() );
         return ListMethods::insert( m_list.get(), nargs.get() );
     }
 
@@ -391,12 +392,14 @@ AtomList_ass_subscript( AtomList* self, PyObject* key, PyObject* value )
 }
 
 
-PyDoc_STRVAR(a_append_doc,
-"L.append(object) -- append object to end");
-PyDoc_STRVAR(a_insert_doc,
-"L.insert(index, object) -- insert object before index");
-PyDoc_STRVAR(a_extend_doc,
-"L.extend(iterable) -- extend list by appending elements from the iterable");
+PyDoc_STRVAR( a_append_doc,
+"L.append(object) -- append object to end" );
+
+PyDoc_STRVAR( a_insert_doc,
+"L.insert(index, object) -- insert object before index" );
+
+PyDoc_STRVAR( a_extend_doc,
+"L.extend(iterable) -- extend list by appending elements from the iterable" );
 
 
 static PyMethodDef
@@ -435,7 +438,7 @@ AtomList_as_mapping = {
 PyTypeObject AtomList_Type = {
     PyObject_HEAD_INIT( &PyType_Type )
     0,                                      /* ob_size */
-    "catom.atomlist",                       /* tp_name */
+    PACKAGE_TYPENAME( "atomlist" ),         /* tp_name */
     sizeof( AtomList ),                     /* tp_basicsize */
     0,                                      /* tp_itemsize */
     (destructor)AtomList_dealloc,           /* tp_dealloc */
@@ -1101,7 +1104,7 @@ AtomCList_as_mapping = {
 PyTypeObject AtomCList_Type = {
     PyObject_HEAD_INIT( &PyType_Type )
     0,                                      /* ob_size */
-    "catom.atomclist",                      /* tp_name */
+    PACKAGE_TYPENAME( "atomclist" ),        /* tp_name */
     sizeof( AtomCList ),                    /* tp_basicsize */
     0,                                      /* tp_itemsize */
     (destructor)AtomCList_dealloc,          /* tp_dealloc */
