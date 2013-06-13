@@ -7,28 +7,33 @@
 #------------------------------------------------------------------------------
 # Note: This module is imported by 'atom.catom' module from code defined in
 # the 'enumtypes.cpp' file. This module must therefore not import atom.
+
+
+# IntEnum is not defined until the metaclass creates it.
+IntEnum = None
+
+
 class IntEnumMeta(type):
     """ The metaclass for IntEnum and its subclasses.
 
     """
     def __new__(meta, name, bases, dct):
-        cls = type.__new__(meta, name, bases, dct)
+        if len(bases) > 1:
+            raise TypeError('int enums do not support multiple inheritance')
+        if IntEnum is None:
+            return type.__new__(meta, name, bases, dct)
+        if bases[0] is not IntEnum:
+            raise TypeError('int enums cannot be extended')
         enums = {}
         reved = {}
-        skip = (int, object)
-        for t in reversed(cls.mro()):
-            if t in skip:
-                continue
-            for key, value in t.__dict__.iteritems():
-                if key in enums and enums[key] != value:
-                    msg = "conflicting enum value for name '%s'"
-                    raise TypeError(msg % key)
-                if isinstance(value, int):
-                    enum = int.__new__(cls, value)
-                    enum.__enum_name__ = key
-                    type.__setattr__(cls, key, enum)
-                    enums[key] = enum
-                    reved[int(enum)] = enum
+        cls = type.__new__(meta, name, bases, dct)
+        for key, value in cls.__dict__.iteritems():
+            if isinstance(value, int):
+                enum = int.__new__(cls, value)
+                enum.__enum_name__ = key
+                type.__setattr__(cls, key, enum)
+                enums[key] = enum
+                reved[int(enum)] = enum
         type.__setattr__(cls, '__enums__', enums)
         type.__setattr__(cls, '__reved__', reved)
         return cls
@@ -58,9 +63,7 @@ class IntEnumMeta(type):
         return len(cls.__enums__)
 
     def __iter__(cls):
-        enum_values = cls.__enums__.values()
-        enum_values.sort()
-        return iter(enum_values)
+        return iter(cls.__enums__.values())
 
     def __setattr__(cls, name, value):
         if name in cls.__enums__:
