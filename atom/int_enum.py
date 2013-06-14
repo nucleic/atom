@@ -7,13 +7,14 @@
 #------------------------------------------------------------------------------
 # Note: This module is imported by 'atom.catom' module from code defined in
 # the 'enumtypes.cpp' file. This module must therefore not import atom.
+import copy_reg
 
 
 # IntEnum is not defined until the metaclass creates it.
 IntEnum = None
 
 
-class IntEnumMeta(type):
+class _IntEnumMeta(type):
     """ The metaclass for IntEnum and its subclasses.
 
     """
@@ -71,35 +72,187 @@ class IntEnumMeta(type):
         type.__setattr__(cls, name, value)
 
 
+def _invalid_op(op):
+    msg = " is an invalid operation for %s"
+    msg = ("'%s'" % op) + msg
+    def closure(self, *args):
+        raise TypeError(msg % self)
+    return closure
+
+
 class IntEnum(int):
     """ An integer subclass for declaring enum types.
 
     """
-    __metaclass__ = IntEnumMeta
+    __metaclass__ = _IntEnumMeta
+
+    __flags_class__ = None
+
+    def __make_flags(self, other, value):
+        scls = type(self)
+        ocls = type(other)
+        fcls = scls.__flags_class__
+        if ocls is not scls and ocls is not fcls:
+            msg = "cannot combine %s with object of type '%s'"
+            raise TypeError(msg % (self, ocls.__name__))
+        if fcls is None:
+            msg = "cannot combine %s and %s - no flags class is defined"
+            raise TypeError(msg % (self, other))
+        return int.__new__(fcls, value)
 
     def __reduce_ex__(self, proto):
-        """ Reduce the enum value for pickling.
-
-        """
         return (type(self), (int(self),))
 
     def __repr__(self):
-        """ Get a string representation of the enum.
-
-        """
         t_name = type(self).__name__
         s_name = self.__enum_name__
         return '<enum: %s.%s [value=%d]>' % (t_name, s_name, self)
 
     def __str__(self):
-        """ Get a print string representation of the enum.
-
-        """
         return '%s.%s' % (type(self).__name__, self.__enum_name__)
+
+    def __and__(self, other):
+        return self.__make_flags(other, int.__and__(self, other))
+
+    __rand__ = __and__
+
+    def __or__(self, other):
+        return self.__make_flags(other, int.__or__(self, other))
+
+    __ror__ = __or__
+
+    def __xor__(self, other):
+        return self.__make_flags(other, int.__xor__(self, other))
+
+    __rxor__ = __xor__
+
+    def __invert__(self):
+        return self.__make_flags(self, int.__invert__(self))
+
+    __add__ = _invalid_op('+')
+    __sub__ = _invalid_op('-')
+    __mul__ = _invalid_op('*')
+    __div__ = _invalid_op('/')
+    __truediv__ = _invalid_op('/')
+    __floordiv__ = _invalid_op('//')
+    __mod__ = _invalid_op('%')
+    __divmod__ = _invalid_op('divmod')
+    __pow__ = _invalid_op('**')
+    __lshift__ = _invalid_op('<<')
+    __rshift__ = _invalid_op('>>')
+    __radd__ = _invalid_op('+')
+    __rsub__ = _invalid_op('-')
+    __rmul__ = _invalid_op('*')
+    __rdiv__ = _invalid_op('/')
+    __rtruediv__ = _invalid_op('/')
+    __rfloordiv__ = _invalid_op('//')
+    __rmod__ = _invalid_op('%')
+    __rdivmod__ = _invalid_op('divmod')
+    __rpow__ = _invalid_op('**')
+    __rlshift__ = _invalid_op('<<')
+    __rrshift__ = _invalid_op('>>')
+    __neg__ = _invalid_op('-')
+    __pos__ = _invalid_op('+')
+    __abs__ = _invalid_op('abs')
 
     @property
     def name(self):
-        """ Get the name associated with this enum value.
-
-        """
         return self.__enum_name__
+
+
+class _IntEnumFlags(int):
+
+    __enum_class__ = None
+
+    def __new__(cls, value=0, force=False):
+        if isinstance(value, cls):
+            return value
+        if value == 0:
+            return int.__new__(cls, value)
+        ecls = cls.__enum_class__
+        if ecls is None:
+            msg = "cannot create %s - no enum class is defined"
+            raise TypeError(msg % cls.__name__)
+        return int.__new__(cls, ecls(value))
+
+    def __make_flags(self, other, value):
+        scls = type(self)
+        ocls = type(other)
+        ecls = scls.__enum_class__
+        if ocls is not scls and ocls is not ecls:
+            msg = "cannot combine %s with object of type '%s'"
+            raise TypeError(msg % (self, ocls.__name__))
+        if ecls is None:
+            msg = "cannot combine %s and %s - no enum class is defined"
+            raise TypeError(msg % (self, other))
+        return int.__new__(scls, value)
+
+    def __repr__(self):
+        return '<enumflags: %s [value=%d]>' % (type(self).__name__, self)
+
+    def __str__(self):
+        return type(self).__name__
+
+    def __and__(self, other):
+        return self.__make_flags(other, int.__and__(self, other))
+
+    __rand__ = __and__
+
+    def __or__(self, other):
+        return self.__make_flags(other, int.__or__(self, other))
+
+    __ror__ = __or__
+
+    def __xor__(self, other):
+        return self.__make_flags(other, int.__xor__(self, other))
+
+    __rxor__ = __xor__
+
+    def __invert__(self):
+        return self.__make_flags(self, int.__invert__(self))
+
+    __add__ = _invalid_op('+')
+    __sub__ = _invalid_op('-')
+    __mul__ = _invalid_op('*')
+    __div__ = _invalid_op('/')
+    __truediv__ = _invalid_op('/')
+    __floordiv__ = _invalid_op('//')
+    __mod__ = _invalid_op('%')
+    __divmod__ = _invalid_op('divmod')
+    __pow__ = _invalid_op('**')
+    __lshift__ = _invalid_op('<<')
+    __rshift__ = _invalid_op('>>')
+    __radd__ = _invalid_op('+')
+    __rsub__ = _invalid_op('-')
+    __rmul__ = _invalid_op('*')
+    __rdiv__ = _invalid_op('/')
+    __rtruediv__ = _invalid_op('/')
+    __rfloordiv__ = _invalid_op('//')
+    __rmod__ = _invalid_op('%')
+    __rdivmod__ = _invalid_op('divmod')
+    __rpow__ = _invalid_op('**')
+    __rlshift__ = _invalid_op('<<')
+    __rrshift__ = _invalid_op('>>')
+    __neg__ = _invalid_op('-')
+    __pos__ = _invalid_op('+')
+    __abs__ = _invalid_op('abs')
+
+
+def _int_enum_flags_unpickler(flags_type, value):
+    return int.__new__(flags_type, value)
+
+
+def _int_enum_flags_pickler(flags):
+    return _int_enum_flags_unpickler, (type(flags), int(flags))
+
+
+def int_enum_flags(name, enum_class, module=None):
+    assert issubclass(enum_class, IntEnum)
+    if enum_class.__flags_class__ is not None:
+        return enum_class.__flags_class__
+    dct = {'__module__': module or enum_class.__module__}
+    flags_class = type(name, (_IntEnumFlags,), dct)
+    flags_class.__enum_class__ = enum_class
+    enum_class.__flags_class__ = flags_class
+    copy_reg.pickle(flags_class, _int_enum_flags_pickler)
+    return flags_class

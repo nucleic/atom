@@ -75,7 +75,7 @@ int import_enumtypes()
     PyObjectPtr int_enum_mod( PyImport_ImportModule( "atom.int_enum" ) );
     if( !int_enum_mod )
         return -1;
-    PyIntEnumMeta = int_enum_mod.getattr( "IntEnumMeta" ).release();
+    PyIntEnumMeta = int_enum_mod.getattr( "_IntEnumMeta" ).release();
     if( !PyIntEnumMeta )
         return -1;
     PyIntEnum = int_enum_mod.getattr( "IntEnum" ).release();
