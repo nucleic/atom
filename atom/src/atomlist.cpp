@@ -140,10 +140,8 @@ class AtomListHandler
 
 public:
 
-    AtomListHandler( AtomList* list )
-    {
-        m_list = newref( pyobject_cast( list ) );
-    }
+    AtomListHandler( AtomList* list ) : 
+        m_list( newref( pyobject_cast( list ) ) ) {}
 
     PyObject* append( PyObject* value )
     {
