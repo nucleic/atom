@@ -391,30 +391,33 @@ Member_set_index( Member* self, PyObject* value )
 }
 
 
-static PyObject*
-Member_get_getattr_mode( Member* self, void* ctxt )
-{
-    PyTuplePtr tuple( PyTuple_New( 2 ) );
-    if( !tuple )
-        return 0;
-    tuple.set_item( 0, PyInt_FromLong( self->get_getattr_mode() ) );
-    PyObject* context = self->getattr_context;
-    tuple.set_item( 1, newref( context ? context : Py_None ) );
-    return tuple.release();
-}
-
-
 template<typename T> bool
 parse_mode_and_context( PyObject* args, PyObject** context, T& mode )
 {
     PyObject* pymode;
     if( !PyArg_ParseTuple( args, "OO", &pymode, context ) )
         return false;
-    if( !EnumTypes::convert( pymode, mode ) )
+    if( !EnumTypes::from_py_enum( pymode, mode ) )
         return false;
     if( !Member::check_context( mode, *context ) )
         return false;
     return true;
+}
+
+
+static PyObject*
+Member_get_getattr_mode( Member* self, void* ctxt )
+{
+    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    if( !tuple )
+        return 0;
+    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_getattr_mode() ) );
+    if( !py_enum )
+        return 0;
+    tuple.set_item( 0, py_enum );
+    PyObject* context = self->getattr_context;
+    tuple.set_item( 1, newref( context ? context : Py_None ) );
+    return tuple.release();
 }
 
 
@@ -440,7 +443,10 @@ Member_get_setattr_mode( Member* self, void* ctxt )
     PyTuplePtr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    tuple.set_item( 0, PyInt_FromLong( self->get_setattr_mode() ) );
+    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_setattr_mode() ) );
+    if( !py_enum )
+        return 0;
+    tuple.set_item( 0, py_enum );
     PyObject* context = self->setattr_context;
     tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
@@ -469,7 +475,10 @@ Member_get_delattr_mode( Member* self, void* ctxt )
     PyTuplePtr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    tuple.set_item( 0, PyInt_FromLong( self->get_delattr_mode() ) );
+    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_delattr_mode() ) );
+    if( !py_enum )
+        return 0;
+    tuple.set_item( 0, py_enum );
     PyObject* context = self->delattr_context;
     tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
@@ -498,7 +507,10 @@ Member_get_post_getattr_mode( Member* self, void* ctxt )
     PyTuplePtr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    tuple.set_item( 0, PyInt_FromLong( self->get_post_getattr_mode() ) );
+    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_post_getattr_mode() ) );
+    if( !py_enum )
+        return 0;
+    tuple.set_item( 0, py_enum );
     PyObject* context = self->post_getattr_context;
     tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
@@ -527,7 +539,10 @@ Member_get_post_setattr_mode( Member* self, void* ctxt )
     PyTuplePtr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    tuple.set_item( 0, PyInt_FromLong( self->get_post_setattr_mode() ) );
+    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_post_setattr_mode() ) );
+    if( !py_enum )
+        return 0;
+    tuple.set_item( 0, py_enum );
     PyObject* context = self->post_setattr_context;
     tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
@@ -556,7 +571,10 @@ Member_get_default_value_mode( Member* self, void* ctxt )
     PyTuplePtr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    tuple.set_item( 0, PyInt_FromLong( self->get_default_value_mode() ) );
+    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_default_value_mode() ) );
+    if( !py_enum )
+        return 0;
+    tuple.set_item( 0, py_enum );
     PyObject* context = self->default_value_context;
     tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
@@ -585,7 +603,10 @@ Member_get_validate_mode( Member* self, void* ctxt )
     PyTuplePtr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    tuple.set_item( 0, PyInt_FromLong( self->get_validate_mode() ) );
+    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_validate_mode() ) );
+    if( !py_enum )
+        return 0;
+    tuple.set_item( 0, py_enum );
     PyObject* context = self->validate_context;
     tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
@@ -614,7 +635,10 @@ Member_get_post_validate_mode( Member* self, void* ctxt )
     PyTuplePtr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    tuple.set_item( 0, PyInt_FromLong( self->get_post_validate_mode() ) );
+    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_post_validate_mode() ) );
+    if( !py_enum )
+        return 0;
+    tuple.set_item( 0, py_enum );
     PyObject* context = self->post_validate_context;
     tuple.set_item( 1, newref( context ? context : Py_None ) );
     return tuple.release();
