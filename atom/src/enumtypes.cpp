@@ -72,13 +72,13 @@ make_enum( const char* name, PyDictPtr& dict_ptr )
 
 int import_enumtypes()
 {
-    PyObjectPtr int_enum_mod( PyImport_ImportModule( "atom.int_enum" ) );
-    if( !int_enum_mod )
+    PyObjectPtr intenum_mod( PyImport_ImportModule( "atom.intenum" ) );
+    if( !intenum_mod )
         return -1;
-    PyIntEnumMeta = int_enum_mod.getattr( "_IntEnumMeta" ).release();
+    PyIntEnumMeta = intenum_mod.getattr( "_IntEnumMeta" ).release();
     if( !PyIntEnumMeta )
         return -1;
-    PyIntEnum = int_enum_mod.getattr( "IntEnum" ).release();
+    PyIntEnum = intenum_mod.getattr( "IntEnum" ).release();
     if( !PyIntEnum )
         return -1;
 
