@@ -1,6 +1,12 @@
 Atom Release Notes
 ==================
 
+0.3.2 - 07/20/2013
+------------------
+- Use Atom instance methods as observers without requiring weakrefs. 31df89b7e8_
+
+.. _31df89b7e8: https://github.com/nucleic/atom/commit/31df89b7e8aa64319e83ad6c8b5012bdeec43a09
+
 0.3.1 - 07/03/2013
 ------------------
 - Bugfix for typed ContainerList. e4f96706ff_
