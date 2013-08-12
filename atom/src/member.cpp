@@ -93,11 +93,11 @@ Member_has_observers( Member* self )
 
 
 static PyObject*
-Member_has_observer( Member* self, PyObject* name )
+Member_has_observer( Member* self, PyObject* observer )
 {
-    if( !PyString_CheckExact( name ) )
-        return py_expected_type_fail( name, "str" );
-    return py_bool( self->has_observer( reinterpret_cast<PyStringObject*>( name ) ) );
+    if( !PyString_CheckExact( observer ) && !PyCallable_Check( observer ) )
+        return py_expected_type_fail( observer, "str or callable" );
+    return py_bool( self->has_observer( observer ) );
 }
 
 
@@ -141,21 +141,21 @@ Member_static_observers( Member* self )
 
 
 static PyObject*
-Member_add_static_observer( Member* self, PyObject* name )
+Member_add_static_observer( Member* self, PyObject* observer )
 {
-    if( !PyString_CheckExact( name ) )
-        return py_expected_type_fail( name, "str" );
-    self->add_observer( reinterpret_cast<PyStringObject*>( name ) );
+    if( !PyString_CheckExact( observer ) && !PyCallable_Check( observer ) )
+        return py_expected_type_fail( observer, "str or callable" );
+    self->add_observer( observer );
     Py_RETURN_NONE;
 }
 
 
 static PyObject*
-Member_remove_static_observer( Member* self, PyObject* name )
+Member_remove_static_observer( Member* self, PyObject* observer )
 {
-    if( !PyString_CheckExact( name ) )
-        return py_expected_type_fail( name, "str" );
-    self->remove_observer( reinterpret_cast<PyStringObject*>( name ) );
+    if( !PyString_CheckExact( observer ) && !PyCallable_Check( observer ) )
+        return py_expected_type_fail( observer, "str or callable" );
+    self->remove_observer( observer );
     Py_RETURN_NONE;
 }
 
@@ -913,34 +913,34 @@ namespace
 
 struct BaseTask : public ModifyTask
 {
-    BaseTask( Member* member, PyStringObject* name ) :
+    BaseTask( Member* member, PyObject* observer ) :
         m_member( newref( pyobject_cast( member ) ) ),
-        m_name( newref( pyobject_cast( name ) ) ) {}
+        m_observer( newref( observer ) ) {}
     PyObjectPtr m_member;
-    PyObjectPtr m_name;
+    PyObjectPtr m_observer;
 };
 
 
 struct AddTask : public BaseTask
 {
-    AddTask( Member* member, PyStringObject* name ) :
-        BaseTask( member, name ) {}
+    AddTask( Member* member, PyObject* observer ) :
+        BaseTask( member, observer ) {}
     void run()
     {
         Member* member = member_cast( m_member.get() );
-        member->add_observer( reinterpret_cast<PyStringObject*>( m_name.get() ) );
+        member->add_observer( m_observer.get() );
     }
 };
 
 
 struct RemoveTask : public BaseTask
 {
-    RemoveTask( Member* member, PyStringObject* name ) :
-        BaseTask( member, name ) {}
+    RemoveTask( Member* member, PyObject* observer ) :
+        BaseTask( member, observer ) {}
     void run()
     {
         Member* member = member_cast( m_member.get() );
-        member->remove_observer( reinterpret_cast<PyStringObject*>( m_name.get() ) );
+        member->remove_observer( m_observer.get() );
     }
 };
 
@@ -948,46 +948,46 @@ struct RemoveTask : public BaseTask
 
 
 void
-Member::add_observer( PyStringObject* name )
+Member::add_observer( PyObject* observer )
 {
     if( modify_guard )
     {
-        ModifyTask* task = new AddTask( this, name );
+        ModifyTask* task = new AddTask( this, observer );
         modify_guard->add_task( task );
         return;
     }
     if( !static_observers )
         static_observers = new std::vector<PyObjectPtr>();
-    PyObjectPtr nameptr( newref( pyobject_cast( name ) ) );
+    PyObjectPtr obptr( newref( observer ) );
     std::vector<PyObjectPtr>::iterator it;
     std::vector<PyObjectPtr>::iterator end = static_observers->end();
     for( it = static_observers->begin(); it != end; ++it )
     {
-        if( *it == nameptr || it->richcompare( nameptr, Py_EQ ) )
+        if( *it == obptr || it->richcompare( obptr, Py_EQ ) )
             return;
     }
-    static_observers->push_back( nameptr );
+    static_observers->push_back( obptr );
     return;
 }
 
 
 void
-Member::remove_observer( PyStringObject* name )
+Member::remove_observer( PyObject* observer )
 {
     if( modify_guard )
     {
-        ModifyTask* task = new RemoveTask( this, name );
+        ModifyTask* task = new RemoveTask( this, observer );
         modify_guard->add_task( task );
         return;
     }
     if( static_observers )
     {
-        PyObjectPtr nameptr( newref( pyobject_cast( name ) ) );
+        PyObjectPtr obptr( newref( observer ) );
         std::vector<PyObjectPtr>::iterator it;
         std::vector<PyObjectPtr>::iterator end = static_observers->end();
         for( it = static_observers->begin(); it != end; ++it )
         {
-            if( *it == nameptr || it->richcompare( nameptr, Py_EQ ) )
+            if( *it == obptr || it->richcompare( obptr, Py_EQ ) )
             {
                 static_observers->erase( it );
                 if( static_observers->size() == 0 )
@@ -1003,16 +1003,16 @@ Member::remove_observer( PyStringObject* name )
 
 
 bool
-Member::has_observer( PyStringObject* name )
+Member::has_observer( PyObject* observer )
 {
     if( !static_observers )
         return false;
-    PyObjectPtr nameptr( newref( pyobject_cast( name ) ) );
+    PyObjectPtr obptr( newref( observer ) );
     std::vector<PyObjectPtr>::iterator it;
     std::vector<PyObjectPtr>::iterator end = static_observers->end();
     for( it = static_observers->begin(); it != end; ++it )
     {
-        if( *it == nameptr || it->richcompare( nameptr, Py_EQ ) )
+        if( *it == obptr || it->richcompare( obptr, Py_EQ ) )
             return true;
     }
     return false;
@@ -1028,14 +1028,22 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
         PyObjectPtr argsptr( newref( args ) );
         PyObjectPtr kwargsptr( xnewref( kwargs ) );
         PyObjectPtr objectptr( newref( pyobject_cast( atom ) ) );
+        PyObjectPtr callable;
         std::vector<PyObjectPtr>::iterator it;
         std::vector<PyObjectPtr>::iterator end = static_observers->end();
         for( it = static_observers->begin(); it != end; ++it )
         {
-            PyObjectPtr method( objectptr.getattr( *it ) );
-            if( !method )
-                return false;
-            if( !method( argsptr, kwargsptr ) )
+            if( PyString_CheckExact( it->get() ) )
+            {
+                callable = objectptr.getattr( *it );
+                if( !callable )
+                    return false;
+            }
+            else
+            {
+                callable = *it;
+            }
+            if( !callable( argsptr, kwargsptr ) )
                 return false;
         }
     }

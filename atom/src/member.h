@@ -157,11 +157,11 @@ struct Member
         return static_observers && static_observers->size() > 0;
     }
 
-    bool has_observer( PyStringObject* name );
+    bool has_observer( PyObject* observer );
 
-    void add_observer( PyStringObject* name );
+    void add_observer( PyObject* observer );
 
-    void remove_observer( PyStringObject* name );
+    void remove_observer( PyObject* observer );
 
     bool notify( CAtom* atom, PyObject* args, PyObject* kwargs );
 
