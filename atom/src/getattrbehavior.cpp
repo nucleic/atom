@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include "eventbinder.h"
 #include "member.h"
+#include "memberchange.h"
 #include "signalconnector.h"
 
 
@@ -57,6 +58,20 @@ no_op_handler( Member* member, CAtom* atom )
 
 
 static PyObject*
+created_args( CAtom* atom, Member* member, PyObject* value )
+{
+    PyTuplePtr argsptr( PyTuple_New( 1 ) );
+    if( !argsptr )
+        return 0;
+    PyObjectPtr changeptr( MemberChange::created( atom, member, value ) );
+    if( !changeptr )
+        return 0;
+    argsptr.initialize( 0, changeptr );
+    return argsptr.release();
+}
+
+
+static PyObject*
 slot_handler( Member* member, CAtom* atom )
 {
     if( member->index >= atom->get_slot_count() )
@@ -75,6 +90,29 @@ slot_handler( Member* member, CAtom* atom )
     if( !value )
         return 0;
     atom->set_slot( member->index, value.get() );
+    if( atom->get_notifications_enabled() )
+    {
+        PyObjectPtr argsptr;
+        if( member->has_observers() )
+        {
+            argsptr = created_args( atom, member, value.get() );
+            if( !argsptr )
+                return 0;
+            if( !member->notify( atom, argsptr.get(), 0 ) )
+                return 0;
+        }
+        if( atom->has_observers( member->name ) )
+        {
+            if( !argsptr )
+            {
+                argsptr = created_args( atom, member, value.get() );
+                if( !argsptr )
+                    return 0;
+            }
+            if( !atom->notify( member->name, argsptr.get(), 0 ) )
+                return 0;
+        }
+    }
     if( member->get_post_getattr_mode() )
         value = member->post_getattr( atom, value.get() );
     return value.release();

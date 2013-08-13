@@ -23,38 +23,55 @@ POST_SETATTR_PREFIX = '_post_setattr_'
 POST_VALIDATE_PREFIX = '_post_validate_'
 
 
-class observe(object):
+def observe(*names):
     """ A decorator which can be used to observe members on a class.
 
-    class Foo(Atom)
-
-        a = Member()
-        b = Member()
-
-        @observe('a')
-        def printer(self, change):
-            print change
-
-        @observe(('a', 'b'))
-        def printer2(self, change):
-            print change
+    Parameters
+    ----------
+    *name
+        The str names of the attributes to observe on the object.
+        These must be of the form 'foo' or 'foo.bar'.
 
     """
-    __slots__ = ('name', 'func', 'mangled')
+    # backwards compatibility for a single tuple or list argument
+    if len(names) == 1 and isinstance(names[0], (tuple, list)):
+        names = names[0]
+    pairs = []
+    for name in names:
+        if type(name) is not str:
+            msg = "observe attribute name must be a string, got '%s' instead"
+            raise TypeError(msg % type(name).__name__)
+        ndots = name.count('.')
+        if ndots > 1:
+            msg = "cannot observe '%s' only a single extension is allowed"
+            raise TypeError(msg % name)
+        if ndots == 1:
+            name, attr = name.split('.')
+            pairs.append((name, attr))
+        else:
+            pairs.append((name, None))
+    return ObserveHandler(pairs)
 
-    def __init__(self, name):
-        """ Initialize an observe decorator.
+
+class ObserveHandler(object):
+    """ An object used to temporarily store observe decorator state.
+
+    """
+    __slots__ = ('pairs', 'func', 'funcname')
+
+    def __init__(self, pairs):
+        """ Initialize an ObserveHandler.
 
         Parameters
         ----------
-        name : str or iterable
-            The name or iterable of names of members to observe on
-            the atom.
+        pairs : list
+            The list of 2-tuples which store the pair information
+            for the observers.
 
         """
-        self.name = name
-        self.func = None          # set by the __call__ method
-        self.mangled = None       # storage for the metaclass
+        self.pairs = pairs
+        self.func = None        # set by the __call__ method
+        self.funcname = None    # storage for the metaclass
 
     def __call__(self, func):
         """ Called to decorate the function.
@@ -68,7 +85,7 @@ class observe(object):
         """ Create a clone of the sentinel.
 
         """
-        clone = type(self)(self.name)
+        clone = type(self)(self.pairs)
         clone.func = self.func
         return clone
 
@@ -81,13 +98,66 @@ class set_default(object):
 
     def __init__(self, value):
         self.value = value
-        self.name = None  # storage for the metaclass
+        self.name = None    # storage for the metaclass
 
     def clone(self):
         """ Create a clone of the sentinel.
 
         """
         return type(self)(self.value)
+
+
+class ExtendedObserver(object):
+    """ A callable object used to implement extended observers.
+
+    """
+    __slots__ = ('funcname', 'attr')
+
+    def __init__(self, funcname, attr):
+        """ Initialize an ExtendedObserver.
+
+        Parameters
+        ----------
+        funcname : str
+            The function name on the owner object which should be
+            used as the observer.
+
+        attr : str
+            The attribute name on the target object which should be
+            observed.
+
+        """
+        self.funcname = funcname
+        self.attr = attr
+
+    def __call__(self, change):
+        """ Handle a change of the target object.
+
+        This handler will remove the old observer and attach a new
+        observer to the target attribute. If the target object is not
+        an Atom object, an exception will be raised.
+
+        """
+        old = None
+        new = None
+        ctype = change['type']
+        if ctype == 'create':
+            new = change['value']
+        elif ctype == 'update':
+            old = change['oldvalue']
+            new = change['value']
+        elif ctype == 'delete':
+            old = change['value']
+        attr = self.attr
+        owner = change['object']
+        handler = getattr(owner, self.funcname)
+        if isinstance(old, Atom):
+            old.unobserve(attr, handler)
+        if isinstance(new, Atom):
+            new.observe(attr, handler)
+        elif new is not None:
+            msg = "cannot attach observer '%s' to non-Atom %s"
+            raise TypeError(msg % (attr, new))
 
 
 class AtomMeta(type):
@@ -133,12 +203,12 @@ class AtomMeta(type):
                 set_defaults.append(value)
                 seen_sentinels.add(value)
                 continue
-            if isinstance(value, observe):
+            if isinstance(value, ObserveHandler):
                 if value in seen_decorated:
                     value = value.clone()
                 seen_decorated.add(value)
                 decorated.append(value)
-                value.mangled = key
+                value.funcname = key
                 value = value.func
                 dct[key] = value
                 # Coninue processing the unwrapped function
@@ -288,16 +358,14 @@ class AtomMeta(type):
                 member.add_static_observer(mangled)
 
         # @observe decorated methods
-        for ob in decorated:
-            if isinstance(ob.name, basestring):
-                if ob.name in members:
-                    member = clone_if_needed(members[ob.name])
-                    member.add_static_observer(ob.mangled)
-            else:
-                for name in ob.name:
-                    if name in members:
-                        member = clone_if_needed(members[name])
-                        member.add_static_observer(ob.mangled)
+        for handler in decorated:
+            for name, attr in handler.pairs:
+                if name in members:
+                    member = clone_if_needed(members[name])
+                    observer = handler.funcname
+                    if attr is not None:
+                        observer = ExtendedObserver(observer, attr)
+                    member.add_static_observer(observer)
 
         # Put a reference to the members dict on the class. This is used
         # by CAtom to query for the members and member count as needed.
