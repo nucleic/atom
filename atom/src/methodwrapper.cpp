@@ -329,7 +329,7 @@ MethodWrapper_New( PyObject* method )
         AtomMethodWrapper* wrapper = reinterpret_cast<AtomMethodWrapper*>( pywrapper.get() );
         wrapper->im_func = newref( PyMethod_GET_FUNCTION( method ) );
         // placement new since Python malloc'd and zero'd the struct
-        new(&wrapper->pointer) CAtomPointer( catom_cast( PyMethod_GET_SELF( method ) ) );
+        new( &wrapper->pointer ) CAtomPointer( catom_cast( PyMethod_GET_SELF( method ) ) );
     }
     else
     {
