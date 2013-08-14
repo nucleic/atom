@@ -5,20 +5,59 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <map>
 #include <iostream>
 #include <sstream>
 #include "pythonhelpers.h"
-#include "catom.h"
+#include "atomref.h"
 #include "catompointer.h"
+#include "globalstatic.h"
 #include "packagenaming.h"
+
+
+#define atomref_cast( o ) ( reinterpret_cast<AtomRef*>( o ) )
+
 
 using namespace PythonHelpers;
 
 
 typedef struct {
     PyObject_HEAD
-    CAtomPointer* pointer;
+    CAtomPointer pointer;  // constructed with placement new
 } AtomRef;
+
+
+namespace SharedAtomRef
+{
+
+typedef std::map<CAtom*, PyObjectPtr> RefMap;
+GLOBAL_STATIC( RefMap, ref_map )
+
+
+PyObject*
+get( CAtom* atom )
+{
+    if( atom->has_atomref() )
+        return ( *ref_map() )[ atom ].newref();
+    PyObject* pyref = AtomRef_Type.tp_alloc( &AtomRef_Type, 0 );
+    if( !pyref )
+        return 0;
+    // placement new since Python malloc'd and zero'd the struct
+    new( &atomref_cast( pyref )->pointer ) CAtomPointer( atom );
+    ( *ref_map() )[ atom ] = newref( pyref );
+    atom->set_has_atomref( true );
+    return pyref;
+}
+
+
+void
+clear( CAtom* atom )
+{
+    ref_map()->erase( atom );
+    atom->set_has_atomref( false );
+}
+
+}  // namespace SharedAtomRef
 
 
 static PyObject*
@@ -30,20 +69,15 @@ AtomRef_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         return 0;
     if( !CAtom::TypeCheck( atom ) )
         return py_expected_type_fail( atom, "CAtom" );
-    PyObject* self = PyType_GenericNew( type, args, kwargs );
-    if( !self )
-        return 0;
-    AtomRef* cself = reinterpret_cast<AtomRef*>( self );
-    cself->pointer = new CAtomPointer( catom_cast( atom ) );
-    return self;
+    return SharedAtomRef::get( catom_cast( atom ) );
 }
 
 
 static void
 AtomRef_dealloc( AtomRef* self )
 {
-    delete self->pointer;
-    self->pointer = 0;
+    // manual destructor since Python malloc'd and zero'd the struct
+    self->pointer.~CAtomPointer();
     self->ob_type->tp_free( pyobject_cast( self ) );
 }
 
@@ -54,7 +88,7 @@ AtomRef_call( AtomRef* self, PyObject* args, PyObject* kwargs )
     static char *kwlist[] = { 0 };
     if( !PyArg_ParseTupleAndKeywords( args, kwargs, ":__call__", kwlist ) )
         return 0;
-    PyObject* obj = pyobject_cast( self->pointer->data() );
+    PyObject* obj = pyobject_cast( self->pointer.data() );
     return newref( obj ? obj : Py_None );
 }
 
@@ -64,11 +98,11 @@ AtomRef_repr( AtomRef* self )
 {
     std::ostringstream ostr;
     ostr << "AtomRef(atom=";
-    if( self->pointer->is_null() )
+    if( self->pointer.is_null() )
         ostr << "None";
     else
     {
-        PyObject* obj = pyobject_cast( self->pointer->data() );
+        PyObject* obj = pyobject_cast( self->pointer.data() );
         PyObjectPtr repr( PyObject_Repr( obj ) );
         if( !repr )
             return 0;
@@ -91,7 +125,7 @@ AtomRef_sizeof( AtomRef* self, PyObject* args )
 static int
 AtomRef__nonzero__( AtomRef* self )
 {
-    return self->pointer->is_null() ? 0 : 1;
+    return self->pointer.is_null() ? 0 : 1;
 }
 
 

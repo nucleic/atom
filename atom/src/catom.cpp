@@ -8,7 +8,9 @@
 #pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #include <map>
+#include "atomref.h"
 #include "catom.h"
+#include "globalstatic.h"
 #include "methodwrapper.h"
 #include "packagenaming.h"
 
@@ -100,6 +102,8 @@ CAtom_dealloc( CAtom* self )
 {
     if( self->has_guards() )
         CAtom::clear_guards( self );
+    if( self->has_atomref() )
+        SharedAtomRef::clear( self );
     PyObject_GC_UnTrack( self );
     CAtom_clear( self );
     if( self->slots )
@@ -375,29 +379,9 @@ CAtom::notify( PyObject* topic, PyObject* args, PyObject* kwargs )
 }
 
 
-namespace
-{
-
-template<typename T>
-class GlobalStatic
-{
-public:
-    T *pointer;
-    inline GlobalStatic( T *p ) : pointer( p ) {}
-    inline ~GlobalStatic() { pointer = 0; }
-};
-
-}  // namespace
-
-
 // shamelessly derived from qobject.h
 typedef std::multimap<CAtom*, CAtom**> GuardMap;
-static GuardMap* guard_map()
-{
-    static GuardMap map;
-    static GlobalStatic<GuardMap> static_map( &map );
-    return static_map.pointer;
-}
+GLOBAL_STATIC( GuardMap, guard_map )
 
 
 void CAtom::add_guard( CAtom** ptr )

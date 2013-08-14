@@ -17,6 +17,7 @@
 #define FLAGS_MASK ( static_cast<uint32_t>( 0xffff0000 ) )
 #define NOTIFICATION_BIT ( static_cast<uint32_t>( 1 << 16 ) )
 #define GUARD_BIT ( static_cast<uint32_t>( 1 << 17 ) )
+#define ATOMREF_BIT ( static_cast<uint32_t>( 1 << 18 ) )
 #define catom_cast( o ) ( reinterpret_cast<CAtom*>( o ) )
 
 
@@ -77,6 +78,19 @@ struct CAtom
             bitfield |= GUARD_BIT;
         else
             bitfield &= ~GUARD_BIT;
+    }
+
+    bool has_atomref()
+    {
+        return bool( bitfield & ATOMREF_BIT );
+    }
+
+    void set_has_atomref( bool has_ref )
+    {
+        if( has_ref )
+            bitfield |= ATOMREF_BIT;
+        else
+            bitfield &= ~ATOMREF_BIT;
     }
 
     bool has_observers( PyObject* topic )
