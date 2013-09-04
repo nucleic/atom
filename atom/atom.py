@@ -28,7 +28,7 @@ def observe(*names):
 
     Parameters
     ----------
-    *name
+    *names
         The str names of the attributes to observe on the object.
         These must be of the form 'foo' or 'foo.bar'.
 
@@ -43,7 +43,7 @@ def observe(*names):
             raise TypeError(msg % type(name).__name__)
         ndots = name.count('.')
         if ndots > 1:
-            msg = "cannot observe '%s' only a single extension is allowed"
+            msg = "cannot observe '%s', only a single extension is allowed"
             raise TypeError(msg % name)
         if ndots == 1:
             name, attr = name.split('.')
