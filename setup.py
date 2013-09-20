@@ -44,7 +44,7 @@ ext_modules = [
 
 setup(
     name='atom',
-    version='0.3.2',
+    version='0.3.3',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/atom',

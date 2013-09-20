@@ -1,6 +1,16 @@
 Atom Release Notes
 ==================
 
+0.3.3 - 09/20/2013
+------------------
+- Add support for static callable observers. bc630777965_
+- Add support for single dotted extended observers. f6a33ee4d57_
+- Make atomref a singleton per Atom instance. b793dec1336_
+
+.. _bc630777965: https://github.com/nucleic/atom/commit/bc63077796559b81a7565a20fe4d3299d5b5b6b0
+.. _f6a33ee4d57: https://github.com/nucleic/atom/commit/f6a33ee4d5797d7b5659ef5007e84941bf9de54a
+.. _b793dec1336: https://github.com/nucleic/atom/commit/b793dec133608c26ac277d4e959b039371e9569e
+
 0.3.2 - 07/20/2013
 ------------------
 - Use Atom instance methods as observers without requiring weakrefs. 31df89b7e8_
