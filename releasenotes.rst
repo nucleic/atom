@@ -1,6 +1,12 @@
 Atom Release Notes
 ==================
 
+0.3.4 - 10/10/2013
+------------------
+- Add more flexibility for unobserving an object. f4ac152ffdf_
+
+.. _f4ac152ffdf: https://github.com/nucleic/atom/commit/f4ac152ffdf11a86b30e61d07caa1f718ff77dee
+
 0.3.3 - 09/20/2013
 ------------------
 - Add support for static callable observers. bc630777965_
