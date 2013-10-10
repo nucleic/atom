@@ -36,6 +36,16 @@ struct RemoveTask : public BaseTask
     void run() { m_pool.remove( m_topic, m_observer ); }
 };
 
+
+struct RemoveTopicTask : ModifyTask
+{
+    RemoveTopicTask( ObserverPool& pool, PyObjectPtr& topic ) :
+        m_pool( pool ), m_topic( topic ) {}
+    void run() { m_pool.remove( m_topic ); }
+    ObserverPool& m_pool;
+    PyObjectPtr m_topic;
+};
+
 } // namespace
 
 
@@ -128,6 +138,34 @@ ObserverPool::remove( PyObjectPtr& topic, PyObjectPtr& observer )
                     return;
                 }
             }
+            return;
+        }
+        obs_offset += topic_it->m_count;
+    }
+}
+
+
+void
+ObserverPool::remove( PyObjectPtr& topic )
+{
+    if( m_modify_guard )
+    {
+        ModifyTask* task = new RemoveTopicTask( *this, topic );
+        m_modify_guard->add_task( task );
+        return;
+    }
+    uint32_t obs_offset = 0;
+    std::vector<Topic>::iterator topic_it;
+    std::vector<Topic>::iterator topic_end = m_topics.end();
+    for( topic_it = m_topics.begin(); topic_it != topic_end; ++topic_it )
+    {
+        if( topic_it->match( topic ) )
+        {
+            m_observers.erase(
+                m_observers.begin() + obs_offset,
+                m_observers.begin() + (obs_offset + topic_it->m_count)
+            );
+            m_topics.erase( topic_it );
             return;
         }
         obs_offset += topic_it->m_count;

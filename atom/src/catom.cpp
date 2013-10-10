@@ -180,12 +180,43 @@ CAtom_observe( CAtom* self, PyObject* args )
 
 
 static PyObject*
-CAtom_unobserve( CAtom* self, PyObject* args )
+_CAtom_unobserve_0( CAtom* self )
 {
-    if( PyTuple_GET_SIZE( args ) != 2 )
-        return py_type_fail( "unobserve() takes exactly 2 arguments" );
-    PyObject* topic = PyTuple_GET_ITEM( args, 0 );
-    PyObject* callback = PyTuple_GET_ITEM( args, 1 );
+    if( !self->unobserve() )
+        return 0;
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+_CAtom_unobserve_1( CAtom* self, PyObject* topic )
+{
+    if( PyString_Check( topic ) )
+    {
+        if( !self->unobserve( topic ) )
+            return 0;
+    }
+    else
+    {
+        PyObjectPtr iterator( PyObject_GetIter( topic ) );
+        if( !iterator )
+            return 0;
+        PyObjectPtr topicptr;
+        while( ( topicptr = PyIter_Next( iterator.get() ) ) )
+        {
+            if( !self->unobserve( topicptr.get() ) )
+                return 0;
+        }
+        if( PyErr_Occurred() )
+            return 0;
+    }
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
+_CAtom_unobserve_2( CAtom* self, PyObject* topic, PyObject* callback )
+{
     if( PyString_Check( topic ) )
     {
         if( !self->unobserve( topic, callback ) )
@@ -206,6 +237,21 @@ CAtom_unobserve( CAtom* self, PyObject* args )
             return 0;
     }
     Py_RETURN_NONE;
+}
+
+
+static PyObject*
+CAtom_unobserve( CAtom* self, PyObject* args )
+{
+    Py_ssize_t n_args = PyTuple_GET_SIZE( args );
+    if( n_args > 2 )
+        return py_type_fail( "unobserve() takes at most 2 arguments" );
+    if( n_args == 0 )
+        return _CAtom_unobserve_0( self );
+    if( n_args == 1 )
+        return _CAtom_unobserve_1( self, PyTuple_GET_ITEM( args, 0 ) );
+    return _CAtom_unobserve_2( self, PyTuple_GET_ITEM( args, 0 ),
+        PyTuple_GET_ITEM( args, 1 ) );
 }
 
 
@@ -360,6 +406,27 @@ CAtom::unobserve( PyObject* topic, PyObject* callback )
     PyObjectPtr topicptr( newref( topic ) );
     PyObjectPtr callbackptr( newref( callback ) );
     observers->remove( topicptr, callbackptr );
+    return true;
+}
+
+
+bool
+CAtom::unobserve( PyObject* topic )
+{
+    if( !observers )
+        return true;
+    PyObjectPtr topicptr( newref( topic ) );
+    observers->remove( topicptr );
+    return true;
+}
+
+
+bool
+CAtom::unobserve()
+{
+    if( !observers )
+        return true;
+    observers->py_clear();
     return true;
 }
 

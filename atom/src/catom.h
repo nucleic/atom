@@ -107,6 +107,10 @@ struct CAtom
 
     bool unobserve( PyObject* topic, PyObject* callback );
 
+    bool unobserve( PyObject* topic );
+
+    bool unobserve();
+
     bool notify( PyObject* topic, PyObject* args, PyObject* kwargs );
 
     static int TypeCheck( PyObject* object )

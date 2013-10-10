@@ -49,6 +49,8 @@ public:
 
     void remove( PyObjectPtr& topic, PyObjectPtr& observer );
 
+    void remove( PyObjectPtr& topic );
+
     bool notify( PyObjectPtr& topic, PyObjectPtr& args, PyObjectPtr& kwargs );
 
     Py_ssize_t py_sizeof()
@@ -64,7 +66,12 @@ public:
     void py_clear()
     {
         m_topics.clear();
-        m_observers.clear();
+        // Clearing the vector may cause arbitrary side effects on item
+        // decref, including calls into methods which mutate the vector.
+        // To avoid segfaults, first make the vector empty, then let the
+        // destructors run for the old items.
+        std::vector<PyObjectPtr> empty;
+        m_observers.swap( empty );
     }
 
 private:
