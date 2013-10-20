@@ -409,6 +409,10 @@ class Atom(CAtom):
         # attach handlers to child Atoms
         for (obj, attr, func_name) in self.__class__._sub_handlers:
             obj.observe(attr, getattr(self, func_name))
+        # set up DelegatesTo members
+        for member in self.members().values():
+            if isinstance(member, DelegatesTo):
+                self.sync_value(member.name, member.other, alias=member.alias)
 
     def sync_value(self, attr, obj, alias=None, mutual=True, remove=False):
         """ Synchronize an attribute between to Atoms
@@ -528,3 +532,31 @@ class Atom(CAtom):
         """
         for key, value in state.iteritems():
             setattr(self, key, value)
+
+
+class DelegatesTo(Member):
+    """ A Member whose value is Delegated to another Atom
+
+    The value is synced during initialization, making changes to one object
+    reflect in the other.  An optional alias can be used if
+    the other object uses a different name for the attribute.
+
+    """
+    def __init__(self, obj, alias=None):
+        """ Initialize a DelegatesTo.
+
+        Parameters
+        ----------
+        obj : Atom
+            The other object to sync the value with.
+
+        alias : str, optional
+            The attribute name on the target object which should be
+            synced, if different.
+
+        """
+        super(DelegatesTo, self).__init__()
+        if 'atom.typed.ForwardTyped' in str(obj):
+            raise ValueError('Cannot Delegate to a ForwardTyped object')
+        self.other = obj
+        self.alias = alias
