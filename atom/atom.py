@@ -125,6 +125,7 @@ class ExtendedObserver(object):
         attr : str
             The attribute name on the target object which should be
             observed.
+            
         """
         self.funcname = funcname
         self.attr = attr
