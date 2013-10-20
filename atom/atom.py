@@ -125,7 +125,6 @@ class ExtendedObserver(object):
         attr : str
             The attribute name on the target object which should be
             observed.
-
         """
         self.funcname = funcname
         self.attr = attr
@@ -158,6 +157,42 @@ class ExtendedObserver(object):
         elif new is not None:
             msg = "cannot attach observer '%s' to non-Atom %s"
             raise TypeError(msg % (attr, new))
+
+
+class DottedObserver(object):
+    """ A callable object used to implement dotted observers.
+
+    """
+    __slots__ = ('funcname', 'attr', 'obj')
+
+    def __init__(self, funcname, attr, obj):
+        """ Initialize an ExtendedObserver.
+
+        Parameters
+        ----------
+        funcname : str
+            The function name on the owner object which should be
+            used as the observer.
+
+        attr : str
+            The attribute name on the target object which should be
+            observed.
+
+        obj : Atom, optional
+            The object holding the funcname.
+        """
+        self.funcname = funcname
+        self.attr = attr
+        self.obj = obj
+
+    def __call__(self, change):
+        """ Handle a change of the target object.
+
+        This handler will redirect the change to the desired object
+
+        """
+        handler = getattr(self.obj, self.funcname)
+        handler(change)
 
 
 class AtomMeta(type):
@@ -358,6 +393,7 @@ class AtomMeta(type):
                 member.add_static_observer(mangled)
 
         # @observe decorated methods
+        cls._dotted_observers = []
         for handler in decorated:
             for name, attr in handler.pairs:
                 if name in members:
@@ -366,6 +402,11 @@ class AtomMeta(type):
                     if attr is not None:
                         observer = ExtendedObserver(observer, attr)
                     member.add_static_observer(observer)
+                else:
+                    obj = getattr(cls, name, None)
+                    if isinstance(obj, CAtom) and attr:
+                        member = obj.members()[attr]
+                        cls._dotted_observers.append((member, attr, handler.funcname))
 
         # Put a reference to the members dict on the class. This is used
         # by CAtom to query for the members and member count as needed.
@@ -398,6 +439,15 @@ class Atom(CAtom):
 
     """
     __metaclass__ = AtomMeta
+
+    def __new__(cls, *args, **kwargs):
+        '''Handle dotted observers, which must be bound to an instance
+        '''
+        cls = CAtom.__new__(cls, *args, **kwargs)
+        for (member, attr, funcname) in cls._dotted_observers:
+            observer = DottedObserver(funcname, attr, cls)
+            member.add_static_observer(observer)
+        return cls
 
     @classmethod
     def members(cls):
