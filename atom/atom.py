@@ -358,6 +358,7 @@ class AtomMeta(type):
                 member.add_static_observer(mangled)
 
         # @observe decorated methods
+        cls._sub_handlers = []
         for handler in decorated:
             for name, attr in handler.pairs:
                 if name in members:
@@ -366,6 +367,10 @@ class AtomMeta(type):
                     if attr is not None:
                         observer = ExtendedObserver(observer, attr)
                     member.add_static_observer(observer)
+                else:
+                    obj = getattr(cls, name, None)
+                    if isinstance(obj, CAtom):
+                        cls._sub_handlers.append((obj, attr, handler.funcname))
 
         # Put a reference to the members dict on the class. This is used
         # by CAtom to query for the members and member count as needed.
@@ -398,6 +403,12 @@ class Atom(CAtom):
 
     """
     __metaclass__ = AtomMeta
+
+    def __init__(self, *args, **kwargs):
+        super(Atom, self).__init__(*args, **kwargs)
+        # attach handlers to child Atoms
+        for (obj, attr, func_name) in self.__class__._sub_handlers:
+            obj.observe(attr, getattr(self, func_name))
 
     @classmethod
     def members(cls):
