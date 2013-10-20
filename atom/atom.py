@@ -410,6 +410,44 @@ class Atom(CAtom):
         for (obj, attr, func_name) in self.__class__._sub_handlers:
             obj.observe(attr, getattr(self, func_name))
 
+    def sync_value(self, attr, obj, alias=None, mutual=True, remove=False):
+        """ Synchronize an attribute between to Atoms
+
+        Parameters
+        ----------
+        attr : str
+            The name of the parameter to synchronize.
+        obj : Atom
+            The other object to sync the value with.
+        alias : str, optional
+            The name of the parameter in the other object, if different.
+        mutual : bool, optional (True)
+            Whether to synchronize in both directions.
+        remove: bool, optional (False)
+            If True, remove the synchroniziation.
+        """
+        if alias is None:
+           alias = attr
+        if remove:
+            self.unobserve(attr)
+            obj.unobserve(alias)
+            return
+        def inner1(change):
+            value = getattr(self, attr, None)
+            if not value is None:
+                setattr(obj, alias, getattr(self, attr))
+        def inner2(change):
+            value = getattr(obj, alias, None)
+            if not value is None:
+                setattr(self, attr, getattr(obj, alias))
+        if getattr(self, attr, None):
+            inner1(None)
+        self.observe(attr, inner1)
+        if mutual:
+            obj.observe(alias, inner2)
+            if getattr(obj, alias, None):
+                inner2(None)
+
     @classmethod
     def members(cls):
         """ Get the members dictionary for the type.
