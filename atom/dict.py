@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 from UserDict import DictMixin
 
-from .catom import Member, PostGetAttr, PostSetAttr, DefaultValue, Validate, PostValidate
+from .catom import Member, PostGetAttr, DefaultValue, Validate
 from .instance import Instance
 
 
