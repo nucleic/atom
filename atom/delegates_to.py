@@ -40,7 +40,6 @@ class DelegatesTo(Member):
         self.set_post_getattr_mode(mode, 'post_getattr')
         self.other.add_static_observer(self.sync_obj)
 
-
     def post_setattr(self, owner, old, new):
         '''Send the value to the other member
         '''
@@ -77,4 +76,3 @@ class DelegatesTo(Member):
         '''Forward changes from the other member
         '''
         setattr(self.parent, self.name, change['value'])
-
