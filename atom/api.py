@@ -13,7 +13,7 @@ from .catom import (
 from .coerced import Coerced
 from .containerlist import ContainerList
 from .delegator import Delegator
-from .dict import Dict
+from .dict import Dict, ContainerDict
 from .enum import Enum
 from .event import Event
 from .instance import Instance, ForwardInstance

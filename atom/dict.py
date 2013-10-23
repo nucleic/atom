@@ -90,6 +90,59 @@ class Dict(Member):
             value.set_index(index)
 
 
+class ContainerDict(Dict):
+    """ A Dict member which supports container notifications.
+    
+    Accessing the dictionary will trigger a notification with the previous
+    state.
+
+    """
+    __slots__ = ()
+    
+    def __init__(self, key=None, value=None, default=None):
+        """ Initialize a ContainerDict.
+
+        Parameters
+        ----------
+        key : Member, type, tuple of types, or None, optional
+            A member to use for validating the types of keys allowed in
+            the dict. This can also be a type or a tuple of types, which
+            will be wrapped with an Instance member. If this is not
+            given, no key validation is performed.
+
+        value : Member, type, tuple of types, or None, optional
+            A member to use for validating the types of values allowed
+            in the dict. This can also be a type or a tuple of types,
+            which will be wrapped with an Instance member. If this is
+            not given, no value validation is performed.
+
+        default : dict, optional
+            The default dict of items. A new copy of this dict will be
+            created for each atom instance.
+
+        """
+        super(ContainerDict, self).__init__(key, value, default)
+        mode = PostGetAttr.MemberMethod_ObjectValue
+        self.set_post_getattr_mode(mode, 'post_getattr')
+        
+    def post_getattr(self, owner, data):
+        """ A post getattr handler.
+
+        This handler is be called to wrap the dict in a proxy object on the fly.
+        And enables us to call the observers with the new dict.
+
+        """
+        key, value = self.validate_mode[1]
+        ret = _DictProxy(owner, key, value, data)
+        if ret:
+            change = dict(owner=self, value=ret)
+            for obs in self.static_observers():
+                if isinstance(obs, str):
+                    obs = getattr(owner, obs)
+                obs(change)
+        return ret  
+
+
 class _DictProxy(object, DictMixin):
     """ A private proxy object which validates dict modifications.
 
