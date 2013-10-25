@@ -129,6 +129,7 @@ enum Mode
     Typed,
     Enum,
     Callable,
+    FloatRange,
     Range,
     Coerced,
     Delegate,
