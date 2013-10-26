@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from .catom import Member, DefaultValue, Validate, SetAttr
+from .coerced import Coerced
 
 
 class Value(Member):
@@ -132,6 +133,24 @@ class Range(Value):
         super(Range, self).__init__(default)
         self.set_validate_mode(Validate.Range, (low, high))
 
+
+class Array(Coerced):
+    """ A value of type `np.ndarray`
+    
+    Values are coerced to ndarrays using np.array.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, default=None, factory=None):
+        import numpy as np
+        if factory is None:
+            factory = lambda: ()
+        super(Array, self).__init__(
+                np.ndarray, factory=factory, coercer=np.array)
+        if not default is None:
+            self.set_default_value_mode(DefaultValue.Static, default)
+            
 
 class Float(Value):
     """ A value of type `float`.
