@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from .catom import Member, DefaultValue, Validate, SetAttr
-from .coerced import Coerced
 
 
 class Value(Member):
