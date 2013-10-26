@@ -77,6 +77,10 @@ class Callable(Value):
 class Bool(Value):
     """ A value of type `bool`.
 
+    By default, bools are strictly typed.  Pass strict=False to the
+    constructor to enable truth checking for ints, longs, floats, strings,
+    and unicode literals.
+
     """
     __slots__ = ()
 

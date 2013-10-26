@@ -200,18 +200,23 @@ bool_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 static PyObject*
 bool_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
+    double temp;
     if( newvalue == Py_True || newvalue == Py_False )
         return newref( newvalue );
-    if( PyLong_Check ( newvalue) )
-        return PyBool_FromLong( value );
+    if( PyLong_Check ( newvalue  ) )
+        return PyBool_FromLong( PyLong_AsLong( newvalue ) );
     if( PyInt_Check ( newvalue) )
        return PyBool_FromLong( PyInt_AS_LONG( newvalue) );
-    if( PyFloat_Check (newvalue) )
-        return PyBool_FromLong( PyLong_FromDouble( PyFloat_AS_DOUBLE( newvalue) ) )
-    if( ( PyString_Check( newvalue ) )
-        return PyBool_FromLong( PyLong_FromString(PyString_AsString ( newvalue, NULL, 0 ) ) )
-   if( ( PyUnicode_Check( newvalue ) )
-        return PyBool_FromLong( PyLong_FromString(PyUnicode_AS_DATA ( newvalue, NULL, 0 ) ) )
+    if( PyFloat_Check (newvalue) ) {
+        temp = PyFloat_AS_DOUBLE( newvalue );
+        if( temp != 0 )
+            temp = 1;
+        return PyBool_FromLong( (long) temp );
+    }
+    if( PyString_Check( newvalue ) )
+        return PyBool_FromLong( (long) PyString_GET_SIZE( newvalue ) );
+    if( PyUnicode_Check( newvalue ) )
+        return PyBool_FromLong( (long) PyUnicode_GET_SIZE( newvalue ) );
     return validate_type_fail( member, atom, newvalue, "bool" );
 }
 
