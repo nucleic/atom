@@ -207,6 +207,21 @@ int_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue
 
 
 static PyObject*
+int_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( PyInt_Check( newvalue ) )
+        return newref( newvalue );
+    if( PyLong_Check( newvalue ) )
+        return PyInt_FromLong( PyLong_AsLong( newvalue ) );
+    if( PyString_Check( newvalue ) )
+        return PyInt_FromLong( (long) atoi( PyString_AS_STRING( newvalue ) ) );
+    if( PyUnicode_Check( newvalue ) ) 
+        return PyInt_FromLong( (long) atoi( PyString_AS_STRING( PyUnicode_AsASCIIString( newvalue ) ) ) );
+    return validate_type_fail( member, atom, newvalue, "int" );
+}
+
+
+static PyObject*
 long_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyLong_Check( newvalue ) )
@@ -647,6 +662,7 @@ handlers[] = {
     no_op_handler,
     bool_handler,
     int_handler,
+    int_promote_handler,
     long_handler,
     long_promote_handler,
     float_handler,
