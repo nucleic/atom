@@ -287,6 +287,9 @@ class AtomMeta(type):
                 else:
                     value.set_index(len(members))
                     members[key] = value
+            elif isinstance(value, CAtom):
+                msg = 'Member "{}" ({}) not allowed, use Instance() or Typed()'
+                raise TypeError(msg.format(key, value))
 
         # Add the special statically defined behaviors for the members.
         # If the target member is defined on a subclass, it is cloned
