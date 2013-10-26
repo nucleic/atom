@@ -8,6 +8,7 @@
 from .catom import Member, DefaultValue, Validate, SetAttr
 from .coerced import Coerced
 
+
 class Value(Member):
     """ A member class which supports value initialization.
 
@@ -79,19 +80,13 @@ class Value(Member):
 
         """
         if default and factory is None:
-            if args is None:
-                args = [default]
-            else:
-                args = [default] + list(args)
+            args = [default] + list(args or [])
         if factory is not None:
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         else:
             args = args or ()
             kwargs = kwargs or {}
-            if not coercer is None:
-                factory = lambda: coercer(*args, **kwargs)
-            else:
-                factory = lambda: kind(*args, **kwargs)
+            factory = lambda: (coercer or kind)(*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         self.set_validate_mode(Validate.Coerced, (kind, coercer or kind))
 
