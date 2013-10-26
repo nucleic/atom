@@ -22,7 +22,7 @@ from .list import List
 from .property import Property, cached_property
 from .scalars import (
     Value, ReadOnly, Constant, Callable, Bool, Int, Long, Range, Float, Str,
-    Unicode, FloatRange
+    Unicode, FloatRange, Array
 )
 from .signal import Signal
 from .tuple import Tuple
