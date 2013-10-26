@@ -215,6 +215,7 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( Typed ) );
         add_long( dict_ptr, expand_enum( Enum ) );
         add_long( dict_ptr, expand_enum( Callable ) );
+        add_long( dict_ptr, expand_enum( FloatRange ) );
         add_long( dict_ptr, expand_enum( Range ) );
         add_long( dict_ptr, expand_enum( Coerced ) );
         add_long( dict_ptr, expand_enum( Delegate ) );

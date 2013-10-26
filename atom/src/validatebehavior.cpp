@@ -513,18 +513,18 @@ static PyObject*
 float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyFloat_Check( newvalue ) )
-        return validate_type_fail( member, atom, newvalue, "int" );
+        return validate_type_fail( member, atom, newvalue, "float" );
     PyObject* low = PyTuple_GET_ITEM( member->validate_context, 0 );
     PyObject* high = PyTuple_GET_ITEM( member->validate_context, 1 );
-    double value = PyFloat_AsDouble( newvalue );
+    double value = PyFloat_AS_DOUBLE( newvalue );
     if( low != Py_None )
     {
-        if( PyFloat_AsDouble( low ) > value )
+        if( PyFloat_AS_DOUBLE( low ) > value )
             return py_type_fail( "range value too small" );
     }
     if( high != Py_None )
     {
-        if( PyFloat_AsDouble( high ) < value )
+        if( PyFloat_AS_DOUBLE( high ) < value )
             return py_type_fail( "range value too large" );
     }
     return newref( newvalue );

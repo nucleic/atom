@@ -114,7 +114,7 @@ class Long(Value):
 
 
 class FloatRange(Value):
-    """ An float value clipped to a range.
+    """ A float value clipped to a range.
 
     """
     __slots__ = ()
@@ -122,7 +122,7 @@ class FloatRange(Value):
     def __init__(self, low=None, high=None, value=None):
         if low is not None and high is not None and low > high:
             low, high = high, low
-        default = 0
+        default = 0.0
         if value is not None:
             default = value
         elif low is not None:
