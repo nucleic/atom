@@ -287,10 +287,23 @@ class AtomMeta(type):
                 else:
                     value.set_index(len(members))
                     members[key] = value
-            elif isinstance(value, (CAtom, AtomMeta)):
-                msg = 'Member "{}" ({}) not allowed, use Instance() or Typed()'
-                raise TypeError(msg.format(key, value))
-
+            # handle common errors in Atom definitions
+            elif isinstance(value, AtomMeta):
+                msg = 'In class "{0}": member declaration "{1} = {2}"'
+                msg += ' not allowed, use "Instance({2})" or "Typed({2})"'
+                raise TypeError(msg.format(cls.__name__, key, value.__name__))
+            elif isinstance(value, CAtom):
+                msg = 'In class "{0}": member declaration "{1} = {2}()"'
+                msg += 'not allowed, use "Instance({2})" or "Typed({2})"'
+                raise TypeError(msg.format(cls.__name__, key, 
+                                           value.__class__.__name__))
+            elif not value == AtomMeta and hasattr(value, 'mro'):
+                if Member in value.mro():
+                    msg = 'In class "{0}": Atom Members must be '
+                    msg += 'instantiated: "{1} = {2}" should be "{1} = {2}()"'
+                    raise TypeError(msg.format(cls.__name__, key, 
+                                               value.__name__))
+                    
         # Add the special statically defined behaviors for the members.
         # If the target member is defined on a subclass, it is cloned
         # so that the behavior of the subclass is not modified.
