@@ -289,15 +289,18 @@ class AtomMeta(type):
                     members[key] = value
             # handle common errors in Atom definitions
             elif isinstance(value, AtomMeta):
+                # member = Subclass
                 msg = 'In class "{0}": member declaration "{1} = {2}"'
                 msg += ' not allowed, use "Instance({2})" or "Typed({2})"'
                 raise TypeError(msg.format(cls.__name__, key, value.__name__))
             elif isinstance(value, CAtom):
+                # member = Subclass()
                 msg = 'In class "{0}": member declaration "{1} = {2}()"'
                 msg += 'not allowed, use "Instance({2})" or "Typed({2})"'
                 raise TypeError(msg.format(cls.__name__, key, 
                                            value.__class__.__name__))
             elif not value == AtomMeta and hasattr(value, 'mro'):
+                # member = Bool
                 if Member in value.mro():
                     msg = 'In class "{0}": Atom Members must be '
                     msg += 'instantiated: "{1} = {2}" should be "{1} = {2}()"'
