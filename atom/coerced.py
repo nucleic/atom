@@ -53,6 +53,6 @@ class Coerced(Member):
         else:
             args = args or ()
             kwargs = kwargs or {}
-            factory = lambda: kind(*args, **kwargs)
+            factory = lambda: (coercer or kind)(*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         self.set_validate_mode(Validate.Coerced, (kind, coercer or kind))
