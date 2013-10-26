@@ -82,7 +82,7 @@ class Value(Member):
             if args is None:
                 args = [default]
             else:
-                args.index(0, default)
+                args = [default] + list(args)
         if factory is not None:
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         else:
