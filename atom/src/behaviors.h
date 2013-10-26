@@ -113,6 +113,7 @@ enum Mode
 {
     NoOp,
     Bool,
+    BoolPromote,
     Int,
     Long,
     LongPromote,
