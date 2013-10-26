@@ -147,7 +147,8 @@ class Array(Coerced):
         if default and factory is None:
             args = [default]
         super(Array, self).__init__(
-                np.ndarray, factory=factory, args=args, coercer=np.array)
+                np.ndarray, factory=factory, args=args, kwargs=kwargs,
+                coercer=np.array)
             
 
 class Float(Value):
