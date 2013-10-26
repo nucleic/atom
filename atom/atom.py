@@ -287,7 +287,7 @@ class AtomMeta(type):
                 else:
                     value.set_index(len(members))
                     members[key] = value
-            elif isinstance(value, CAtom):
+            elif isinstance(value, (CAtom, AtomMeta)):
                 msg = 'Member "{}" ({}) not allowed, use Instance() or Typed()'
                 raise TypeError(msg.format(key, value))
 
