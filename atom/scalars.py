@@ -113,6 +113,26 @@ class Long(Value):
             self.set_validate_mode(Validate.LongPromote, None)
 
 
+class FloatRange(Value):
+    """ A float value clipped to a range.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, low=None, high=None, value=None):
+        if low is not None and high is not None and low > high:
+            low, high = high, low
+        default = 0.0
+        if value is not None:
+            default = value
+        elif low is not None:
+            default = low
+        elif high is not None:
+            default = high
+        super(FloatRange, self).__init__(default)
+        self.set_validate_mode(Validate.FloatRange, (low, high))
+
+
 class Range(Value):
     """ An integer value clipped to a range.
 

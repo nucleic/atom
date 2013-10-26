@@ -68,6 +68,32 @@ Member::check_context( Validate::Mode mode, PyObject* context )
                 return false;
             }
             break;
+        case Validate::FloatRange:
+        {
+            if( !PyTuple_Check( context ) )
+            {
+                py_expected_type_fail( context, "2-tuple of float or None" );
+                return false;
+            }
+            if( PyTuple_GET_SIZE( context ) != 2 )
+            {
+                py_expected_type_fail( context, "2-tuple of float or None" );
+                return false;
+            }
+            PyObject* start = PyTuple_GET_ITEM( context, 0 );
+            PyObject* end = PyTuple_GET_ITEM( context, 1 );
+            if( start != Py_None && !PyFloat_Check( start ) )
+            {
+                py_expected_type_fail( context, "2-tuple of float or None" );
+                return false;
+            }
+            if( end != Py_None && !PyFloat_Check( end ) )
+            {
+                py_expected_type_fail( context, "2-tuple of float or None" );
+                return false;
+            }
+            break;
+        }
         case Validate::Range:
         {
             if( !PyTuple_Check( context ) )
@@ -484,6 +510,28 @@ callable_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
 
 
 static PyObject*
+float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( !PyFloat_Check( newvalue ) )
+        return validate_type_fail( member, atom, newvalue, "float" );
+    PyObject* low = PyTuple_GET_ITEM( member->validate_context, 0 );
+    PyObject* high = PyTuple_GET_ITEM( member->validate_context, 1 );
+    double value = PyFloat_AS_DOUBLE( newvalue );
+    if( low != Py_None )
+    {
+        if( PyFloat_AS_DOUBLE( low ) > value )
+            return py_type_fail( "range value too small" );
+    }
+    if( high != Py_None )
+    {
+        if( PyFloat_AS_DOUBLE( high ) < value )
+            return py_type_fail( "range value too large" );
+    }
+    return newref( newvalue );
+}
+
+
+static PyObject*
 range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyInt_Check( newvalue ) )
@@ -614,6 +662,7 @@ handlers[] = {
     typed_handler,
     enum_handler,
     callable_handler,
+    float_range_handler,
     range_handler,
     coerced_handler,
     delegate_handler,
