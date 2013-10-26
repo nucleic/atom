@@ -142,14 +142,12 @@ class Array(Coerced):
     """
     __slots__ = ()
 
-    def __init__(self, default=None, factory=None):
+    def __init__(self, default=None, factory=None, args=None, kwargs=None):
         import numpy as np
-        if factory is None:
-            factory = lambda: ()
+        if default and factory is None:
+            args = [default]
         super(Array, self).__init__(
-                np.ndarray, factory=factory, coercer=np.array)
-        if not default is None:
-            self.set_default_value_mode(DefaultValue.Static, default)
+                np.ndarray, factory=factory, args=args, coercer=np.array)
             
 
 class Float(Value):
