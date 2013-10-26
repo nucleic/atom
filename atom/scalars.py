@@ -145,10 +145,7 @@ class Array(Coerced):
     def __init__(self, default=None, factory=None, args=None, kwargs=None):
         import numpy as np
         if default and factory is None:
-            if args is None:
-                args = [default]
-            else:
-                args = [default] + list(args)
+            args = [default] + list(args or [])
         super(Array, self).__init__(
                 np.ndarray, factory=factory, args=args, kwargs=kwargs,
                 coercer=np.array)
