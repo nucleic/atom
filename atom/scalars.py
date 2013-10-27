@@ -89,8 +89,7 @@ class Int(Value):
     """ A value of type `int`.
 
     By default, ints are strictly typed.  Pass strict=False to the
-    constructor to enable int casting for longs, floats, strings,
-    and unicode literals.
+    constructor to enable int casting for longs and floats.
     """
     __slots__ = ()
 
