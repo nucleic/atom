@@ -119,6 +119,7 @@ enum Mode
     Float,
     FloatPromote,
     Str,
+    StrPromote,
     Unicode,
     UnicodePromote,
     Tuple,

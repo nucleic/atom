@@ -263,6 +263,17 @@ str_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue
 
 
 static PyObject*
+str_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( PyString_Check( newvalue ) )
+        return newref( newvalue );
+    if( PyUnicode_Check( newvalue ) )
+        return PyUnicode_AsUTF8String( newvalue );
+    return validate_type_fail( member, atom, newvalue, "str" );
+}
+
+
+static PyObject*
 unicode_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyUnicode_Check( newvalue ) )
@@ -652,6 +663,7 @@ handlers[] = {
     float_handler,
     float_promote_handler,
     str_handler,
+    str_promote_handler,
     unicode_handler,
     unicode_promote_handler,
     tuple_handler,
