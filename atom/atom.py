@@ -195,6 +195,7 @@ class AtomMeta(type):
         post_validates = []         # Post validate methods: _post_validate_*
         seen_sentinels = set()      # The set of seen sentinels
         seen_decorated = set()      # The set of seen @observe decorators
+        aliases = []                # Alias attributes
         for key, value in dct.iteritems():
             if isinstance(value, set_default):
                 if value in seen_sentinels:
@@ -226,6 +227,9 @@ class AtomMeta(type):
                     post_getattrs.append(key)
                 elif key.startswith(POST_SETATTR_PREFIX):
                     post_setattrs.append(key)
+            from .alias import Alias
+            if isinstance(value, Alias):
+                aliases.append(key)
 
         # Remove the sentinels from the dict before creating the class.
         # The sentinels for the @observe decorators are already removed.
@@ -366,6 +370,10 @@ class AtomMeta(type):
                     if attr is not None:
                         observer = ExtendedObserver(observer, attr)
                     member.add_static_observer(observer)
+
+        # alias members -> they need to know their attribute name
+        for a in aliases:
+            dct[a].attr_name = a
 
         # Put a reference to the members dict on the class. This is used
         # by CAtom to query for the members and member count as needed.
