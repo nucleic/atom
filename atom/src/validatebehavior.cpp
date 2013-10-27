@@ -8,6 +8,7 @@
 #include <iostream>
 #include "member.h"
 #include "atomlist.h"
+#include <limits>       // std::numeric_limits
 
 
 using namespace PythonHelpers;
@@ -211,11 +212,17 @@ int_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
 {
     if( PyInt_Check( newvalue ) )
         return newref( newvalue );
-    if( PyLong_Check( newvalue ) )
-        return PyInt_FromLong( PyLong_AsLong( newvalue ) );
-    if( PyFloat_Check( newvalue ) )
-        return PyInt_FromLong( PyLong_AsLong( PyLong_FromDouble( PyFloat_AS_DOUBLE ( newvalue ) ) ) );
-    return validate_type_fail( member, atom, newvalue, "int" );
+    if( PyFloat_Check( newvalue ) ) {
+        double value = PyFloat_AS_DOUBLE( newvalue );
+        if( ( value < std::numeric_limits<long>::max() ) && ( value > std::numeric_limits<long>::min() ))
+            return PyInt_FromLong( static_cast<long>( value ) );
+    }
+    if( PyLong_Check( newvalue ) ) {
+        long value = PyLong_AsLong( newvalue );
+        if( ( value < std::numeric_limits<long>::max() ) && ( value > std::numeric_limits<long>::min() ))
+            return PyInt_FromLong( value );
+    }
+    return validate_type_fail( member, atom, newvalue, "int float or long" );
 }
 
 

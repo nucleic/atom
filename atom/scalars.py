@@ -90,6 +90,7 @@ class Int(Value):
 
     By default, ints are strictly typed.  Pass strict=False to the
     constructor to enable int casting for longs and floats.
+
     """
     __slots__ = ()
 
