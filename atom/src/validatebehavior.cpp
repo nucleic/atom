@@ -213,10 +213,8 @@ int_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
         return newref( newvalue );
     if( PyLong_Check( newvalue ) )
         return PyInt_FromLong( PyLong_AsLong( newvalue ) );
-    if( PyString_Check( newvalue ) )
-        return PyInt_FromLong( (long) atoi( PyString_AS_STRING( newvalue ) ) );
-    if( PyUnicode_Check( newvalue ) ) 
-        return PyInt_FromLong( (long) atoi( PyString_AS_STRING( PyUnicode_AsASCIIString( newvalue ) ) ) );
+    if( PyFloat_Check( newvalue ) )
+        return PyInt_FromLong( PyLong_AsLong( PyLong_FromDouble( PyFloat_AS_DOUBLE ( newvalue ) ) ) );
     return validate_type_fail( member, atom, newvalue, "int" );
 }
 
