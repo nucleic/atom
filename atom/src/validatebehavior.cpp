@@ -265,19 +265,10 @@ str_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue
 static PyObject*
 str_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    char buffer[500];
     if( PyString_Check( newvalue ) )
         return newref( newvalue );
     if( PyUnicode_Check( newvalue ) )
-        return PyUnicode_AsASCIIString( newvalue );
-    if( PyInt_Check( newvalue) ) {
-        itoa( (int) PyInt_AS_LONG( newvalue ), buffer, 10);
-        return PyString_FromString( buffer );
-    }
-    if( PyLong_Check( newvalue) ) {
-        itoa( (int) PyLong_AsLong( newvalue ), buffer, 10);
-        return PyString_FromString( buffer );
-    }
+        return PyUnicode_AsUTF8String( newvalue );
     return validate_type_fail( member, atom, newvalue, "str" );
 }
 
