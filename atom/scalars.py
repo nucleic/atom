@@ -209,10 +209,11 @@ class Array(Coerced):
 
     def __init__(self, default=None, factory=None, kwargs=None):
         import numpy as np
-        if default:
-            kwargs = kwargs or {}
-            factory = lambda: np.array(default, **kwargs)
-        else:
-            factory = lambda: ()
+        if factory is None:
+            if default is not None:
+                kwargs = kwargs or {}
+                factory = lambda: np.array(default, **kwargs)
+            else:
+                factory = lambda: ()
         super(Array, self).__init__(
                 np.ndarray, factory=factory, coercer=np.array)
