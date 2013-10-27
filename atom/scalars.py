@@ -173,14 +173,13 @@ class Float(Value):
 class Str(Value):
     """ A value of type `str`.
 
-    By default, values will be enforced as string. Pass strict=True 
-    to the constructor to enable casting int, long, and unicode as
-    string literals.
+    By default, unicode strings will be promoted to plain strings. Pass
+    strict=True to the constructor to enable strict string checking.
     
     """
     __slots__ = ()
 
-    def __init__(self, default='', factory=None, strict=True):
+    def __init__(self, default='', factory=None, strict=False):
         super(Str, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Str, None)
