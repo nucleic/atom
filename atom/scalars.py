@@ -93,7 +93,7 @@ class Int(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=0, factory=None, strict=True):
+    def __init__(self, default=0, factory=None, strict=False):
         super(Int, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Int, None)
