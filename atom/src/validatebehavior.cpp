@@ -108,12 +108,12 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             PyObject* start = PyTuple_GET_ITEM( context, 0 );
             PyObject* end = PyTuple_GET_ITEM( context, 1 );
-            if( start != Py_None && !PyInt_Check( start ) )
+            if( start != Py_None && !PyLong_Check( start ) )
             {
                 py_expected_type_fail( context, "2-tuple of int or None" );
                 return false;
             }
-            if( end != Py_None && !PyInt_Check( end ) )
+            if( end != Py_None && !PyLong_Check( end ) )
             {
                 py_expected_type_fail( context, "2-tuple of int or None" );
                 return false;
@@ -152,7 +152,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
         case Validate::ObjectMethod_OldNew:
         case Validate::ObjectMethod_NameOldNew:
         case Validate::MemberMethod_ObjectOldNew:
-            if( !PyString_Check( context ) )
+            if( !PyBytes_Check( context ) )
             {
                 py_expected_type_fail( context, "str" );
                 return false;
@@ -172,7 +172,7 @@ validate_type_fail( Member* member, CAtom* atom, PyObject* newvalue, const char*
         PyExc_TypeError,
         "The '%s' member on the '%s' object must be of type '%s'. "
         "Got object of type '%s' instead.",
-        PyString_AsString( member->name ),
+        _PyUnicode_AsString( member->name ),
         pyobject_cast( atom )->ob_type->tp_name,
         type,
         newvalue->ob_type->tp_name
@@ -200,11 +200,10 @@ bool_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 static PyObject*
 int_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( PyInt_Check( newvalue ) )
+    if( PyLong_Check( newvalue ) )
         return newref( newvalue );
     return validate_type_fail( member, atom, newvalue, "int" );
 }
-
 
 static PyObject*
 long_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
@@ -220,8 +219,10 @@ long_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject*
 {
     if( PyLong_Check( newvalue ) )
         return newref( newvalue );
-    if( PyInt_Check( newvalue ) )
-        return PyLong_FromLong( PyInt_AS_LONG( newvalue ) );
+    #if PY_MAJOR_VERSION < 3
+        if( PyInt_Check( newvalue ) )
+            return PyLong_FromLong( PyInt_AS_LONG( newvalue ) );
+    #endif
     return validate_type_fail( member, atom, newvalue, "long" );
 }
 
@@ -240,8 +241,10 @@ float_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject
 {
     if( PyFloat_Check( newvalue ) )
         return newref( newvalue );
+    #if PY_MAJOR_VERSION < 3
     if( PyInt_Check( newvalue ) )
         return PyFloat_FromDouble( static_cast<double>( PyInt_AS_LONG( newvalue ) ) );
+    #endif
     if( PyLong_Check( newvalue ) )
     {
         double val = PyLong_AsDouble( newvalue );
@@ -256,7 +259,7 @@ float_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject
 static PyObject*
 str_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( PyString_Check( newvalue ) )
+    if( PyBytes_Check( newvalue ) )
         return newref( newvalue );
     return validate_type_fail( member, atom, newvalue, "str" );
 }
@@ -265,7 +268,7 @@ str_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue
 static PyObject*
 str_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( PyString_Check( newvalue ) )
+    if( PyBytes_Check( newvalue ) )
         return newref( newvalue );
     if( PyUnicode_Check( newvalue ) )
         return PyUnicode_AsUTF8String( newvalue );
@@ -287,8 +290,8 @@ unicode_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObje
 {
     if( PyUnicode_Check( newvalue ) )
         return newref( newvalue );
-    if( PyString_Check( newvalue ) )
-        return PyUnicode_FromString( PyString_AS_STRING( newvalue ) );
+    if( PyBytes_Check( newvalue ) )
+        return PyUnicode_FromString( PyBytes_AsString(newvalue) );
     return validate_type_fail( member, atom, newvalue, "unicode" );
 }
 
@@ -545,19 +548,19 @@ float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
 static PyObject*
 range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( !PyInt_Check( newvalue ) )
+    if( !PyLong_Check( newvalue ) )
         return validate_type_fail( member, atom, newvalue, "int" );
     PyObject* low = PyTuple_GET_ITEM( member->validate_context, 0 );
     PyObject* high = PyTuple_GET_ITEM( member->validate_context, 1 );
-    long value = PyInt_AS_LONG( newvalue );
+    long value = PyLong_AS_LONG( newvalue );
     if( low != Py_None )
     {
-        if( PyInt_AS_LONG( low ) > value )
+        if( PyLong_AS_LONG( low ) > value )
             return py_type_fail( "range value too small" );
     }
     if( high != Py_None )
     {
-        if( PyInt_AS_LONG( high ) < value )
+        if( PyLong_AS_LONG( high ) < value )
             return py_type_fail( "range value too large" );
     }
     return newref( newvalue );
