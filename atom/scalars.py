@@ -105,7 +105,7 @@ class Long(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=0L, factory=None, strict=False):
+    def __init__(self, default=0, factory=None, strict=False):
         super(Long, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Long, None)
