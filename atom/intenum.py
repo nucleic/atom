@@ -7,7 +7,10 @@
 #------------------------------------------------------------------------------
 # Note: This module is imported by 'atom.catom' module from code defined in
 # the 'enumtypes.cpp' file. This module must therefore not import atom.
-import copy_reg
+try:
+    import copy_reg
+except ImportError:
+    import copyreg as copy_reg
 
 
 # IntEnum is not defined until the metaclass creates it.
