@@ -35,7 +35,7 @@ _from_py_enum( PyObject* value, PyObject* py_type, T& out )
         PythonHelpers::py_expected_type_fail( value, ob_type->tp_name );
         return false;
     }
-    long lval = PyInt_AsLong( value );
+    long lval = PyLong_AsLong( value );
     if( lval == -1 && PyErr_Occurred() )
         return false;
     out = static_cast<T>( lval );
@@ -106,7 +106,7 @@ from_py_enum( PyObject* value, PostValidate::Mode& out )
 template<typename T> inline PyObject*
 _to_py_enum( T value, PyObject* py_enum_class )
 {
-    PythonHelpers::PyObjectPtr py_int( PyInt_FromLong( static_cast<long>( value ) ) );
+    PythonHelpers::PyObjectPtr py_int( PyLong_FromLong( static_cast<long>( value ) ) );
     if( !py_int )
         return 0;
     PythonHelpers::PyTuplePtr py_args( PyTuple_New( 1 ) );
