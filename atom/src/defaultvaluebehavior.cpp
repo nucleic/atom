@@ -49,7 +49,7 @@ Member::check_context( DefaultValue::Mode mode, PyObject* context )
         case DefaultValue::ObjectMethod:
         case DefaultValue::ObjectMethod_Name:
         case DefaultValue::MemberMethod_Object:
-            if( !PyString_Check( context ) )
+            if( !PyUnicode_Check( context ) )
             {
                 py_expected_type_fail( context, "str" );
                 return false;
