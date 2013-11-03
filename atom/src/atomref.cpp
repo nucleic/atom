@@ -78,7 +78,7 @@ AtomRef_dealloc( AtomRef* self )
 {
     // manual destructor since Python malloc'd and zero'd the struct
     self->pointer.~CAtomPointer();
-    self->ob_type->tp_free( pyobject_cast( self ) );
+    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -106,19 +106,19 @@ AtomRef_repr( AtomRef* self )
         PyObjectPtr repr( PyObject_Repr( obj ) );
         if( !repr )
             return 0;
-        ostr << PyString_AsString( repr.get() );
+        ostr << _PyUnicode_AsString( repr.get() );
     }
     ostr << ")";
-    return PyString_FromString( ostr.str().c_str() );
+    return PyUnicode_FromString( ostr.str().c_str() );
 }
 
 
 static PyObject*
 AtomRef_sizeof( AtomRef* self, PyObject* args )
 {
-    Py_ssize_t size = self->ob_type->tp_basicsize;
+    Py_ssize_t size = Py_TYPE(self)->tp_basicsize;
     size += sizeof( CAtomPointer );
-    return PyInt_FromSsize_t( size );
+    return PyLong_FromSsize_t( size );
 }
 
 
@@ -133,14 +133,16 @@ PyNumberMethods AtomRef_as_number = {
      ( binaryfunc )0,                       /* nb_add */
      ( binaryfunc )0,                       /* nb_subtract */
      ( binaryfunc )0,                       /* nb_multiply */
+    #if PY_MAJOR_VERSION < 3
      ( binaryfunc )0,                       /* nb_divide */
+    #endif
      ( binaryfunc )0,                       /* nb_remainder */
      ( binaryfunc )0,                       /* nb_divmod */
      ( ternaryfunc )0,                      /* nb_power */
      ( unaryfunc )0,                        /* nb_negative */
      ( unaryfunc )0,                        /* nb_positive */
      ( unaryfunc )0,                        /* nb_absolute */
-     ( inquiry )AtomRef__nonzero__          /* nb_nonzero */
+     ( inquiry )AtomRef__nonzero__          /* nb_nonzero, or nb_bool in python3 */
 };
 
 
@@ -153,8 +155,8 @@ AtomRef_methods[] = {
 
 
 PyTypeObject AtomRef_Type = {
-    PyObject_HEAD_INIT( 0 )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( NULL, 0 )
+    //0,                                      /* ob_size */
     PACKAGE_TYPENAME( "atomref" ),          /* tp_name */
     sizeof( AtomRef ),                      /* tp_basicsize */
     0,                                      /* tp_itemsize */
