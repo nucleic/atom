@@ -57,7 +57,7 @@ slot_handler( Member* member, CAtom* atom )
 {
     if( member->index >= atom->get_slot_count() )
     {
-        py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
+        py_no_attr_fail( pyobject_cast( atom ), PyBytes_AsString( member->name ) );
         return -1;
     }
     PyObjectPtr valueptr( atom->get_slot( member->index ) );
