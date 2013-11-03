@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from setuptools import setup, find_packages, Extension
+import sys
 
 
 ext_modules = [
@@ -34,12 +35,16 @@ ext_modules = [
          ],
         language='c++',
     ),
-    Extension(
-        'atom.datastructures.sortedmap',
-        ['atom/src/sortedmap.cpp'],
-        language='c++',
-    ),
+    #Extension(
+    #    'atom.datastructures.sortedmap',
+    #    ['atom/src/sortedmap.cpp'],
+    #    language='c++',
+    #),
 ]
+
+extra = {}
+if sys.version_info >= (3,):
+    extra[ 'use_2to3' ] = True
 
 
 setup(
@@ -53,4 +58,5 @@ setup(
     install_requires=['distribute'],
     packages=find_packages(),
     ext_modules=ext_modules,
+    **extra
 )
