@@ -14,8 +14,9 @@
    - Provide a _default_* static constructor
    - Provide a pre-created object in the constructor
 """
+from __future__ import print_function
 from atom.api import (
-    Atom, Value, Instance, ForwardInstance, Unicode)
+    Atom, Instance, ForwardInstance, Unicode)
 
 
 class Dog(Atom):
@@ -47,18 +48,18 @@ if __name__ == '__main__':
 
     bob = Person(name='Bob Smith')
 
-    print 'Fido'
-    print 'name:', bob.fido.name
-    print 'owner:', bob.fido.owner.name
+    print('Fido')
+    print('name: {0}'.format(bob.fido.name))
+    print('owner: {0}'.format(bob.fido.owner.name))
 
-    print '\nFluffy'
-    print 'name:', bob.fluffy.name
-    print 'original owner:', repr(bob.fluffy.owner)  # none
+    print('\nFluffy')
+    print('name: {0}'.format(bob.fluffy.name))
+    print('original owner: {0}'.format(repr(bob.fluffy.owner)))  # none
     bob.fluffy.owner = bob
-    print 'new owner:', bob.fluffy.owner.name
+    print('new owner: {0}'.format(bob.fluffy.owner.name))
 
-    print '\nNew Dog'
+    print('\nNew Dog')
     new_dog = Dog(name='Scruffy', owner=bob)
     bob.new_dog = new_dog
-    print 'name: ', bob.new_dog.name
-    print 'owner', bob.new_dog.owner.name
+    print('name: {0}'.format(bob.new_dog.name))
+    print('owner: {0}'.format(bob.new_dog.owner.name))

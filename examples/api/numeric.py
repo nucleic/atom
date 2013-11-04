@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+from __future__ import print_function
 from atom.api import Atom, Int, Long, Float, Bool
 import sys
 
@@ -24,7 +25,7 @@ if __name__ == '__main__':
 
     data = Data()
 
-    print data.ival
-    print data.lval
-    print data.fval
-    print data.bval
+    print(data.ival)
+    print(data.lval)
+    print(data.fval)
+    print(data.bval)

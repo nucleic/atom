@@ -14,6 +14,7 @@
 5. Use a _default_* static method
 
 """
+from __future__ import print_function
 from atom.api import Atom, Unicode, Int
 import sys
 
@@ -48,5 +49,5 @@ class Person(Atom):
 
 if __name__ == '__main__':
     bob = Person(address='101 Main')
-    print bob.first_name, bob.last_name, bob.age
-    print bob.mother
+    print((bob.first_name, bob.last_name, bob.age))
+    print(bob.mother)

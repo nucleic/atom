@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+from __future__ import print_function
 import datetime
 
 from atom.api import Atom, Unicode, Range, Bool, Value, Int, Tuple, observe
@@ -35,7 +36,7 @@ class Person(Atom):
             s = templ.format(
                 first=self.first_name, last=self.last_name, age=self.age,
             )
-            print s
+            print(s)
 
 
 class Employer(Person):
@@ -62,8 +63,8 @@ class Employee(Person):
     # employee's phone number changes
     def _observe_phone(self, val):
         if val['type'] == 'update':
-            print 'received new phone number for %s: %s' % (self.first_name,
-                                                            val['value'])
+            print('received new phone number for %s: %s' % (self.first_name,
+                                                            val['value']))
 
 
 if __name__ == '__main__':

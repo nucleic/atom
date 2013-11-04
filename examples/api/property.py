@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+from __future__ import print_function
 from atom.api import Atom, Unicode, Property, Int
 
 
@@ -27,8 +28,8 @@ class Person(Atom):
 
 
 bob = Person(first_name='Bob')
-print bob.age
+print(bob.age)
 bob.age = -10
-print bob.age
+print(bob.age)
 bob.age = 20
-print bob.age
+print(bob.age)

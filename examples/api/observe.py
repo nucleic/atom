@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+from __future__ import print_function
 from atom.api import Atom, Unicode, Range, Instance, observe
 
 
@@ -25,15 +26,15 @@ class Person(Atom):
     dog = Instance(Dog, ())
 
     def _observe_age(self, change):
-        print 'Age changed', change['value']
+        print('Age changed: {0}'.format(change['value']))
 
     @observe('name')
     def any_name_i_want(self, change):
-        print 'Name changed', change['value']
+        print('Name changed: {0}'.format(change['value']))
 
     @observe('dog.name')
     def another_random_name(self, change):
-        print 'Dog name changed', change['value']
+        print('Dog name changed: {0}'.format(change['value']))
 
 
 def main():
@@ -43,7 +44,7 @@ def main():
     bob.dog.name = 'Scruffy'
 
     def watcher_func(change):
-        print 'Watcher func change', change['value']
+        print('Watcher func change: {0}'.format(change['value']))
 
     bob.observe('age', watcher_func)
     bob.age = 51

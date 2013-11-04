@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+from __future__ import print_function
 from atom.api import Atom, Range, FloatRange
 
 
@@ -19,10 +20,10 @@ if __name__ == '__main__':
 
     exp = Experiment()
 
-    print exp.coef
+    print(exp.coef)
     exp.coef = 0.5
-    print exp.coef
+    print(exp.coef)
 
-    print exp.gain
+    print(exp.gain)
     exp.gain = 99
-    print exp.gain
+    print(exp.gain)

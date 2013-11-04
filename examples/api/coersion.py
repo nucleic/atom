@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+from __future__ import print_function
 from atom.api import Atom, Coerced
 
 
@@ -19,20 +20,20 @@ if __name__ == '__main__':
 
     demo = Demo()
 
-    print 'CInt Demo'
+    print('CInt Demo')
     demo.cint = '1'
-    print demo.cint
+    print(demo.cint)
     demo.cint = 51.5
-    print demo.cint
+    print(demo.cint)
 
-    print '\nCFloat Demo'
+    print('\nCFloat Demo')
     demo.cfloat = '1.5'
-    print demo.cfloat
+    print(demo.cfloat)
     demo.cfloat = 100
-    print demo.cfloat
+    print(demo.cfloat)
 
-    print '\nCStr Demo'
+    print('\nCStr Demo')
     demo.cstr = 100
-    print demo.cstr
+    print(demo.cstr)
     demo.cstr = Demo
-    print demo.cstr
+    print(demo.cstr)

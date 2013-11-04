@@ -5,6 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+from __future__ import print_function
 from atom.api import Atom, List, ContainerList, Tuple, Dict
 
 
@@ -19,16 +20,16 @@ class Data(Atom):
     ddict = Dict(default=dict(foo=1, bar='a'))
 
     def _observe_dcont_list(self, change):
-        print 'container list change', change['value']
+        print('container list change: {0}'.format(change['value']))
 
 
 if __name__ == '__main__':
 
     data = Data()
 
-    print data.dlist
-    print data.dcont_list
+    print(data.dlist)
+    print(data.dcont_list)
     data.dcont_list.append(1)
     data.dcont_list.pop(0)
-    print data.dtuple
-    print data.ddict
+    print(data.dtuple)
+    print(data.ddict)
