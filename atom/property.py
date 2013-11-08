@@ -83,7 +83,7 @@ class Property(Member):
 
         """
         self.fset = func
-        self.set_setattr_mode(SetAttr.CallObject_ObjectValue, func)
+        self.set_setattr_mode(GetAttr.CallObject_ObjectValue, func)
         return self
 
     def clone(self):
