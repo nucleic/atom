@@ -156,7 +156,7 @@ CAtom_observe( CAtom* self, PyObject* args )
         return py_type_fail( "observe() takes exactly 2 arguments" );
     PyObject* topic = PyTuple_GET_ITEM( args, 0 );
     PyObject* callback = PyTuple_GET_ITEM( args, 1 );
-    if( PyString_Check( topic ) )
+    if( PyString_Check( topic ) || PyUnicode_Check( topic ) )
     {
         if( !self->observe( topic, callback ) )
             return 0;
