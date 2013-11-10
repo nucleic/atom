@@ -200,6 +200,7 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Bool ) );
         add_long( dict_ptr, expand_enum( Int ) );
+        add_long( dict_ptr, expand_enum( IntPromote ) );
         add_long( dict_ptr, expand_enum( Long ) );
         add_long( dict_ptr, expand_enum( LongPromote ) );
         add_long( dict_ptr, expand_enum( Float ) );

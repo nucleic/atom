@@ -114,6 +114,7 @@ enum Mode
     NoOp,
     Bool,
     Int,
+    IntPromote,
     Long,
     LongPromote,
     Float,

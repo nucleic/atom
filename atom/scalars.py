@@ -88,12 +88,18 @@ class Bool(Value):
 class Int(Value):
     """ A value of type `int`.
 
+    By default, ints are strictly typed.  Pass strict=False to the
+    constructor to enable int casting for longs and floats.
+
     """
     __slots__ = ()
 
-    def __init__(self, default=0, factory=None):
+    def __init__(self, default=0, factory=None, strict=True):
         super(Int, self).__init__(default, factory)
-        self.set_validate_mode(Validate.Int, None)
+        if strict:
+            self.set_validate_mode(Validate.Int, None)
+        else:
+            self.set_validate_mode(Validate.IntPromote, None)
 
 
 class Long(Value):
