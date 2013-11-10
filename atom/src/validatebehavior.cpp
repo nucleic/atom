@@ -5,10 +5,9 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-#include <iostream>
+#include <limits>
 #include "member.h"
 #include "atomlist.h"
-#include <limits>       // std::numeric_limits
 
 
 using namespace PythonHelpers;
@@ -214,13 +213,19 @@ int_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
         return newref( newvalue );
     if( PyFloat_Check( newvalue ) ) {
         double value = PyFloat_AS_DOUBLE( newvalue );
-        if( ( value < std::numeric_limits<long>::max() ) && ( value > std::numeric_limits<long>::min() ))
-            return PyInt_FromLong( static_cast<long>( value ) );
+        if( value < static_cast<double>( std::numeric_limits<long>::min() ) ||
+            value > static_cast<double>( std::numeric_limits<long>::max() ) )
+        {
+            PyErr_SetString( PyExc_OverflowError, "Python float too large to convert to C long" );
+            return 0;
+        }
+        return PyInt_FromLong( static_cast<long>( value ) );
     }
     if( PyLong_Check( newvalue ) ) {
         long value = PyLong_AsLong( newvalue );
-        if( ( value < std::numeric_limits<long>::max() ) && ( value > std::numeric_limits<long>::min() ))
-            return PyInt_FromLong( value );
+        if( value == -1 && PyErr_Occurred() )
+            return 0;
+        return PyInt_FromLong( value );
     }
     return validate_type_fail( member, atom, newvalue, "int float or long" );
 }
@@ -264,10 +269,10 @@ float_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject
         return PyFloat_FromDouble( static_cast<double>( PyInt_AS_LONG( newvalue ) ) );
     if( PyLong_Check( newvalue ) )
     {
-        double val = PyLong_AsDouble( newvalue );
-        if( val < 0.0 && PyErr_Occurred() )
+        double value = PyLong_AsDouble( newvalue );
+        if( value == -1.0 && PyErr_Occurred() )
             return 0;
-        return PyFloat_FromDouble( val );
+        return PyFloat_FromDouble( value );
     }
     return validate_type_fail( member, atom, newvalue, "float" );
 }
