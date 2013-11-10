@@ -679,6 +679,25 @@ Member_notify( Member* self, PyObject* args, PyObject* kwargs )
 
 
 static PyObject*
+Member_tag( Member* self, PyObject* args, PyObject* kwargs )
+{
+    if( PyTuple_GET_SIZE( args ) != 0 )
+        return py_type_fail( "tag() takes no positional arguments" );
+    if( !kwargs )
+        return py_type_fail( "tag() requires keyword arguments" );
+    if( !self->metadata )
+    {
+        self->metadata = PyDict_New();
+        if( !self->metadata )
+            return 0;
+    }
+    if( PyDict_Update( self->metadata, kwargs ) < 0 )
+        return 0;
+    return newref( pyobject_cast( self ) );
+}
+
+
+static PyObject*
 Member_get_metadata( Member* self, void* ctxt )
 {
     if( !self->metadata )
@@ -821,6 +840,8 @@ Member_methods[] = {
       "Set the post validate mode for the member." },
     { "notify", ( PyCFunction )Member_notify, METH_VARARGS | METH_KEYWORDS,
       "Notify the static observers for the given member and atom." },
+    { "tag", ( PyCFunction )Member_tag, METH_VARARGS | METH_KEYWORDS,
+      "Tag the member with metatdata. " },
     { 0 } // sentinel
 };
 
