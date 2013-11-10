@@ -13,6 +13,8 @@
 #include "globalstatic.h"
 #include "methodwrapper.h"
 #include "packagenaming.h"
+#include "utils.h"
+
 
 using namespace PythonHelpers;
 
@@ -156,7 +158,9 @@ CAtom_observe( CAtom* self, PyObject* args )
         return py_type_fail( "observe() takes exactly 2 arguments" );
     PyObject* topic = PyTuple_GET_ITEM( args, 0 );
     PyObject* callback = PyTuple_GET_ITEM( args, 1 );
-    if( PyString_Check( topic ) )
+    if( !PyCallable_Check( callback ) )
+        return py_expected_type_fail( callback, "callable" );
+    if( utils::basestring_check( topic ) )
     {
         if( !self->observe( topic, callback ) )
             return 0;
@@ -169,6 +173,8 @@ CAtom_observe( CAtom* self, PyObject* args )
         PyObjectPtr topicptr;
         while( ( topicptr = PyIter_Next( iterator.get() ) ) )
         {
+            if( !utils::basestring_check( topicptr.get() ) )
+                return py_expected_type_fail( topicptr.get(), "basestring" );
             if( !self->observe( topicptr.get(), callback ) )
                 return 0;
         }
@@ -191,7 +197,7 @@ _CAtom_unobserve_0( CAtom* self )
 static PyObject*
 _CAtom_unobserve_1( CAtom* self, PyObject* topic )
 {
-    if( PyString_Check( topic ) )
+    if( utils::basestring_check( topic ) )
     {
         if( !self->unobserve( topic ) )
             return 0;
@@ -204,6 +210,8 @@ _CAtom_unobserve_1( CAtom* self, PyObject* topic )
         PyObjectPtr topicptr;
         while( ( topicptr = PyIter_Next( iterator.get() ) ) )
         {
+            if( !utils::basestring_check( topicptr.get() ) )
+                return py_expected_type_fail( topicptr.get(), "basestring" );
             if( !self->unobserve( topicptr.get() ) )
                 return 0;
         }
@@ -217,7 +225,9 @@ _CAtom_unobserve_1( CAtom* self, PyObject* topic )
 static PyObject*
 _CAtom_unobserve_2( CAtom* self, PyObject* topic, PyObject* callback )
 {
-    if( PyString_Check( topic ) )
+    if( !PyCallable_Check( callback ) )
+        return py_expected_type_fail( callback, "callable" );
+    if( utils::basestring_check( topic ) )
     {
         if( !self->unobserve( topic, callback ) )
             return 0;
@@ -230,6 +240,8 @@ _CAtom_unobserve_2( CAtom* self, PyObject* topic, PyObject* callback )
         PyObjectPtr topicptr;
         while( ( topicptr = PyIter_Next( iterator.get() ) ) )
         {
+            if( !utils::basestring_check( topicptr.get() ) )
+                return py_expected_type_fail( topicptr.get(), "basestring" );
             if( !self->unobserve( topicptr.get(), callback ) )
                 return 0;
         }
@@ -268,6 +280,8 @@ CAtom_notify( CAtom* self, PyObject* args, PyObject* kwargs )
     if( PyTuple_GET_SIZE( args ) < 1 )
         return py_type_fail( "notify() requires at least 1 argument" );
     PyObject* topic = PyTuple_GET_ITEM( args, 0 );
+    if( !utils::basestring_check( topic ) )
+        return py_expected_type_fail( topic, "basestring" );
     PyObjectPtr argsptr( PyTuple_GetSlice( args, 1, PyTuple_GET_SIZE( args ) ) );
     if( !argsptr )
         return 0;
