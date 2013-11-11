@@ -10,6 +10,7 @@ from .catom import (
     CAtom, Member, GetAttr, SetAttr, PostGetAttr, PostSetAttr,
     DefaultValue, Validate, PostValidate, atomref, atomlist, atomclist
 )
+from .array import Array
 from .coerced import Coerced
 from .containerlist import ContainerList
 from .delegator import Delegator
@@ -22,7 +23,7 @@ from .list import List
 from .property import Property, cached_property
 from .scalars import (
     Value, ReadOnly, Constant, Callable, Bool, Int, Long, Range, Float, Str,
-    Unicode, FloatRange, Array
+    Unicode, FloatRange
 )
 from .signal import Signal
 from .tuple import Tuple
