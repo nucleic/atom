@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from __future__ import print_function
+
 from atom.api import Atom, Coerced
 
 
@@ -17,7 +18,6 @@ class Demo(Atom):
 
 
 if __name__ == '__main__':
-
     demo = Demo()
 
     print('CInt Demo')

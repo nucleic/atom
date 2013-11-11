@@ -6,11 +6,11 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from __future__ import print_function
+
 from atom.api import Atom, Unicode, Range, Bool, observe
 
 
 class Person(Atom):
-
     """ A simple class representing a person object.
 
     """
@@ -34,9 +34,8 @@ class Person(Atom):
             )
             print(s)
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     john = Person(first_name='John', last_name='Doe', age=42)
     john.debug = True
-
     john.age = 43

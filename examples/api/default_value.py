@@ -15,8 +15,9 @@
 
 """
 from __future__ import print_function
-from atom.api import Atom, Unicode, Int
 import sys
+
+from atom.api import Atom, Unicode, Int
 
 
 def get_mother():
@@ -24,13 +25,14 @@ def get_mother():
 
 
 def get_last_name():
-    '''Return a last name based on the system byteorder'''
+    """ Return a last name based on the system byteorder.
+
+    """
     return sys.byteorder.capitalize()
 
 
 class Person(Atom):
-
-    """ A simple class representing an employee object.
+    """ A simple class representing a person object.
 
     """
     first_name = Unicode('Bob')

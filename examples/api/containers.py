@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from __future__ import print_function
+
 from atom.api import Atom, List, ContainerList, Tuple, Dict
 
 
@@ -24,9 +25,7 @@ class Data(Atom):
 
 
 if __name__ == '__main__':
-
     data = Data()
-
     print(data.dlist)
     print(data.dcont_list)
     data.dcont_list.append(1)

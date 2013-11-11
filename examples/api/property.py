@@ -6,11 +6,11 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from __future__ import print_function
+
 from atom.api import Atom, Unicode, Property, Int
 
 
 class Person(Atom):
-
     """ A simple class representing a person object.
 
     """
@@ -27,9 +27,10 @@ class Person(Atom):
             self._age = age
 
 
-bob = Person(first_name='Bob')
-print(bob.age)
-bob.age = -10
-print(bob.age)
-bob.age = 20
-print(bob.age)
+if __name__ == '__main__':
+    bob = Person(first_name='Bob')
+    print(bob.age)
+    bob.age = -10
+    print(bob.age)
+    bob.age = 20
+    print(bob.age)

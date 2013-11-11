@@ -6,7 +6,8 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from __future__ import print_function
-from atom.api import Atom, Unicode, Range, Instance, observe
+
+from atom.api import Atom, Unicode, Range, Typed, observe
 
 
 class Dog(Atom):
@@ -15,7 +16,6 @@ class Dog(Atom):
 
 
 class Person(Atom):
-
     """ A simple class representing a person object.
 
     """
@@ -23,7 +23,7 @@ class Person(Atom):
 
     age = Range(low=0)
 
-    dog = Instance(Dog, ())
+    dog = Typed(Dog, ())
 
     def _observe_age(self, change):
         print('Age changed: {0}'.format(change['value']))

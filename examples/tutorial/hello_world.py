@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from __future__ import print_function
+
 from atom.api import Atom, Unicode
 
 
@@ -15,7 +16,6 @@ class Hello(Atom):
 
 
 if __name__ == "__main__":
-
     hello = Hello()
     print(hello.message)
     hello.message = 'Goodbye'

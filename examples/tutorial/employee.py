@@ -8,11 +8,12 @@
 from __future__ import print_function
 import datetime
 
-from atom.api import Atom, Unicode, Range, Bool, Value, Int, Tuple, observe
+from atom.api import (
+    Atom, Unicode, Range, Bool, Value, Int, Tuple, Typed, observe
+)
 
 
 class Person(Atom):
-
     """ A simple class representing a person object.
 
     """
@@ -40,7 +41,6 @@ class Person(Atom):
 
 
 class Employer(Person):
-
     """ An employer is a person who runs a company.
 
     """
@@ -49,12 +49,11 @@ class Employer(Person):
 
 
 class Employee(Person):
-
     """ An employee is person with a boss and a phone number.
 
     """
     # The employee's boss
-    boss = Value(Employer)
+    boss = Typed(Employer)
 
     # The employee's phone number as a tuple of 3 ints
     phone = Tuple(Int())
@@ -63,8 +62,8 @@ class Employee(Person):
     # employee's phone number changes
     def _observe_phone(self, val):
         if val['type'] == 'update':
-            print('received new phone number for %s: %s' % (self.first_name,
-                                                            val['value']))
+            msg = 'received new phone number for %s: %s'
+            print(msg % (self.first_name, val['value']))
 
 
 if __name__ == '__main__':

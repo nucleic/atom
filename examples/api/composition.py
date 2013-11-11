@@ -7,16 +7,18 @@
 #------------------------------------------------------------------------------
 """ Demonstrate the use of Compostion of Atom objects.
 
-1. If the class has not been declared, use a ForwardInstance
-   - Note the use of lambda, because "Person" is no
-2. An Instance can be instantiated three ways:
+1. If the class has not been declared, use a ForwardTyped
+   - Note the use of lambda, because "Person" is not yet defined
+
+2. A Typed object can be instantiated three ways:
    - Provide args, kwargs, or a factory in the definition
    - Provide a _default_* static constructor
    - Provide a pre-created object in the constructor
+
 """
 from __future__ import print_function
-from atom.api import (
-    Atom, Instance, ForwardInstance, Unicode)
+
+from atom.api import Atom, Typed, ForwardTyped, Unicode
 
 
 class Dog(Atom):
@@ -24,7 +26,7 @@ class Dog(Atom):
     name = Unicode()
 
     # note the use of lambda, because Person has not been defined
-    owner = ForwardInstance(lambda: Person)
+    owner = ForwardTyped(lambda: Person)
 
 
 class Person(Atom):
@@ -32,20 +34,19 @@ class Person(Atom):
     name = Unicode()
 
     # uses static constructor
-    fido = Instance(Dog)
+    fido = Typed(Dog)
 
     # uses kwargs provided in the definition
-    fluffy = Instance(Dog, kwargs=dict(name='Fluffy'))
+    fluffy = Typed(Dog, kwargs=dict(name='Fluffy'))
 
     # uses an object provided in Person constructor
-    new_dog = Instance(Dog)
+    new_dog = Typed(Dog)
 
     def _default_fido(self):
         return Dog(name='Fido', owner=self)
 
 
 if __name__ == '__main__':
-
     bob = Person(name='Bob Smith')
 
     print('Fido')
