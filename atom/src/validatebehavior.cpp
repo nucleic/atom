@@ -710,7 +710,7 @@ handlers[] = {
     dict_handler,
     instance_handler,
     typed_handler,
-	type_handler,
+    type_handler,
     enum_handler,
     callable_handler,
     float_range_handler,
