@@ -523,6 +523,18 @@ typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 
 
 static PyObject*
+type_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    int res = PyObject_IsSubclass( newvalue, member->validate_context );
+    if( res < 0 )
+        return 0;
+    if( res == 1 )
+        return newref( newvalue );
+    return py_type_fail( "invalid type" );
+}
+
+
+static PyObject*
 enum_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     int res = PySequence_Contains( member->validate_context, newvalue );
@@ -698,6 +710,7 @@ handlers[] = {
     dict_handler,
     instance_handler,
     typed_handler,
+	type_handler,
     enum_handler,
     callable_handler,
     float_range_handler,
