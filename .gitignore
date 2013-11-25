@@ -1,5 +1,7 @@
 *.pyc
 *.pyd
 *.so
+*.pdb
 build/
+dist/
 atom.egg-info/
