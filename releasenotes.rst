@@ -1,6 +1,24 @@
 Atom Release Notes
 ==================
 
+0.3.5 - 11/25/2013
+------------------
+- Added FloatRange member. ef05758c50e_
+- Added 'strict' keyword to Str. 8bda51cfee9_
+- Added a 'tag' method to Member for setting metadata. 340adbbf5a9_
+- Allow unicode string as observer topics. 441ff55ba73_
+- Added a 'strict' keyword to Int. 2ca8b542e8b_
+- Added a slew of examples.
+- Minor bug fixes and cleanup.
+
+Special thanks to Steven Silvester (@blink1073) for all of his contributions to this release.
+
+.. _ef05758c50e: https://github.com/nucleic/atom/commit/ef05758c50e256074501081dd17d151fd5f906a9
+.. _8bda51cfee9: https://github.com/nucleic/atom/commit/8bda51cfee995b32e678dd2cd7bc0b3801e3ad97
+.. _340adbbf5a9: https://github.com/nucleic/atom/commit/340adbbf5a9df8913303ab587f45d172254fd862
+.. _441ff55ba73: https://github.com/nucleic/atom/commit/441ff55ba739c428b0f6473ed277df961a154761
+.. _2ca8b542e8b: https://github.com/nucleic/atom/commit/2ca8b542e8bda067ea1708548cd36281d2941b62
+
 0.3.4 - 10/10/2013
 ------------------
 - Add more flexibility for unobserving an object. f4ac152ffdf_
