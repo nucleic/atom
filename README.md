@@ -2,7 +2,7 @@
 Welcome to Atom
 ===============
 
-Atom provides a set of memory efficient objects with enhanced features such as 
+Atom provides a set of memory efficient Python objects with enhanced features such as 
 dynamic initialization, validation, and change notification for object attributes.
 It provides the default model binding behaviour for the [Enaml](http://nucleic.github.io/enaml/docs) UI framework.
 
