@@ -49,7 +49,7 @@ setup(
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/atom',
     description='Memory efficient Python objects',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     install_requires=['distribute'],
     packages=find_packages(),
     ext_modules=ext_modules,

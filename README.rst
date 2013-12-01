@@ -4,9 +4,11 @@ Welcome to Atom
 Atom is a framework for creating memory efficient Python objects with enhanced 
 features such as dynamic initialization, validation, and change notification for 
 object attributes. It provides the default model binding behaviour for the
-[Enaml](http://nucleic.github.io/enaml/docs) UI framework.
+`Enaml <http://nucleic.github.io/enaml/docs>`_ UI framework.
 
-Illustrative Example::
+Illustrative Example:
+
+.. code-block:: python
    
     from atom.api import Atom, Unicode, Range, Bool, observe
 
@@ -43,4 +45,5 @@ Illustrative Example::
     john.debug = True
     john.age = 43  # prints message
     john.age = 'forty three'   # raises TypeError
-                
+    
+For version information, see `the Revision History <https://github.com/nucleic/atom/blob/master/releasenotes.rst>`_.
