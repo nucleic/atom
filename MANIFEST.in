@@ -7,8 +7,8 @@ recursive-include docs *.png
 recursive-include docs *.py
 recursive-include examples *.py
 recursive-include licenses *.txt
-recursive-include enaml/src *.cpp
-recursive-include enaml/src *.h
+recursive-include atom/src *.cpp
+recursive-include atom/src *.h
 prune .git
 prune docs/build
 prune dist
