@@ -5,6 +5,12 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+""" Employee Tutorial.
+
+This tutorial shows how we can build more complex behavior using Atom objects.
+
+<< autodoc-me >>
+"""
 from __future__ import print_function
 import datetime
 

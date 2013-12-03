@@ -5,6 +5,10 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+""" Demonstrate the Property Atom Member.
+
+<< autodoc-me >>
+"""
 from __future__ import print_function
 
 from atom.api import Atom, Unicode, Property, Int

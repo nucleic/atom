@@ -5,6 +5,12 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+""" Person Tutorial.
+
+This tutorial demonstrates some of the behavior of Atom objects.
+
+<< autodoc-me >>
+"""
 from __future__ import print_function
 
 from atom.api import Atom, Unicode, Range, Bool, observe
