@@ -44,8 +44,7 @@ object attributes. It provides the default model binding behaviour for the
       - :doc:`examples/index`
 
         "Just show me the code!" This section provides an easy-to-browse
-        alternative to running Atom's examples from the command line. We've
-        even included screenshots!
+        alternative to running Atom's examples from the command line. 
 
     * - :doc:`faqs/index`
 
