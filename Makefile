@@ -25,19 +25,19 @@ release:
 	python setup.py sdist --formats=gztar,zip upload
 
 gh-pages:
-	git checkout master
-	git pull origin master
-	rm -rf ../enaml_docs
-	mkdir ../enaml_docs
+	#git checkout master
+	#git pull origin master
+	rm -rf ../atom_docs
+	mkdir ../atom_docs
 	rm -rf docs/build
 	-make -C docs html
-	cp -R docs/build/html/ ../enaml_docs
-	mv ../enaml_docs/html ../enaml_docs/docs
+	cp -R docs/build/html/ ../atom_docs
+	mv ../enaml_docs/html ../atom_docs/docs
 	git checkout gh-pages
 	rm -rf docs
-	cp -R ../enaml_docs/docs/ .
+	cp -R ../atom_docs/docs/ .
 	git commit -a -m "rebuild docs"
 	git push upstream-rw gh-pages
-	rm -rf ../enaml_docs
-	git checkout master
-	rm docs/.buildinfo
+	rm -rf ../atom_docs
+	#git checkout master
+	#rm docs/.buildinfo
