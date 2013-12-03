@@ -32,7 +32,7 @@ gh-pages:
 	rm -rf docs/build
 	-make -C docs html
 	cp -R docs/build/html/ ../atom_docs
-	mv ../enaml_docs/html ../atom_docs/docs
+	mv ../atom_docs/html ../atom_docs/docs
 	git checkout gh-pages
 	rm -rf docs
 	cp -R ../atom_docs/docs/ .
