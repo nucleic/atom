@@ -56,7 +56,7 @@ struct CAtom
 
     bool get_notifications_enabled()
     {
-        return bool( bitfield & NOTIFICATION_BIT );
+        return (bitfield & NOTIFICATION_BIT) != 0;
     }
 
     void set_notifications_enabled( bool enabled )
@@ -69,7 +69,7 @@ struct CAtom
 
     bool has_guards()
     {
-        return bool( bitfield & GUARD_BIT );
+        return (bitfield & GUARD_BIT) != 0;
     }
 
     void set_has_guards( bool has_guards )
@@ -82,7 +82,7 @@ struct CAtom
 
     bool has_atomref()
     {
-        return bool( bitfield & ATOMREF_BIT );
+        return (bitfield & ATOMREF_BIT) != 0;
     }
 
     void set_has_atomref( bool has_ref )

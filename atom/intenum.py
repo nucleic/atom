@@ -189,7 +189,7 @@ class IntEnum(int):
         return int.__new__(fcls, value)
 
     def __reduce_ex__(self, proto):
-        return (type(self), (int(self),))
+        return type(self), (int(self),)
 
     def __repr__(self):
         t_name = type(self).__name__
