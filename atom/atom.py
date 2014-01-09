@@ -260,13 +260,16 @@ class AtomMeta(type):
             else:
                 occupied.add(member.index)
 
+        # Clone the conflicting members and give them a unique index.
+        # Do not blow away an overridden item on the current class.
         resolved_index = len(occupied)
         for member in conflicts:
             clone = member.clone()
             clone.set_index(resolved_index)
             owned_members.add(clone)
             members[clone.name] = clone
-            setattr(cls, clone.name, clone)
+            if clone.name not in dct:
+                setattr(cls, clone.name, clone)
             resolved_index += 1
 
         # Walk the dict a second time to collect the class members. This
@@ -275,7 +278,7 @@ class AtomMeta(type):
         # member is reused and any static observers are copied over.
         for key, value in dct.iteritems():
             if isinstance(value, Member):
-                if value in owned_members:
+                if value in owned_members:  # foo = bar = Baz()
                     value = value.clone()
                 owned_members.add(value)
                 value.set_name(key)
