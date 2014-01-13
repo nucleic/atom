@@ -184,7 +184,6 @@ class AtomMeta(type):
         # necessary to implement the various behaviors. Some objects
         # declared on the class only serve as sentinels, and they are
         # removed from the dict before creating the class.
-        funcs = []                  # Methods defined on the class
         observes = []               # Static observer methods: _observe_*
         defaults = []               # Default value methods: _default_*
         validates = []              # Validator methods: _validate_*
@@ -213,7 +212,6 @@ class AtomMeta(type):
                 dct[key] = value
                 # Coninue processing the unwrapped function
             if isinstance(value, FunctionType):
-                funcs.append(value)
                 if key.startswith(OBSERVE_PREFIX):
                     observes.append(key)
                 elif key.startswith(DEFAULT_PREFIX):
