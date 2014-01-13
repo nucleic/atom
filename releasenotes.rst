@@ -1,6 +1,12 @@
 Atom Release Notes
 ==================
 
+0.3.6 - 01/13/2013
+------------------
+- Fix a subtle bug with multiple inheritance. 82aa3c99270_
+
+.. _82aa3c99270: https://github.com/nucleic/atom/commit/82aa3c992705fa7d9ce45cba1f9b43f4af862ca0
+
 0.3.5 - 11/25/2013
 ------------------
 - Added FloatRange member. ef05758c50e_
