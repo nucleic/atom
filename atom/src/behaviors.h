@@ -129,6 +129,7 @@ enum Mode
     Dict,
     Instance,
     Typed,
+    Subclass,
     Enum,
     Callable,
     FloatRange,

@@ -25,5 +25,6 @@ from .scalars import (
     Unicode, FloatRange
 )
 from .signal import Signal
+from .subclass import Subclass, ForwardSubclass
 from .tuple import Tuple
 from .typed import Typed, ForwardTyped

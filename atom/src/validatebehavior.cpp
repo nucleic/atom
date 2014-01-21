@@ -61,6 +61,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
                 return false;
             }
             break;
+        // XXX validate a valid subclass type?
         case Validate::Enum:
             if( !PySequence_Check( context ) )
             {
@@ -523,6 +524,18 @@ typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 
 
 static PyObject*
+subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    int res = PyObject_IsSubclass( newvalue, member->validate_context );
+    if( res < 0 )
+        return 0;
+    if( res == 1 )
+        return newref( newvalue );
+    return py_type_fail( "invalid subclass type" );
+}
+
+
+static PyObject*
 enum_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     int res = PySequence_Contains( member->validate_context, newvalue );
@@ -698,6 +711,7 @@ handlers[] = {
     dict_handler,
     instance_handler,
     typed_handler,
+    subclass_handler,
     enum_handler,
     callable_handler,
     float_range_handler,
