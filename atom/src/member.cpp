@@ -5,8 +5,10 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#if !defined(_MSC_VER)
 #pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif
 #include "member.h"
 #include "enumtypes.h"
 #include "packagenaming.h"

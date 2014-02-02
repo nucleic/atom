@@ -439,7 +439,7 @@ class Atom(CAtom):
 
         """
         args = (type(self),) + self.__getnewargs__()
-        return (__newobj__, args, self.__getstate__())
+        return __newobj__, args, self.__getstate__()
 
     def __getnewargs__(self):
         """ Get the argument tuple to pass to __new__ on unpickling.
