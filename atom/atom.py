@@ -278,6 +278,7 @@ class AtomMeta(type):
             if isinstance(value, Member):
                 if value in owned_members:  # foo = bar = Baz()
                     value = value.clone()
+                    setattr(cls, key, value)
                 owned_members.add(value)
                 value.set_name(key)
                 if key in members:
