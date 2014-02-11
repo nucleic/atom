@@ -1,7 +1,15 @@
 Atom Release Notes
 ==================
 
-0.3.6 - 01/13/2013
+0.3.7 - 02/11/2014
+------------------
+- Add a Subclass member type. a1261b94251_
+- Fix a bug with in multiple member assignment. 65cb312e2d7_
+
+.. _a1261b94251: https://github.com/nucleic/atom/commit/a1261b9425196a50fd9b2642e491f7a0cf4f2397
+.. _65cb312e2d7: https://github.com/nucleic/atom/commit/65cb312e2d7417a18baaf2816f84b08e483c40bd
+
+0.3.6 - 01/13/2014
 ------------------
 - Fix a subtle bug with multiple inheritance. 82aa3c99270_
 
