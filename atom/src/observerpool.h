@@ -45,6 +45,8 @@ public:
 
     bool has_topic( PyObjectPtr& topic );
 
+    bool has_observer( PyObjectPtr& topic, PyObjectPtr& observer );
+
     void add( PyObjectPtr& topic, PyObjectPtr& observer );
 
     void remove( PyObjectPtr& topic, PyObjectPtr& observer );

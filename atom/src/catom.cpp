@@ -281,6 +281,21 @@ CAtom_has_observers( CAtom* self, PyObject* topic )
 
 
 static PyObject*
+CAtom_has_observer( CAtom* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 2 )
+        return py_type_fail( "has_observer() takes exactly 2 arguments" );
+    PyObject* topic = PyTuple_GET_ITEM( args, 0 );
+    PyObject* callback = PyTuple_GET_ITEM( args, 1 );
+    if( !utils::basestring_check( topic ) )
+        return py_expected_type_fail( topic, "basestring" );
+    if( !PyCallable_Check( callback ) )
+        return py_expected_type_fail( callback, "callable" );
+    return py_bool( self->has_observer( topic, callback ) );
+}
+
+
+static PyObject*
 CAtom_notify( CAtom* self, PyObject* args, PyObject* kwargs )
 {
     if( PyTuple_GET_SIZE( args ) < 1 )
@@ -330,6 +345,8 @@ CAtom_methods[] = {
       "Unregister an observer callback for the given topic(s)." },
     { "has_observers", ( PyCFunction )CAtom_has_observers, METH_O,
       "Get whether the atom has observers for a given topic." },
+    { "has_observer", ( PyCFunction )CAtom_has_observer, METH_VARARGS,
+      "Get whether the atom has the given observer for a given topic." },
     { "notify", ( PyCFunction )CAtom_notify, METH_VARARGS | METH_KEYWORDS,
       "Call the registered observers for a given topic with positional and keyword arguments." },
     { "freeze", ( PyCFunction )CAtom_freeze, METH_NOARGS,

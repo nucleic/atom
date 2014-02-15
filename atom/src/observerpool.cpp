@@ -63,6 +63,33 @@ ObserverPool::has_topic( PyObjectPtr& topic )
 }
 
 
+bool
+ObserverPool::has_observer( PyObjectPtr& topic, PyObjectPtr& observer )
+{
+    uint32_t obs_offset = 0;
+    std::vector<Topic>::iterator topic_it;
+    std::vector<Topic>::iterator topic_end = m_topics.end();
+    for( topic_it = m_topics.begin(); topic_it != topic_end; ++topic_it )
+    {
+        if( topic_it->match( topic ) )
+        {
+            std::vector<PyObjectPtr>::iterator obs_it;
+            std::vector<PyObjectPtr>::iterator obs_end;
+            obs_it = m_observers.begin() + obs_offset;
+            obs_end = obs_it + topic_it->m_count;
+            for( ; obs_it != obs_end; ++obs_it )
+            {
+                if( *obs_it == observer || obs_it->richcompare( observer, Py_EQ ) )
+                    return true;
+            }
+            return false;
+        }
+        obs_offset += topic_it->m_count;
+    }
+    return false;
+}
+
+
 void
 ObserverPool::add( PyObjectPtr& topic, PyObjectPtr& observer )
 {

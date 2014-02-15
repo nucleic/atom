@@ -104,6 +104,17 @@ struct CAtom
         return false;
     }
 
+    bool has_observer( PyObject* topic, PyObject* callback )
+    {
+        if( observers )
+        {
+            PyObjectPtr topicptr( PythonHelpers::newref( topic ) );
+            PyObjectPtr callbackptr( PythonHelpers::newref( callback ) );
+            return observers->has_observer( topicptr, callbackptr );
+        }
+        return false;
+    }
+
     bool is_frozen()
     {
         return ( bitfield & FROZEN_BIT ) != 0;
