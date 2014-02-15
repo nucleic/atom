@@ -60,6 +60,11 @@ slot_handler( Member* member, CAtom* atom )
         py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
         return -1;
     }
+    if( atom->is_frozen() )
+    {
+        PyErr_SetString( PyExc_AttributeError, "can't delete attribute of frozen Atom" );
+        return -1;
+    }
     PyObjectPtr valueptr( atom->get_slot( member->index ) );
     if( !valueptr )
         return 0;

@@ -292,6 +292,14 @@ CAtom_notify( CAtom* self, PyObject* args, PyObject* kwargs )
 
 
 static PyObject*
+CAtom_freeze( CAtom* self )
+{
+    self->set_frozen( true );
+    Py_RETURN_NONE;
+}
+
+
+static PyObject*
 CAtom_sizeof( CAtom* self, PyObject* args )
 {
     Py_ssize_t size = self->ob_type->tp_basicsize;
@@ -318,6 +326,8 @@ CAtom_methods[] = {
       "Get whether the atom has observers for a given topic." },
     { "notify", ( PyCFunction )CAtom_notify, METH_VARARGS | METH_KEYWORDS,
       "Call the registered observers for a given topic with positional and keyword arguments." },
+    { "freeze", ( PyCFunction )CAtom_freeze, METH_NOARGS,
+      "Freeze the atom to prevent further modifications to its attributes." },
     { "__sizeof__", ( PyCFunction )CAtom_sizeof, METH_NOARGS,
       "__sizeof__() -> size of object in memory, in bytes" },
     { 0 } // sentinel

@@ -18,6 +18,7 @@
 #define NOTIFICATION_BIT ( static_cast<uint32_t>( 1 << 16 ) )
 #define GUARD_BIT ( static_cast<uint32_t>( 1 << 17 ) )
 #define ATOMREF_BIT ( static_cast<uint32_t>( 1 << 18 ) )
+#define FROZEN_BIT ( static_cast<uint32_t>( 1 << 19 ) )
 #define catom_cast( o ) ( reinterpret_cast<CAtom*>( o ) )
 
 
@@ -56,7 +57,7 @@ struct CAtom
 
     bool get_notifications_enabled()
     {
-        return bool( bitfield & NOTIFICATION_BIT );
+        return ( bitfield & NOTIFICATION_BIT ) != 0;
     }
 
     void set_notifications_enabled( bool enabled )
@@ -69,7 +70,7 @@ struct CAtom
 
     bool has_guards()
     {
-        return bool( bitfield & GUARD_BIT );
+        return ( bitfield & GUARD_BIT ) != 0;
     }
 
     void set_has_guards( bool has_guards )
@@ -82,7 +83,7 @@ struct CAtom
 
     bool has_atomref()
     {
-        return bool( bitfield & ATOMREF_BIT );
+        return ( bitfield & ATOMREF_BIT ) != 0;
     }
 
     void set_has_atomref( bool has_ref )
@@ -101,6 +102,19 @@ struct CAtom
             return observers->has_topic( topicptr );
         }
         return false;
+    }
+
+    bool is_frozen()
+    {
+        return ( bitfield & FROZEN_BIT ) != 0;
+    }
+
+    void set_frozen( bool frozen )
+    {
+        if( frozen )
+            bitfield |= FROZEN_BIT;
+        else
+            bitfield &= ~FROZEN_BIT;
     }
 
     bool observe( PyObject* topic, PyObject* callback );

@@ -91,6 +91,11 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
         py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
         return -1;
     }
+    if( atom->is_frozen() )
+    {
+        PyErr_SetString( PyExc_AttributeError, "can't set attribute of frozen Atom" );
+        return -1;
+    }
     PyObjectPtr oldptr( atom->get_slot( member->index ) );
     PyObjectPtr newptr( newref( value ) );
     if( oldptr == newptr )
