@@ -18,6 +18,7 @@ static PyObject* createstr;
 static PyObject* updatestr;
 static PyObject* deletestr;
 static PyObject* eventstr;
+static PyObject* propertystr;
 static PyObject* typestr;
 static PyObject* objectstr;
 static PyObject* namestr;
@@ -98,6 +99,26 @@ event( CAtom* atom, Member* member, PyObject* value )
     return dict.release();
 }
 
+
+PyObject*
+property( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
+{
+    PyDictPtr dict( PyDict_New() );
+    if( !dict )
+        return 0;
+    if( !dict.set_item( typestr, propertystr ) )
+        return 0;
+    if( !dict.set_item( objectstr, pyobject_cast( atom ) ) )
+        return 0;
+    if( !dict.set_item( namestr, member->name ) )
+        return 0;
+    if( !dict.set_item( oldvaluestr, oldvalue ) )
+        return 0;
+    if( !dict.set_item( valuestr, newvalue ) )
+        return 0;
+    return dict.release();
+}
+
 } // namespace MemberChange
 
 
@@ -118,6 +139,9 @@ import_memberchange()
         return -1;
     MemberChange::eventstr = PyString_InternFromString( "event" );
     if( !MemberChange::eventstr )
+        return -1;
+    MemberChange::propertystr = PyString_InternFromString( "property" );
+    if( !MemberChange::propertystr )
         return -1;
     MemberChange::typestr = PyString_InternFromString( "type" );
     if( !MemberChange::typestr )

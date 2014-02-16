@@ -29,6 +29,10 @@ deleted( CAtom* atom, Member* member, PyObject* value );
 PyObject*
 event( CAtom* atom, Member* member, PyObject* value );
 
+
+PyObject*
+property( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue );
+
 } // namespace MemberChange
 
 
