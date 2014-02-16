@@ -24,6 +24,13 @@ Member::check_context( DelAttr::Mode mode, PyObject* context )
                 return false;
             }
             break;
+        case DelAttr::Property:
+            if( context != Py_None && !PyCallable_Check( context ) )
+            {
+                py_expected_type_fail( context, "callable or None" );
+                return false;
+            }
+            break;
         default:
             break;
     }
@@ -136,6 +143,48 @@ delegate_handler( Member* member, CAtom* atom )
 }
 
 
+static int
+_mangled_property_handler( Member* member, CAtom* atom )
+{
+    char* suffix = PyString_AS_STRING( member->name );
+    PyObjectPtr name( PyString_FromFormat( "_del_%s", suffix ) );
+    if( !name )
+        return -1;
+    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), name.get() ) );
+    if( !callable )
+    {
+        if( PyErr_ExceptionMatches( PyExc_AttributeError ) )
+            PyErr_SetString( PyExc_AttributeError, "can't delete attribute" );
+        return -1;
+    }
+    PyObjectPtr args( PyTuple_New( 0 ) );
+    if( !args )
+        return -1;
+    PyObjectPtr ok( PyObject_Call( callable.get(), args.get(), 0 ) );
+    if( !ok )
+        return -1;
+    return 0;
+}
+
+
+static int
+property_handler( Member* member, CAtom* atom )
+{
+    if( member->delattr_context != Py_None )
+    {
+        PyObjectPtr args( PyTuple_New( 1 ) );
+        if( !args )
+            return -1;
+        PyTuple_SET_ITEM( args.get(), 0, newref( pyobject_cast( atom ) ) );
+        PyObjectPtr ok( PyObject_Call( member->delattr_context, args.get(), 0 ) );
+        if( !ok )
+            return -1;
+        return 0;
+    }
+    return _mangled_property_handler( member, atom );
+}
+
+
 typedef int
 ( *handler )( Member* member, CAtom* atom );
 
@@ -148,7 +197,8 @@ handlers[] = {
     read_only_handler,
     event_handler,
     signal_handler,
-    delegate_handler
+    delegate_handler,
+    property_handler
 };
 
 
