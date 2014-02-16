@@ -18,6 +18,8 @@ enum Mode
     Event,
     Signal,
     Delegate,
+    Property,
+    CachedProperty,
     CallObject_Object,
     CallObject_ObjectName,
     ObjectMethod,
@@ -57,6 +59,7 @@ enum Mode
     Event,
     Signal,
     Delegate,
+    Property,
     CallObject_ObjectValue,
     CallObject_ObjectNameValue,
     ObjectMethod_Value,
@@ -173,6 +176,7 @@ enum Mode
     Event,
     Signal,
     Delegate,
+    Property,
     Last // sentinel
 };
 

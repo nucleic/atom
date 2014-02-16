@@ -92,6 +92,8 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( Event ) );
         add_long( dict_ptr, expand_enum( Signal ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
+        add_long( dict_ptr, expand_enum( Property ) );
+        add_long( dict_ptr, expand_enum( CachedProperty ) );
         add_long( dict_ptr, expand_enum( CallObject_Object ) );
         add_long( dict_ptr, expand_enum( CallObject_ObjectName ) );
         add_long( dict_ptr, expand_enum( ObjectMethod ) );
@@ -114,6 +116,7 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( Event ) );
         add_long( dict_ptr, expand_enum( Signal ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
+        add_long( dict_ptr, expand_enum( Property ) );
         add_long( dict_ptr, expand_enum( CallObject_ObjectValue ) );
         add_long( dict_ptr, expand_enum( CallObject_ObjectNameValue ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_Value ) );
@@ -136,6 +139,7 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( Event ) );
         add_long( dict_ptr, expand_enum( Signal ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
+        add_long( dict_ptr, expand_enum( Property ) );
         PyDelAttr = make_enum( "DelAttr", dict_ptr );
         if( !PyDelAttr )
             return -1;
