@@ -30,6 +30,7 @@ ext_modules = [
             'atom/src/postgetattrbehavior.cpp',
             'atom/src/postsetattrbehavior.cpp',
             'atom/src/postvalidatebehavior.cpp',
+            'atom/src/propertyhelper.cpp',
             'atom/src/setattrbehavior.cpp',
             'atom/src/signalconnector.cpp',
             'atom/src/validatebehavior.cpp',

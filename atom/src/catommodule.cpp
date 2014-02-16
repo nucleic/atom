@@ -16,12 +16,15 @@
 #include "atomlist.h"
 //#include "atomdict.h"
 #include "enumtypes.h"
+#include "propertyhelper.h"
 
 using namespace PythonHelpers;
 
 
 static PyMethodDef
 catom_methods[] = {
+    { "reset_property", ( PyCFunction )reset_property, METH_VARARGS,
+      "Reset a Property member. For internal use only!" },
     { 0 } // Sentinel
 };
 
