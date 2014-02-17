@@ -5,135 +5,134 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, GetAttr, SetAttr
+from .catom import Member, GetAttr, SetAttr, DelAttr, reset_property
 
 
 class Property(Member):
     """ A Member which behaves similar to a Python property.
 
     """
-    # XXX move these behaviors down to C++.
-    __slots__ = ('fget', 'fset', 'cached')
+    __slots__ = ()
 
-    def __init__(self, fget=None, fset=None, cached=False):
-        self.fget = fget
-        self.fset = fset
-        self.cached = cached
-        if cached:
-            method = "_cached_getter"
-            self.set_getattr_mode(GetAttr.MemberMethod_Object, method)
-        elif fget is not None:
-            self.set_getattr_mode(GetAttr.CallObject_Object, fget)
-        else:
-            method = "_lookup_getter"
-            self.set_getattr_mode(GetAttr.MemberMethod_Object, method)
-        if fset is not None:
-            self.set_setattr_mode(SetAttr.CallObject_ObjectValue, fset)
-        else:
-            method = "_lookup_setter"
-            self.set_setattr_mode(SetAttr.MemberMethod_ObjectValue, method)
+    def __init__(self, fget=None, fset=None, fdel=None, cached=False):
+        """ Initialize a Property member.
 
-    #--------------------------------------------------------------------------
-    # Private API
-    #--------------------------------------------------------------------------
-    def _cached_getter(self, owner):
-        value = self.get_slot(owner)
-        if value is not None: # FIXME None might be the cached value
-            return value
-        value = self._lookup_getter(owner)
-        self.set_slot(owner, value)
-        return value
+        Parameters
+        ----------
+        fget : callable or None, optional
+            The callable invoked to get the property value. It must
+            accept a single argument which is the owner object. If not
+            provided, the property cannot be read. The default is None.
 
-    def _lookup_getter(self, owner):
-        if self.fget is not None:
-            return self.fget(owner)
-        getter = getattr(owner, '_get_' + self.name, None)
-        if getter is not None:
-            return getter()
-        msg = "the '%s' Property on the '%s' object is write only"
-        raise TypeError(msg % (self.name, type(owner).__name__))
+        fset : callable or None, optional
+            The callable invoked to set the property value. It must
+            accept two arguments: the owner object and property value.
+            If not provided, the property cannot be set. The default
+            is None.
 
-    def _lookup_setter(self, owner, value):
-        if self.fset is not None:
-            self.fset(owner, value)
-        setter = getattr(owner, '_set_' + self.name, None)
-        if setter is not None:
-            return setter(value)
-        msg = "the '%s' Property on the '%s' object is read only"
-        raise TypeError(msg % (self.name, type(owner).__name__))
+        fdel : callable or None, optional
+            The callable invoked to delete the property value. It must
+            accept a single argument which is the owner object. If not
+            provided, the property cannot be deleted. The default is
+            None.
 
-    #--------------------------------------------------------------------------
-    # Public API
-    #--------------------------------------------------------------------------
+        cached : bool, optional
+            Whether or not the property caches the computed value. A
+            cached property will only evaluate 'fget' once until the
+            'reset' method of the property is invoked. The default is
+            False.
+
+        """
+        gm = GetAttr.CachedProperty if cached else GetAttr.Property
+        self.set_getattr_mode(gm, fget)
+        self.set_setattr_mode(SetAttr.Property, fset)
+        self.set_delattr_mode(DelAttr.Property, fset)
+
+    @property
+    def fget(self):
+        """ Get the getter function for the property.
+
+        This will not find a specially named _get_* function.
+
+        """
+        return self.getattr_mode[1]
+
+    @property
+    def fset(self):
+        """ Get the setter function for the property.
+
+        This will not find a specially named _set_* function.
+
+        """
+        return self.setattr_mode[1]
+
+    @property
+    def fdel(self):
+        """ Get the deleter function for the property.
+
+        This will not find a specially named _del_* function.
+
+        """
+        return self.delattr_model[1]
+
+    @property
+    def cached(self):
+        """ Test whether or not this is a cached property.
+
+        """
+        return self.getattr_mode[0] == GetAttr.CachedProperty
+
     def getter(self, func):
         """ Use the given function as the property getter.
 
-        This method is intented to be used as a decorator.
+        This method is intended to be used as a decorator. The original
+        function will still be callable.
 
         """
-        self.fget = func
-        if not self.cached:
-            self.set_getattr_mode(GetAttr.CallObject_Object, func)
-        return self
+        mode, ignored = self.getattr_mode
+        self.set_getattr_mode(mode, func)
+        return func
 
     def setter(self, func):
-        """ Use the given function as the property getter.
+        """ Use the given function as the property setter.
 
-        This method is intented to be used as a decorator.
-
-        """
-        self.fset = func
-        self.set_setattr_mode(SetAttr.CallObject_ObjectValue, func)
-        return self
-
-    def clone(self):
-        """ Create a clone of the property.
+        This method is intended to be used as a decorator. The original
+        function will still be callable.
 
         """
-        clone = super(Property, self).clone()
-        clone.fget = self.fget
-        clone.fset = self.fset
-        clone.cached = self.cached
-        return clone
+        self.set_setattr_mode(SetAttr.Property, func)
+        return func
+
+    def deleter(self, func):
+        """ Use the given function as the property deleter.
+
+        This method is intended to be used as a decorator. The original
+        function will still be callable.
+
+        """
+        self.set_delattr_mode(DelAttr.Property, func)
+        return func
 
     def reset(self, owner):
         """ Reset the value of the property.
 
-        If the property is cached, the old value will be cleared and
-        the notifiers (if any) will be run. If the property is not
-        cached, then the notifications will be unconditionally run
-        using the None as the old value.
+        The old property value will be cleared and the notifiers will
+        be run if the new value is different from the old value. If
+        the property is not cached, notifiers will be unconditionally
+        run using None as the old value.
 
         """
-        if self.cached:
-            oldvalue = self.get_slot(owner)
-            self.del_slot(owner)
-            if self.has_observers() or owner.has_observers(self.name):
-                newvalue = self.do_getattr(owner)
-                if oldvalue != newvalue:
-                    change = {
-                        'type': 'property',
-                        'name': self.name,
-                        'object': owner,
-                        'oldvalue': oldvalue,
-                        'value': newvalue,
-                    }
-                    self.notify(owner, change)       # static observers
-                    owner.notify(self.name, change)  # dynamic observers
-        elif self.has_observers() or owner.has_observers(self.name):
-            change = {
-                'type': 'property',
-                'name': self.name,
-                'object': owner,
-                'oldvalue': None,
-                'value': self.do_getattr(owner),
-            }
-            self.notify(owner, change)       # static observers
-            owner.notify(self.name, change)  # dynamic observers
+        reset_property(self, owner)
 
 
-def cached_property(func):
+def cached_property(fget):
     """ A decorator which converts a function into a cached Property.
 
+    Parameters
+    ----------
+    fget : callable
+        The callable invoked to get the property value. It must accept
+        a single argument which is the owner object.
+
     """
-    return Property(fget=func, cached=True)
+    return Property(fget, cached=True)

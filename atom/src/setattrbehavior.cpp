@@ -24,6 +24,13 @@ Member::check_context( SetAttr::Mode mode, PyObject* context )
                 return false;
             }
             break;
+        case SetAttr::Property:
+            if( context != Py_None && !PyCallable_Check( context ) )
+            {
+                py_expected_type_fail( context, "callable or None" );
+                return false;
+            }
+            break;
         case SetAttr::CallObject_ObjectValue:
         case SetAttr::CallObject_ObjectNameValue:
             if( !PyCallable_Check( context ) )
@@ -239,6 +246,50 @@ delegate_handler( Member* member, CAtom* atom, PyObject* value )
 
 
 static int
+_mangled_property_handler( Member* member, CAtom* atom, PyObject* value )
+{
+    char* suffix = PyString_AS_STRING( member->name );
+    PyObjectPtr name( PyString_FromFormat( "_set_%s", suffix ) );
+    if( !name )
+        return -1;
+    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), name.get() ) );
+    if( !callable )
+    {
+        if( PyErr_ExceptionMatches( PyExc_AttributeError ) )
+            PyErr_SetString( PyExc_AttributeError, "can't set attribute" );
+        return -1;
+    }
+    PyObjectPtr args( PyTuple_New( 1 ) );
+    if( !args )
+        return -1;
+    PyTuple_SET_ITEM( args.get(), 0, newref( value ) );
+    PyObjectPtr ok( PyObject_Call( callable.get(), args.get(), 0 ) );
+    if( !ok )
+        return -1;
+    return 0;
+}
+
+
+static int
+property_handler( Member* member, CAtom* atom, PyObject* value )
+{
+    if( member->setattr_context != Py_None )
+    {
+        PyObjectPtr args( PyTuple_New( 2 ) );
+        if( !args )
+            return -1;
+        PyTuple_SET_ITEM( args.get(), 0, newref( pyobject_cast( atom ) ) );
+        PyTuple_SET_ITEM( args.get(), 1, newref( pyobject_cast( value ) ) );
+        PyObjectPtr ok( PyObject_Call( member->setattr_context, args.get(), 0 ) );
+        if( !ok )
+            return -1;
+        return 0;
+    }
+    return _mangled_property_handler( member, atom, value );
+}
+
+
+static int
 call_object_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
     PyObjectPtr valueptr( newref( value ) );
@@ -352,6 +403,7 @@ handlers[] = {
     event_handler,
     signal_handler,
     delegate_handler,
+    property_handler,
     call_object_object_value_handler,
     call_object_object_name_value_handler,
     object_method_value_handler,
