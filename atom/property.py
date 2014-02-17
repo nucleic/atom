@@ -17,6 +17,31 @@ class Property(Member):
     def __init__(self, fget=None, fset=None, fdel=None, cached=False):
         """ Initialize a Property member.
 
+        Parameters
+        ----------
+        fget : callable or None, optional
+            The callable invoked to get the property value. It must
+            accept a single argument which is the owner object. If not
+            provided, the property cannot be read. The default is None.
+
+        fset : callable or None, optional
+            The callable invoked to set the property value. It must
+            accept two arguments: the owner object and property value.
+            If not provided, the property cannot be set. The default
+            is None.
+
+        fdel : callable or None, optional
+            The callable invoked to delete the property value. It must
+            accept a single argument which is the owner object. If not
+            provided, the property cannot be deleted. The default is
+            None.
+
+        cached : bool, optional
+            Whether or not the property caches the computed value. A
+            cached property will only evaluate 'fget' once until the
+            'reset' method of the property is invoked. The default is
+            False.
+
         """
         gm = GetAttr.CachedProperty if cached else GetAttr.Property
         self.set_getattr_mode(gm, fget)
@@ -100,8 +125,14 @@ class Property(Member):
         reset_property(self, owner)
 
 
-def cached_property(func):
+def cached_property(fget):
     """ A decorator which converts a function into a cached Property.
 
+    Parameters
+    ----------
+    fget : callable
+        The callable invoked to get the property value. It must accept
+        a single argument which is the owner object.
+
     """
-    return Property(fget=func, cached=True)
+    return Property(fget, cached=True)
