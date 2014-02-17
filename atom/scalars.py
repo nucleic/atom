@@ -181,7 +181,7 @@ class Str(Value):
 
     By default, unicode strings will be promoted to plain strings. Pass
     strict=True to the constructor to enable strict string checking.
-    
+
     """
     __slots__ = ()
 
@@ -191,8 +191,8 @@ class Str(Value):
             self.set_validate_mode(Validate.Str, None)
         else:
             self.set_validate_mode(Validate.StrPromote, None)
-    
-    
+
+
 class Unicode(Value):
     """ A value of type `unicode`.
 
