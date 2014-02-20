@@ -1,6 +1,11 @@
 Atom Release Notes
 ==================
 
+0.3.8 - 02/20/2014
+------------------
+- Move Property behaviors to C++.
+- Various maintenance related changes.
+
 0.3.7 - 02/11/2014
 ------------------
 - Add a Subclass member type. a1261b94251_
