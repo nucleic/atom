@@ -1,6 +1,10 @@
 Atom Release Notes
 ==================
 
+0.3.9 - 04/28/2014
+------------------
+- Move tests out of main source tree.
+
 0.3.8 - 02/20/2014
 ------------------
 - Move Property behaviors to C++.

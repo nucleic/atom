@@ -14,7 +14,6 @@ ext_modules = [
         'atom.catom',
         [
             'atom/src/atomlist.cpp',
-            #'atom/src/atomdict.cpp',
             'atom/src/atomref.cpp',
             'atom/src/catom.cpp',
             'atom/src/catommodule.cpp',
@@ -63,7 +62,7 @@ class BuildExt(build_ext):
 
 setup(
     name='atom',
-    version='0.3.8',
+    version='0.3.9',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/atom',
