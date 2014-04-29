@@ -23,35 +23,18 @@ public:
     MapItem() {}
 
     MapItem( PyObject* key, PyObject* value ) :
-        m_key( newref( key ) ), m_value( newref( value ) ) {}
+        m_key( newref( key ) ), m_value( newref( value ) ) { }
 
     MapItem( PyObjectPtr& key, PyObjectPtr& value ) :
-        m_key( key ), m_value( value ) {}
+        m_key( key ), m_value( value ) { }
 
     MapItem( PyObjectPtr& key, PyObject* value ) :
-        m_key( key ), m_value( newref( value ) ) {}
+        m_key( key ), m_value( newref( value ) ) { }
 
     MapItem( PyObject* key, PyObjectPtr& value ) :
-        m_key( newref( key ) ), m_value( value ) {}
+        m_key( newref( key ) ), m_value( value ) { }
 
-    ~MapItem() {}
-
-    bool key_lessthan( PyObject* key )
-    {
-        if( m_key == key )
-            return false;
-        return m_key.richcompare( key, Py_LT );
-    }
-
-    bool key_equals( PyObject* key )
-    {
-        return m_key == key || m_key.richcompare( key, Py_EQ );
-    }
-
-    void update( PyObject* value )
-    {
-        m_value = newref( value );
-    }
+    ~MapItem() { }
 
     PyObject* key()
     {
@@ -63,13 +46,62 @@ public:
         return m_value.get();
     }
 
-    static struct _CompLess
+    void update( PyObject* value )
     {
-        bool operator()( MapItem& item, PyObject* key )
+        m_value = newref( value );
+    }
+
+    struct CmpLess
+    {
+        // All three operators are needed in order to keep the
+        // MSVC debug version of std::lower_bound happy.
+        bool operator()( MapItem& first, MapItem& second )
         {
-            return item.key_lessthan( key );
+            if( first.m_key == second.m_key )
+                return false;
+            return first.m_key.richcompare( second.m_key, Py_LT );
         }
-    } CompLess;
+
+        bool operator()( MapItem& first, PyObject* second )
+        {
+            if( first.m_key == second )
+                return false;
+            return first.m_key.richcompare( second, Py_LT );
+        }
+
+        bool operator()( PyObject* first, MapItem& second )
+        {
+            if( first == second.m_key )
+                return false;
+            PyObjectPtr temp( newref( first ) );
+            return temp.richcompare( second.m_key, Py_LT );
+        }
+    };
+
+    struct CmpEq
+    {
+        bool operator()( MapItem& first, MapItem& second )
+        {
+            if( first.m_key == second.m_key )
+                return true;
+            return first.m_key.richcompare( second.m_key, Py_EQ );
+        }
+
+        bool operator()( MapItem& first, PyObject* second )
+        {
+            if( first.m_key == second )
+                return true;
+            return first.m_key.richcompare( second, Py_EQ );
+        }
+
+        bool operator()( PyObject* first, MapItem& second )
+        {
+            if( first == second.m_key )
+                return true;
+            PyObjectPtr temp( newref( first ) );
+            return temp.richcompare( second.m_key, Py_EQ );
+        }
+    };
 
 private:
 
@@ -78,32 +110,25 @@ private:
 };
 
 
-// msvcc doesn't recognize the static definition in the class body.
-#if defined(_MSC_VER)
-MapItem::_CompLess MapItem::CompLess;
-#endif
-
-
-typedef std::vector<MapItem> sortedmap_t;
-
-
 struct SortedMap
 {
+    typedef std::vector<MapItem> Items;
+
     PyObject_HEAD
-    sortedmap_t* sortedmap;
+    Items* m_items;
 
     PyObject* getitem( PyObject* key, PyObject* default_value = 0 )
     {
-        sortedmap_t::iterator it = std::lower_bound(
-            sortedmap->begin(), sortedmap->end(), key, MapItem::CompLess
+        Items::iterator it = std::lower_bound(
+            m_items->begin(), m_items->end(), key, MapItem::CmpLess()
         );
-        if( it == sortedmap->end() )
+        if( it == m_items->end() )
         {
             if( default_value )
                 return newref( default_value );
             return lookup_fail( key );
         }
-        if( it->key_equals( key ) )
+        if( MapItem::CmpEq()( *it, key ) )
             return newref( it->value() );
         if( default_value )
             return newref( default_value );
@@ -112,31 +137,31 @@ struct SortedMap
 
     int setitem( PyObject* key, PyObject* value )
     {
-        sortedmap_t::iterator it = std::lower_bound(
-            sortedmap->begin(), sortedmap->end(), key, MapItem::CompLess
+        Items::iterator it = std::lower_bound(
+            m_items->begin(), m_items->end(), key, MapItem::CmpLess()
         );
-        if( it == sortedmap->end() )
-            sortedmap->push_back( MapItem( key, value ) );
-        else if( it->key_equals( key ) )
+        if( it == m_items->end() )
+            m_items->push_back( MapItem( key, value ) );
+        else if( MapItem::CmpEq()( *it, key ) )
             it->update( value );
         else
-            sortedmap->insert( it, MapItem( key, value ) );
+            m_items->insert( it, MapItem( key, value ) );
         return 0;
     }
 
     int delitem( PyObject* key )
     {
-        sortedmap_t::iterator it = std::lower_bound(
-            sortedmap->begin(), sortedmap->end(), key, MapItem::CompLess
+        Items::iterator it = std::lower_bound(
+            m_items->begin(), m_items->end(), key, MapItem::CmpLess()
         );
-        if( it == sortedmap->end() )
+        if( it == m_items->end() )
         {
             lookup_fail( key );
             return -1;
         }
-        if( it->key_equals( key ) )
+        if( MapItem::CmpEq()( *it, key ) )
         {
-            sortedmap->erase( it );
+            m_items->erase( it );
             return 0;
         }
         lookup_fail( key );
@@ -145,29 +170,29 @@ struct SortedMap
 
     bool contains( PyObject* key )
     {
-        sortedmap_t::iterator it = std::lower_bound(
-            sortedmap->begin(), sortedmap->end(), key, MapItem::CompLess
+        Items::iterator it = std::lower_bound(
+            m_items->begin(), m_items->end(), key, MapItem::CmpLess()
         );
-        if( it == sortedmap->end() )
+        if( it == m_items->end() )
             return false;
-        return it->key_equals( key );
+        return MapItem::CmpEq()( *it, key );
     }
 
     PyObject* pop( PyObject* key, PyObject* default_value=0 )
     {
-        sortedmap_t::iterator it = std::lower_bound(
-            sortedmap->begin(), sortedmap->end(), key, MapItem::CompLess
+        Items::iterator it = std::lower_bound(
+            m_items->begin(), m_items->end(), key, MapItem::CmpLess()
         );
-        if( it == sortedmap->end() )
+        if( it == m_items->end() )
         {
             if( default_value )
                 return newref( default_value );
             return lookup_fail( key );
         }
-        if( it->key_equals( key ) )
+        if( MapItem::CmpEq()( *it, key ) )
         {
             PyObject* res = newref( it->value() );
-            sortedmap->erase( it );
+            m_items->erase( it );
             return res;
         }
         if( default_value )
@@ -177,13 +202,13 @@ struct SortedMap
 
     PyObject* keys()
     {
-        PyObject* pylist = PyList_New( sortedmap->size() );
+        PyObject* pylist = PyList_New( m_items->size() );
         if( !pylist )
             return 0;
         Py_ssize_t listidx = 0;
-        sortedmap_t::iterator it;
-        sortedmap_t::iterator end_it = sortedmap->end();
-        for( it = sortedmap->begin(); it != end_it; ++it )
+        Items::iterator it;
+        Items::iterator end_it = m_items->end();
+        for( it = m_items->begin(); it != end_it; ++it )
         {
             PyList_SET_ITEM( pylist, listidx, newref( it->key() ) );
             ++listidx;
@@ -193,13 +218,13 @@ struct SortedMap
 
     PyObject* values()
     {
-        PyObject* pylist = PyList_New( sortedmap->size() );
+        PyObject* pylist = PyList_New( m_items->size() );
         if( !pylist )
             return 0;
         Py_ssize_t listidx = 0;
-        sortedmap_t::iterator it;
-        sortedmap_t::iterator end_it = sortedmap->end();
-        for( it = sortedmap->begin(); it != end_it; ++it )
+        Items::iterator it;
+        Items::iterator end_it = m_items->end();
+        for( it = m_items->begin(); it != end_it; ++it )
         {
             PyList_SET_ITEM( pylist, listidx, newref( it->value() ) );
             ++listidx;
@@ -209,13 +234,13 @@ struct SortedMap
 
     PyObject* items()
     {
-        PyObject* pylist = PyList_New( sortedmap->size() );
+        PyObject* pylist = PyList_New( m_items->size() );
         if( !pylist )
             return 0;
         Py_ssize_t listidx = 0;
-        sortedmap_t::iterator it;
-        sortedmap_t::iterator end_it = sortedmap->end();
-        for( it = sortedmap->begin(); it != end_it; ++it )
+        Items::iterator it;
+        Items::iterator end_it = m_items->end();
+        for( it = m_items->begin(); it != end_it; ++it )
         {
             PyObject* pytuple = PyTuple_New( 2 );
             if( !pytuple )
@@ -233,7 +258,7 @@ struct SortedMap
         PyObjectPtr pystr( PyObject_Str( key ) );
         if( !pystr )
             return 0;
-        PyObjectPtr pytuple( PyTuple_Pack(1, key ) );
+        PyObjectPtr pytuple( PyTuple_Pack( 1, key ) );
         if (!pytuple)
             return 0;
         PyErr_SetObject(PyExc_KeyError, pytuple.get());
@@ -249,7 +274,7 @@ SortedMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     if( !self )
         return 0;
     SortedMap* cself = reinterpret_cast<SortedMap*>( self );
-    cself->sortedmap = new sortedmap_t();
+    cself->m_items = new SortedMap::Items();
     return self;
 }
 
@@ -261,17 +286,17 @@ SortedMap_clear( SortedMap* self )
     // decref, including calls into methods which mutate the vector.
     // To avoid segfaults, first make the vector empty, then let the
     // destructors run for the old items.
-    sortedmap_t empty;
-    self->sortedmap->swap( empty );
+    SortedMap::Items empty;
+    self->m_items->swap( empty );
 }
 
 
 static int
 SortedMap_traverse( SortedMap* self, visitproc visit, void* arg )
 {
-    sortedmap_t::iterator it;
-    sortedmap_t::iterator end_it = self->sortedmap->end();
-    for( it = self->sortedmap->begin(); it != end_it; ++it )
+    SortedMap::Items::iterator it;
+    SortedMap::Items::iterator end_it = self->m_items->end();
+    for( it = self->m_items->begin(); it != end_it; ++it )
     {
         Py_VISIT( it->key() );
         Py_VISIT( it->value() );
@@ -284,8 +309,8 @@ static void
 SortedMap_dealloc( SortedMap* self )
 {
     SortedMap_clear( self );
-    delete self->sortedmap;
-    self->sortedmap = 0;
+    delete self->m_items;
+    self->m_items = 0;
     self->ob_type->tp_free( reinterpret_cast<PyObject*>( self ) );
 }
 
@@ -293,7 +318,7 @@ SortedMap_dealloc( SortedMap* self )
 static Py_ssize_t
 SortedMap_length( SortedMap* self )
 {
-    return static_cast<Py_ssize_t>( self->sortedmap->size() );
+    return static_cast<Py_ssize_t>( self->m_items->size() );
 }
 
 
@@ -384,8 +409,8 @@ SortedMap_clearmethod( SortedMap* self )
     // decref, including calls into methods which mutate the vector.
     // To avoid segfaults, first make the vector empty, then let the
     // destructors run for the old items.
-    sortedmap_t empty;
-    self->sortedmap->swap( empty );
+    SortedMap::Items empty;
+    self->m_items->swap( empty );
     Py_RETURN_NONE;
 }
 
@@ -419,8 +444,8 @@ SortedMap_copy( SortedMap* self )
     if( !copy )
         return 0;
     SortedMap* ccopy = reinterpret_cast<SortedMap*>( copy );
-    ccopy->sortedmap = new sortedmap_t();
-    *ccopy->sortedmap = *self->sortedmap;
+    ccopy->m_items = new SortedMap::Items();
+    *ccopy->m_items = *self->m_items;
     return copy;
 }
 
@@ -430,9 +455,9 @@ SortedMap_repr( SortedMap* self )
 {
     std::ostringstream ostr;
     ostr << "sortedmap({";
-    sortedmap_t::iterator it;
-    sortedmap_t::iterator end_it = self->sortedmap->end();
-    for( it = self->sortedmap->begin(); it != end_it; ++it )
+    SortedMap::Items::iterator it;
+    SortedMap::Items::iterator end_it = self->m_items->end();
+    for( it = self->m_items->begin(); it != end_it; ++it )
     {
         PyObjectPtr keystr( PyObject_Str( it->key() ) );
         if( !keystr )
@@ -443,7 +468,7 @@ SortedMap_repr( SortedMap* self )
         ostr << PyString_AsString( keystr.get() ) << ": ";
         ostr << PyString_AsString( valstr.get() ) << ", ";
     }
-    if( self->sortedmap->size() > 0 )
+    if( self->m_items->size() > 0 )
         ostr.seekp( -2, std::ios_base::cur );
     ostr << "})";
     return PyString_FromString( ostr.str().c_str() );
@@ -463,8 +488,8 @@ static PyObject*
 SortedMap_sizeof( SortedMap* self, PyObject* args )
 {
     Py_ssize_t size = self->ob_type->tp_basicsize;
-    size += sizeof( sortedmap_t );
-    size += sizeof( MapItem ) * self->sortedmap->capacity();
+    size += sizeof( SortedMap::Items );
+    size += sizeof( MapItem ) * self->m_items->capacity();
     return PyInt_FromSsize_t( size );
 }
 
