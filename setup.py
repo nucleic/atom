@@ -13,6 +13,7 @@ ext_modules = [
     Extension(
         'atom.catom',
         [
+            'atom/src/atomdict.cpp',
             'atom/src/atomlist.cpp',
             'atom/src/atomref.cpp',
             'atom/src/catom.cpp',

@@ -5,9 +5,9 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from UserDict import DictMixin
+#from UserDict import DictMixin
 
-from .catom import Member, PostGetAttr, DefaultValue, Validate
+from .catom import Member, DefaultValue, Validate
 from .instance import Instance
 
 
@@ -45,19 +45,19 @@ class Dict(Member):
         if value is not None and not isinstance(value, Member):
             value = Instance(value)
         self.set_validate_mode(Validate.Dict, (key, value))
-        if key is not None or value is not None:
-            mode = PostGetAttr.MemberMethod_ObjectValue
-            self.set_post_getattr_mode(mode, 'post_getattr')
+#        if key is not None or value is not None:
+#            mode = PostGetAttr.MemberMethod_ObjectValue
+#            self.set_post_getattr_mode(mode, 'post_getattr')
 
-    def post_getattr(self, owner, data):
-        """ A post getattr handler.
-
-        If the dict performs key or value validation, then this handler
-        will be called to wrap the dict in a proxy object on the fly.
-
-        """
-        key, value = self.validate_mode[1]
-        return _DictProxy(owner, key, value, data)
+#    def post_getattr(self, owner, data):
+#        """ A post getattr handler.
+#
+#        If the dict performs key or value validation, then this handler
+#        will be called to wrap the dict in a proxy object on the fly.
+#
+#        """
+#        key, value = self.validate_mode[1]
+#        return _DictProxy(owner, key, value, data)
 
     def set_name(self, name):
         """ Assign the name to this member.
@@ -90,47 +90,47 @@ class Dict(Member):
             value.set_index(index)
 
 
-class _DictProxy(object, DictMixin):
-    """ A private proxy object which validates dict modifications.
-
-    Instances of this class should not be created by user code.
-
-    """
-    # XXX move this class to C++
-    def __init__(self, owner, keymember, valmember, data):
-        self._owner = owner
-        self._keymember = keymember
-        self._valmember = valmember
-        self._data = data
-
-    def __repr__(self):
-        return repr(self._data)
-
-    def __getitem__(self, key):
-        return self._data[key]
-
-    def __setitem__(self, key, value):
-        owner = self._owner
-        if self._keymember is not None:
-            key = self._keymember.do_full_validate(owner, None, key)
-        if self._valmember is not None:
-            value = self._valmember.do_full_validate(owner, None, value)
-        self._data[key] = value
-
-    def __delitem__(self, key):
-        del self._data[key]
-
-    def __iter__(self):
-        return iter(self._data)
-
-    def __contains__(self, key):
-        return key in self._data
-
-    def keys(self):
-        return self._data.keys()
-
-    def copy(self):
-        return self._data.copy()
-
-    def has_key(self, key):
-        return key in self._data
+#class _DictProxy(object, DictMixin):
+#    """ A private proxy object which validates dict modifications.
+#
+#    Instances of this class should not be created by user code.
+#
+#    """
+#    # XXX move this class to C++
+#    def __init__(self, owner, keymember, valmember, data):
+#        self._owner = owner
+#        self._keymember = keymember
+#        self._valmember = valmember
+#        self._data = data
+#
+#    def __repr__(self):
+#        return repr(self._data)
+#
+#    def __getitem__(self, key):
+#        return self._data[key]
+#
+#    def __setitem__(self, key, value):
+#        owner = self._owner
+#        if self._keymember is not None:
+#            key = self._keymember.do_full_validate(owner, None, key)
+#        if self._valmember is not None:
+#            value = self._valmember.do_full_validate(owner, None, value)
+#        self._data[key] = value
+#
+#    def __delitem__(self, key):
+#        del self._data[key]
+#
+#    def __iter__(self):
+#        return iter(self._data)
+#
+#    def __contains__(self, key):
+#        return key in self._data
+#
+#    def keys(self):
+#        return self._data.keys()
+#
+#    def copy(self):
+#        return self._data.copy()
+#
+#    def has_key(self, key):
+#        return key in self._data

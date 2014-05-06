@@ -411,7 +411,7 @@ container_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObjec
     return common_list_handler<AtomCListFactory>( member, atom, oldvalue, newvalue );
 }
 
-
+/*
 static PyObject*
 validate_dict_key_value( Member* keymember, Member* valmember, CAtom* atom, PyObject* dict )
 {
@@ -494,6 +494,89 @@ dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
     if( k != Py_None )
         return validate_dict_key( member_cast( k ), atom, newvalue );
     return PyDict_Copy( newvalue );
+}*/
+
+template<typename DictFactory> PyObject*
+common_dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( !PyDict_Check( newvalue ) )
+        return validate_type_fail( member, atom, newvalue, "dict" );
+    Member* key_validator = member_cast( PyTuple_GET_ITEM( member->validate_context, 0 ) );
+    Member* value_validator = = member_cast( PyTuple_GET_ITEM( member->validate_context, 1 ) );
+
+    PyDictPtr dictptr( DictFactory()( atom, key_validator, value_validator ) );
+    if( !dictptr )
+        return 0;
+
+    PyObject* key;
+    PyObject* value;
+    Py_ssize_t pos = 0;
+
+    if( key_validator != Py_None && value_validator != Py_None )
+    {
+        while( PyDict_Next( dict, &pos, &key, &value ) )
+            {
+                PyObjectPtr keyptr( key_validator->full_validate( atom, Py_None, key ) );
+                if( !keyptr )
+                    return 0;
+                PyObjectPtr valptr( value_validator->full_validate( atom, Py_None, value ) );
+                if( !valptr )
+                    return 0;
+                if( !dictptr.set_item( keyptr, valptr ) )
+                    return 0;
+            }
+    }
+    if( key_validator != Py_None )
+    {
+        {
+                PyObjectPtr keyptr( key_validator->full_validate( atom, Py_None, key ) );
+                if( !keyptr )
+                    return 0;
+                PyObjectPtr valptr( newref( value ) );
+                if( !dictptr.set_item( keyptr, valptr ) )
+                    return 0;
+            }
+    }
+    if( value_validator != Py_None )
+    {
+        while( PyDict_Next( dict, &pos, &key, &value ) )
+            {
+                PyObjectPtr keyptr( newref( key ) );
+                PyObjectPtr valptr( value_validator->full_validate( atom, Py_None, value ) );
+                if( !valptr )
+                    return 0;
+                if( !dictptr.set_item( keyptr, valptr ) )
+                    return 0;
+            }
+    }
+    else
+    {
+        while( PyDict_Next( dict, &pos, &key, &value ) )
+            {
+                PyObjectPtr keyptr( newref( key ) );
+                PyObjectPtr valptr( newref( value ) );
+                if( !dictptr.set_item( keyptr, valptr ) )
+                    return 0;
+            }
+    }
+    return dictptr.release();
+}
+
+
+class AtomDictFactory
+{
+public:
+    PyObject* operator()( Member* member, CAtom* atom, Member* key_validator, Member* value_validator )
+    {
+        return AtomList_New( atom, key_validator, value_validator );
+    }
+};
+
+
+static PyObject*
+dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    return common_dict_handler<AtomDictFactory>( member, atom, oldvalue, newvalue );
 }
 
 
