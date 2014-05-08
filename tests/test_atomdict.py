@@ -28,7 +28,7 @@ class StandardModel(Atom):
     key_typed = Dict(Unicode())
 
     #: A standard dict with Float values.
-    val_typed = Dict(value=Float())
+    value_typed = Dict(value=Float())
     
     #: A standard dict with Unicode keys and Float values.
     typed = Dict(Unicode(), Float())
@@ -128,7 +128,7 @@ class DictTestBase(object):
     def test_untyped_pop(self):
         data = {i: i**2 for i in range(10)}
         self.model.untyped = data
-        self.model.untyped.pop()
+        self.model.untyped.pop(9)
         eq_(self.model.untyped, {i: i**2 for i in range(9)})
         self.model.untyped.pop(0)
         eq_(self.model.untyped, {i: i**2 for i in range(1, 9)})
@@ -159,7 +159,7 @@ class DictTestBase(object):
     #--------------------------------------------------------------------------
     def test_key_typed_convert_to_dict(self):
         self.model.key_typed = TEST_DICT.copy()
-        eq_(list(self.model.key_typed), TEST_DICT)
+        eq_(dict(self.model.key_typed), TEST_DICT)
 
     def test_key_typed_iterate(self):
         self.model.key_typed = TEST_DICT.copy()
@@ -227,11 +227,8 @@ class DictTestBase(object):
     def test_key_typed_pop(self):
         data = TEST_DICT.copy()
         self.model.key_typed = data
-        self.model.key_typed.pop()
-        data.pop()
-        eq_(self.model.key_typed, data)
-        self.model.key_typed.pop(0)
-        data.pop(0)
+        self.model.key_typed.pop('a')
+        data.pop('a')
         eq_(self.model.key_typed, data)
         
     def test_key_typed_popitem(self):
@@ -262,7 +259,7 @@ class DictTestBase(object):
     #--------------------------------------------------------------------------
     def test_value_typed_convert_to_dict(self):
         self.model.value_typed = TEST_DICT.copy()
-        eq_(list(self.model.value_typed), TEST_DICT)
+        eq_(dict(self.model.value_typed), TEST_DICT)
 
     def test_value_typed_iterate(self):
         self.model.value_typed = TEST_DICT.copy()
@@ -330,11 +327,8 @@ class DictTestBase(object):
     def test_value_typed_pop(self):
         data = TEST_DICT.copy()
         self.model.value_typed = data
-        self.model.value_typed.pop()
-        data.pop()
-        eq_(self.model.value_typed, data)
-        self.model.value_typed.pop(0)
-        data.pop(0)
+        self.model.value_typed.pop('a')
+        data.pop('a')
         eq_(self.model.value_typed, data)
         
     def test_value_typed_popitem(self):
@@ -365,7 +359,7 @@ class DictTestBase(object):
     #--------------------------------------------------------------------------
     def test_typed_convert_to_dict(self):
         self.model.typed = TEST_DICT.copy()
-        eq_(list(self.model.typed), TEST_DICT)
+        eq_(dict(self.model.typed), TEST_DICT)
 
     def test_typed_iterate(self):
         self.model.typed = TEST_DICT.copy()
@@ -433,11 +427,8 @@ class DictTestBase(object):
     def test_typed_pop(self):
         data = TEST_DICT.copy()
         self.model.typed = data
-        self.model.typed.pop()
-        data.pop()
-        eq_(self.model.typed, data)
-        self.model.typed.pop(0)
-        data.pop(0)
+        self.model.typed.pop('a')
+        data.pop('a')
         eq_(self.model.typed, data)
         
     def test_typed_popitem(self):
@@ -477,14 +468,14 @@ class TestStandardDict(DictTestBase):
     def test_dict_types(self):
         eq_(type(self.model.untyped), atomdict)
         eq_(type(self.model.key_typed), atomdict)
-        eq_(type(self.model.val_typed), atomdict)
+        eq_(type(self.model.value_typed), atomdict)
         eq_(type(self.model.typed), atomdict)
 
     def test_pickle(self):
         data = TEST_DICT.copy()
         self.model.untyped = data
         self.model.key_typed = data
-        self.model.val_typed = data
+        self.model.value_typed = data
         self.model.typed = data
         eq_(data, loads(dumps(self.model.untyped, 0)))
         eq_(data, loads(dumps(self.model.untyped, 1)))
@@ -492,16 +483,16 @@ class TestStandardDict(DictTestBase):
         eq_(KEY_DICT, loads(dumps(self.model.key_typed, 0)))
         eq_(KEY_DICT, loads(dumps(self.model.key_typed, 1)))
         eq_(KEY_DICT, loads(dumps(self.model.key_typed, 2)))
-        eq_(VAL_DICT, loads(dumps(self.model.val_typed, 0)))
-        eq_(VAL_DICT, loads(dumps(self.model.val_typed, 1)))
-        eq_(VAL_DICT, loads(dumps(self.model.val_typed, 2)))
+        eq_(VAL_DICT, loads(dumps(self.model.value_typed, 0)))
+        eq_(VAL_DICT, loads(dumps(self.model.value_typed, 1)))
+        eq_(VAL_DICT, loads(dumps(self.model.value_typed, 2)))
         eq_(TYPED_DICT, loads(dumps(self.model.typed, 0)))
         eq_(TYPED_DICT, loads(dumps(self.model.typed, 1)))
         eq_(TYPED_DICT, loads(dumps(self.model.typed, 2)))
 
     @raises(TypeError)
     def test_key_typed_bad_setdefault(self):
-        self.model.key_typed.set_default(1)
+        self.model.key_typed.setdefault(1)
 
     @raises(TypeError)
     def test_key_typed_bad_update(self):
@@ -514,7 +505,7 @@ class TestStandardDict(DictTestBase):
         
     @raises(TypeError)
     def test_value_typed_bad_setdefault(self):
-        self.model.value_typed.set_default(1, 'a')
+        self.model.value_typed.setdefault(1, 'a')
 
     @raises(TypeError)
     def test_value_typed_bad_update(self):

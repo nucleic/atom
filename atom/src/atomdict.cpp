@@ -125,14 +125,13 @@ public:
 
         else
         {
-            PyObjectPtr item( validate_key_value_pair( key, default_val ) );
+            PyTuplePtr item( validate_key_value_pair( key, default_val ) );
             if( !item )
                 return 0;
-            PyObject_Print( item.get(), stdout, 0)
-            
-            PyObjectPtr val_key( PyTuple_GET_ITEM( item.get(), 0) );
-            value = PyTuple_GET_ITEM( item.get(), 1 );
-            if( PyDict_SetItem( m_dict.get(), val_key.get(), value.get()) < 0 )
+
+            PyObjectPtr val_key( item.get_item( 0 ) );
+            value = item.get_item( 1 );
+            if( !m_dict.set_item( val_key, value ) )
                 return 0;
             
         }
@@ -177,8 +176,7 @@ public:
                 m_dict.get(), val_key.get(), value );
         }
 
-        PyTuplePtr item;
-        item = validate_key_value_pair( key, value );
+        PyTuplePtr item( validate_key_value_pair( key, value ) );
         if( !item )
             return -1;
         val_key = item.get_item( 0 );
