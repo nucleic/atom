@@ -14,7 +14,7 @@
 #include "signalconnector.h"
 #include "atomref.h"
 #include "atomlist.h"
-//#include "atomdict.h"
+#include "atomdict.h"
 #include "enumtypes.h"
 #include "propertyhelper.h"
 
@@ -49,8 +49,8 @@ initcatom( void )
         return;
     if( import_atomlist() < 0 )
         return;
-    //if( import_atomdict() < 0 )
-    //    return;
+    if( import_atomdict() < 0 )
+        return;
     if( import_enumtypes() < 0 )
         return;
 
@@ -59,7 +59,7 @@ initcatom( void )
     Py_INCREF( &AtomRef_Type );
     Py_INCREF( &AtomList_Type );
     Py_INCREF( &AtomCList_Type );
-    //Py_INCREF( &AtomDict_Type );
+    Py_INCREF( &AtomDict_Type );
     Py_INCREF( PyGetAttr );
     Py_INCREF( PySetAttr );
     Py_INCREF( PyDelAttr );
@@ -73,7 +73,7 @@ initcatom( void )
     PyModule_AddObject( mod, "atomref", pyobject_cast( &AtomRef_Type ) );
     PyModule_AddObject( mod, "atomlist", pyobject_cast( &AtomList_Type ) );
     PyModule_AddObject( mod, "atomclist", pyobject_cast( &AtomCList_Type ) );
-    //PyModule_AddObject( mod, "atomdict", pyobject_cast( &AtomDict_Type ) );
+    PyModule_AddObject( mod, "atomdict", pyobject_cast( &AtomDict_Type ) );
     PyModule_AddObject( mod, "GetAttr", PyGetAttr );
     PyModule_AddObject( mod, "SetAttr", PySetAttr );
     PyModule_AddObject( mod, "DelAttr", PyDelAttr );

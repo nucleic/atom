@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include "atomdict.h"
 #include "packagenaming.h"
+#include <Python.h>
 
 
 using namespace PythonHelpers;
@@ -18,7 +19,6 @@ namespace DictMethods
 static PyCFunction popitem = 0;
 static PyCFunction clear = 0;
 static PyCFunctionWithKeywords pop = 0;
-static PyCFunctionWithKeywords setdefault = 0;
 static PyCFunctionWithKeywords update = 0;
 
 
@@ -38,12 +38,6 @@ init_methods()
         return false;
     }
     typedef PyCFunctionWithKeywords func_t;
-    setdefault = reinterpret_cast<func_t>( lookup_method( &PyDict_Type, "setdefault" ) );
-    if( !setdefault )
-    {
-        py_bad_internal_call( "failed to load dict 'setdefault' method" );
-        return false;
-    }
     pop = reinterpret_cast<func_t>( lookup_method( &PyDict_Type, "pop" ) );
     if( !pop )
     {
@@ -65,10 +59,9 @@ init_methods()
 static PyObject*
 DictSubtype_New( PyTypeObject* subtype )
 {
-    PyObjectPtr ptr( PyType_GenericNew( subtype, 0, 0 ) );
+    PyObjectPtr ptr( subtype->tp_new( subtype, 0, 0) );
     if( !ptr )
         return 0;
-    PyDictObject* op = reinterpret_cast<PyDictObject*>( ptr.get() );
     return ptr.release();
 }
 
@@ -88,8 +81,8 @@ AtomDict_New( CAtom* atom, Member* key_validator, Member* value_validator )
 }
 
 
-PyObject*
-AtomCDict_New( CAtom* atom, Member* validator, Member* member )
+/*PyObject*
+AtomCDict_New( CAtom* atom, Member* key_validator, Member* value_validator, Member* member )
 {
     PyObjectPtr ptr( DictSubtype_New( &AtomCDict_Type ) );
     if( !ptr )
@@ -99,11 +92,11 @@ AtomCDict_New( CAtom* atom, Member* validator, Member* member )
     Py_XINCREF( pyobject_cast( member ) );
     atomdict_cast( ptr.get() )->key_validator = key_validator;
     atomdict_cast( ptr.get() )->value_validator = value_validator;
-    atomcdict_cast( ptr.get() )->pointer = new CAtomPointer( atom );
+    atomdict_cast( ptr.get() )->pointer = new CAtomPointer( atom );
     atomcdict_cast( ptr.get() )->member = member;
     return ptr.release();
 }
-
+*/
 /*-----------------------------------------------------------------------------
 | AtomDict Type
 |----------------------------------------------------------------------------*/
@@ -118,43 +111,80 @@ public:
     AtomDictHandler( AtomDict* dict ) :
         m_dict( newref( pyobject_cast( dict ) ) ) {}
 
-    /*PyObject* setdefault( PyObject* key, PyObject* kwargs )
+    PyObject* setdefault( PyObject* args )
     {
-        PyObject
-        PyObjectPtr item( validate_single( value ) );
-        if( !item )
+        PyObject* key;
+        PyObject* default_val = Py_None;
+        if( !PyArg_ParseTuple( args, "O|O:setdefault", &key, &default_val ) )
             return 0;
-        return ListMethods::append( m_list.get(), item.get() );
-    }*/
 
-    PyObject* update( PyObject* value )
-    {
-        if( PyDict_Check( value ) )
-            PyObjectPtr item( validate_dict( value ) );
+        PyObjectPtr val_key = validate_key( key );
+            if( !val_key )
+                return 0;
+
+        if( PyDict_Contains( m_dict.get(), val_key.get() ) )
+            return PyDict_GetItem( m_dict.get(), val_key.get() );
+
         else
-            PyObjectPtr item( validate_pairs( value ) );
+        {
+            PyObjectPtr item( validate_key_value_pair( key, default_val ) );
+            if( !item )
+                return 0;
+            
+            PyDict_SetItem( m_dict.get(), PyTuple_GET_ITEM( item.get(), 0), PyTuple_GET_ITEM( item.get(), 1 ) );
+            return PyTuple_GET_ITEM( item.get(), 1 );
+        }
+    }
+
+    PyObject* update( PyObject* args, PyObject* kwargs )
+    {
+        PyObjectPtr item;
+        PyObject* value;
+        if( PyDict_Size(kwargs) > 0)
+            value = kwargs;
+        else
+            if( !PyArg_ParseTuple( args,  "O:dict", &value ) )
+                return 0;
+
+        if( PyDict_Check( value ) )
+            item =  validate_dict( value );
+        else
+            item = validate_pairs( value );
+
         if( !item )
             return 0;
-        return DictMethods::update( m_list.get(), item.get() );
+        
+        PyTuplePtr new_args( PyTuple_New( 1 ) );
+        new_args.initialize( 0, item );
+        return DictMethods::update( m_dict.get(), new_args.get(), 0 );
     }
 
     int setitem( PyObject* key, PyObject* value )
     {
+        PyObjectPtr val_key;
         if( !value )
+        {
+            val_key = validate_key( key );
+            if( !val_key )
+                return -1;
+
             return PyDict_Type.tp_as_mapping->mp_ass_subscript(
-                m_dict.get(), key, value );
-        PyObjectPtr item;
+                m_dict.get(), val_key.get(), value );
+        }
+
+        PyTuplePtr item;
         item = validate_key_value_pair( key, value );
         if( !item )
             return -1;
-        PyObjectPtr pair = PyList_GET_ITEM(PyDict_Items(item), 0);
+        val_key = item.get_item( 0 );
+        PyObjectPtr val_val( item.get_item( 1 ) );
         return PyDict_Type.tp_as_mapping->mp_ass_subscript(
-            m_list.get(), PyList_GET_ITEM(pair, 0), PyList_GET_ITEM(pair, 1) );
+            m_dict.get(), val_key.get(), val_val.get() );
     }
 
 protected:
 
-    AtomList* adict()
+    AtomDict* adict()
     {
         return atomdict_cast( m_dict.get() );
     }
@@ -174,91 +204,173 @@ protected:
         return adict()->pointer->data();
     }
 
+    PyObject* validate_key( PyObject* key )
+    {
+        PyObjectPtr val_key( newref(key) );
+        if( key_validator() && atom() )
+        {
+            val_key = key_validator()->full_validate( atom(), Py_None, key );
+            if( !val_key )
+                return 0;
+        }
+
+        return val_key.release();
+    }
+
     PyObject* validate_key_value_pair( PyObject* key , PyObject* value )
     {
         PyDictPtr item( PyDict_New() );
+        PyObjectPtr val_key( newref(key) );
+        PyObjectPtr val_val( newref(value) );
+        PyTuplePtr pair( PyTuple_New( 2 ) );
         if( key_validator() && atom() )
         {
-            PyObject* val_key = key_validator()->full_validate( atom(), Py_None, key );
+            val_key = key_validator()->full_validate( atom(), Py_None, key );
             if( !val_key )
                 return 0;
         }
         if( value_validator() && atom() )
         {
-            PyObject* val_val = value_validator()->full_validate( atom(), Py_None, value );
+            val_val = value_validator()->full_validate( atom(), Py_None, value );
             if( !val_val )
                 return 0;
         }
-        item.set_item(val_key, val_val)
+        item.set_item( val_key, val_val );
         m_validated = item;
-        return item.release();
+        pair.initialize( 0, val_key );
+        pair.initialize( 1, val_val );
+        return pair.release();
     }
 
     PyObject* validate_pairs( PyObject* value )
     {
-        PyObjectPtr item( newref( value ) );
-        if( validator() && atom() )
-        {
-
-            PyListPtr temppairs( PySequence_List( value ));
-            PyDictPtr tempdict( PyDict_New() );
-            if( !temppairs )
+        PyListPtr temppairs( PySequence_List( value ));
+        if( !temppairs )
                 return 0;
-            CAtom* atm = atom();
-            Member* key_vd = key_validator();
-            Member* value_vd = value_validator();
-            Py_ssize_t size = temppairs.size();
-            for( Py_ssize_t i = 0; i < size; ++i )
-            {
-                PyListPtr pair = temppairs.borrow_item( i );
-                PyObject* key = pair.borrow_item( 0 );
-                PyObject* val_key = key_vd->full_validate( atm, Py_None, key );
-                if( !val_key )
-                    return 0;
-                PyObject* val = pair.borrow_item( 1 );
-                PyObject* val_val = val_vd->full_validate( atm, Py_None, val);
-                if( !val_val )
-                    return 0;
-                tempdict.set_item(val_key, val_val);
-            }
-            item = tempdict;
-
-        }
-        m_validated = item;
-        return item.release();
-    }
-
-    PyObject* validate_dict( PyObject* value )
-    {
-        PyObjectPtr item( newref( value ) );
-        if( validator() && atom() )
+        PyDictPtr item( PyDict_New() );
+        if( ( key_validator() || value_validator() )  && atom() )
         {
-            // no validation if the dict is identic to the one we have.
-            if( m_dict.get() != value )
+
+            CAtom* atm = atom();
+            Py_ssize_t size = temppairs.size();
+            if ( key_validator() && value_validator() )
             {
-                PyDictPtr tempdict( PyDict_New() );
-                PyListPtr pairs( PyDict_Items( value ));
-                if( !pairs )
-                    return 0;
-                CAtom* atm = atom();
                 Member* key_vd = key_validator();
-                Member* value_vd = value_validator();
-                Py_ssize_t size = pairs.size();
+                Member* val_vd = value_validator();
                 for( Py_ssize_t i = 0; i < size; ++i )
                 {
-                    PyListPtr pair = pairs.borrow_item( i );
-                    PyObject* key = pair.borrow_item( 0 );
+                    PyObject* pair = temppairs.borrow_item( i );
+                    PyObject* key = PySequence_GetItem( pair, 0 );
                     PyObject* val_key = key_vd->full_validate( atm, Py_None, key );
                     if( !val_key )
                         return 0;
-                    PyObject* val = pair.borrow_item( 1 );
+                    PyObject* val = PySequence_GetItem( pair, 1 );
                     PyObject* val_val = val_vd->full_validate( atm, Py_None, val);
                     if( !val_val )
                         return 0;
-                    tempdict.set_item( val_key, val_val );
+                    item.set_item(val_key, val_val);
                 }
-                item = tempdict;
             }
+            else if ( key_validator() )
+            {
+                Member* key_vd = key_validator();
+                for( Py_ssize_t i = 0; i < size; ++i )
+                {
+                    PyObject* pair = temppairs.borrow_item( i );
+                    PyObject* key = PySequence_GetItem( pair, 0 );
+                    PyObject* val_key = key_vd->full_validate( atm, Py_None, key );
+                    if( !val_key )
+                        return 0;
+                    PyObject* val = PySequence_GetItem( pair, 1 );
+                    item.set_item(val_key, val);
+                }
+            }
+            else
+            {
+                Member* val_vd = value_validator();
+                for( Py_ssize_t i = 0; i < size; ++i )
+                {
+                    PyObject* pair = temppairs.borrow_item( i );
+                    PyObject* key = PySequence_GetItem( pair, 0 );
+
+                    PyObject* val = PySequence_GetItem( pair, 1 );
+                    PyObject* val_val = val_vd->full_validate( atm, Py_None, val);
+                    if( !val_val )
+                        return 0;
+                    item.set_item(key, val_val);
+                }
+            }
+        }
+
+        else
+        {
+            if( !PyDict_MergeFromSeq2( item.get(), temppairs.get(), 0) )
+                return 0;
+        }
+        m_validated = item;
+        PyListPtr pairs( PyDict_Items( item.get() ) );
+        return pairs.release();
+    }
+
+    PyObject* validate_dict( PyObject* dict )
+    {
+        PyDictPtr item( newref( dict ) );
+        if( ( key_validator() || value_validator() )  && atom() )
+        {
+
+            if( m_dict.get() != dict )
+            {
+                PyDictPtr dictptr( PyDict_New() );
+                CAtom* atm = atom();
+                PyObject* key;
+                PyObject* value;
+                Py_ssize_t pos = 0;
+            
+                if( key_validator() && value_validator() )
+                {
+                    Member* key_vd = key_validator();
+                    Member* val_vd = value_validator();
+                    while( PyDict_Next( dict, &pos, &key, &value ) )
+                        {
+                            PyObjectPtr keyptr( key_vd->full_validate( atm, Py_None, key ) );
+                            if( !keyptr )
+                                return 0;
+                            PyObjectPtr valptr( val_vd->full_validate( atm, Py_None, value ) );
+                            if( !valptr )
+                                return 0;
+                            if( !dictptr.set_item( keyptr, valptr ) )
+                                return 0;
+                        }
+                }
+                else if( key_validator() )
+                {
+                    Member* key_vd = key_validator();
+                    while( PyDict_Next( dict, &pos, &key, &value ) )
+                        {
+                            PyObjectPtr keyptr( key_vd->full_validate( atm, Py_None, key ) );
+                            if( !keyptr )
+                                return 0;
+                            PyObjectPtr valptr( newref( value ) );
+                            if( !dictptr.set_item( keyptr, valptr ) )
+                                return 0;
+                        }
+                }
+                else if( value_validator() )
+                {
+                    Member* val_vd = value_validator();
+                    while( PyDict_Next( dict, &pos, &key, &value ) )
+                        {
+                            PyObjectPtr keyptr( newref( key ) );
+                            PyObjectPtr valptr( val_vd->full_validate( atm, Py_None, value ) );
+                            if( !valptr )
+                                return 0;
+                            if( !dictptr.set_item( keyptr, valptr ) )
+                                return 0;
+                        }
+                }
+                item = dictptr;
+            }
+            
         }
         m_validated = item;
         return item.release();
@@ -281,7 +393,7 @@ AtomDict_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     PyObjectPtr ptr( PyDict_Type.tp_new( type, args, kwargs ) );
     if( !ptr )
         return 0;
-    atomlist_cast( ptr.get() )->pointer = new CAtomPointer();
+    atomdict_cast( ptr.get() )->pointer = new CAtomPointer();
     return ptr.release();
 }
 
@@ -291,15 +403,21 @@ AtomDict_dealloc( AtomDict* self )
 {
     delete self->pointer;
     self->pointer = 0;
-    Py_CLEAR( self->validator );
+    Py_CLEAR( self->key_validator );
+    Py_CLEAR( self->value_validator );
     PyDict_Type.tp_dealloc( pyobject_cast( self ) );
 }
 
+static PyObject*
+AtomDict_setdefault( AtomDict* self, PyObject* args )
+{
+    return AtomDictHandler( self ).setdefault( args );
+}
 
 static PyObject*
-AtomDict_update( AtomDict* self, PyObject* value )
+AtomDict_update( AtomDict* self, PyObject* args, PyObject *kwargs )
 {
-    return AtomDictHandler( self ).update( value );
+    return AtomDictHandler( self ).update( args, kwargs );
 }
 
 
@@ -334,13 +452,20 @@ AtomDict_ass_subscript( AtomDict* self, PyObject* key, PyObject* value )
 }
 
 
-PyDoc_STRVAR( a_update_doc,
-"D.update(object) -- update dict content using obj" );
+PyDoc_STRVAR(a_setdefault_doc,
+"D.setdefault(k[,d]) -> D.get(k,d), also set D[k]=d if k not in D");
+
+PyDoc_STRVAR(a_update_doc,
+"D.update(E, **F) -> None. Update D from dict/iterable E and F.\n"
+"If E has a .keys() method, does: for k in E: D[k] = E[k]\n\
+If E lacks .keys() method, does: for (k, v) in E: D[k] = v\n\
+In either case, this is followed by: for k in F: D[k] = F[k]");
 
 
 static PyMethodDef
 AtomDict_methods[] = {
-    { "update", ( PyCFunction )AtomDict_update, METH_VARARGS, a_update_doc },
+    { "setdefault", ( PyCFunction )AtomDict_setdefault, METH_VARARGS, a_setdefault_doc },
+    { "update", ( PyCFunction )AtomDict_update, METH_VARARGS | METH_KEYWORDS, a_update_doc },
     { "__reduce_ex__", ( PyCFunction )AtomDict_reduce_ex, METH_O, "" },
     { 0 }  /* sentinel */
 };
@@ -412,7 +537,7 @@ import_atomdict()
         return -1;
     /*if( PyType_Ready( &AtomCList_Type ) < 0 )
         return -1;*/
-    if( !ListMethods::init_methods() )
+    if( !DictMethods::init_methods() )
         return -1;
     return 0;
 }
