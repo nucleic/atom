@@ -118,22 +118,27 @@ public:
         if( !PyArg_ParseTuple( args, "O|O:setdefault", &key, &default_val ) )
             return 0;
 
-        PyObjectPtr val_key = validate_key( key );
-            if( !val_key )
-                return 0;
 
-        if( PyDict_Contains( m_dict.get(), val_key.get() ) )
-            return PyDict_GetItem( m_dict.get(), val_key.get() );
+        PyObjectPtr value;
+        if( PyDict_Contains( m_dict.get(), key ) )
+            value =  m_dict.get_item( key );
 
         else
         {
             PyObjectPtr item( validate_key_value_pair( key, default_val ) );
             if( !item )
                 return 0;
+            PyObject_Print( item.get(), stdout, 0)
             
-            PyDict_SetItem( m_dict.get(), PyTuple_GET_ITEM( item.get(), 0), PyTuple_GET_ITEM( item.get(), 1 ) );
-            return PyTuple_GET_ITEM( item.get(), 1 );
+            PyObjectPtr val_key( PyTuple_GET_ITEM( item.get(), 0) );
+            value = PyTuple_GET_ITEM( item.get(), 1 );
+            if( PyDict_SetItem( m_dict.get(), val_key.get(), value.get()) < 0 )
+                return 0;
+            
         }
+        if( !value )
+            return 0;
+        return value.release();
     }
 
     PyObject* update( PyObject* args, PyObject* kwargs )
