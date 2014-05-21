@@ -62,12 +62,12 @@ deleted_args( CAtom* atom, Member* member, PyObject* value )
 static int
 slot_handler( Member* member, CAtom* atom )
 {
-    if( member->index >= atom->get_slot_count() )
+    if( member->index >= atom->slot_count )
     {
         py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
         return -1;
     }
-    if( atom->is_frozen() )
+    if( atom->test_flag( CAtom::IsFrozen ) )
     {
         PyErr_SetString( PyExc_AttributeError, "can't delete attribute of frozen Atom" );
         return -1;
@@ -76,7 +76,7 @@ slot_handler( Member* member, CAtom* atom )
     if( !valueptr )
         return 0;
     atom->set_slot( member->index, 0 );
-    if( atom->get_notifications_enabled() )
+    if( atom->test_flag( CAtom::NotificationsEnabled ) )
     {
         PyObjectPtr argsptr;
         if( member->has_observers() )

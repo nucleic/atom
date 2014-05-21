@@ -169,10 +169,10 @@ Member_remove_static_observer( Member* self, PyObject* observer )
 static PyObject*
 Member_get_slot( Member* self, PyObject* object )
 {
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    CAtom* atom = catom_cast( object );
-    if( self->index >= atom->get_slot_count() )
+    CAtom* atom = reinterpret_cast<CAtom*>( object );
+    if( self->index >= atom->slot_count )
         return py_no_attr_fail( object, PyString_AsString( self->name ) );
     PyObjectPtr value( atom->get_slot( self->index ) );
     if( value )
@@ -188,10 +188,10 @@ Member_set_slot( Member* self, PyObject* args )
         return py_type_fail( "set_slot() takes exactly 2 arguments" );
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* value = PyTuple_GET_ITEM( args, 1 );
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    CAtom* atom = catom_cast( object );
-    if( self->index >= atom->get_slot_count() )
+    CAtom* atom = reinterpret_cast<CAtom*>( object );
+    if( self->index >= atom->slot_count )
         return py_no_attr_fail( object, PyString_AsString( self->name ) );
     atom->set_slot( self->index, value );
     Py_RETURN_NONE;
@@ -201,10 +201,10 @@ Member_set_slot( Member* self, PyObject* args )
 static PyObject*
 Member_del_slot( Member* self, PyObject* object )
 {
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    CAtom* atom = catom_cast( object );
-    if( self->index >= atom->get_slot_count() )
+    CAtom* atom = reinterpret_cast<CAtom*>( object );
+    if( self->index >= atom->slot_count )
         return py_no_attr_fail( object, PyString_AsString( self->name ) );
     atom->set_slot( self->index, 0 );
     Py_RETURN_NONE;
@@ -214,9 +214,9 @@ Member_del_slot( Member* self, PyObject* object )
 static PyObject*
 Member_do_getattr( Member* self, PyObject* object )
 {
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    return self->getattr( catom_cast( object ) );
+    return self->getattr( reinterpret_cast<CAtom*>( object ) );
 }
 
 
@@ -227,9 +227,9 @@ Member_do_setattr( Member* self, PyObject* args )
         return py_type_fail( "do_setattr() takes exactly 2 arguments" );
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* value = PyTuple_GET_ITEM( args, 1 );
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    if( self->setattr( catom_cast( object ), value ) < 0 )
+    if( self->setattr( reinterpret_cast<CAtom*>( object ), value ) < 0 )
         return 0;
     Py_RETURN_NONE;
 }
@@ -238,9 +238,9 @@ Member_do_setattr( Member* self, PyObject* args )
 static PyObject*
 Member_do_delattr( Member* self, PyObject* object )
 {
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    if( self->delattr( catom_cast( object ) ) < 0 )
+    if( self->delattr( reinterpret_cast<CAtom*>( object ) ) < 0 )
         return 0;
     Py_RETURN_NONE;
 }
@@ -253,9 +253,9 @@ Member_do_post_getattr( Member* self, PyObject* args )
         return py_type_fail( "do_post_getattr() takes exactly 2 arguments" );
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* value = PyTuple_GET_ITEM( args, 1 );
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    return self->post_getattr( catom_cast( object ), value );
+    return self->post_getattr( reinterpret_cast<CAtom*>( object ), value );
 }
 
 
@@ -267,9 +267,9 @@ Member_do_post_setattr( Member* self, PyObject* args )
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
     PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    if( self->post_setattr( catom_cast( object ), oldvalue, newvalue ) < 0 )
+    if( self->post_setattr( reinterpret_cast<CAtom*>( object ), oldvalue, newvalue ) < 0 )
         return 0;
     Py_RETURN_NONE;
 }
@@ -278,9 +278,9 @@ Member_do_post_setattr( Member* self, PyObject* args )
 static PyObject*
 Member_do_default_value( Member* self, PyObject* object )
 {
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    return self->default_value( catom_cast( object ) );
+    return self->default_value( reinterpret_cast<CAtom*>( object ) );
 }
 
 
@@ -292,9 +292,9 @@ Member_do_validate( Member* self, PyObject* args )
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
     PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    return self->validate( catom_cast( object ), oldvalue, newvalue );
+    return self->validate( reinterpret_cast<CAtom*>( object ), oldvalue, newvalue );
 }
 
 
@@ -306,9 +306,9 @@ Member_do_post_validate( Member* self, PyObject* args )
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
     PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    return self->post_validate( catom_cast( object ), oldvalue, newvalue );
+    return self->post_validate( reinterpret_cast<CAtom*>( object ), oldvalue, newvalue );
 }
 
 
@@ -320,9 +320,9 @@ Member_do_full_validate( Member* self, PyObject* args )
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
     PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    return self->full_validate( catom_cast( object ), oldvalue, newvalue );
+    return self->full_validate( reinterpret_cast<CAtom*>( object ), oldvalue, newvalue );
 }
 
 
@@ -673,12 +673,12 @@ Member_notify( Member* self, PyObject* args, PyObject* kwargs )
     if( PyTuple_GET_SIZE( args ) < 1 )
         return py_type_fail( "notify() requires at least 1 argument" );
     PyObject* owner = PyTuple_GET_ITEM( args, 0 );
-    if( !CAtom::TypeCheck( owner ) )
+    if( !CAtom::type_check( owner ) )
         return py_expected_type_fail( owner, "CAtom" );
     PyObjectPtr argsptr( PyTuple_GetSlice( args, 1, PyTuple_GET_SIZE( args ) ) );
     if( !argsptr )
         return 0;
-    if( !self->notify( catom_cast( owner ), argsptr.get(), kwargs ) )
+    if( !self->notify( reinterpret_cast<CAtom*>( owner ), argsptr.get(), kwargs ) )
         return 0;
     Py_RETURN_NONE;
 }
@@ -736,23 +736,23 @@ Member__get__( Member* self, PyObject* object, PyObject* type )
 {
     if( !object )
         return newref( pyobject_cast( self ) );
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
         return py_expected_type_fail( object, "CAtom" );
-    return self->getattr( catom_cast( object ) );
+    return self->getattr( reinterpret_cast<CAtom*>( object ) );
 }
 
 
 static int
 Member__set__( Member* self, PyObject* object, PyObject* value )
 {
-    if( !CAtom::TypeCheck( object ) )
+    if( !CAtom::type_check( object ) )
     {
         py_expected_type_fail( object, "CAtom" );
         return -1;
     }
     if( value )
-        return self->setattr( catom_cast( object ), value );
-    return self->delattr( catom_cast( object ) );
+        return self->setattr( reinterpret_cast<CAtom*>( object ), value );
+    return self->delattr( reinterpret_cast<CAtom*>( object ) );
 }
 
 
@@ -1049,7 +1049,7 @@ Member::has_observer( PyObject* observer )
 bool
 Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
 {
-    if( static_observers && atom->get_notifications_enabled() )
+    if( static_observers && atom->test_flag( CAtom::NotificationsEnabled ) )
     {
         ModifyGuard<Member> guard( *this );
         PyObjectPtr argsptr( newref( args ) );

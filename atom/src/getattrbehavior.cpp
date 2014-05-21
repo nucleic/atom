@@ -82,7 +82,7 @@ created_args( CAtom* atom, Member* member, PyObject* value )
 static PyObject*
 slot_handler( Member* member, CAtom* atom )
 {
-    if( member->index >= atom->get_slot_count() )
+    if( member->index >= atom->slot_count )
         return py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
     PyObjectPtr value( atom->get_slot( member->index ) );
     if( value )
@@ -98,7 +98,7 @@ slot_handler( Member* member, CAtom* atom )
     if( !value )
         return 0;
     atom->set_slot( member->index, value.get() );
-    if( atom->get_notifications_enabled() )
+    if( atom->test_flag( CAtom::NotificationsEnabled ) )
     {
         PyObjectPtr argsptr;
         if( member->has_observers() )

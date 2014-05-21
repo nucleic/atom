@@ -321,7 +321,7 @@ MethodWrapper_New( PyObject* method )
     if( !PyMethod_GET_SELF( method ) )
         return py_type_fail( "cannot wrap unbound method" );
     PyObjectPtr pywrapper;
-    if( CAtom::TypeCheck( PyMethod_GET_SELF( method ) ) )
+    if( CAtom::type_check( PyMethod_GET_SELF( method ) ) )
     {
         pywrapper = PyType_GenericNew( &AtomMethodWrapper_Type, 0, 0 );
         if( !pywrapper )
@@ -329,7 +329,7 @@ MethodWrapper_New( PyObject* method )
         AtomMethodWrapper* wrapper = reinterpret_cast<AtomMethodWrapper*>( pywrapper.get() );
         wrapper->im_func = newref( PyMethod_GET_FUNCTION( method ) );
         // placement new since Python malloc'd and zero'd the struct
-        new( &wrapper->pointer ) CAtomPointer( catom_cast( PyMethod_GET_SELF( method ) ) );
+        new( &wrapper->pointer ) CAtomPointer( reinterpret_cast<CAtom*>( PyMethod_GET_SELF( method ) ) );
     }
     else
     {

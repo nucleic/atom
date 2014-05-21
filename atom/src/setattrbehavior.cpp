@@ -93,12 +93,12 @@ updated_args( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalu
 static int
 slot_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    if( member->index >= atom->get_slot_count() )
+    if( member->index >= atom->slot_count )
     {
         py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
         return -1;
     }
-    if( atom->is_frozen() )
+    if( atom->test_flag( CAtom::IsFrozen ) )
     {
         PyErr_SetString( PyExc_AttributeError, "can't set attribute of frozen Atom" );
         return -1;
@@ -119,7 +119,7 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
         if( member->post_setattr( atom, oldptr.get(), newptr.get() ) < 0 )
             return -1;
     }
-    if( ( !valid_old || oldptr != newptr ) && atom->get_notifications_enabled() )
+    if( ( !valid_old || oldptr != newptr ) && atom->test_flag( CAtom::NotificationsEnabled ) )
     {
         PyObjectPtr argsptr;
         if( member->has_observers() )
@@ -167,7 +167,7 @@ constant_handler( Member* member, CAtom* atom, PyObject* value )
 static int
 read_only_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    if( member->index >= atom->get_slot_count() )
+    if( member->index >= atom->slot_count )
     {
         py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
         return -1;
@@ -202,7 +202,7 @@ event_handler( Member* member, CAtom* atom, PyObject* value )
     PyObjectPtr valueptr( member->full_validate( atom, Py_None, value ) );
     if( !valueptr )
         return -1;
-    if( atom->get_notifications_enabled() )
+    if( atom->test_flag( CAtom::NotificationsEnabled ) )
     {
         PyObjectPtr argsptr;
         if( member->has_observers() )

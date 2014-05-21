@@ -39,21 +39,21 @@ CAtom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     PyObjectPtr selfptr( PyType_GenericNew( type, args, kwargs ) );
     if( !selfptr )
         return 0;
-    CAtom* atom = catom_cast( selfptr.get() );
+    CAtom* atom = reinterpret_cast<CAtom*>( selfptr.get() );
     uint32_t count = static_cast<uint32_t>( membersptr.size() );
     if( count > 0 )
     {
-        if( count > MAX_MEMBER_COUNT )
+        if( count > CAtom::MaxMemberCount )
             return py_type_fail( "too many members" );
         size_t size = sizeof( PyObject* ) * count;
         void* slots = PyObject_MALLOC( size );
         if( !slots )
             return PyErr_NoMemory();
         memset( slots, 0, size );
-        atom->slots = reinterpret_cast<PyObject**>( slots );
-        atom->set_slot_count( count );
+        atom->m_slots = reinterpret_cast<PyObject**>( slots );
+        atom->slot_count = static_cast<uint16_t>( count );
     }
-    atom->set_notifications_enabled( true );
+    atom->set_flag( CAtom::NotificationsEnabled );
     return selfptr.release();
 }
 
@@ -85,9 +85,9 @@ CAtom_init( CAtom* self, PyObject* args, PyObject* kwargs )
 static void
 CAtom_clear( CAtom* self )
 {
-    uint32_t count = self->get_slot_count();
+    uint32_t count = self->slot_count;
     for( uint32_t i = 0; i < count; ++i )
-        Py_CLEAR( self->slots[ i ] );
+        Py_CLEAR( self->m_slots[ i ] );
     if( self->observers )
         self->observers->py_clear();
 }
@@ -96,9 +96,9 @@ CAtom_clear( CAtom* self )
 static int
 CAtom_traverse( CAtom* self, visitproc visit, void* arg )
 {
-    uint32_t count = self->get_slot_count();
+    uint32_t count = self->slot_count;
     for( uint32_t i = 0; i < count; ++i )
-        Py_VISIT( self->slots[ i ] );
+        Py_VISIT( self->m_slots[ i ] );
     if( self->observers )
         return self->observers->py_traverse( visit, arg );
     return 0;
@@ -108,14 +108,14 @@ CAtom_traverse( CAtom* self, visitproc visit, void* arg )
 static void
 CAtom_dealloc( CAtom* self )
 {
-    if( self->has_guards() )
+    if( self->test_flag( CAtom::HasGuards ) )
         CAtom::clear_guards( self );
-    if( self->has_atomref() )
+    if( self->test_flag( CAtom::HasAtomRef ) )
         SharedAtomRef::clear( self );
     PyObject_GC_UnTrack( self );
     CAtom_clear( self );
-    if( self->slots )
-        PyObject_FREE( self->slots );
+    if( self->m_slots )
+        PyObject_FREE( self->m_slots );
     delete self->observers;
     self->observers = 0;
     self->ob_type->tp_free( pyobject_cast( self ) );
@@ -125,7 +125,7 @@ CAtom_dealloc( CAtom* self )
 static PyObject*
 CAtom_notifications_enabled( CAtom* self )
 {
-    return py_bool( self->get_notifications_enabled() );
+    return py_bool( self->test_flag( CAtom::NotificationsEnabled ) );
 }
 
 
@@ -134,8 +134,8 @@ CAtom_set_notifications_enabled( CAtom* self, PyObject* arg )
 {
     if( !PyBool_Check( arg ) )
         return py_expected_type_fail( arg, "bool" );
-    bool old = self->get_notifications_enabled();
-    self->set_notifications_enabled( arg == Py_True ? true : false );
+    bool old = self->test_flag( CAtom::NotificationsEnabled );
+    self->set_flag( CAtom::NotificationsEnabled, arg == Py_True ? true : false );
     return py_bool( old );
 }
 
@@ -315,7 +315,7 @@ CAtom_notify( CAtom* self, PyObject* args, PyObject* kwargs )
 static PyObject*
 CAtom_freeze( CAtom* self )
 {
-    self->set_frozen( true );
+    self->set_flag( CAtom::IsFrozen );
     Py_RETURN_NONE;
 }
 
@@ -324,7 +324,7 @@ static PyObject*
 CAtom_sizeof( CAtom* self, PyObject* args )
 {
     Py_ssize_t size = self->ob_type->tp_basicsize;
-    size += sizeof( PyObject* ) * self->get_slot_count();
+    size += sizeof( PyObject* ) * self->slot_count;
     if( self->observers )
         size += self->observers->py_sizeof();
     return PyInt_FromSsize_t( size );
@@ -481,7 +481,7 @@ CAtom::unobserve()
 bool
 CAtom::notify( PyObject* topic, PyObject* args, PyObject* kwargs )
 {
-    if( observers && get_notifications_enabled() )
+    if( observers && test_flag( CAtom::NotificationsEnabled ) )
     {
         PyObjectPtr topicptr( newref( topic ) );
         PyObjectPtr argsptr( newref( args ) );
@@ -509,7 +509,7 @@ void CAtom::add_guard( CAtom** ptr )
         return;
     }
     map->insert( GuardMap::value_type( *ptr, ptr ) );
-    ( *ptr )->set_has_guards( true );
+    ( *ptr )->set_flag( CAtom::HasGuards );
 }
 
 
@@ -539,7 +539,7 @@ void CAtom::remove_guard( CAtom** ptr )
         more = true;
     }
     if( !more )
-        ( *ptr )->set_has_guards( false );
+        ( *ptr )->set_flag( CAtom::HasGuards, false );
 }
 
 
@@ -554,7 +554,7 @@ void CAtom::change_guard( CAtom** ptr, CAtom* o )
     if( o )
     {
         map->insert( GuardMap::value_type( o, ptr ) );
-        o->set_has_guards( true );
+        o->set_flag( CAtom::HasGuards );
     }
     CAtom::remove_guard( ptr );
     *ptr = o;
@@ -580,5 +580,5 @@ void CAtom::clear_guards( CAtom* o )
     for( ; it != end && it->first == o; ++it )
         *it->second = 0;
     map->erase( first, it );
-    o->set_has_guards( false );
+    o->set_flag( CAtom::HasGuards, false );
 }

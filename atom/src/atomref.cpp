@@ -37,7 +37,7 @@ GLOBAL_STATIC( RefMap, ref_map )
 PyObject*
 get( CAtom* atom )
 {
-    if( atom->has_atomref() )
+    if( atom->test_flag( CAtom::HasAtomRef ) )
         return ( *ref_map() )[ atom ].newref();
     PyObject* pyref = AtomRef_Type.tp_alloc( &AtomRef_Type, 0 );
     if( !pyref )
@@ -45,7 +45,7 @@ get( CAtom* atom )
     // placement new since Python malloc'd and zero'd the struct
     new( &atomref_cast( pyref )->pointer ) CAtomPointer( atom );
     ( *ref_map() )[ atom ] = newref( pyref );
-    atom->set_has_atomref( true );
+    atom->set_flag( CAtom::HasAtomRef );
     return pyref;
 }
 
@@ -54,7 +54,7 @@ void
 clear( CAtom* atom )
 {
     ref_map()->erase( atom );
-    atom->set_has_atomref( false );
+    atom->set_flag( CAtom::HasAtomRef, false );
 }
 
 }  // namespace SharedAtomRef
@@ -67,9 +67,9 @@ AtomRef_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     PyObject* atom;
     if( !PyArg_ParseTupleAndKeywords( args, kwargs, "O:__new__", kwlist, &atom ) )
         return 0;
-    if( !CAtom::TypeCheck( atom ) )
+    if( !CAtom::type_check( atom ) )
         return py_expected_type_fail( atom, "CAtom" );
-    return SharedAtomRef::get( catom_cast( atom ) );
+    return SharedAtomRef::get( reinterpret_cast<CAtom*>( atom ) );
 }
 
 

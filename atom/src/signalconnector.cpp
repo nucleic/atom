@@ -79,7 +79,7 @@ static PyObject*
 SignalConnector__call__( SignalConnector* self, PyObject* args, PyObject* kwargs )
 {
     // XXX validate the Signal args and kwargs?
-    if( self->atom->get_notifications_enabled() )
+    if( self->atom->test_flag( CAtom::NotificationsEnabled ) )
     {
         if( self->member->has_observers() )
         {

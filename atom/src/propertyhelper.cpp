@@ -37,11 +37,11 @@ reset_property( PyObject* mod, PyObject* args )
     PyObject* pyatom = PyTuple_GET_ITEM( args, 1 );
     if( !Member::TypeCheck( pymember ) )
         return py_expected_type_fail( pymember, "Member" );
-    if( !CAtom::TypeCheck( pyatom ) )
+    if( !CAtom::type_check( pyatom ) )
         return py_expected_type_fail( pyatom, "CAtom" );
     Member* member = member_cast( pymember );
-    CAtom* atom = catom_cast( pyatom );
-    if( member->index >= atom->get_slot_count() )
+    CAtom* atom = reinterpret_cast<CAtom*>( pyatom );
+    if( member->index >= atom->slot_count )
         return py_bad_internal_call( "invalid member index" );
     PyObjectPtr oldptr( atom->get_slot( member->index ) );
     atom->set_slot( member->index, 0 );

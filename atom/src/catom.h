@@ -7,19 +7,13 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
+#include <Python.h>
 #include "inttypes.h"
 #include "pythonhelpers.h"
 #include "observerpool.h"
 
 
-#define MAX_MEMBER_COUNT ( static_cast<uint32_t>( 0xffff ) )
-#define SLOT_COUNT_MASK ( static_cast<uint32_t>( 0xffff ) )
-#define FLAGS_MASK ( static_cast<uint32_t>( 0xffff0000 ) )
-#define NOTIFICATION_BIT ( static_cast<uint32_t>( 1 << 16 ) )
-#define GUARD_BIT ( static_cast<uint32_t>( 1 << 17 ) )
-#define ATOMREF_BIT ( static_cast<uint32_t>( 1 << 18 ) )
-#define FROZEN_BIT ( static_cast<uint32_t>( 1 << 19 ) )
-#define catom_cast( o ) ( reinterpret_cast<CAtom*>( o ) )
+int import_catom();
 
 
 extern PyTypeObject CAtom_Type;
@@ -28,105 +22,42 @@ extern PyTypeObject CAtom_Type;
 struct CAtom
 {
     PyObject_HEAD
-    uint32_t bitfield;  // lower 16 == slot count, upper 16 == flags
-    PyObject** slots;
+    PyObject** m_slots;
     ObserverPool* observers;
+    uint16_t m_flags;
+    uint16_t slot_count;
 
-    uint32_t get_slot_count()
+    enum Flag
     {
-        return bitfield & SLOT_COUNT_MASK;
-    }
+        NotificationsEnabled = 0x1,
+        HasGuards = 0x2,
+        HasAtomRef = 0x4,
+        IsFrozen = 0x8,
+    };
 
-    void set_slot_count( uint32_t count )
-    {
-        bitfield = ( bitfield & FLAGS_MASK ) | ( count & SLOT_COUNT_MASK );
-    }
+    static const uint32_t MaxMemberCount = 0xffff;
 
-    PyObject* get_slot( uint32_t index )
-    {
-        return PythonHelpers::xnewref( slots[ index ] );
-    }
+    static int type_check( PyObject* object );
 
-    void set_slot( uint32_t index, PyObject* object )
-    {
-        PyObject* old = slots[ index ];
-        slots[ index ] = object;
-        Py_XINCREF( object );
-        Py_XDECREF( old );
-    }
+    static void add_guard( CAtom** ptr );
 
-    bool get_notifications_enabled()
-    {
-        return ( bitfield & NOTIFICATION_BIT ) != 0;
-    }
+    static void remove_guard( CAtom** ptr );
 
-    void set_notifications_enabled( bool enabled )
-    {
-        if( enabled )
-            bitfield |= NOTIFICATION_BIT;
-        else
-            bitfield &= ~NOTIFICATION_BIT;
-    }
+    static void change_guard( CAtom** ptr, CAtom* o );
 
-    bool has_guards()
-    {
-        return ( bitfield & GUARD_BIT ) != 0;
-    }
+    static void clear_guards( CAtom* o );
 
-    void set_has_guards( bool has_guards )
-    {
-        if( has_guards )
-            bitfield |= GUARD_BIT;
-        else
-            bitfield &= ~GUARD_BIT;
-    }
+    PyObject* get_slot( uint32_t index );
 
-    bool has_atomref()
-    {
-        return ( bitfield & ATOMREF_BIT ) != 0;
-    }
+    void set_slot( uint32_t index, PyObject* object );
 
-    void set_has_atomref( bool has_ref )
-    {
-        if( has_ref )
-            bitfield |= ATOMREF_BIT;
-        else
-            bitfield &= ~ATOMREF_BIT;
-    }
+    bool test_flag( Flag flag );
 
-    bool has_observers( PyObject* topic )
-    {
-        if( observers )
-        {
-            PyObjectPtr topicptr( PythonHelpers::newref( topic ) );
-            return observers->has_topic( topicptr );
-        }
-        return false;
-    }
+    void set_flag( Flag flag, bool on=true );
 
-    bool has_observer( PyObject* topic, PyObject* callback )
-    {
-        if( observers )
-        {
-            PyObjectPtr topicptr( PythonHelpers::newref( topic ) );
-            PyObjectPtr callbackptr( PythonHelpers::newref( callback ) );
-            return observers->has_observer( topicptr, callbackptr );
-        }
-        return false;
-    }
+    bool has_observers( PyObject* topic );
 
-    bool is_frozen()
-    {
-        return ( bitfield & FROZEN_BIT ) != 0;
-    }
-
-    void set_frozen( bool frozen )
-    {
-        if( frozen )
-            bitfield |= FROZEN_BIT;
-        else
-            bitfield &= ~FROZEN_BIT;
-    }
+    bool has_observer( PyObject* topic, PyObject* callback );
 
     bool observe( PyObject* topic, PyObject* callback );
 
@@ -137,21 +68,70 @@ struct CAtom
     bool unobserve();
 
     bool notify( PyObject* topic, PyObject* args, PyObject* kwargs );
-
-    static int TypeCheck( PyObject* object )
-    {
-        return PyObject_TypeCheck( object, &CAtom_Type );
-    }
-
-    static void add_guard( CAtom** ptr );
-
-    static void remove_guard( CAtom** ptr );
-
-    static void change_guard( CAtom** ptr, CAtom* o );
-
-    static void clear_guards( CAtom* o );
 };
 
 
-int
-import_catom();
+inline int
+CAtom::type_check( PyObject* object )
+{
+    return PyObject_TypeCheck( object, &CAtom_Type );
+}
+
+
+inline bool
+CAtom::test_flag( Flag flag )
+{
+    return ( m_flags & static_cast<uint16_t>( flag ) ) != 0;
+}
+
+
+inline void
+CAtom::set_flag( Flag flag, bool on )
+{
+    if( on )
+        m_flags |= static_cast<uint16_t>( flag );
+    else
+        m_flags &= ~( static_cast<uint16_t>( flag ) );
+}
+
+
+inline PyObject*
+CAtom::get_slot( uint32_t index )
+{
+    return PythonHelpers::xnewref( m_slots[ index ] );
+}
+
+
+inline void
+CAtom::set_slot( uint32_t index, PyObject* object )
+{
+    PyObject* old = m_slots[ index ];
+    m_slots[ index ] = object;
+    Py_XINCREF( object );
+    Py_XDECREF( old );
+}
+
+
+inline bool
+CAtom::has_observers( PyObject* topic )
+{
+    if( observers )
+    {
+        PyObjectPtr topicptr( PythonHelpers::newref( topic ) );
+        return observers->has_topic( topicptr );
+    }
+    return false;
+}
+
+
+inline bool
+CAtom::has_observer( PyObject* topic, PyObject* callback )
+{
+    if( observers )
+    {
+        PyObjectPtr topicptr( PythonHelpers::newref( topic ) );
+        PyObjectPtr callbackptr( PythonHelpers::newref( callback ) );
+        return observers->has_observer( topicptr, callbackptr );
+    }
+    return false;
+}
