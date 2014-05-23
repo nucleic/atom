@@ -17,10 +17,6 @@
 #endif
 
 
-#define pyobject_cast( o ) ( reinterpret_cast<PyObject*>( o ) )
-#define pytype_cast( o ) ( reinterpret_cast<PyTypeObject*>( o ) )
-
-
 namespace PythonHelpers
 {
 
