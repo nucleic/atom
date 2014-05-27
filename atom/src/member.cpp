@@ -6,33 +6,167 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <Python.h>
-#include "inttypes.h"
+#include "pythonhelpers.h"
 #include "member.h"
+#include "static_strings.h"
 
 #include "ignoredwarnings.h"
 
 
-static PyObject*
-Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
+using namespace PythonHelpers;
+
+
+PyObject*  // new ref on success, null on failure
+Member_Default( Member* member, CAtom* atom, PyStringObject* name )
 {
-    PyObject* self = PyType_GenericNew( type, args, kwargs );
-    if( !self )
+    if( Member_TestFlag( member, Member::ObjectDefault ) )
     {
+        PyObjectPtr m_name( PySequence_Concat( StaticStrings::DefaultPrefix, ( PyObject* )name ) );
+        if( !m_name )
+        {
+            return 0;
+        }
+        PyObjectPtr method( PyObject_GetAttr( ( PyObject* )atom, m_name.get() ) );
+        if( !method )
+        {
+            return 0;
+        }
+        PyTuplePtr args( PyTuple_New( 0 ) );
+        if( !args )
+        {
+            return 0;
+        }
+        return PyObject_Call( method.get(), args.get(), 0 );
+    }
+    if( Member_TestFlag( member, Member::MemberDefault ) )
+    {
+        PyObjectPtr method( PyObject_GetAttr( ( PyObject* )member, StaticStrings::Default ) );
+        if( !method )
+        {
+            return 0;
+        }
+        PyTuplePtr args( PyTuple_New( 2 ) );
+        if( !args )
+        {
+            return 0;
+        }
+        args.initialize( 0, newref( ( PyObject* )atom ) );
+        args.initialize( 1, newref( ( PyObject* )name ) );
+        return PyObject_Call( method.get(), args.get(), 0 );
+    }
+    Py_RETURN_NONE;
+}
+
+
+PyObject*  // new ref on success, null on failure
+Member_Validate( Member* member, CAtom* atom, PyStringObject* name, PyObject* old, PyObject* value )
+{
+    if( Member_TestFlag( member, Member::ObjectValidate ) )
+    {
+        PyObjectPtr m_name( PySequence_Concat( StaticStrings::ValidatePrefix, ( PyObject* )name ) );
+        if( !m_name )
+        {
+            return 0;
+        }
+        PyObjectPtr method( PyObject_GetAttr( ( PyObject* )atom, m_name.get() ) );
+        if( !method )
+        {
+            return 0;
+        }
+        PyTuplePtr args( PyTuple_New( 1 ) );
+        if( !args )
+        {
+            return 0;
+        }
+        args.initialize( 0, newref( value ) );
+        return PyObject_Call( method.get(), args.get(), 0 );
+    }
+    if( Member_TestFlag( member, Member::MemberValidate ) )
+    {
+        PyObjectPtr method( PyObject_GetAttr( ( PyObject* )member, StaticStrings::Validate ) );
+        if( !method )
+        {
+            return 0;
+        }
+        PyTuplePtr args( PyTuple_New( 3 ) );
+        if( !args )
+        {
+            return 0;
+        }
+        args.initialize( 0, newref( ( PyObject* )atom ) );
+        args.initialize( 1, newref( ( PyObject* )name ) );
+        args.initialize( 2, newref( value ) );
+        return PyObject_Call( method.get(), args.get(), 0 );
+    }
+    return newref( value );
+}
+
+
+int  // 0 on success, -1 on failure
+Member_PostSetAttr( Member* member, CAtom* atom, PyStringObject* name, PyObject* old, PyObject* value )
+{
+    if( Member_TestFlag( member, Member::ObjectPostSetattr ) )
+    {
+        PyObjectPtr m_name( PySequence_Concat( StaticStrings::PostSetattrPrefix, ( PyObject* )name ) );
+        if( !m_name )
+        {
+            return -1;
+        }
+        PyObjectPtr method( PyObject_GetAttr( ( PyObject* )atom, m_name.get() ) );
+        if( !method )
+        {
+            return -1;
+        }
+        PyTuplePtr args( PyTuple_New( 1 ) );
+        if( !args )
+        {
+            return -1;
+        }
+        args.initialize( 0, newref( value ) );
+        PyObjectPtr res( PyObject_Call( method.get(), args.get(), 0 ) );
+        if( !res )
+        {
+            return -1;
+        }
         return 0;
     }
-    return self;
+    if( Member_TestFlag( member, Member::MemberPostSetattr ) )
+    {
+        PyObjectPtr method( PyObject_GetAttr( ( PyObject* )member, StaticStrings::PostSetattr ) );
+        if( !method )
+        {
+            return -1;
+        }
+        PyTuplePtr args( PyTuple_New( 3 ) );
+        if( !args )
+        {
+            return -1;
+        }
+        args.initialize( 0, newref( ( PyObject* )atom ) );
+        args.initialize( 1, newref( ( PyObject* )name ) );
+        args.initialize( 2, newref( value ) );
+        PyObjectPtr res( PyObject_Call( method.get(), args.get(), 0 ) );
+        if( !res )
+        {
+            return -1;
+        }
+        return 0;
+    }
+    return 0;
 }
 
 
 static void
 Member_clear( Member* self )
 {
+    Py_CLEAR( self->metadata );
 }
 
 
 static int
 Member_traverse( Member* self, visitproc visit, void* arg )
 {
+    Py_VISIT( self->metadata );
     return 0;
 }
 
@@ -42,7 +176,7 @@ Member_dealloc( Member* self )
 {
     PyObject_GC_UnTrack( self );
     Member_clear( self );
-    self->ob_type->tp_free( reinterpret_cast<PyObject*>( self ) );
+    self->ob_type->tp_free( ( PyObject* )self );
 }
 
 
@@ -85,7 +219,7 @@ PyTypeObject Member_Type = {
     0,                                      /* tp_dictoffset */
     (initproc)0,                            /* tp_init */
     (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-    (newfunc)Member_new,                    /* tp_new */
+    (newfunc)PyType_GenericNew,             /* tp_new */
     (freefunc)PyObject_GC_Del,              /* tp_free */
     (inquiry)0,                             /* tp_is_gc */
     0,                                      /* tp_bases */
@@ -100,9 +234,5 @@ PyTypeObject Member_Type = {
 int
 import_member()
 {
-    if( PyType_Ready( &Member_Type ) < 0 )
-    {
-        return -1;
-    }
-    return 0;
+    return PyType_Ready( &Member_Type );
 }

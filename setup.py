@@ -14,9 +14,11 @@ ext_modules = [
         'atom.catom',
         [
             'atom/src/catom.cpp',
-            'atom/src/catommodule.cpp',
-            'atom/src/descriptor.cpp',
+            'atom/src/catom_module.cpp',
+            'atom/src/class_map.cpp',
             'atom/src/member.cpp',
+            'atom/src/static_strings.cpp',
+            'atom/src/value.cpp',
         ],
         language='c++',
     ),

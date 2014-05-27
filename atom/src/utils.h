@@ -6,7 +6,9 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
+#include <cstring>
 #include <Python.h>
+#include "inttypes.h"
 
 
 namespace utils
@@ -23,24 +25,43 @@ basestring_check( PyObject* obj )
 }
 
 
-template<typename T>
-bool test_flag( T* object, typename T::Flag flag )
+inline uint32_t
+next_power_of_2( uint32_t n )  // n must be greater than zero
 {
-    return ( object->flags & static_cast<T::flags_t>( flag ) ) != 0;
+    n = n - 1;
+    n = n | ( n >> 1 );
+    n = n | ( n >> 2 );
+    n = n | ( n >> 4 );
+    n = n | ( n >> 8 );
+    n = n | ( n >> 16 );
+    return n + 1;
 }
 
 
-template<typename T>
-void set_flag( T* object, typename T::Flag flag, bool on=true )
+inline size_t
+pystr_hash( PyStringObject* op )
 {
-    if( on )
+    long hash = op->ob_shash;
+    if( hash == -1)
     {
-        object->flags |= static_cast<T::flags_t>( flag );
+        hash = PyObject_Hash( ( PyObject* )op );
     }
-    else
+    return static_cast<size_t>( hash );
+}
+
+
+inline bool
+pystr_equal( PyStringObject* a, PyStringObject* b )
+{
+    if( a == b )
     {
-        object->flags &= ~( static_cast<T::flags_t>( flag ) );
+        return true;
     }
+    if( Py_SIZE( a ) == Py_SIZE( b ) )
+    {
+        return memcmp( a->ob_sval, b->ob_sval, Py_SIZE( a ) ) == 0;
+    }
+    return false;
 }
 
 } // namespace utils

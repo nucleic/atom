@@ -11,7 +11,7 @@
 #include "inttypes.h"
 
 
-struct Descriptor;
+struct ClassMap;
 
 
 int
@@ -23,23 +23,42 @@ extern PyTypeObject CAtom_Type;
 
 struct CAtom
 {
-    typedef uint16_t flags_t;
-
     enum Flag
     {
-        NotificationsEnabled = 0x1,
     };
 
+    // all fields are considered private
     PyObject_HEAD
-    Descriptor* descriptor;
+    ClassMap* class_map;
     PyObject** slots;
-    uint16_t allocated;
-    flags_t flags;
+    uint32_t flags;
 };
 
 
 inline int
-CAtom_Check( PyObject* object )
+CAtom_Check( PyObject* op )
 {
-    return PyObject_TypeCheck( object, &CAtom_Type );
+    return PyObject_TypeCheck( op, &CAtom_Type );
+}
+
+
+
+inline bool
+CAtom_TestFlag( CAtom* atom, CAtom::Flag flag )
+{
+    return ( atom->flags & static_cast<uint32_t>( flag ) ) != 0;
+}
+
+
+inline void
+CAtom_SetFlag( CAtom* atom, CAtom::Flag flag, bool on=true )
+{
+    if( on )
+    {
+        atom->flags |= static_cast<uint32_t>( flag );
+    }
+    else
+    {
+        atom->flags &= ~( static_cast<uint32_t>( flag ) );
+    }
 }

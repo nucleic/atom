@@ -7,21 +7,21 @@
 #------------------------------------------------------------------------------
 import copy_reg
 
-from .catom import CAtom, Descriptor, Member
+from .catom import CAtom, ClassMap, Member
 
 
 #: The string key constant used to store the type member dictionary.
-ATOM_MEMBERS = '_[atom members]'
+CLASS_MEMBERS = '_[atom members]'
 
 
-#: The string key constant used to store the type descriptor.
-ATOM_DESCRIPTOR = '_[atom descriptor]'
+#: The string key constant used to store the type class map.
+CLASS_MAP = '_[class map]'
 
 
 class AtomMeta(type):
     """ The metaclass for classes derived from Atom.
 
-    This metaclass computes the atom descriptor for the new type so
+    This metaclass computes the atom class map for the new type so
     that the CAtom class can allocate exactly enough space for the
     the object data slots when it instantiates an object.
 
@@ -47,19 +47,19 @@ class AtomMeta(type):
         members = {}
         for base in reversed(cls.__mro__[1:-1]):
             if base is not CAtom and issubclass(base, CAtom):
-                members.update(getattr(base, ATOM_MEMBERS))
+                members.update(getattr(base, CLASS_MEMBERS))
 
         # Walk the current class dict to collect the new members.
         for key, value in dct.iteritems():
             if isinstance(value, Member):
                 members[key] = value
 
-        # Creat the descriptor for the new class.
-        descriptor = Descriptor(members)
+        # Creat the class map for the new class.
+        class_map = ClassMap(members)
 
-        # Store a reference to the class members and the descriptor
-        setattr(cls, ATOM_MEMBERS, members)
-        setattr(cls, ATOM_DESCRIPTOR, descriptor)
+        # Store a reference to the class members and the class_map
+        setattr(cls, CLASS_MEMBERS, members)
+        setattr(cls, CLASS_MAP, class_map)
 
         return cls
 

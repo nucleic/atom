@@ -9,9 +9,9 @@
 #include "pythonhelpers.h"
 #include "inttypes.h"
 #include "catom.h"
-#include "descriptor.h"
+#include "class_map.h"
 #include "member.h"
-#include "utils.h"
+#include "static_strings.h"
 
 #include "ignoredwarnings.h"
 
@@ -19,30 +19,27 @@
 using namespace PythonHelpers;
 
 
-static PyObject* atom_descr_str;
-
-
 static PyObject*  // new ref on success, null and exception on failure
-lookup_descriptor( PyTypeObject* type )
+lookup_class_map( PyTypeObject* type )
 {
-    PyObject* py_descr = PyDict_GetItem( type->tp_dict, atom_descr_str );
-    if( py_descr )
+    PyObject* py_map = PyDict_GetItem( type->tp_dict, StaticStrings::ClassMap );
+    if( py_map )
     {
-        if( !Descriptor_Check( py_descr ) )
+        if( !ClassMap_Check( py_map ) )
         {
-            return py_bad_internal_call( "atom descriptor has invalid type" );
+            return py_bad_internal_call( "class map has invalid type" );
         }
-        return newref( py_descr );
+        return newref( py_map );
     }
-    return py_bad_internal_call( "atom type has no descriptor" );
+    return py_bad_internal_call( "atom type has no class map" );
 }
 
 
 static PyObject*
 CAtom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-    PyObjectPtr descr_ptr( lookup_descriptor( type ) );
-    if( !descr_ptr )
+    PyObjectPtr map_ptr( lookup_class_map( type ) );
+    if( !map_ptr )
     {
         return 0;
     }
@@ -51,22 +48,21 @@ CAtom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     {
         return 0;
     }
-    CAtom* atom = reinterpret_cast<CAtom*>( self_ptr.get() );
-    Descriptor* descr = reinterpret_cast<Descriptor*>( descr_ptr.get() );
-    if( descr->slot_count > 0 )
+    CAtom* atom = ( CAtom* )self_ptr.get();
+    ClassMap* map = ( ClassMap* )map_ptr.get();
+    uint32_t count = ClassMap_MemberCount( map );
+    if( count > 0 )
     {
-        size_t size = sizeof( PyObject* ) * descr->slot_count;
-        void* slots = PyObject_Malloc( size );
-        if( !slots )
+        size_t memsize = sizeof( PyObject* ) * count;
+        void* slotmem = PyObject_Malloc( memsize );
+        if( !slotmem )
         {
             return PyErr_NoMemory();
         }
-        memset( slots, 0, size );
-        atom->slots = reinterpret_cast<PyObject**>( slots );
-        atom->allocated = descr->slot_count;
+        memset( slotmem, 0, memsize );
+        atom->slots = ( PyObject** )slotmem;
     }
-    atom->descriptor = reinterpret_cast<Descriptor*>( descr_ptr.release() );
-    utils::set_flag( atom, CAtom::NotificationsEnabled );
+    atom->class_map = ( ClassMap* )map_ptr.release();
     return self_ptr.release();
 }
 
@@ -99,24 +95,24 @@ CAtom_init( PyObject* self, PyObject* args, PyObject* kwargs )
 static void
 CAtom_clear( CAtom* self )
 {
-    uint16_t count = self->descriptor->slot_count;
-    for( uint16_t i = 0; i < count; ++i )
+    uint32_t count = ClassMap_MemberCount( self->class_map );
+    for( uint32_t i = 0; i < count; ++i )
     {
         Py_CLEAR( self->slots[ i ] );
     }
-    Py_CLEAR( self->descriptor );
+    Py_CLEAR( self->class_map );
 }
 
 
 static int
 CAtom_traverse( CAtom* self, visitproc visit, void* arg )
 {
-    uint16_t count = self->descriptor->slot_count;
-    for( uint16_t i = 0; i < count; ++i )
+    uint32_t count = ClassMap_MemberCount( self->class_map );
+    for( uint32_t i = 0; i < count; ++i )
     {
         Py_VISIT( self->slots[ i ] );
     }
-    Py_VISIT( self->descriptor );
+    Py_VISIT( self->class_map );
     return 0;
 }
 
@@ -127,50 +123,98 @@ CAtom_dealloc( CAtom* self )
     PyObject_GC_UnTrack( self );
     CAtom_clear( self );
     PyObject_Free( self->slots );
-    self->ob_type->tp_free( reinterpret_cast<PyObject*>( self ) );
+    self->ob_type->tp_free( ( PyObject* )self );
 }
 
 
 static PyObject*
 CAtom_getattro( CAtom* self, PyStringObject* name )
 {
-    Member* member = Descriptor_LookupMember( self->descriptor, name );
+    // no smart pointers in this function, save stack setup costs!
+    uint32_t index;
+    Member* member = 0;
+    ClassMap_LookupMember( self->class_map, name, &member, &index );
     if( member )
     {
-        if( member->slot_index >= self->allocated )
+        PyObject* value = self->slots[ index ];
+        if( value )
         {
-            return py_bad_internal_call( "member slot index out of range" );
+            return newref( value );
         }
-        PyObject* value = self->slots[ member->slot_index ];
-        return newref( value ? value : Py_None );
+        value = Member_Default( member, self, name );
+        if( !value )
+        {
+            return 0;
+        }
+        PyObject* valid = Member_Validate( member, self, name, Py_None, value );
+        Py_DECREF( value );
+        if( !valid )
+        {
+            return 0;
+        }
+        self->slots[ index ] = valid;
+        // XXX emit "create" notification
+        return newref( valid );
     }
-    PyObject* py_self = reinterpret_cast<PyObject*>( self );
-    PyObject* py_name = reinterpret_cast<PyObject*>( name );
-    return PyObject_GenericGetAttr( py_self, py_name );
+    return PyObject_GenericGetAttr( ( PyObject* )self, ( PyObject* )name );
 }
 
 
 static int
 CAtom_setattro( CAtom* self, PyStringObject* name, PyObject* value )
 {
-    Member* member = Descriptor_LookupMember( self->descriptor, name );
+    uint32_t index;
+    Member* member = 0;
+    ClassMap_LookupMember( self->class_map, name, &member, &index );
     if( member )
     {
-        if( member->slot_index >= self->allocated )
+        PyObject* old = self->slots[ index ];
+        if( value == old )
         {
-            py_bad_internal_call( "member slot index out of range" );
+            return 0;
+        }
+        if( !value )
+        {
+            self->slots[ index ] = 0;
+            // XXX emit "delete" notification
+            Py_DECREF( old );
+            return 0;
+        }
+        old = old ? old : newref( Py_None );
+        value = Member_Validate( member, self, name, old, value );
+        if( !value )
+        {
+            return 0;
+        }
+        self->slots[ index ] = value;
+        if( Member_PostSetAttr( member, self, name, old, value ) < 0 )
+        {
+            Py_DECREF( old );
             return -1;
         }
-        PyObject* old = self->slots[ member->slot_index ];
-        self->slots[ member->slot_index ] = value;
-        Py_XINCREF( value );
-        Py_XDECREF( old );
+        // XXX emit "create" or "update" notification
+        Py_DECREF( old );
         return 0;
     }
-    PyObject* py_self = reinterpret_cast<PyObject*>( self );
-    PyObject* py_name = reinterpret_cast<PyObject*>( name );
-    return PyObject_GenericSetAttr( py_self, py_name, value );
+    return PyObject_GenericSetAttr( ( PyObject* )self, ( PyObject* )name, value );
 }
+
+
+static PyObject*
+CAtom_sizeof( CAtom* self, PyObject* args )
+{
+    Py_ssize_t size = self->ob_type->tp_basicsize;
+    size += sizeof( PyObject* ) * ClassMap_MemberCount( self->class_map );
+    return PyInt_FromSsize_t( size );
+}
+
+
+static PyMethodDef
+CAtom_methods[] = {
+    { "__sizeof__", ( PyCFunction )CAtom_sizeof, METH_NOARGS,
+      "__sizeof__() -> size of object in memory, in bytes" },
+    { 0 } // sentinel
+};
 
 
 PyTypeObject CAtom_Type = {
@@ -202,7 +246,7 @@ PyTypeObject CAtom_Type = {
     0,                                      /* tp_weaklistoffset */
     (getiterfunc)0,                         /* tp_iter */
     (iternextfunc)0,                        /* tp_iternext */
-    (struct PyMethodDef*)0,                 /* tp_methods */
+    (struct PyMethodDef*)CAtom_methods,     /* tp_methods */
     (struct PyMemberDef*)0,                 /* tp_members */
     0,                                      /* tp_getset */
     0,                                      /* tp_base */
@@ -227,14 +271,5 @@ PyTypeObject CAtom_Type = {
 int
 import_catom()
 {
-    if( PyType_Ready( &CAtom_Type ) < 0 )
-    {
-        return -1;
-    }
-    atom_descr_str = PyString_FromString( "_[atom descriptor]" );
-    if( !atom_descr_str )
-    {
-        return -1;
-    }
-    return 0;
+    return PyType_Ready( &CAtom_Type );
 }
