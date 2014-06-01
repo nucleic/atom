@@ -11,8 +11,7 @@
 #include "inttypes.h"
 
 
-int
-import_class_map();
+int import_class_map();
 
 
 extern PyTypeObject ClassMap_Type;
@@ -26,27 +25,28 @@ struct ClassMapEntry;
 
 struct ClassMap
 {
-	// all fields are considered private
-	PyObject_HEAD
-	ClassMapEntry* entries;
-	uint32_t allocated;
-	uint32_t member_count;
+    PyObject_HEAD;
+    ClassMapEntry* entries;
+    uint32_t allocated;
+    uint32_t member_count;
 };
 
 
-inline int
-ClassMap_Check( PyObject* op )
+inline int ClassMap_Check( PyObject* op )
 {
     return Py_TYPE( op ) == &ClassMap_Type;
 }
 
 
-inline uint32_t  // member count will never change after descriptor is created
-ClassMap_MemberCount( ClassMap* map )
+// member count will never change after descriptor is created
+inline uint32_t ClassMap_MemberCount( ClassMap* map )
 {
-	return map->member_count;
+    return map->member_count;
 }
 
 
-void  // borrowed member + index on success, untouched on failure
-ClassMap_LookupMember( ClassMap* map, PyStringObject* name, Member** member, uint32_t* index );
+// borrowed member + index on success, untouched on failure
+void ClassMap_LookupMember( ClassMap* map,
+                            PyStringObject* name,
+                            Member** member,
+                            uint32_t* index );

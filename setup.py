@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2014, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -16,9 +16,8 @@ ext_modules = [
             'atom/src/catom.cpp',
             'atom/src/catom_module.cpp',
             'atom/src/class_map.cpp',
+            'atom/src/default_value_behavior.cpp',
             'atom/src/member.cpp',
-            'atom/src/static_strings.cpp',
-            'atom/src/value.cpp',
         ],
         language='c++',
     ),

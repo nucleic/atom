@@ -9,27 +9,19 @@
 #include "catom.h"
 #include "class_map.h"
 #include "member.h"
-#include "static_strings.h"
-#include "value.h"
 
 #include "ignoredwarnings.h"
 
 
-static PyMethodDef
-catom_methods[] = {
-    { 0 } // Sentinel
+static PyMethodDef catom_methods[] = {
+    {0} // Sentinel
 };
 
 
-PyMODINIT_FUNC
-initcatom( void )
+PyMODINIT_FUNC initcatom( void )
 {
     PyObject* mod = Py_InitModule( "catom", catom_methods );
     if( !mod )
-    {
-        return;
-    }
-    if( import_static_strings() < 0 )
     {
         return;
     }
@@ -45,18 +37,12 @@ initcatom( void )
     {
         return;
     }
-    if( import_value() < 0 )
-    {
-        return;
-    }
 
     Py_INCREF( &Member_Type );
     Py_INCREF( &ClassMap_Type );
     Py_INCREF( &CAtom_Type );
-    Py_INCREF( &Value_Type );
 
-    PyModule_AddObject( mod, "Member", reinterpret_cast<PyObject*>( &Member_Type ) );
-    PyModule_AddObject( mod, "ClassMap", reinterpret_cast<PyObject*>( &ClassMap_Type ) );
-    PyModule_AddObject( mod, "CAtom", reinterpret_cast<PyObject*>( &CAtom_Type ) );
-    PyModule_AddObject( mod, "Value", reinterpret_cast<PyObject*>( &Value_Type ) );
+    PyModule_AddObject( mod, "Member", ( PyObject* )&Member_Type );
+    PyModule_AddObject( mod, "ClassMap", ( PyObject* )&ClassMap_Type );
+    PyModule_AddObject( mod, "CAtom", ( PyObject* )&CAtom_Type );
 }
