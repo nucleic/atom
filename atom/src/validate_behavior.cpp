@@ -15,6 +15,7 @@
 
 using namespace PythonHelpers;
 
+
 // true on success, false and exception on failure
 bool Validate_CheckMode( Validate::Mode mode, PyObject* context )
 {
@@ -64,24 +65,15 @@ bool Validate_CheckMode( Validate::Mode mode, PyObject* context )
         break;
     case Validate::FloatRange:
     {
-        if( !PyTuple_Check( context ) )
+        if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 2 )
         {
             py_expected_type_fail( context, "2-tuple of float or None" );
             return false;
         }
-        if( PyTuple_GET_SIZE( context ) != 2 )
-        {
-            py_expected_type_fail( context, "2-tuple of float or None" );
-            return false;
-        }
-        PyObject* start = PyTuple_GET_ITEM( context, 0 );
-        PyObject* end = PyTuple_GET_ITEM( context, 1 );
-        if( start != Py_None && !PyFloat_Check( start ) )
-        {
-            py_expected_type_fail( context, "2-tuple of float or None" );
-            return false;
-        }
-        if( end != Py_None && !PyFloat_Check( end ) )
+        PyObject* s = PyTuple_GET_ITEM( context, 0 );
+        PyObject* e = PyTuple_GET_ITEM( context, 1 );
+        if( ( s != Py_None && !PyFloat_Check( s ) ) ||
+            ( e != Py_None && !PyFloat_Check( e ) ) )
         {
             py_expected_type_fail( context, "2-tuple of float or None" );
             return false;
@@ -90,24 +82,15 @@ bool Validate_CheckMode( Validate::Mode mode, PyObject* context )
     }
     case Validate::Range:
     {
-        if( !PyTuple_Check( context ) )
+        if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 2 )
         {
             py_expected_type_fail( context, "2-tuple of int or None" );
             return false;
         }
-        if( PyTuple_GET_SIZE( context ) != 2 )
-        {
-            py_expected_type_fail( context, "2-tuple of int or None" );
-            return false;
-        }
-        PyObject* start = PyTuple_GET_ITEM( context, 0 );
-        PyObject* end = PyTuple_GET_ITEM( context, 1 );
-        if( start != Py_None && !PyInt_Check( start ) )
-        {
-            py_expected_type_fail( context, "2-tuple of int or None" );
-            return false;
-        }
-        if( end != Py_None && !PyInt_Check( end ) )
+        PyObject* s = PyTuple_GET_ITEM( context, 0 );
+        PyObject* e = PyTuple_GET_ITEM( context, 1 );
+        if( ( s != Py_None && !PyInt_Check( s ) ) ||
+            ( e != Py_None && !PyInt_Check( s ) ) )
         {
             py_expected_type_fail( context, "2-tuple of int or None" );
             return false;
@@ -116,20 +99,15 @@ bool Validate_CheckMode( Validate::Mode mode, PyObject* context )
     }
     case Validate::Coerced:
     {
-        if( !PyTuple_Check( context ) )
+        if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 2 )
         {
             py_expected_type_fail( context, "2-tuple of (type, callable)" );
             return false;
         }
-        if( PyTuple_GET_SIZE( context ) != 2 )
-        {
-            py_expected_type_fail( context, "2-tuple of (type, callable)" );
-            return false;
-        }
-        PyObject* type = PyTuple_GET_ITEM( context, 0 );
-        PyObject* coercer = PyTuple_GET_ITEM( context, 1 );
-        // XXX validate type as valid for isinstance(..., type)
-        if( !PyCallable_Check( coercer ) )
+        PyObject* t = PyTuple_GET_ITEM( context, 0 );
+        PyObject* c = PyTuple_GET_ITEM( context, 1 );
+        // XXX validate type as valid for isinstance(..., t)
+        if( !PyCallable_Check( c ) )
         {
             py_expected_type_fail( context, "2-tuple of (type, callable)" );
             return false;
@@ -158,273 +136,130 @@ bool Validate_CheckMode( Validate::Mode mode, PyObject* context )
 }
 
 
-static PyObject* validate_type_fail( Member* member,
-                                     CAtom* atom,
-                                     PyStringObject* name,
-                                     PyObject* newvalue,
-                                     const char* required_type )
+static PyObject* validate_fail( Member* member,
+                                CAtom* atom,
+                                PyStringObject* name,
+                                PyObject* value )
 {
-    PyErr_Format( PyExc_TypeError,
-                  "The '%s' member on the '%s' object must be of type '%s'. "
-                  "Got object of type '%s' instead.",
-                  PyString_AsString( name ),
-                  Py_TYPE( atom )->tp_name,
-                  required_type,
-                  newvalue->ob_type->tp_name );
+    PyErr_Clear();
+    PyObjectPtr ignored( PyObject_CallMethod( ( PyObject* )member,
+                                              "validate_fail",
+                                              "OOO",
+                                              ( PyObject* )atom,
+                                              ( PyObject* )name,
+                                              value ) );
     return 0;
 }
+
+
+#define VALIDATE_FAIL return validate_fail( member, atom, name, value )
 
 
 static PyObject* no_op_handler( Member* member,
                                 CAtom* atom,
                                 PyStringObject* name,
-                                PyObject* oldvalue,
-                                PyObject* newvalue )
+                                PyObject* value )
 {
-    return newref( newvalue );
+    return newref( value );
 }
 
 
 static PyObject* bool_handler( Member* member,
                                CAtom* atom,
                                PyStringObject* name,
-                               PyObject* oldvalue,
-                               PyObject* newvalue )
+                               PyObject* value )
 {
-    if( PyBool_Check( newvalue ) )
+    if( PyBool_Check( value ) )
     {
-        return newref( newvalue );
+        return newref( value );
     }
-    return validate_type_fail( member, atom, name, newvalue, "bool" );
+    VALIDATE_FAIL;
 }
 
 
 static PyObject* int_handler( Member* member,
                               CAtom* atom,
                               PyStringObject* name,
-                              PyObject* oldvalue,
-                              PyObject* newvalue )
+                              PyObject* value )
 {
-    if( PyInt_Check( newvalue ) )
+    if( PyInt_Check( value ) || PyLong_Check( value ) )
     {
-        return newref( newvalue );
+        return newref( value );
     }
-    return validate_type_fail( member, atom, name, newvalue, "int" );
-}
-
-
-static PyObject* int_promote_handler( Member* member,
-                                      CAtom* atom,
-                                      PyStringObject* name,
-                                      PyObject* oldvalue,
-                                      PyObject* newvalue )
-{
-    if( PyInt_Check( newvalue ) )
-    {
-        return newref( newvalue );
-    }
-    if( PyFloat_Check( newvalue ) )
-    {
-        double value = PyFloat_AS_DOUBLE( newvalue );
-        if( value < static_cast<double>( std::numeric_limits<long>::min() ) ||
-            value > static_cast<double>( std::numeric_limits<long>::max() ) )
-        {
-            PyErr_SetString( PyExc_OverflowError,
-                             "Python float too large to convert to C long" );
-            return 0;
-        }
-        return PyInt_FromLong( static_cast<long>( value ) );
-    }
-    if( PyLong_Check( newvalue ) )
-    {
-        long value = PyLong_AsLong( newvalue );
-        if( value == -1 && PyErr_Occurred() )
-        {
-            return 0;
-        }
-        return PyInt_FromLong( value );
-    }
-    return validate_type_fail(
-        member, atom, name, newvalue, "int float or long" );
-}
-
-
-static PyObject* long_handler( Member* member,
-                               CAtom* atom,
-                               PyStringObject* name,
-                               PyObject* oldvalue,
-                               PyObject* newvalue )
-{
-    if( PyLong_Check( newvalue ) )
-    {
-        return newref( newvalue );
-    }
-    return validate_type_fail( member, atom, name, newvalue, "long" );
-}
-
-
-static PyObject* long_promote_handler( Member* member,
-                                       CAtom* atom,
-                                       PyStringObject* name,
-                                       PyObject* oldvalue,
-                                       PyObject* newvalue )
-{
-    if( PyLong_Check( newvalue ) )
-    {
-        return newref( newvalue );
-    }
-    if( PyInt_Check( newvalue ) )
-    {
-        return PyLong_FromLong( PyInt_AS_LONG( newvalue ) );
-    }
-    if( PyFloat_Check( newvalue ) )
-    {
-        return PyLong_FromDouble( PyFloat_AS_DOUBLE( newvalue ) );
-    }
-    return validate_type_fail(
-        member, atom, name, newvalue, "int float or long" );
+    VALIDATE_FAIL;
 }
 
 
 static PyObject* float_handler( Member* member,
                                 CAtom* atom,
                                 PyStringObject* name,
-                                PyObject* oldvalue,
-                                PyObject* newvalue )
+                                PyObject* value )
 {
-    if( PyFloat_Check( newvalue ) )
+    if( PyFloat_Check( value ) )
     {
-        return newref( newvalue );
+        return newref( value );
     }
-    return validate_type_fail( member, atom, name, newvalue, "float" );
+    VALIDATE_FAIL;
 }
 
 
-static PyObject* float_promote_handler( Member* member,
-                                        CAtom* atom,
-                                        PyStringObject* name,
-                                        PyObject* oldvalue,
-                                        PyObject* newvalue )
+static PyObject* bytes_handler( Member* member,
+                                CAtom* atom,
+                                PyStringObject* name,
+                                PyObject* value )
 {
-    if( PyFloat_Check( newvalue ) )
+    if( PyString_Check( value ) )
     {
-        return newref( newvalue );
+        return newref( value );
     }
-    if( PyInt_Check( newvalue ) )
-    {
-        return PyFloat_FromDouble(
-            static_cast<double>( PyInt_AS_LONG( newvalue ) ) );
-    }
-    if( PyLong_Check( newvalue ) )
-    {
-        double value = PyLong_AsDouble( newvalue );
-        if( value == -1.0 && PyErr_Occurred() )
-        {
-            return 0;
-        }
-        return PyFloat_FromDouble( value );
-    }
-    return validate_type_fail(
-        member, atom, name, newvalue, "int float or long" );
+    VALIDATE_FAIL;
 }
 
 
-static PyObject* str_handler( Member* member,
-                              CAtom* atom,
-                              PyStringObject* name,
-                              PyObject* oldvalue,
-                              PyObject* newvalue )
+static PyObject* string_handler( Member* member,
+                                 CAtom* atom,
+                                 PyStringObject* name,
+                                 PyObject* value )
 {
-    if( PyString_Check( newvalue ) )
+    if( PyUnicode_Check( value ) )
     {
-        return newref( newvalue );
+        return newref( value );
     }
-    return validate_type_fail( member, atom, name, newvalue, "str" );
-}
-
-
-static PyObject* str_promote_handler( Member* member,
-                                      CAtom* atom,
-                                      PyStringObject* name,
-                                      PyObject* oldvalue,
-                                      PyObject* newvalue )
-{
-    if( PyString_Check( newvalue ) )
-    {
-        return newref( newvalue );
-    }
-    if( PyUnicode_Check( newvalue ) )
-    {
-        return PyUnicode_AsUTF8String( newvalue );
-    }
-    return validate_type_fail( member, atom, name, newvalue, "str or unicode" );
-}
-
-
-static PyObject* unicode_handler( Member* member,
-                                  CAtom* atom,
-                                  PyStringObject* name,
-                                  PyObject* oldvalue,
-                                  PyObject* newvalue )
-{
-    if( PyUnicode_Check( newvalue ) )
-    {
-        return newref( newvalue );
-    }
-    return validate_type_fail( member, atom, name, newvalue, "unicode" );
-}
-
-
-static PyObject* unicode_promote_handler( Member* member,
-                                          CAtom* atom,
-                                          PyStringObject* name,
-                                          PyObject* oldvalue,
-                                          PyObject* newvalue )
-{
-    if( PyUnicode_Check( newvalue ) )
-    {
-        return newref( newvalue );
-    }
-    if( PyString_Check( newvalue ) )
-    {
-        return PyUnicode_FromString( PyString_AS_STRING( newvalue ) );
-    }
-    return validate_type_fail( member, atom, name, newvalue, "str or unicode" );
+    VALIDATE_FAIL;
 }
 
 
 static PyObject* tuple_handler( Member* member,
                                 CAtom* atom,
                                 PyStringObject* name,
-                                PyObject* oldvalue,
-                                PyObject* newvalue )
+                                PyObject* value )
 {
-    if( !PyTuple_Check( newvalue ) )
+    if( !PyTuple_Check( value ) )
     {
-        return validate_type_fail( member, atom, name, newvalue, "tuple" );
+        VALIDATE_FAIL;
     }
-    PyTuplePtr tupleptr( newref( newvalue ) );
-    if( member->validate_context != Py_None )
+    if( member->validate_context == PyNone )
     {
-        Py_ssize_t size = PyTuple_GET_SIZE( newvalue );
-        PyTuplePtr tuplecopy = PyTuple_New( size );
-        if( !tuplecopy )
-        {
-            return 0;
-        }
-        Member* item_member = member_cast( member->validate_context );
-        for( Py_ssize_t i = 0; i < size; ++i )
-        {
-            PyObjectPtr item( tupleptr.get_item( i ) );
-            PyObjectPtr valid_item(
-                item_member->full_validate( atom, Py_None, item.get() ) );
-            if( !valid_item )
-                return 0;
-            tuplecopy.set_item( i, valid_item );
-        }
-        tupleptr = tuplecopy;
+        return newref( value );
     }
-    return tupleptr.release();
+    Py_ssize_t size = PyTuple_GET_SIZE( value );
+    PyObjectPtr result( PyTuple_New( size ) );
+    if( !result )
+    {
+        return 0; // a memory error is not a validation failure
+    }
+    Member* im = ( Member* )member->validate_context;
+    for( Py_ssize_t i = 0; i < size; ++i )
+    {
+        PyObject* item = PyTuple_GET_ITEM( value, i );
+        item = Member_FullValidate( im, atom, name, item );
+        if( !item )
+        {
+            VALIDATE_FAIL;
+        }
+        PyTuple_SET_ITEM( result.get(), i, item );
+    }
+    return result.release();
 }
 
 
@@ -432,61 +267,72 @@ template <typename ListFactory>
 PyObject* common_list_handler( Member* member,
                                CAtom* atom,
                                PyStringObject* name,
-                               PyObject* oldvalue,
-                               PyObject* newvalue )
+                               PyObject* value )
 {
-    if( !PyList_Check( newvalue ) )
-        return validate_type_fail( member, atom, name, newvalue, "list" );
-    Member* validator = 0;
+    if( !PyList_Check( value ) )
+    {
+        VALIDATE_FAIL;
+    }
+    Member* im = 0;
     if( member->validate_context != Py_None )
-        validator = member_cast( member->validate_context );
-    Py_ssize_t size = PyList_GET_SIZE( newvalue );
-    PyListPtr listptr( ListFactory()( member, atom, validator, size ) );
-    if( !listptr )
-        return 0;
-    if( !validator )
+    {
+        im = ( Member* )member->validate_context;
+    }
+    Py_ssize_t size = PyList_GET_SIZE( value );
+    PyObjectPtr result( ListFactory()( member, atom, im, size ) );
+    if( !result )
+    {
+        return 0; // a memory error is not a validation failure
+    }
+    if( !im )
     {
         for( Py_ssize_t i = 0; i < size; ++i )
-            listptr.set_item( i, newref( PyList_GET_ITEM( newvalue, i ) ) );
+        {
+            PyObject* item = PyList_GET_ITEM( value, i );
+            PyList_SET_ITEM( result.get(), i, newref( item ) );
+        }
     }
     else
     {
         for( Py_ssize_t i = 0; i < size; ++i )
         {
-            PyObject* item = PyList_GET_ITEM( newvalue, i );
-            PyObjectPtr valid_item(
-                validator->full_validate( atom, Py_None, item ) );
-            if( !valid_item )
-                return 0;
-            listptr.set_item( i, valid_item );
+            PyObject* item = PyList_GET_ITEM( value, i );
+            item = Member_FullValidate( im, atom, name, item );
+            if( !item )
+            {
+                VALIDATE_FAIL;
+            }
+            PyList_SET_ITEM( result.get(), i, item );
         }
     }
-    return listptr.release();
+    return result.release();
 }
 
 
 class AtomListFactory
 {
-    public:
+public:
     PyObject* operator()( Member* member,
                           CAtom* atom,
-                          Member* validator,
+                          Member* item_member,
                           Py_ssize_t size )
     {
-        return AtomList_New( size, atom, validator );
+        // return AtomList_New( size, atom, item_member );
+        return PyList_New( size );
     }
 };
 
 
 class AtomCListFactory
 {
-    public:
+public:
     PyObject* operator()( Member* member,
                           CAtom* atom,
-                          Member* validator,
+                          Member* item_member,
                           Py_ssize_t size )
     {
-        return AtomCList_New( size, atom, validator, member );
+        // return AtomCList_New( size, atom, item_member, member );
+        return PyList_New( size );
     }
 };
 
@@ -494,361 +340,369 @@ class AtomCListFactory
 static PyObject* list_handler( Member* member,
                                CAtom* atom,
                                PyStringObject* name,
-                               PyObject* oldvalue,
-                               PyObject* newvalue )
+                               PyObject* value )
 {
-    return common_list_handler<AtomListFactory>(
-        member, atom, oldvalue, newvalue );
+    return common_list_handler<AtomListFactory>( member, atom, name, value );
 }
 
 
 static PyObject* container_list_handler( Member* member,
                                          CAtom* atom,
                                          PyStringObject* name,
-                                         PyObject* oldvalue,
-                                         PyObject* newvalue )
+                                         PyObject* value )
 {
-    return common_list_handler<AtomCListFactory>(
-        member, atom, oldvalue, newvalue );
+    return common_list_handler<AtomCListFactory>( member, atom, name, value );
 }
 
 
-static PyObject* validate_dict_key_value( Member* keymember,
-                                          Member* valmember,
-                                          CAtom* atom,
-                                          PyObject* dict )
+static PyObject* _dict_key_handler( Member* member,
+                                    CAtom* atom,
+                                    PyStringObject* name,
+                                    PyObject* value,
+                                    Member* km )
 {
-    PyObject* key;
-    PyObject* value;
-    Py_ssize_t pos = 0;
-    PyDictPtr newptr( PyDict_New() );
-    if( !newptr )
-        return 0;
-    while( PyDict_Next( dict, &pos, &key, &value ) )
+    PyDictPtr result( PyDict_New() );
+    if( !result )
     {
-        PyObjectPtr keyptr( keymember->full_validate( atom, Py_None, key ) );
-        if( !keyptr )
-            return 0;
-        PyObjectPtr valptr( valmember->full_validate( atom, Py_None, value ) );
-        if( !valptr )
-            return 0;
-        if( !newptr.set_item( keyptr, valptr ) )
-            return 0;
+        return 0; // not a validation failure
     }
-    return newptr.release();
+    PyObject* key;
+    PyObject* val;
+    Py_ssize_t pos = 0;
+    while( PyDict_Next( value, &pos, &key, &val ) )
+    {
+        PyObjectPtr vkey( Member_FullValidate( km, atom, name, key ) );
+        if( !vkey )
+        {
+            VALIDATE_FAIL;
+        }
+        PyObjectPtr vval( newref( val ) );
+        if( !result.set_item( vkey, vval ) )
+        {
+            return 0; // not a validation failure
+        }
+    }
+    return result.release();
 }
 
 
-static PyObject*
-validate_dict_value( Member* valmember, CAtom* atom, PyObject* dict )
+static PyObject* _dict_val_handler( Member* member,
+                                    CAtom* atom,
+                                    PyStringObject* name,
+                                    PyObject* value,
+                                    Member* vm )
 {
-    PyObject* key;
-    PyObject* value;
-    Py_ssize_t pos = 0;
-    PyDictPtr newptr( PyDict_New() );
-    if( !newptr )
-        return 0;
-    while( PyDict_Next( dict, &pos, &key, &value ) )
+    PyDictPtr result( PyDict_New() );
+    if( !result )
     {
-        PyObjectPtr keyptr( newref( key ) );
-        PyObjectPtr valptr( valmember->full_validate( atom, Py_None, value ) );
-        if( !valptr )
-            return 0;
-        if( !newptr.set_item( keyptr, valptr ) )
-            return 0;
+        return 0; // not a validation failure
     }
-    return newptr.release();
+    PyObject* key;
+    PyObject* val;
+    Py_ssize_t pos = 0;
+    while( PyDict_Next( value, &pos, &key, &val ) )
+    {
+        PyObjectPtr vval( Member_FullValidate( vm, atom, name, val ) );
+        if( !vval )
+        {
+            VALIDATE_FAIL;
+        }
+        PyObjectPtr vkey( newref( key ) );
+        if( !result.set_item( vkey, vval ) )
+        {
+            return 0; // not a validation failure
+        }
+    }
+    return result.release();
 }
 
 
-static PyObject*
-validate_dict_key( Member* keymember, CAtom* atom, PyObject* dict )
+static PyObject* _dict_key_val_handler( Member* member,
+                                        CAtom* atom,
+                                        PyStringObject* name,
+                                        PyObject* value,
+                                        Member* km,
+                                        Member* vm )
 {
-    PyObject* key;
-    PyObject* value;
-    Py_ssize_t pos = 0;
-    PyDictPtr newptr( PyDict_New() );
-    if( !newptr )
-        return 0;
-    while( PyDict_Next( dict, &pos, &key, &value ) )
+    PyDictPtr result( PyDict_New() );
+    if( !result )
     {
-        PyObjectPtr keyptr( keymember->full_validate( atom, Py_None, key ) );
-        if( !keyptr )
-            return 0;
-        PyObjectPtr valptr( newref( value ) );
-        if( !newptr.set_item( keyptr, valptr ) )
-            return 0;
+        return 0; // not a validation failure
     }
-    return newptr.release();
+    PyObject* key;
+    PyObject* val;
+    Py_ssize_t pos = 0;
+    while( PyDict_Next( value, &pos, &key, &val ) )
+    {
+        PyObjectPtr vkey( Member_FullValidate( km, atom, name, key ) );
+        if( !vkey )
+        {
+            VALIDATE_FAIL;
+        }
+        PyObjectPtr vval( Member_FullValidate( vm, atom, name, val ) );
+        if( !vval )
+        {
+            VALIDATE_FAIL;
+        }
+        if( !result.set_item( vkey, vval ) )
+        {
+            return 0; // not a validation failure
+        }
+    }
+    return result.release();
 }
 
 
 static PyObject* dict_handler( Member* member,
                                CAtom* atom,
                                PyStringObject* name,
-                               PyObject* oldvalue,
-                               PyObject* newvalue )
+                               PyObject* value )
 {
-    if( !PyDict_Check( newvalue ) )
-        return validate_type_fail( member, atom, name, newvalue, "dict" );
-    PyObject* k = PyTuple_GET_ITEM( member->validate_context, 0 );
-    PyObject* v = PyTuple_GET_ITEM( member->validate_context, 1 );
-    if( k != Py_None && v != Py_None )
-        return validate_dict_key_value(
-            member_cast( k ), member_cast( v ), atom, newvalue );
-    if( v != Py_None )
-        return validate_dict_value( member_cast( v ), atom, newvalue );
-    if( k != Py_None )
-        return validate_dict_key( member_cast( k ), atom, newvalue );
-    return PyDict_Copy( newvalue );
+    if( !PyDict_Check( value ) )
+    {
+        VALIDATE_FAIL;
+    }
+    PyObject* km = PyTuple_GET_ITEM( member->validate_context, 0 );
+    PyObject* vm = PyTuple_GET_ITEM( member->validate_context, 1 );
+    if( km != Py_None && vm != Py_None )
+    {
+        return _dict_key_val_handler( member, atom, name, value, km, vm );
+    }
+    if( km != Py_None )
+    {
+        return _dict_key_handler( member, atom, name, value, km );
+    }
+    if( vm != Py_None )
+    {
+        return _dict_val_handler( member, atom, name, value, vm );
+    }
+    return PyDict_Copy( value );
 }
 
 
 static PyObject* instance_handler( Member* member,
                                    CAtom* atom,
                                    PyStringObject* name,
-                                   PyObject* oldvalue,
-                                   PyObject* newvalue )
+                                   PyObject* value )
 {
-    if( newvalue == Py_None )
-        return newref( newvalue );
-    int res = PyObject_IsInstance( newvalue, member->validate_context );
-    if( res < 0 )
-        return 0;
-    if( res == 1 )
-        return newref( newvalue );
-    return py_type_fail( "invalid instance type" );
+    if( value == Py_None )
+    {
+        return newref( value );
+    }
+    if( PyObject_IsInstance( value, member->validate_context ) == 1 )
+    {
+        return newref( value );
+    }
+    VALIDATE_FAIL;
 }
 
 
 static PyObject* typed_handler( Member* member,
                                 CAtom* atom,
                                 PyStringObject* name,
-                                PyObject* oldvalue,
-                                PyObject* newvalue )
+                                PyObject* value )
 {
-    if( newvalue == Py_None )
-        return newref( newvalue );
-    PyTypeObject* type = pytype_cast( member->validate_context );
-    if( PyObject_TypeCheck( newvalue, type ) )
-        return newref( newvalue );
-    return validate_type_fail( member, atom, name, newvalue, type->tp_name );
+    if( value == Py_None )
+    {
+        return newref( value );
+    }
+    if( PyObject_TypeCheck( value, ( PyTypeObject* )member->validate_context ) )
+    {
+        return newref( value );
+    }
+    VALIDATE_FAIL;
 }
 
 
 static PyObject* subclass_handler( Member* member,
                                    CAtom* atom,
                                    PyStringObject* name,
-                                   PyObject* oldvalue,
-                                   PyObject* newvalue )
+                                   PyObject* value )
 {
-    int res = PyObject_IsSubclass( newvalue, member->validate_context );
-    if( res < 0 )
-        return 0;
-    if( res == 1 )
-        return newref( newvalue );
-    return py_type_fail( "invalid subclass type" );
+    if( PyObject_IsSubclass( value, member->validate_context ) == 1 )
+    {
+        return newref( value );
+    }
+    VALIDATE_FAIL;
 }
 
 
 static PyObject* enum_handler( Member* member,
                                CAtom* atom,
                                PyStringObject* name,
-                               PyObject* oldvalue,
-                               PyObject* newvalue )
+                               PyObject* value )
 {
-    int res = PySequence_Contains( member->validate_context, newvalue );
-    if( res < 0 )
-        return 0;
-    if( res == 1 )
-        return newref( newvalue );
-    return py_value_fail( "invalid enum value" );
+    if( PySequence_Contains( member->validate_context, value ) == 1 )
+    {
+        return newref( value );
+    }
+    VALIDATE_FAIL;
 }
 
 
 static PyObject* callable_handler( Member* member,
                                    CAtom* atom,
                                    PyStringObject* name,
-                                   PyObject* oldvalue,
-                                   PyObject* newvalue )
+                                   PyObject* value )
 {
-    if( newvalue == Py_None )
-        return newref( newvalue );
-    if( PyCallable_Check( newvalue ) )
-        return newref( newvalue );
-    return validate_type_fail( member, atom, name, newvalue, "callable" );
-}
-
-
-static PyObject* float_range_handler( Member* member,
-                                      CAtom* atom,
-                                      PyStringObject* name,
-                                      PyObject* oldvalue,
-                                      PyObject* newvalue )
-{
-    if( !PyFloat_Check( newvalue ) )
-        return validate_type_fail( member, atom, name, newvalue, "float" );
-    PyObject* low = PyTuple_GET_ITEM( member->validate_context, 0 );
-    PyObject* high = PyTuple_GET_ITEM( member->validate_context, 1 );
-    double value = PyFloat_AS_DOUBLE( newvalue );
-    if( low != Py_None )
+    if( value == Py_None || PyCallable_Check( value ) )
     {
-        if( PyFloat_AS_DOUBLE( low ) > value )
-            return py_type_fail( "range value too small" );
+        return newref( value );
     }
-    if( high != Py_None )
-    {
-        if( PyFloat_AS_DOUBLE( high ) < value )
-            return py_type_fail( "range value too large" );
-    }
-    return newref( newvalue );
+    VALIDATE_FAIL;
 }
 
 
 static PyObject* range_handler( Member* member,
                                 CAtom* atom,
                                 PyStringObject* name,
-                                PyObject* oldvalue,
-                                PyObject* newvalue )
+                                PyObject* value )
 {
-    if( !PyInt_Check( newvalue ) )
-        return validate_type_fail( member, atom, name, newvalue, "int" );
+    // XXX handle longs
+    if( !PyInt_Check( value ) )
+    {
+        VALIDATE_FAIL;
+    }
     PyObject* low = PyTuple_GET_ITEM( member->validate_context, 0 );
     PyObject* high = PyTuple_GET_ITEM( member->validate_context, 1 );
-    long value = PyInt_AS_LONG( newvalue );
     if( low != Py_None )
     {
-        if( PyInt_AS_LONG( low ) > value )
-            return py_type_fail( "range value too small" );
+        if( PyInt_AS_LONG( low ) > PyInt_AS_LONG( value ) )
+        {
+            VALIDATE_FAIL;
+        }
     }
     if( high != Py_None )
     {
-        if( PyInt_AS_LONG( high ) < value )
-            return py_type_fail( "range value too large" );
+        if( PyInt_AS_LONG( high ) < PyInt_AS_LONG( value ) )
+        {
+            VALIDATE_FAIL;
+        }
     }
-    return newref( newvalue );
+    return newref( value );
+}
+
+
+static PyObject* float_range_handler( Member* member,
+                                      CAtom* atom,
+                                      PyStringObject* name,
+                                      PyObject* value )
+{
+    if( !PyFloat_Check( value ) )
+    {
+        VALIDATE_FAIL;
+    }
+    PyObject* low = PyTuple_GET_ITEM( member->validate_context, 0 );
+    PyObject* high = PyTuple_GET_ITEM( member->validate_context, 1 );
+    if( low != Py_None )
+    {
+        if( PyFloat_AS_DOUBLE( low ) > PyFloat_AS_DOUBLE( value ) )
+        {
+            VALIDATE_FAIL;
+        }
+    }
+    if( high != Py_None )
+    {
+        if( PyFloat_AS_DOUBLE( high ) < PyFloat_AS_DOUBLE( value ) )
+        {
+            VALIDATE_FAIL;
+        }
+    }
+    return newref( value );
 }
 
 
 static PyObject* coerced_handler( Member* member,
                                   CAtom* atom,
                                   PyStringObject* name,
-                                  PyObject* oldvalue,
-                                  PyObject* newvalue )
+                                  PyObject* value )
 {
     PyObject* type = PyTuple_GET_ITEM( member->validate_context, 0 );
-    int res = PyObject_IsInstance( newvalue, type );
+    int res = PyObject_IsInstance( value, type );
     if( res == 1 )
-        return newref( newvalue );
+    {
+        return newref( value );
+    }
     if( res == -1 )
+    {
+        VALIDATE_FAIL;
+    }
+    PyObjectPtr args( PyTuple_New( 1 ) );
+    if( !args )
+    {
         return 0;
-    PyTuplePtr argsptr( PyTuple_New( 1 ) );
-    if( !argsptr )
-        return 0;
-    argsptr.initialize( 0, newref( newvalue ) );
+    }
+    PyTuple_SET_ITEM( args.get(), 0, newref( value ) );
     PyObject* coercer = PyTuple_GET_ITEM( member->validate_context, 1 );
-    PyObjectPtr callable( newref( coercer ) );
-    PyObjectPtr coerced( callable( argsptr ) );
+    PyObjectPtr coerced( PyObject_Call( coercer, args.get(), 0 ) );
     if( !coerced )
-        return 0;
-    res = PyObject_IsInstance( coerced.get(), type );
-    if( res == 1 )
+    {
+        VALIDATE_FAIL;
+    }
+    if( PyObject_IsInstance( coerced.get(), type ) == 1 )
+    {
         return coerced.release();
-    if( res == -1 )
-        return 0;
-    return py_type_fail( "could not coerce value to an appropriate type" );
+    }
+    VALIDATE_FAIL;
 }
 
 
-static PyObject* delegate_handler( Member* member,
-                                   CAtom* atom,
-                                   PyStringObject* name,
-                                   PyObject* oldvalue,
-                                   PyObject* newvalue )
+static PyObject* object_method_handler( Member* member,
+                                        CAtom* atom,
+                                        PyStringObject* name,
+                                        PyObject* value )
 {
-    Member* delegate = member_cast( member->validate_context );
-    return delegate->validate( atom, oldvalue, newvalue );
-}
-
-
-static PyObject* object_method_old_new_handler( Member* member,
-                                                CAtom* atom,
-                                                PyStringObject* name,
-                                                PyObject* oldvalue,
-                                                PyObject* newvalue )
-{
-    PyObjectPtr callable(
-        PyObject_GetAttr( pyobject_cast( atom ), member->validate_context ) );
-    if( !callable )
+    PyObjectPtr method(
+        PyObject_GetAttr( ( PyObject* )atom, member->validate_context ) );
+    if( !method )
+    {
         return 0;
-    PyTuplePtr args( PyTuple_New( 2 ) );
+    }
+    PyObjectPtr args( PyTuple_New( 1 ) );
     if( !args )
+    {
         return 0;
-    args.initialize( 0, newref( oldvalue ) );
-    args.initialize( 1, newref( newvalue ) );
-    return callable( args ).release();
+    }
+    PyTuple_SET_ITEM( args.get(), 0, newref( value ) );
+    return PyObject_Call( method.get(), args.get(), 0 );
 }
 
 
-static PyObject* object_method_name_old_new_handler( Member* member,
-                                                     CAtom* atom,
-                                                     PyStringObject* name,
-                                                     PyObject* oldvalue,
-                                                     PyObject* newvalue )
+static PyObject* member_method_handler( Member* member,
+                                        CAtom* atom,
+                                        PyStringObject* name,
+                                        PyObject* value )
 {
-    PyObjectPtr callable(
-        PyObject_GetAttr( pyobject_cast( atom ), member->validate_context ) );
-    if( !callable )
+    PyObjectPtr method(
+        PyObject_GetAttr( ( PyObject* )member, member->validate_context ) );
+    if( !method )
+    {
         return 0;
-    PyTuplePtr args( PyTuple_New( 3 ) );
+    }
+    PyObjectPtr args( PyTuple_New( 3 ) );
     if( !args )
+    {
         return 0;
-    args.initialize( 0, newref( member->name ) );
-    args.initialize( 1, newref( oldvalue ) );
-    args.initialize( 2, newref( newvalue ) );
-    return callable( args ).release();
-}
-
-
-static PyObject* member_method_object_old_new_handler( Member* member,
-                                                       CAtom* atom,
-                                                       PyStringObject* name,
-                                                       PyObject* oldvalue,
-                                                       PyObject* newvalue )
-{
-    PyObjectPtr callable(
-        PyObject_GetAttr( pyobject_cast( member ), member->validate_context ) );
-    if( !callable )
-        return 0;
-    PyTuplePtr args( PyTuple_New( 3 ) );
-    if( !args )
-        return 0;
-    args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    args.initialize( 1, newref( oldvalue ) );
-    args.initialize( 2, newref( newvalue ) );
-    return callable( args ).release();
+    }
+    PyTuple_SET_ITEM( args.get(), 0, newref( ( PyObject* )atom ) );
+    PyTuple_SET_ITEM( args.get(), 1, newref( ( PyObject* )name ) );
+    PyTuple_SET_ITEM( args.get(), 2, newref( value ) );
+    return PyObject_Call( method.get(), args.get(), 0 );
 }
 
 
 typedef PyObject* ( *ValidateHandler )( Member* member,
                                         CAtom* atom,
                                         PyStringObject* name,
-                                        PyObject* oldvalue,
-                                        PyObject* newvalue );
+                                        PyObject* value );
 
 
 static ValidateHandler vld_handlers[] = {no_op_handler,
                                          bool_handler,
                                          int_handler,
-                                         int_promote_handler,
-                                         long_handler,
-                                         long_promote_handler,
                                          float_handler,
-                                         float_promote_handler,
-                                         str_handler,
-                                         str_promote_handler,
-                                         unicode_handler,
-                                         unicode_promote_handler,
+                                         bytes_handler,
+                                         string_handler,
                                          tuple_handler,
                                          list_handler,
                                          container_list_handler,
@@ -858,22 +712,18 @@ static ValidateHandler vld_handlers[] = {no_op_handler,
                                          subclass_handler,
                                          enum_handler,
                                          callable_handler,
-                                         float_range_handler,
                                          range_handler,
+                                         float_range_handler,
                                          coerced_handler,
-                                         delegate_handler,
-                                         object_method_old_new_handler,
-                                         object_method_name_old_new_handler,
-                                         member_method_object_old_new_handler};
+                                         object_method_handler,
+                                         member_method_handler};
 
 
 // new ref on success, null and exception on failure
 PyObject* Member_Validate( Member* member,
                            CAtom* atom,
                            PyStringObject* name,
-                           PyObject* oldvalue,
-                           PyObject* newvalue )
+                           PyObject* value )
 {
-    return vld_handlers[member->validate_mode](
-        member, atom, name, oldvalue, newvalue );
+    return vld_handlers[member->validate_mode]( member, atom, name, value );
 }

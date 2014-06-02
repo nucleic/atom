@@ -94,7 +94,7 @@ dict_handler( Member* member, CAtom* atom, PyStringObject* name )
 static PyObject*
 call_object_handler( Member* member, CAtom* atom, PyStringObject* name )
 {
-    PyTuplePtr args( PyTuple_New( 0 ) );
+    PyObjectPtr args( PyTuple_New( 0 ) );
     if( !args )
     {
         return 0;
@@ -106,38 +106,38 @@ call_object_handler( Member* member, CAtom* atom, PyStringObject* name )
 static PyObject*
 object_method_handler( Member* member, CAtom* atom, PyStringObject* name )
 {
-    PyObjectPtr callable(
+    PyObjectPtr method(
         PyObject_GetAttr( ( PyObject* )atom, member->default_value_context ) );
-    if( !callable )
+    if( !method )
     {
         return 0;
     }
-    PyTuplePtr args( PyTuple_New( 0 ) );
+    PyObjectPtr args( PyTuple_New( 0 ) );
     if( !args )
     {
         return 0;
     }
-    return callable( args ).release();
+    return PyObject_Call( method.get(), args.get(), 0 );
 }
 
 
 static PyObject*
 member_method_handler( Member* member, CAtom* atom, PyStringObject* name )
 {
-    PyObjectPtr callable( PyObject_GetAttr( ( PyObject* )member,
-                                            member->default_value_context ) );
-    if( !callable )
+    PyObjectPtr method( PyObject_GetAttr( ( PyObject* )member,
+                                          member->default_value_context ) );
+    if( !method )
     {
         return 0;
     }
-    PyTuplePtr args( PyTuple_New( 2 ) );
+    PyObjectPtr args( PyTuple_New( 2 ) );
     if( !args )
     {
         return 0;
     }
-    args.initialize( 0, newref( ( PyObject* )atom ) );
-    args.initialize( 1, newref( ( PyObject* )name ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, ( PyObject* )atom );
+    PyTuple_SET_ITEM( args.get(), 1, ( PyObject* )name );
+    return PyObject_Call( method.get(), args.get(), 0 );
 }
 
 
