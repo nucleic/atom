@@ -20,7 +20,9 @@ enum Mode
     NoOp,
     Bool,
     Int,
+    IntCast,
     Float,
+    FloatCast,
     Bytes,
     String,
     Tuple,
@@ -37,7 +39,11 @@ enum Mode
     Coerced,
     ObjectMethod,
     MemberMethod,
-    Last // sentinel
+    Str,            // deprecated
+    StrPromote,     // deprecated
+    Unicode,        // deprecated
+    UnicodePromote, // deprecated
+    Last            // sentinel
 };
 
 } // namespace Validate
