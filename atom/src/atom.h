@@ -14,13 +14,13 @@
 struct ClassMap;
 
 
-int import_catom();
+int import_atom();
 
 
-extern PyTypeObject CAtom_Type;
+extern PyTypeObject Atom_Type;
 
 
-struct CAtom
+struct Atom
 {
     enum Flag
     {};
@@ -32,19 +32,19 @@ struct CAtom
 };
 
 
-inline int CAtom_Check( PyObject* op )
+inline int Atom_Check( PyObject* op )
 {
-    return PyObject_TypeCheck( op, &CAtom_Type );
+    return PyObject_TypeCheck( op, &Atom_Type );
 }
 
 
-inline bool CAtom_TestFlag( CAtom* atom, CAtom::Flag flag )
+inline bool Atom_TestFlag( Atom* atom, Atom::Flag flag )
 {
     return ( atom->flags & static_cast<uint32_t>( flag ) ) != 0;
 }
 
 
-inline void CAtom_SetFlag( CAtom* atom, CAtom::Flag flag, bool on = true )
+inline void Atom_SetFlag( Atom* atom, Atom::Flag flag, bool on = true )
 {
     if( on )
     {
