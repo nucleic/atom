@@ -13,11 +13,11 @@ ext_modules = [
     Extension(
         'atom.catom',
         [
-            'atom/src/catom.cpp',
+            'atom/src/atom.cpp',
             'atom/src/catom_module.cpp',
             'atom/src/class_map.cpp',
-            'atom/src/default_value_behavior.cpp',
             'atom/src/member.cpp',
+            'atom/src/null_object.cpp',
         ],
         language='c++',
     ),

@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 import copy_reg
 
-from .catom import CAtom, ClassMap, Member
+from .catom import Atom as CAtom, ClassMap, Member
 
 
 #: The string key constant used to store the type member dictionary.

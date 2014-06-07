@@ -6,6 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
+
 #include <cstring>
 #include <Python.h>
 #include "inttypes.h"
@@ -14,19 +15,14 @@
 namespace utils
 {
 
-inline bool
-basestring_check( PyObject* obj )
+inline bool basestring_check( PyObject* obj )
 {
-    return (
-        PyString_CheckExact( obj ) ||
-        PyUnicode_CheckExact( obj ) ||
-        PyObject_TypeCheck( obj, &PyBaseString_Type )
-    );
+    return ( PyString_CheckExact( obj ) || PyUnicode_CheckExact( obj ) ||
+             PyObject_TypeCheck( obj, &PyBaseString_Type ) );
 }
 
 
-inline uint32_t
-next_power_of_2( uint32_t n )  // n must be greater than zero
+inline uint32_t next_power_of_2( uint32_t n ) // n must be greater than zero
 {
     n = n - 1;
     n = n | ( n >> 1 );
@@ -38,11 +34,10 @@ next_power_of_2( uint32_t n )  // n must be greater than zero
 }
 
 
-inline size_t
-pystr_hash( PyStringObject* op )
+inline size_t pystr_hash( PyStringObject* op )
 {
     long hash = op->ob_shash;
-    if( hash == -1)
+    if( hash == -1 )
     {
         hash = PyObject_Hash( ( PyObject* )op );
     }
@@ -50,8 +45,7 @@ pystr_hash( PyStringObject* op )
 }
 
 
-inline bool
-pystr_equal( PyStringObject* a, PyStringObject* b )
+inline bool pystr_equal( PyStringObject* a, PyStringObject* b )
 {
     if( a == b )
     {

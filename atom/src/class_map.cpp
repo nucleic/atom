@@ -6,7 +6,6 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <algorithm>
-#include <cstring>
 #include <Python.h>
 #include "pythonhelpers.h"
 #include "inttypes.h"
@@ -100,13 +99,11 @@ ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     {
         return py_expected_type_fail( members, "dict" );
     }
-
     PyObjectPtr self_ptr( PyType_GenericNew( type, 0, 0 ) );
     if( !self_ptr )
     {
         return 0;
     }
-
     uint32_t dsize = static_cast<uint32_t>( PyDict_Size( members ) );
     uint32_t count = std::max( dsize, static_cast<uint32_t>( 3 ) );
     uint32_t allocated = utils::next_power_of_2( count * 4 / 3 );
@@ -120,7 +117,6 @@ ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     ClassMap* map = ( ClassMap* )self_ptr.get();
     map->entries = ( ClassMapEntry* )entrymem;
     map->allocated = allocated;
-
     PyObject* key;
     PyObject* value;
     Py_ssize_t pos = 0;
@@ -200,7 +196,8 @@ static PyMethodDef ClassMap_methods[] = {
 
 
 PyTypeObject ClassMap_Type = {
-    PyObject_HEAD_INIT( &PyType_Type )0,     /* ob_size */
+    PyObject_HEAD_INIT( &PyType_Type )       /* header */
+    0,                                       /* ob_size */
     "atom.catom.ClassMap",                   /* tp_name */
     sizeof( ClassMap ),                      /* tp_basicsize */
     0,                                       /* tp_itemsize */

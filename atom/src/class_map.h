@@ -38,7 +38,7 @@ inline int ClassMap_Check( PyObject* op )
 }
 
 
-// member count will never change after descriptor is created
+// member count will never change after map is created
 inline uint32_t ClassMap_MemberCount( ClassMap* map )
 {
     return map->member_count;

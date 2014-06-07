@@ -6,9 +6,10 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <Python.h>
-#include "catom.h"
+#include "atom.h"
 #include "class_map.h"
 #include "member.h"
+#include "null_object.h"
 
 #include "ignoredwarnings.h"
 
@@ -33,16 +34,18 @@ PyMODINIT_FUNC initcatom( void )
     {
         return;
     }
-    if( import_catom() < 0 )
+    if( import_atom() < 0 )
     {
         return;
     }
 
     Py_INCREF( &Member_Type );
     Py_INCREF( &ClassMap_Type );
-    Py_INCREF( &CAtom_Type );
+    Py_INCREF( &Atom_Type );
+    Py_INCREF( NullObject );
 
     PyModule_AddObject( mod, "Member", ( PyObject* )&Member_Type );
     PyModule_AddObject( mod, "ClassMap", ( PyObject* )&ClassMap_Type );
-    PyModule_AddObject( mod, "CAtom", ( PyObject* )&CAtom_Type );
+    PyModule_AddObject( mod, "Atom", ( PyObject* )&Atom_Type );
+    PyModule_AddObject( mod, "null", NullObject );
 }

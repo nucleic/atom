@@ -143,8 +143,7 @@ static PyObject* validation_error( Member* member,
                                               value ) );
     if( !PyErr_Occurred() )
     {
-        PyErr_SetString( PyExc_TypeError,
-                         "member failed to raise validation error" )
+        PyErr_SetString( PyExc_TypeError, "validation error" );
     }
     return 0;
 }
