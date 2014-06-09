@@ -5,21 +5,18 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-#include <Python.h>
-#include "pythonhelpers.h"
+#include <cppy/cppy.h>
 #include "member.h"
 
-#include "ignoredwarnings.h"
 
+namespace
+{
 
-using namespace PythonHelpers;
-
-
-static int Member_init( PyObject* self, PyObject* args, PyObject* kwargs )
+int Member_init( PyObject* self, PyObject* args, PyObject* kwargs )
 {
     if( PyTuple_GET_SIZE( args ) > 0 )
     {
-        py_type_fail( "__init__() takes no positional arguments" );
+        cppy::type_error( "__init__() takes no positional arguments" );
         return -1;
     }
     if( kwargs )
@@ -39,7 +36,7 @@ static int Member_init( PyObject* self, PyObject* args, PyObject* kwargs )
 }
 
 
-static void Member_clear( Member* self )
+void Member_clear( Member* self )
 {
     Py_CLEAR( self->default_handler );
     Py_CLEAR( self->validate_handler );
@@ -48,7 +45,7 @@ static void Member_clear( Member* self )
 }
 
 
-static int Member_traverse( Member* self, visitproc visit, void* arg )
+int Member_traverse( Member* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->default_handler );
     Py_VISIT( self->validate_handler );
@@ -58,7 +55,7 @@ static int Member_traverse( Member* self, visitproc visit, void* arg )
 }
 
 
-static void Member_dealloc( Member* self )
+void Member_dealloc( Member* self )
 {
     PyObject_GC_UnTrack( self );
     Member_clear( self );
@@ -66,86 +63,79 @@ static void Member_dealloc( Member* self )
 }
 
 
-static inline PyObject* _get_handler( PyObject** ref )
+inline PyObject* get_handler( PyObject** ref )
 {
-    return newref( *ref ? *ref : Py_None );
+    return cppy::incref( *ref ? *ref : Py_None );
 }
 
 
-static inline int _set_handler( PyObject** ref, PyObject* value )
+inline int set_handler( PyObject** ref, PyObject* handler )
 {
-    if( !value || value == Py_None )
+    if( !handler || handler == Py_None )
     {
-        PyObject* old = *ref;
-        *ref = 0;
-        Py_XDECREF( old );
+        cppy::clear( ref );
         return 0;
     }
-    if( !PyCallable_Check( value ) )
+    if( !PyCallable_Check( handler ) )
     {
-        py_expected_type_fail( value, "callable" );
+        cppy::type_error( handler, "callable" );
         return -1;
     }
-    PyObject* old = *ref;
-    *ref = newref( value );
-    Py_XDECREF( old );
+    cppy::replace( ref, handler );
     return 0;
 }
 
 
-static PyObject* Member_get_default_handler( Member* self, void* ctxt )
+PyObject* Member_get_default_handler( Member* self, void* ctxt )
 {
-    return _get_handler( &self->default_handler );
+    return get_handler( &self->default_handler );
 }
 
 
-static int
-Member_set_default_handler( Member* self, PyObject* value, void* ctxt )
+int Member_set_default_handler( Member* self, PyObject* value, void* ctxt )
 {
-    return _set_handler( &self->default_handler, value );
+    return set_handler( &self->default_handler, value );
 }
 
 
-static PyObject* Member_get_validate_handler( Member* self, void* ctxt )
+PyObject* Member_get_validate_handler( Member* self, void* ctxt )
 {
-    return _get_handler( &self->validate_handler );
+    return get_handler( &self->validate_handler );
 }
 
 
-static int
-Member_set_validate_handler( Member* self, PyObject* value, void* ctxt )
+int Member_set_validate_handler( Member* self, PyObject* value, void* ctxt )
 {
-    return _set_handler( &self->validate_handler, value );
+    return set_handler( &self->validate_handler, value );
 }
 
 
-static PyObject* Member_get_post_validate_handler( Member* self, void* ctxt )
+PyObject* Member_get_post_validate_handler( Member* self, void* ctxt )
 {
-    return _get_handler( &self->post_validate_handler );
+    return get_handler( &self->post_validate_handler );
 }
 
 
-static int
+int
 Member_set_post_validate_handler( Member* self, PyObject* value, void* ctxt )
 {
-    return _set_handler( &self->post_validate_handler, value );
+    return set_handler( &self->post_validate_handler, value );
 }
 
 
-static PyObject* Member_get_post_setattr_handler( Member* self, void* ctxt )
+PyObject* Member_get_post_setattr_handler( Member* self, void* ctxt )
 {
-    return _get_handler( &self->post_setattr_handler );
+    return get_handler( &self->post_setattr_handler );
 }
 
 
-static int
-Member_set_post_setattr_handler( Member* self, PyObject* value, void* ctxt )
+int Member_set_post_setattr_handler( Member* self, PyObject* value, void* ctxt )
 {
-    return _set_handler( &self->post_setattr_handler, value );
+    return set_handler( &self->post_setattr_handler, value );
 }
 
 
-static PyGetSetDef Member_getset[] = {
+PyGetSetDef Member_getset[] = {
     {"default_handler",
      ( getter )Member_get_default_handler,
      ( setter )Member_set_default_handler,
@@ -164,6 +154,8 @@ static PyGetSetDef Member_getset[] = {
      "Get and set the default value handler for the member."},
     {0} // sentinel
 };
+
+} // namespace
 
 
 PyTypeObject Member_Type = {

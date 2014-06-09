@@ -6,18 +6,15 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <algorithm>
-#include <Python.h>
-#include "pythonhelpers.h"
-#include "inttypes.h"
+#include <string.h>
+#include <cppy/cppy.h>
+#include <utils/utils.h>
 #include "class_map.h"
 #include "member.h"
-#include "utils.h"
-
-#include "ignoredwarnings.h"
 
 
-using namespace PythonHelpers;
-
+namespace
+{
 
 struct ClassMapEntry
 {
@@ -26,18 +23,34 @@ struct ClassMapEntry
     uint32_t index;
 };
 
+} // namespace
 
-// borrowed member + index on success, untouched on failure
-void ClassMap_LookupMember( ClassMap* map,
-                            PyStringObject* name,
-                            Member** member,
-                            uint32_t* index )
+
+struct ClassMap
+{
+    PyObject_HEAD;
+    ClassMapEntry* entries;
+    uint32_t allocated;
+    uint32_t count;
+};
+
+
+uint32_t ClassMap_Count( ClassMap* map )
+{
+    return map->count;
+}
+
+
+void ClassMap_Lookup( ClassMap* map,
+                      PyStringObject* name,
+                      Member** member,
+                      uint32_t* index )
 {
     uint32_t mask = map->allocated - 1;
     uint32_t hash = utils::pystr_hash( name );
     uint32_t bucket = hash & mask;
     ClassMapEntry* base = map->entries;
-    while( true ) // table is never full, thus will always terminate in-loop
+    while( true ) // table is never full - always terminates in loop
     {
         ClassMapEntry* entry = base + bucket;
         if( !entry->name )
@@ -57,23 +70,25 @@ void ClassMap_LookupMember( ClassMap* map,
 }
 
 
-// always succeeds
-static void insert_member( ClassMap* map, PyStringObject* name, Member* member )
+namespace
 {
-    // The table is pre-allocated with guaranteed sufficient space
-    // and no two keys will be equal while populating the table.
+
+void insert_member( ClassMap* map, PyStringObject* name, Member* member )
+{
     uint32_t mask = map->allocated - 1;
     uint32_t hash = utils::pystr_hash( name );
     uint32_t bucket = hash & mask;
     ClassMapEntry* base = map->entries;
-    while( true ) // table is never full, thus will always terminate in-loop
+    while( true ) // table is never full - always terminates in loop
     {
+        // The table is pre-allocated with guaranteed sufficient space
+        // and no two keys will be equal while populating the table.
         ClassMapEntry* entry = base + bucket;
         if( !entry->name )
         {
             entry->name = name;
             entry->member = member;
-            entry->index = map->member_count++;
+            entry->index = map->count++;
             Py_INCREF( name );
             Py_INCREF( member );
             return;
@@ -85,8 +100,7 @@ static void insert_member( ClassMap* map, PyStringObject* name, Member* member )
 }
 
 
-static PyObject*
-ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
+PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     static char* kwlist[] = {"members", 0};
     PyObject* members;
@@ -97,15 +111,15 @@ ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     }
     if( !PyDict_CheckExact( members ) )
     {
-        return py_expected_type_fail( members, "dict" );
+        return cppy::type_error( members, "dict" );
     }
-    PyObjectPtr self_ptr( PyType_GenericNew( type, 0, 0 ) );
+    cppy::ptr self_ptr( PyType_GenericNew( type, 0, 0 ) );
     if( !self_ptr )
     {
         return 0;
     }
-    uint32_t dsize = static_cast<uint32_t>( PyDict_Size( members ) );
-    uint32_t count = std::max( dsize, static_cast<uint32_t>( 3 ) );
+    uint32_t size = static_cast<uint32_t>( PyDict_Size( members ) );
+    uint32_t count = std::max( size, static_cast<uint32_t>( 3 ) );
     uint32_t allocated = utils::next_power_of_2( count * 4 / 3 );
     size_t memsize = sizeof( ClassMapEntry ) * allocated;
     void* entrymem = PyObject_Malloc( memsize );
@@ -114,8 +128,8 @@ ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         return PyErr_NoMemory();
     }
     memset( entrymem, 0, memsize );
-    ClassMap* map = ( ClassMap* )self_ptr.get();
-    map->entries = ( ClassMapEntry* )entrymem;
+    ClassMap* map = reinterpret_cast<ClassMap*>( self_ptr.get() );
+    map->entries = reinterpret_cast<ClassMapEntry*>( entrymem );
     map->allocated = allocated;
     PyObject* key;
     PyObject* value;
@@ -124,19 +138,21 @@ ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     {
         if( !PyString_Check( key ) )
         {
-            return py_expected_type_fail( key, "str" );
+            return cppy::type_error( key, "str" );
         }
         if( !Member_Check( value ) )
         {
-            return py_expected_type_fail( value, "Member" );
+            return cppy::type_error( value, "Member" );
         }
-        insert_member( map, ( PyStringObject* )key, ( Member* )value );
+        insert_member( map,
+                       reinterpret_cast<PyStringObject*>( key ),
+                       reinterpret_cast<Member*>( value ) );
     }
     return self_ptr.release();
 }
 
 
-static void ClassMap_clear( ClassMap* self )
+void ClassMap_clear( ClassMap* self )
 {
     uint32_t allocated = self->allocated;
     ClassMapEntry* base = self->entries;
@@ -152,7 +168,7 @@ static void ClassMap_clear( ClassMap* self )
 }
 
 
-static int ClassMap_traverse( ClassMap* self, visitproc visit, void* arg )
+int ClassMap_traverse( ClassMap* self, visitproc visit, void* arg )
 {
     uint32_t allocated = self->allocated;
     ClassMapEntry* base = self->entries;
@@ -169,7 +185,7 @@ static int ClassMap_traverse( ClassMap* self, visitproc visit, void* arg )
 }
 
 
-static void ClassMap_dealloc( ClassMap* self )
+void ClassMap_dealloc( ClassMap* self )
 {
     PyObject_GC_UnTrack( self );
     ClassMap_clear( self );
@@ -178,7 +194,7 @@ static void ClassMap_dealloc( ClassMap* self )
 }
 
 
-static PyObject* ClassMap_sizeof( ClassMap* self, PyObject* args )
+PyObject* ClassMap_sizeof( ClassMap* self, PyObject* args )
 {
     Py_ssize_t size = self->ob_type->tp_basicsize;
     size += sizeof( ClassMapEntry ) * self->allocated;
@@ -186,13 +202,15 @@ static PyObject* ClassMap_sizeof( ClassMap* self, PyObject* args )
 }
 
 
-static PyMethodDef ClassMap_methods[] = {
+PyMethodDef ClassMap_methods[] = {
     {"__sizeof__",
      ( PyCFunction )ClassMap_sizeof,
      METH_NOARGS,
      "__sizeof__() -> size of object in memory, in bytes"},
     {0} // sentinel
 };
+
+} // namespace
 
 
 PyTypeObject ClassMap_Type = {

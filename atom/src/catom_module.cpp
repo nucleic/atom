@@ -6,12 +6,10 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <Python.h>
-#include "atom.h"
-#include "class_map.h"
-#include "member.h"
-#include "null_object.h"
-
-#include "ignoredwarnings.h"
+#include <core/atom.h>
+#include <core/class_map.h>
+#include <core/member.h>
+#include <core/null_object.h>
 
 
 static PyMethodDef catom_methods[] = {
@@ -38,12 +36,10 @@ PyMODINIT_FUNC initcatom( void )
     {
         return;
     }
-
     Py_INCREF( &Member_Type );
     Py_INCREF( &ClassMap_Type );
     Py_INCREF( &Atom_Type );
     Py_INCREF( NullObject );
-
     PyModule_AddObject( mod, "Member", ( PyObject* )&Member_Type );
     PyModule_AddObject( mod, "ClassMap", ( PyObject* )&ClassMap_Type );
     PyModule_AddObject( mod, "Atom", ( PyObject* )&Atom_Type );

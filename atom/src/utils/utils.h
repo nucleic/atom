@@ -7,19 +7,12 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#include <cstring>
 #include <Python.h>
-#include "inttypes.h"
+#include "stdint.h"
 
 
 namespace utils
 {
-
-inline bool basestring_check( PyObject* obj )
-{
-    return ( PyString_CheckExact( obj ) || PyUnicode_CheckExact( obj ) ||
-             PyObject_TypeCheck( obj, &PyBaseString_Type ) );
-}
 
 
 inline uint32_t next_power_of_2( uint32_t n ) // n must be greater than zero
@@ -57,5 +50,6 @@ inline bool pystr_equal( PyStringObject* a, PyStringObject* b )
     }
     return false;
 }
+
 
 } // namespace utils

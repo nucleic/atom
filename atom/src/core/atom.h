@@ -8,26 +8,22 @@
 #pragma once
 
 #include <Python.h>
-#include "inttypes.h"
 
 
-int import_member();
+struct Atom;
 
 
-extern PyTypeObject Member_Type;
+enum AtomFlag
+{};
 
 
-struct Member
+extern PyTypeObject Atom_Type;
+
+
+inline bool Atom_Check( PyObject* ob )
 {
-    PyObject_HEAD;
-    PyObject* default_handler;
-    PyObject* validate_handler;
-    PyObject* post_validate_handler;
-    PyObject* post_setattr_handler;
-};
-
-
-inline int Member_Check( PyObject* op )
-{
-    return PyObject_TypeCheck( op, &Member_Type );
+    return PyObject_TypeCheck( ob, &Atom_Type ) != 0;
 }
+
+
+int import_atom();

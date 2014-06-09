@@ -9,22 +9,22 @@
 #include "null_object.h"
 
 
-static void null_dealloc( PyObject* ignore )
+namespace
 {
-    /* This should never get called, but we also don't want to SEGV if
-     * we accidentally decref null out of existence.
-     */
+
+void null_dealloc( PyObject* ignore )
+{
     Py_FatalError( "deallocating null" );
 }
 
 
-static PyObject* null_repr( PyObject* op )
+PyObject* null_repr( PyObject* op )
 {
     return PyString_FromString( "null" );
 }
 
 
-static PyTypeObject NullObject_Type = {
+PyTypeObject NullObject_Type = {
     PyObject_HEAD_INIT( &PyType_Type ) /* header */
     0,                                 /* ob_size */
     "NullType",                        /* tp_name */
@@ -41,6 +41,8 @@ static PyTypeObject NullObject_Type = {
     0,                                 /* tp_as_mapping */
     ( hashfunc )_Py_HashPointer,       /* tp_hash */
 };
+
+} // namespace
 
 
 PyObject _NullObjectStruct = {_PyObject_EXTRA_INIT 1, &NullObject_Type};
