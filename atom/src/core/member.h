@@ -10,6 +10,9 @@
 #include <Python.h>
 
 
+struct Atom;
+
+
 struct Member
 {
     PyObject_HEAD;
@@ -27,6 +30,21 @@ inline int Member_Check( PyObject* op )
 {
     return PyObject_TypeCheck( op, &Member_Type );
 }
+
+
+PyObject* Member_Default( Member* member, Atom* atom, PyStringObject* name );
+
+
+PyObject* Member_Validate( Member* member,
+                           Atom* atom,
+                           PyStringObject* name,
+                           PyObject* value );
+
+
+int Member_PostSetAttr( Member* member,
+                        Atom* atom,
+                        PyStringObject* name,
+                        PyObject* value );
 
 
 int import_member();

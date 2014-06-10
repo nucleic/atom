@@ -7,6 +7,86 @@
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
 #include "member.h"
+#include "null_object.h"
+
+
+PyObject* Member_Default( Member* member, Atom* atom, PyStringObject* name )
+{
+    cppy::ptr result( Py_None, true );
+    if( member->default_handler )
+    {
+        cppy::ptr args( PyTuple_Pack( 2, atom, name ) );
+        if( !args )
+        {
+            return 0;
+        }
+        result = PyObject_Call( member->default_handler, args.get(), 0 );
+        if( !result )
+        {
+            return 0;
+        }
+    }
+    return Member_Validate( member, atom, name, result.get() );
+}
+
+
+PyObject* Member_Validate( Member* member,
+                           Atom* atom,
+                           PyStringObject* name,
+                           PyObject* value )
+{
+    cppy::ptr result( value, true );
+    if( member->validate_handler )
+    {
+        cppy::ptr args( PyTuple_Pack( 3, atom, name, result.get() ) );
+        if( !args )
+        {
+            return 0;
+        }
+        result = PyObject_Call( member->validate_handler, args.get(), 0 );
+        if( !result )
+        {
+            return 0;
+        }
+    }
+    if( member->post_validate_handler )
+    {
+        cppy::ptr args( PyTuple_Pack( 3, atom, name, result.get() ) );
+        if( !args )
+        {
+            return 0;
+        }
+        result = PyObject_Call( member->post_validate_handler, args.get(), 0 );
+        if( !result )
+        {
+            return 0;
+        }
+    }
+    return result.release();
+}
+
+
+int Member_PostSetAttr( Member* member,
+                        Atom* atom,
+                        PyStringObject* name,
+                        PyObject* value )
+{
+    if( member->post_setattr_handler )
+    {
+        cppy::ptr args( PyTuple_Pack( 3, atom, name, value ) );
+        if( !args )
+        {
+            return 0;
+        }
+        cppy::ptr result(
+            PyObject_Call( member->post_setattr_handler, args.get(), 0 ) );
+        if( !result )
+        {
+            return -1;
+        }
+    }
+    return 0;
+}
 
 
 namespace

@@ -13,38 +13,10 @@
 #include "member.h"
 
 
-namespace
-{
-
-struct ClassMapEntry
-{
-    PyStringObject* name;
-    Member* member;
-    uint32_t index;
-};
-
-} // namespace
-
-
-struct ClassMap
-{
-    PyObject_HEAD;
-    ClassMapEntry* entries;
-    uint32_t allocated;
-    uint32_t count;
-};
-
-
-uint32_t ClassMap_Count( ClassMap* map )
-{
-    return map->count;
-}
-
-
-void ClassMap_Lookup( ClassMap* map,
-                      PyStringObject* name,
-                      Member** member,
-                      uint32_t* index )
+void ClassMap_LookupMember( ClassMap* map,
+                            PyStringObject* name,
+                            Member** member,
+                            uint32_t* index )
 {
     uint32_t mask = map->allocated - 1;
     uint32_t hash = utils::pystr_hash( name );
@@ -121,15 +93,15 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     uint32_t size = static_cast<uint32_t>( PyDict_Size( members ) );
     uint32_t count = std::max( size, static_cast<uint32_t>( 3 ) );
     uint32_t allocated = utils::next_power_of_2( count * 4 / 3 );
-    size_t memsize = sizeof( ClassMapEntry ) * allocated;
-    void* entrymem = PyObject_Malloc( memsize );
-    if( !entrymem )
+    size_t mem_size = sizeof( ClassMapEntry ) * allocated;
+    void* entries = PyObject_Malloc( mem_size );
+    if( !entries )
     {
         return PyErr_NoMemory();
     }
-    memset( entrymem, 0, memsize );
-    ClassMap* map = reinterpret_cast<ClassMap*>( self_ptr.get() );
-    map->entries = reinterpret_cast<ClassMapEntry*>( entrymem );
+    memset( entries, 0, mem_size );
+    ClassMap* map = ( ClassMap* )self_ptr.get();
+    map->entries = ( ClassMapEntry* )entries;
     map->allocated = allocated;
     PyObject* key;
     PyObject* value;
@@ -144,9 +116,7 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         {
             return cppy::type_error( value, "Member" );
         }
-        insert_member( map,
-                       reinterpret_cast<PyStringObject*>( key ),
-                       reinterpret_cast<Member*>( value ) );
+        insert_member( map, ( PyStringObject* )key, ( Member* )value );
     }
     return self_ptr.release();
 }

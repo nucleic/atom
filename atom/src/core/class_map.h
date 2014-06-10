@@ -12,7 +12,30 @@
 
 
 struct Member;
-struct ClassMap;
+
+
+struct ClassMapEntry
+{
+    PyStringObject* name;
+    Member* member;
+    uint32_t index;
+};
+
+
+struct ClassMap
+{
+    PyObject_HEAD;
+    ClassMapEntry* entries;
+    uint32_t allocated;
+    uint32_t count;
+};
+
+
+// map count is a constant
+inline uint32_t ClassMap_GetCount( ClassMap* map )
+{
+    return map->count;
+}
 
 
 extern PyTypeObject ClassMap_Type;
@@ -24,15 +47,11 @@ inline int ClassMap_Check( PyObject* ob )
 }
 
 
-// count number of members and is a constant
-uint32_t ClassMap_Count( ClassMap* map );
-
-
 // borrowed member + index on success, untouched on failure
-void ClassMap_Lookup( ClassMap* map,
-                      PyStringObject* name,
-                      Member** member,
-                      uint32_t* index );
+void ClassMap_LookupMember( ClassMap* map,
+                            PyStringObject* name,
+                            Member** member,
+                            uint32_t* index );
 
 
 int import_class_map();

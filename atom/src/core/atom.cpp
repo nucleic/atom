@@ -6,45 +6,16 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
-#include <utils/stdint.h>
 #include "atom.h"
 #include "class_map.h"
 #include "member.h"
 #include "null_object.h"
 
 
-struct Atom
-{
-    PyObject_HEAD;
-    ClassMap* class_map;
-    PyObject** slots;
-    uint32_t flags;
-};
-
-
 namespace
 {
 
 PyObject* class_map_str;
-
-
-inline bool test_flag( Atom* atom, AtomFlag flag )
-{
-    return ( atom->flags & static_cast<uint32_t>( flag ) ) != 0;
-}
-
-
-inline void set_flag( Atom* atom, AtomFlag flag, bool on = true )
-{
-    if( on )
-    {
-        atom->flags |= static_cast<uint32_t>( flag );
-    }
-    else
-    {
-        atom->flags &= ~( static_cast<uint32_t>( flag ) );
-    }
-}
 
 
 PyObject* lookup_class_map( PyTypeObject* type )
@@ -74,9 +45,9 @@ PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     {
         return 0;
     }
-    Atom* atom = reinterpret_cast<Atom*>( self_ptr.get() );
-    ClassMap* map = reinterpret_cast<ClassMap*>( map_ptr.get() );
-    uint32_t count = ClassMap_Count( map );
+    Atom* atom = ( Atom* )self_ptr.get();
+    ClassMap* map = ( ClassMap* )map_ptr.get();
+    uint32_t count = ClassMap_GetCount( map );
     if( count > 0 )
     {
         size_t memsize = sizeof( PyObject* ) * count;
@@ -86,9 +57,9 @@ PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
             return PyErr_NoMemory();
         }
         memset( slotmem, 0, memsize );
-        atom->slots = reinterpret_cast<PyObject**>( slotmem );
+        atom->slots = ( PyObject** )slotmem;
     }
-    atom->class_map = reinterpret_cast<ClassMap*>( map_ptr.release() );
+    atom->class_map = ( ClassMap* )map_ptr.release();
     return self_ptr.release();
 }
 
@@ -119,7 +90,7 @@ int Atom_init( PyObject* self, PyObject* args, PyObject* kwargs )
 
 void Atom_clear( Atom* self )
 {
-    uint32_t count = ClassMap_Count( self->class_map );
+    uint32_t count = ClassMap_GetCount( self->class_map );
     for( uint32_t i = 0; i < count; ++i )
     {
         Py_CLEAR( self->slots[i] );
@@ -130,7 +101,7 @@ void Atom_clear( Atom* self )
 
 int Atom_traverse( Atom* self, visitproc visit, void* arg )
 {
-    uint32_t count = ClassMap_Count( self->class_map );
+    uint32_t count = ClassMap_GetCount( self->class_map );
     for( uint32_t i = 0; i < count; ++i )
     {
         Py_VISIT( self->slots[i] );
@@ -149,110 +120,11 @@ void Atom_dealloc( Atom* self )
 }
 
 
-PyObject* do_validate( Member* member,
-                       Atom* atom,
-                       PyStringObject* name,
-                       PyObject* old,
-                       PyObject* val )
-{
-    cppy::ptr result( val, true );
-    if( member->validate_handler )
-    {
-        cppy::ptr args( PyTuple_New( 5 ) );
-        if( !args )
-        {
-            return 0;
-        }
-        PyTuple_SET_ITEM( args.get(), 0, cppy::pyincref( member ) );
-        PyTuple_SET_ITEM( args.get(), 1, cppy::pyincref( atom ) );
-        PyTuple_SET_ITEM( args.get(), 2, cppy::pyincref( name ) );
-        PyTuple_SET_ITEM( args.get(), 3, cppy::pyincref( old ) );
-        PyTuple_SET_ITEM( args.get(), 4, cppy::pyincref( val ) );
-        result = PyObject_Call( member->validate_handler, args.get(), 0 );
-        if( !result )
-        {
-            return 0;
-        }
-    }
-    if( member->post_validate_handler )
-    {
-        cppy::ptr args( PyTuple_New( 5 ) );
-        if( !args )
-        {
-            return 0;
-        }
-        PyTuple_SET_ITEM( args.get(), 0, cppy::pyincref( member ) );
-        PyTuple_SET_ITEM( args.get(), 1, cppy::pyincref( atom ) );
-        PyTuple_SET_ITEM( args.get(), 2, cppy::pyincref( name ) );
-        PyTuple_SET_ITEM( args.get(), 3, cppy::pyincref( old ) );
-        PyTuple_SET_ITEM( args.get(), 4, cppy::pyincref( val ) );
-        result = PyObject_Call( member->post_validate_handler, args.get(), 0 );
-        if( !result )
-        {
-            return 0;
-        }
-    }
-    return result.release();
-}
-
-
-PyObject* do_default( Member* member, Atom* atom, PyStringObject* name )
-{
-    cppy::ptr result( Py_None, true );
-    if( member->default_handler )
-    {
-        cppy::ptr args( PyTuple_New( 3 ) );
-        if( !args )
-        {
-            return 0;
-        }
-        PyTuple_SET_ITEM( args.get(), 0, cppy::pyincref( member ) );
-        PyTuple_SET_ITEM( args.get(), 1, cppy::pyincref( atom ) );
-        PyTuple_SET_ITEM( args.get(), 2, cppy::pyincref( name ) );
-        result = PyObject_Call( member->default_handler, args.get(), 0 );
-        if( !result )
-        {
-            return 0;
-        }
-    }
-    return do_validate( member, atom, name, NullObject, result.get() );
-}
-
-
-int do_post_setattr( Member* member,
-                     Atom* atom,
-                     PyStringObject* name,
-                     PyObject* old,
-                     PyObject* val )
-{
-    if( member->post_setattr_handler )
-    {
-        cppy::ptr args( PyTuple_New( 5 ) );
-        if( !args )
-        {
-            return 0;
-        }
-        PyTuple_SET_ITEM( args.get(), 0, cppy::pyincref( member ) );
-        PyTuple_SET_ITEM( args.get(), 1, cppy::pyincref( atom ) );
-        PyTuple_SET_ITEM( args.get(), 2, cppy::pyincref( name ) );
-        PyTuple_SET_ITEM( args.get(), 3, cppy::pyincref( old ) );
-        PyTuple_SET_ITEM( args.get(), 4, cppy::pyincref( val ) );
-        cppy::ptr result(
-            PyObject_Call( member->post_setattr_handler, args.get(), 0 ) );
-        if( !result )
-        {
-            return -1;
-        }
-    }
-    return 0;
-}
-
-
 PyObject* Atom_getattro( Atom* self, PyStringObject* name )
 {
     uint32_t index;
     Member* member = 0;
-    ClassMap_Lookup( self->class_map, name, &member, &index );
+    ClassMap_LookupMember( self->class_map, name, &member, &index );
     if( member )
     {
         PyObject* value = self->slots[index];
@@ -260,7 +132,7 @@ PyObject* Atom_getattro( Atom* self, PyStringObject* name )
         {
             return cppy::incref( value );
         }
-        value = do_default( member, self, name );
+        value = Member_Default( member, self, name );
         if( !value )
         {
             return 0;
@@ -272,25 +144,36 @@ PyObject* Atom_getattro( Atom* self, PyStringObject* name )
 }
 
 
-int Atom_setattro( Atom* self, PyStringObject* name, PyObject* value )
+int Atom_setattro( Atom* self, PyStringObject* name, PyObject* val )
 {
     uint32_t index;
     Member* member = 0;
-    ClassMap_Lookup( self->class_map, name, &member, &index );
+    ClassMap_LookupMember( self->class_map, name, &member, &index );
     if( member )
     {
-        self->slots[index] = cppy::xincref( value );
-        return 0;
+        PyObject* old = self->slots[index];
+        if( old == val )
+        {
+            return 0;
+        }
+        val = Member_Validate( member, self, name, val ? val : NullObject );
+        if( !val )
+        {
+            return -1;
+        }
+        self->slots[index] = val;
+        int result = Member_PostSetAttr( member, self, name, val );
+        Py_XDECREF( old );
+        return result;
     }
-    return PyObject_GenericSetAttr(
-        ( PyObject* )self, ( PyObject* )name, value );
+    return PyObject_GenericSetAttr( ( PyObject* )self, ( PyObject* )name, val );
 }
 
 
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
     Py_ssize_t size = self->ob_type->tp_basicsize;
-    size += sizeof( PyObject* ) * ClassMap_Count( self->class_map );
+    size += sizeof( PyObject* ) * ClassMap_GetCount( self->class_map );
     return PyInt_FromSsize_t( size );
 }
 
