@@ -10,41 +10,32 @@
 #include <Python.h>
 
 
-struct Atom;
+namespace atom
+{
 
-
+// POD struct - all member fields are considered private
 struct Member
 {
-    PyObject_HEAD;
-    PyObject* default_handler;
-    PyObject* validate_handler;
-    PyObject* post_validate_handler;
-    PyObject* post_setattr_handler;
+    PyObject_HEAD
+    PyObject* m_default;
+    PyObject* m_validate;
+    PyObject* m_post_validate;
+    PyObject* m_post_setattr;
+
+    static PyTypeObject TypeObject;
+
+    static bool Import();
+
+    static bool TypeCheck( PyObject* ob )
+    {
+        return PyObject_TypeCheck( ob, &TypeObject ) != 0;
+    }
+
+    PyObject* getDefault( PyObject* atom, PyObject* name );
+
+    PyObject* validate( PyObject* atom, PyObject* name, PyObject* value );
+
+    PyObject* postSetAttr( PyObject* atom, PyObject* name, PyObject* value );
 };
 
-
-extern PyTypeObject Member_Type;
-
-
-inline int Member_Check( PyObject* op )
-{
-    return PyObject_TypeCheck( op, &Member_Type );
-}
-
-
-PyObject* Member_Default( Member* member, Atom* atom, PyStringObject* name );
-
-
-PyObject* Member_Validate( Member* member,
-                           Atom* atom,
-                           PyStringObject* name,
-                           PyObject* value );
-
-
-int Member_PostSetAttr( Member* member,
-                        Atom* atom,
-                        PyStringObject* name,
-                        PyObject* value );
-
-
-int import_member();
+} // namespace atom

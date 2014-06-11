@@ -11,47 +11,36 @@
 #include <utils/stdint.h>
 
 
-struct Member;
-
-
-struct ClassMapEntry
+namespace atom
 {
-    PyStringObject* name;
-    Member* member;
-    uint32_t index;
-};
+
+struct ClassMapEntry;
 
 
+// POD struct - all member fields are considered private
 struct ClassMap
 {
-    PyObject_HEAD;
-    ClassMapEntry* entries;
-    uint32_t allocated;
-    uint32_t count;
+    PyObject_HEAD
+    ClassMapEntry* m_entries;
+    uint32_t m_allocated;
+    uint32_t m_count;
+
+    static PyTypeObject TypeObject;
+
+    static bool Import();
+
+    static bool TypeCheck( PyObject* ob )
+    {
+        return Py_TYPE( ob ) == &TypeObject;
+    }
+
+    uint32_t getMemberCount()
+    {
+        return m_count;
+    }
+
+    // Borrowed member + index on success, untouched on failure
+    void getMember( PyStringObject* name, Member** member, uint32_t* index );
 };
 
-
-// map count is a constant
-inline uint32_t ClassMap_GetCount( ClassMap* map )
-{
-    return map->count;
-}
-
-
-extern PyTypeObject ClassMap_Type;
-
-
-inline int ClassMap_Check( PyObject* ob )
-{
-    return Py_TYPE( ob ) == &ClassMap_Type;
-}
-
-
-// borrowed member + index on success, untouched on failure
-void ClassMap_LookupMember( ClassMap* map,
-                            PyStringObject* name,
-                            Member** member,
-                            uint32_t* index );
-
-
-int import_class_map();
+} // namespace atom

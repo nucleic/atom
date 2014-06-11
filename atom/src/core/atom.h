@@ -11,47 +11,48 @@
 #include <utils/stdint.h>
 
 
+namespace atom
+{
+
 struct ClassMap;
 
 
+// POD struct - all member fields are considered private
 struct Atom
 {
+    PyObject_HEAD
+    ClassMap* m_class_map;
+    PyObject** m_slots;
+    uint32_t m_flags;
+
     enum Flag
     {};
 
-    PyObject_HEAD;
-    ClassMap* class_map;
-    PyObject** slots;
-    uint32_t flags;
+    static PyTypeObject TypeObject;
+
+    static bool Import();
+
+    static bool TypeCheck( PyObject* ob )
+    {
+        return PyObject_TypeCheck( ob, &TypeObject ) != 0;
+    }
+
+    bool testFlag( Flag flag )
+    {
+        return ( m_flags & static_cast<uint32_t>( flag ) ) != 0;
+    }
+
+    bool setFlag( Flag flag, bool on = true )
+    {
+        if( on )
+        {
+            m_flags |= static_cast<uint32_t>( flag );
+        }
+        else
+        {
+            m_flags &= ~( static_cast<uint32_t>( flag ) );
+        }
+    }
 };
 
-
-inline bool Atom_TestFlag( Atom* atom, Atom::Flag flag )
-{
-    return ( atom->flags & static_cast<uint32_t>( flag ) ) != 0;
-}
-
-
-inline void Atom_SetFlag( Atom* atom, Atom::Flag flag, bool on = true )
-{
-    if( on )
-    {
-        atom->flags |= static_cast<uint32_t>( flag );
-    }
-    else
-    {
-        atom->flags &= ~( static_cast<uint32_t>( flag ) );
-    }
-}
-
-
-extern PyTypeObject Atom_Type;
-
-
-inline bool Atom_Check( PyObject* ob )
-{
-    return PyObject_TypeCheck( ob, &Atom_Type ) != 0;
-}
-
-
-int import_atom();
+}  // namespace atom

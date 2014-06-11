@@ -12,6 +12,9 @@
 #include "null_object.h"
 
 
+namespace atom
+{
+
 namespace
 {
 
@@ -189,7 +192,7 @@ PyMethodDef Atom_methods[] = {
 } // namespace
 
 
-PyTypeObject Atom_Type = {
+PyTypeObject Atom::TypeObject = {
     PyObject_HEAD_INIT( &PyType_Type ) /* header */
     0,                                 /* ob_size */
     "atom.catom.Atom",                 /* tp_name */
@@ -241,7 +244,7 @@ PyTypeObject Atom_Type = {
 };
 
 
-int import_atom()
+int Atom::Import()
 {
     class_map_str = PyString_FromString( "_[class map]" );
     if( !class_map_str )
@@ -250,3 +253,5 @@ int import_atom()
     }
     return PyType_Ready( &Atom_Type );
 }
+
+} // namespace atom

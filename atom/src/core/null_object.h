@@ -10,5 +10,9 @@
 #include <Python.h>
 
 
-extern PyObject _NullObjectStruct; /* Don't use this directly */
-#define NullObject ( &_NullObjectStruct )
+namespace atom
+{
+
+extern PyObject* NullObject;
+
+} // namespace atom

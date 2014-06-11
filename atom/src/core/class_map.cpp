@@ -11,6 +11,15 @@
 #include <utils/utils.h>
 #include "class_map.h"
 #include "member.h"
+struct Member;
+
+
+struct ClassMapEntry
+{
+    PyStringObject* name;
+    Member* member;
+    uint32_t index;
+};
 
 
 void ClassMap_LookupMember( ClassMap* map,

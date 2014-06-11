@@ -11,9 +11,11 @@
 #include "stdint.h"
 
 
-namespace utils
+namespace atom
 {
 
+namespace utils
+{
 
 inline uint32_t next_power_of_2( uint32_t n ) // n must be greater than zero
 {
@@ -53,3 +55,5 @@ inline bool pystr_equal( PyStringObject* a, PyStringObject* b )
 
 
 } // namespace utils
+
+} // namespace atom
