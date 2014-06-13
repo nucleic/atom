@@ -24,7 +24,7 @@ struct Member
 
     static PyTypeObject TypeObject;
 
-    static bool Import();
+    static bool Ready();
 
     static bool TypeCheck( PyObject* ob )
     {
@@ -35,7 +35,7 @@ struct Member
 
     PyObject* validate( PyObject* atom, PyObject* name, PyObject* value );
 
-    PyObject* postSetAttr( PyObject* atom, PyObject* name, PyObject* value );
+    int postSetAttr( PyObject* atom, PyObject* name, PyObject* value );
 };
 
 } // namespace atom

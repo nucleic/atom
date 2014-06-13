@@ -6,61 +6,34 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <algorithm>
-#include <string.h>
+#include <cstring>
 #include <cppy/cppy.h>
 #include <utils/utils.h>
 #include "class_map.h"
 #include "member.h"
-struct Member;
 
+
+namespace atom
+{
 
 struct ClassMapEntry
 {
-    PyStringObject* name;
+    PyObject* name;
     Member* member;
     uint32_t index;
 };
 
 
-void ClassMap_LookupMember( ClassMap* map,
-                            PyStringObject* name,
-                            Member** member,
-                            uint32_t* index )
-{
-    uint32_t mask = map->allocated - 1;
-    uint32_t hash = utils::pystr_hash( name );
-    uint32_t bucket = hash & mask;
-    ClassMapEntry* base = map->entries;
-    while( true ) // table is never full - always terminates in loop
-    {
-        ClassMapEntry* entry = base + bucket;
-        if( !entry->name )
-        {
-            return;
-        }
-        if( utils::pystr_equal( name, entry->name ) )
-        {
-            *member = entry->member;
-            *index = entry->index;
-            return;
-        }
-        // CPython's collision resolution scheme
-        bucket = ( ( bucket << 2 ) + bucket + hash + 1 ) & mask;
-        hash >>= 5;
-    };
-}
-
-
 namespace
 {
 
-void insert_member( ClassMap* map, PyStringObject* name, Member* member )
+void insert_member( ClassMap* map, PyObject* name, Member* member )
 {
-    uint32_t mask = map->allocated - 1;
+    uint32_t mask = map->m_allocated - 1;
     uint32_t hash = utils::pystr_hash( name );
     uint32_t bucket = hash & mask;
-    ClassMapEntry* base = map->entries;
-    while( true ) // table is never full - always terminates in loop
+    ClassMapEntry* base = map->m_entries;
+    while( true ) // table is never full, so always terminates in loop
     {
         // The table is pre-allocated with guaranteed sufficient space
         // and no two keys will be equal while populating the table.
@@ -69,7 +42,7 @@ void insert_member( ClassMap* map, PyStringObject* name, Member* member )
         {
             entry->name = name;
             entry->member = member;
-            entry->index = map->count++;
+            entry->index = map->m_count++;
             Py_INCREF( name );
             Py_INCREF( member );
             return;
@@ -83,10 +56,10 @@ void insert_member( ClassMap* map, PyStringObject* name, Member* member )
 
 PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-    static char* kwlist[] = {"members", 0};
+    static char* kwlist[] = { "members", 0 };
     PyObject* members;
     if( !PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O:__new__", kwlist, &members ) )
+        args, kwargs, "O:__new__", kwlist, &members ) )
     {
         return 0;
     }
@@ -109,9 +82,9 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         return PyErr_NoMemory();
     }
     memset( entries, 0, mem_size );
-    ClassMap* map = ( ClassMap* )self_ptr.get();
-    map->entries = ( ClassMapEntry* )entries;
-    map->allocated = allocated;
+    ClassMap* map = reinterpret_cast<ClassMap*>( self_ptr.get() );
+    map->m_entries = reinterpret_cast<ClassMapEntry*>( entries );
+    map->m_allocated = allocated;
     PyObject* key;
     PyObject* value;
     Py_ssize_t pos = 0;
@@ -121,11 +94,11 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         {
             return cppy::type_error( key, "str" );
         }
-        if( !Member_Check( value ) )
+        if( !Member::TypeCheck( value ) )
         {
             return cppy::type_error( value, "Member" );
         }
-        insert_member( map, ( PyStringObject* )key, ( Member* )value );
+        insert_member( map, key, reinterpret_cast<Member*>( value ) );
     }
     return self_ptr.release();
 }
@@ -133,8 +106,8 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 
 void ClassMap_clear( ClassMap* self )
 {
-    uint32_t allocated = self->allocated;
-    ClassMapEntry* base = self->entries;
+    uint32_t allocated = self->m_allocated;
+    ClassMapEntry* base = self->m_entries;
     for( uint32_t i = 0; i < allocated; ++i )
     {
         ClassMapEntry* entry = base + i;
@@ -149,8 +122,8 @@ void ClassMap_clear( ClassMap* self )
 
 int ClassMap_traverse( ClassMap* self, visitproc visit, void* arg )
 {
-    uint32_t allocated = self->allocated;
-    ClassMapEntry* base = self->entries;
+    uint32_t allocated = self->m_allocated;
+    ClassMapEntry* base = self->m_entries;
     for( uint32_t i = 0; i < allocated; ++i )
     {
         ClassMapEntry* entry = base + i;
@@ -168,31 +141,31 @@ void ClassMap_dealloc( ClassMap* self )
 {
     PyObject_GC_UnTrack( self );
     ClassMap_clear( self );
-    PyObject_Free( self->entries );
-    self->ob_type->tp_free( ( PyObject* )self );
+    PyObject_Free( self->m_entries );
+    self->ob_type->tp_free( reinterpret_cast<PyObject*>( self ) );
 }
 
 
 PyObject* ClassMap_sizeof( ClassMap* self, PyObject* args )
 {
     Py_ssize_t size = self->ob_type->tp_basicsize;
-    size += sizeof( ClassMapEntry ) * self->allocated;
+    size += sizeof( ClassMapEntry ) * self->m_allocated;
     return PyInt_FromSsize_t( size );
 }
 
 
 PyMethodDef ClassMap_methods[] = {
-    {"__sizeof__",
-     ( PyCFunction )ClassMap_sizeof,
-     METH_NOARGS,
-     "__sizeof__() -> size of object in memory, in bytes"},
-    {0} // sentinel
+    { "__sizeof__",
+      ( PyCFunction )ClassMap_sizeof,
+      METH_NOARGS,
+      "__sizeof__() -> size of object in memory, in bytes" },
+    { 0 } // sentinel
 };
 
 } // namespace
 
 
-PyTypeObject ClassMap_Type = {
+PyTypeObject ClassMap::TypeObject = {
     PyObject_HEAD_INIT( &PyType_Type )       /* header */
     0,                                       /* ob_size */
     "atom.catom.ClassMap",                   /* tp_name */
@@ -243,11 +216,35 @@ PyTypeObject ClassMap_Type = {
 };
 
 
-int import_class_map()
+bool ClassMap::Ready()
 {
-    if( PyType_Ready( &ClassMap_Type ) < 0 )
-    {
-        return -1;
-    }
-    return 0;
+    return PyType_Ready( &TypeObject ) == 0;
 }
+
+
+void ClassMap::getMember( PyObject* name, Member** member, uint32_t* index )
+{
+    uint32_t mask = m_allocated - 1;
+    uint32_t hash = utils::pystr_hash( name );
+    uint32_t bucket = hash & mask;
+    ClassMapEntry* base = m_entries;
+    while( true ) // table is never full, so always terminates in loop
+    {
+        ClassMapEntry* entry = base + bucket;
+        if( !entry->name )
+        {
+            return;
+        }
+        if( utils::pystr_equal( name, entry->name ) )
+        {
+            *member = entry->member;
+            *index = entry->index;
+            return;
+        }
+        // CPython's collision resolution scheme
+        bucket = ( ( bucket << 2 ) + bucket + hash + 1 ) & mask;
+        hash >>= 5;
+    };
+}
+
+} // namespace atom

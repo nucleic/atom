@@ -26,7 +26,7 @@ PyObject* lookup_class_map( PyTypeObject* type )
     PyObject* py_map = PyDict_GetItem( type->tp_dict, class_map_str );
     if( py_map )
     {
-        if( !ClassMap_Check( py_map ) )
+        if( !ClassMap::TypeCheck( py_map ) )
         {
             return cppy::bad_internal_call( "class map has invalid type" );
         }
@@ -48,9 +48,9 @@ PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     {
         return 0;
     }
-    Atom* atom = ( Atom* )self_ptr.get();
-    ClassMap* map = ( ClassMap* )map_ptr.get();
-    uint32_t count = ClassMap_GetCount( map );
+    Atom* atom = reinterpret_cast<Atom*>( self_ptr.get() );
+    ClassMap* map = reinterpret_cast<ClassMap*>( map_ptr.get() );
+    uint32_t count = map->getMemberCount();
     if( count > 0 )
     {
         size_t memsize = sizeof( PyObject* ) * count;
@@ -60,9 +60,9 @@ PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
             return PyErr_NoMemory();
         }
         memset( slotmem, 0, memsize );
-        atom->slots = ( PyObject** )slotmem;
+        atom->m_slots = reinterpret_cast<PyObject**>( slotmem );
     }
-    atom->class_map = ( ClassMap* )map_ptr.release();
+    atom->m_class_map = reinterpret_cast<ClassMap*>( map_ptr.release() );
     return self_ptr.release();
 }
 
@@ -93,23 +93,23 @@ int Atom_init( PyObject* self, PyObject* args, PyObject* kwargs )
 
 void Atom_clear( Atom* self )
 {
-    uint32_t count = ClassMap_GetCount( self->class_map );
+    uint32_t count = self->m_class_map->getMemberCount();
     for( uint32_t i = 0; i < count; ++i )
     {
-        Py_CLEAR( self->slots[i] );
+        Py_CLEAR( self->m_slots[ i ] );
     }
-    Py_CLEAR( self->class_map );
+    Py_CLEAR( self->m_class_map );
 }
 
 
 int Atom_traverse( Atom* self, visitproc visit, void* arg )
 {
-    uint32_t count = ClassMap_GetCount( self->class_map );
+    uint32_t count = self->m_class_map->getMemberCount();
     for( uint32_t i = 0; i < count; ++i )
     {
-        Py_VISIT( self->slots[i] );
+        Py_VISIT( self->m_slots[ i ] );
     }
-    Py_VISIT( self->class_map );
+    Py_VISIT( self->m_class_map );
     return 0;
 }
 
@@ -118,75 +118,77 @@ void Atom_dealloc( Atom* self )
 {
     PyObject_GC_UnTrack( self );
     Atom_clear( self );
-    PyObject_Free( self->slots );
-    self->ob_type->tp_free( ( PyObject* )self );
+    PyObject_Free( self->m_slots );
+    self->ob_type->tp_free( reinterpret_cast<PyObject*>( self ) );
 }
 
 
-PyObject* Atom_getattro( Atom* self, PyStringObject* name )
+PyObject* Atom_getattro( PyObject* self, PyObject* name )
 {
     uint32_t index;
     Member* member = 0;
-    ClassMap_LookupMember( self->class_map, name, &member, &index );
+    Atom* atom = reinterpret_cast<Atom*>( self );
+    atom->m_class_map->getMember( name, &member, &index );
     if( member )
     {
-        PyObject* value = self->slots[index];
+        PyObject* value = atom->m_slots[ index ];
         if( value )
         {
             return cppy::incref( value );
         }
-        value = Member_Default( member, self, name );
+        value = member->getDefault( self, name );
         if( !value )
         {
             return 0;
         }
-        self->slots[index] = value;
+        atom->m_slots[ index ] = value;
         return cppy::incref( value );
     }
-    return PyObject_GenericGetAttr( ( PyObject* )self, ( PyObject* )name );
+    return PyObject_GenericGetAttr( self, name );
 }
 
 
-int Atom_setattro( Atom* self, PyStringObject* name, PyObject* val )
+int Atom_setattro( PyObject* self, PyObject* name, PyObject* val )
 {
     uint32_t index;
     Member* member = 0;
-    ClassMap_LookupMember( self->class_map, name, &member, &index );
+    Atom* atom = reinterpret_cast<Atom*>( self );
+    atom->m_class_map->getMember( name, &member, &index );
     if( member )
     {
-        PyObject* old = self->slots[index];
+        PyObject* old = atom->m_slots[ index ];
         if( old == val )
         {
             return 0;
         }
-        val = Member_Validate( member, self, name, val ? val : NullObject );
+        val = member->validate( self, name, val ? val : NullObject );
         if( !val )
         {
             return -1;
         }
-        self->slots[index] = val;
-        int result = Member_PostSetAttr( member, self, name, val );
+        atom->m_slots[ index ] = val;
+        int result = member->postSetAttr( self, name, val );
         Py_XDECREF( old );
         return result;
     }
-    return PyObject_GenericSetAttr( ( PyObject* )self, ( PyObject* )name, val );
+    return PyObject_GenericSetAttr( self, name, val );
 }
 
 
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
     Py_ssize_t size = self->ob_type->tp_basicsize;
-    size += sizeof( PyObject* ) * ClassMap_GetCount( self->class_map );
+    size += sizeof( PyObject* ) * self->m_class_map->getMemberCount();
     return PyInt_FromSsize_t( size );
 }
 
 
 PyMethodDef Atom_methods[] = {
-    {"__sizeof__",
-     ( PyCFunction )Atom_sizeof,
-     METH_NOARGS,
-     "__sizeof__() -> size of object in memory, in bytes"},
-    {0} // sentinel
+    { "__sizeof__",
+      ( PyCFunction )Atom_sizeof,
+      METH_NOARGS,
+      "__sizeof__() -> size of object in memory, in bytes"},
+    { 0 } // sentinel
 };
 
 } // namespace
@@ -213,7 +215,9 @@ PyTypeObject Atom::TypeObject = {
     ( getattrofunc )Atom_getattro,     /* tp_getattro */
     ( setattrofunc )Atom_setattro,     /* tp_setattro */
     ( PyBufferProcs* )0,               /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC |
+    Py_TPFLAGS_DEFAULT |
+        Py_TPFLAGS_BASETYPE |
+        Py_TPFLAGS_HAVE_GC |
         Py_TPFLAGS_HAVE_VERSION_TAG,     /* tp_flags */
     0,                                   /* Documentation string */
     ( traverseproc )Atom_traverse,       /* tp_traverse */
@@ -244,14 +248,14 @@ PyTypeObject Atom::TypeObject = {
 };
 
 
-int Atom::Import()
+bool Atom::Ready()
 {
     class_map_str = PyString_FromString( "_[class map]" );
     if( !class_map_str )
     {
-        return -1;
+        return false;
     }
-    return PyType_Ready( &Atom_Type );
+    return PyType_Ready( &TypeObject ) == 0;
 }
 
 } // namespace atom

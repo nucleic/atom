@@ -29,18 +29,18 @@ inline uint32_t next_power_of_2( uint32_t n ) // n must be greater than zero
 }
 
 
-inline size_t pystr_hash( PyStringObject* op )
+inline size_t pystr_hash( PyObject* op )
 {
-    long hash = op->ob_shash;
+    long hash = reinterpret_cast<PyStringObject*>( op )->ob_shash;
     if( hash == -1 )
     {
-        hash = PyObject_Hash( ( PyObject* )op );
+        hash = PyObject_Hash( op );
     }
     return static_cast<size_t>( hash );
 }
 
 
-inline bool pystr_equal( PyStringObject* a, PyStringObject* b )
+inline bool pystr_equal( PyObject* a, PyObject* b )
 {
     if( a == b )
     {
@@ -48,7 +48,10 @@ inline bool pystr_equal( PyStringObject* a, PyStringObject* b )
     }
     if( Py_SIZE( a ) == Py_SIZE( b ) )
     {
-        return memcmp( a->ob_sval, b->ob_sval, Py_SIZE( a ) ) == 0;
+        return memcmp(
+            reinterpret_cast<PyStringObject*>( a )->ob_sval,
+            reinterpret_cast<PyStringObject*>( b )->ob_sval,
+            Py_SIZE( a ) ) == 0;
     }
     return false;
 }

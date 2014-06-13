@@ -11,6 +11,8 @@
 #include <core/member.h>
 #include <core/null_object.h>
 
+using namespace atom;
+
 
 static PyMethodDef catom_methods[] = {
     {0} // Sentinel
@@ -24,24 +26,27 @@ PyMODINIT_FUNC initcatom( void )
     {
         return;
     }
-    if( import_member() < 0 )
+    if( !Member::Ready() )
     {
         return;
     }
-    if( import_class_map() < 0 )
+    if( !ClassMap::Ready() )
     {
         return;
     }
-    if( import_atom() < 0 )
+    if( !Atom::Ready() )
     {
         return;
     }
-    Py_INCREF( &Member_Type );
-    Py_INCREF( &ClassMap_Type );
-    Py_INCREF( &Atom_Type );
+    Py_INCREF( &Member::TypeObject );
+    Py_INCREF( &ClassMap::TypeObject );
+    Py_INCREF( &Atom::TypeObject );
     Py_INCREF( NullObject );
-    PyModule_AddObject( mod, "Member", ( PyObject* )&Member_Type );
-    PyModule_AddObject( mod, "ClassMap", ( PyObject* )&ClassMap_Type );
-    PyModule_AddObject( mod, "Atom", ( PyObject* )&Atom_Type );
+    PyModule_AddObject(
+        mod, "Member", reinterpret_cast<PyObject*>( &Member::TypeObject ) );
+    PyModule_AddObject(
+        mod, "ClassMap", reinterpret_cast<PyObject*>( &ClassMap::TypeObject ) );
+    PyModule_AddObject(
+        mod, "Atom", reinterpret_cast<PyObject*>( &Atom::TypeObject ) );
     PyModule_AddObject( mod, "null", NullObject );
 }

@@ -15,6 +15,7 @@ namespace atom
 {
 
 struct ClassMapEntry;
+struct Member;
 
 
 // POD struct - all member fields are considered private
@@ -27,7 +28,7 @@ struct ClassMap
 
     static PyTypeObject TypeObject;
 
-    static bool Import();
+    static bool Ready();
 
     static bool TypeCheck( PyObject* ob )
     {
@@ -40,7 +41,8 @@ struct ClassMap
     }
 
     // Borrowed member + index on success, untouched on failure
-    void getMember( PyStringObject* name, Member** member, uint32_t* index );
+    // 'name' must be PyStringObject on Py2k - PyUnicodeObject on Py3k
+    void getMember( PyObject* name, Member** member, uint32_t* index );
 };
 
 } // namespace atom

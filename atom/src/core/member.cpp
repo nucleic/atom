@@ -7,87 +7,10 @@
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
 #include "member.h"
-#include "null_object.h"
 
 
-PyObject* Member_Default( Member* member, Atom* atom, PyStringObject* name )
+namespace atom
 {
-    cppy::ptr result( Py_None, true );
-    if( member->default_handler )
-    {
-        cppy::ptr args( PyTuple_Pack( 2, atom, name ) );
-        if( !args )
-        {
-            return 0;
-        }
-        result = PyObject_Call( member->default_handler, args.get(), 0 );
-        if( !result )
-        {
-            return 0;
-        }
-    }
-    return Member_Validate( member, atom, name, result.get() );
-}
-
-
-PyObject* Member_Validate( Member* member,
-                           Atom* atom,
-                           PyStringObject* name,
-                           PyObject* value )
-{
-    cppy::ptr result( value, true );
-    if( member->validate_handler )
-    {
-        cppy::ptr args( PyTuple_Pack( 3, atom, name, result.get() ) );
-        if( !args )
-        {
-            return 0;
-        }
-        result = PyObject_Call( member->validate_handler, args.get(), 0 );
-        if( !result )
-        {
-            return 0;
-        }
-    }
-    if( member->post_validate_handler )
-    {
-        cppy::ptr args( PyTuple_Pack( 3, atom, name, result.get() ) );
-        if( !args )
-        {
-            return 0;
-        }
-        result = PyObject_Call( member->post_validate_handler, args.get(), 0 );
-        if( !result )
-        {
-            return 0;
-        }
-    }
-    return result.release();
-}
-
-
-int Member_PostSetAttr( Member* member,
-                        Atom* atom,
-                        PyStringObject* name,
-                        PyObject* value )
-{
-    if( member->post_setattr_handler )
-    {
-        cppy::ptr args( PyTuple_Pack( 3, atom, name, value ) );
-        if( !args )
-        {
-            return 0;
-        }
-        cppy::ptr result(
-            PyObject_Call( member->post_setattr_handler, args.get(), 0 ) );
-        if( !result )
-        {
-            return -1;
-        }
-    }
-    return 0;
-}
-
 
 namespace
 {
@@ -118,19 +41,19 @@ int Member_init( PyObject* self, PyObject* args, PyObject* kwargs )
 
 void Member_clear( Member* self )
 {
-    Py_CLEAR( self->default_handler );
-    Py_CLEAR( self->validate_handler );
-    Py_CLEAR( self->post_validate_handler );
-    Py_CLEAR( self->post_setattr_handler );
+    Py_CLEAR( self->m_default );
+    Py_CLEAR( self->m_validate );
+    Py_CLEAR( self->m_post_validate );
+    Py_CLEAR( self->m_post_setattr );
 }
 
 
 int Member_traverse( Member* self, visitproc visit, void* arg )
 {
-    Py_VISIT( self->default_handler );
-    Py_VISIT( self->validate_handler );
-    Py_VISIT( self->post_validate_handler );
-    Py_VISIT( self->post_setattr_handler );
+    Py_VISIT( self->m_default );
+    Py_VISIT( self->m_validate );
+    Py_VISIT( self->m_post_validate );
+    Py_VISIT( self->m_post_setattr );
     return 0;
 }
 
@@ -139,7 +62,7 @@ void Member_dealloc( Member* self )
 {
     PyObject_GC_UnTrack( self );
     Member_clear( self );
-    self->ob_type->tp_free( ( PyObject* )self );
+    self->ob_type->tp_free( reinterpret_cast<PyObject*>( self ) );
 }
 
 
@@ -168,77 +91,77 @@ inline int set_handler( PyObject** ref, PyObject* handler )
 
 PyObject* Member_get_default_handler( Member* self, void* ctxt )
 {
-    return get_handler( &self->default_handler );
+    return get_handler( &self->m_default );
 }
 
 
 int Member_set_default_handler( Member* self, PyObject* value, void* ctxt )
 {
-    return set_handler( &self->default_handler, value );
+    return set_handler( &self->m_default, value );
 }
 
 
 PyObject* Member_get_validate_handler( Member* self, void* ctxt )
 {
-    return get_handler( &self->validate_handler );
+    return get_handler( &self->m_validate );
 }
 
 
 int Member_set_validate_handler( Member* self, PyObject* value, void* ctxt )
 {
-    return set_handler( &self->validate_handler, value );
+    return set_handler( &self->m_validate, value );
 }
 
 
 PyObject* Member_get_post_validate_handler( Member* self, void* ctxt )
 {
-    return get_handler( &self->post_validate_handler );
+    return get_handler( &self->m_post_validate );
 }
 
 
 int
 Member_set_post_validate_handler( Member* self, PyObject* value, void* ctxt )
 {
-    return set_handler( &self->post_validate_handler, value );
+    return set_handler( &self->m_post_validate, value );
 }
 
 
 PyObject* Member_get_post_setattr_handler( Member* self, void* ctxt )
 {
-    return get_handler( &self->post_setattr_handler );
+    return get_handler( &self->m_post_setattr );
 }
 
 
 int Member_set_post_setattr_handler( Member* self, PyObject* value, void* ctxt )
 {
-    return set_handler( &self->post_setattr_handler, value );
+    return set_handler( &self->m_post_setattr, value );
 }
 
 
 PyGetSetDef Member_getset[] = {
-    {"default_handler",
-     ( getter )Member_get_default_handler,
-     ( setter )Member_set_default_handler,
-     "Get and set the default value handler for the member."},
-    {"validate_handler",
-     ( getter )Member_get_validate_handler,
-     ( setter )Member_set_validate_handler,
-     "Get and set the default value handler for the member."},
-    {"post_validate_handler",
-     ( getter )Member_get_post_validate_handler,
-     ( setter )Member_set_post_validate_handler,
-     "Get and set the default value handler for the member."},
-    {"post_setattr_handler",
-     ( getter )Member_get_post_setattr_handler,
-     ( setter )Member_set_post_setattr_handler,
-     "Get and set the default value handler for the member."},
-    {0} // sentinel
+    { "default_handler",
+      ( getter )Member_get_default_handler,
+      ( setter )Member_set_default_handler,
+      "Get and set the default value handler for the member." },
+    { "validate_handler",
+      ( getter )Member_get_validate_handler,
+      ( setter )Member_set_validate_handler,
+      "Get and set the default value handler for the member." },
+    { "post_validate_handler",
+      ( getter )Member_get_post_validate_handler,
+      ( setter )Member_set_post_validate_handler,
+      "Get and set the default value handler for the member." },
+    { "post_setattr_handler",
+      ( getter )Member_get_post_setattr_handler,
+      ( setter )Member_set_post_setattr_handler,
+      "Get and set the default value handler for the member." },
+    { 0 } // sentinel
 };
 
 } // namespace
 
 
-PyTypeObject Member_Type = {
+PyTypeObject Member::TypeObject = {
     PyObject_HEAD_INIT( &PyType_Type ) /* header */
     0,                                 /* ob_size */
     "atom.catom.Member",               /* tp_name */
@@ -259,7 +182,9 @@ PyTypeObject Member_Type = {
     ( getattrofunc )0,                 /* tp_getattro */
     ( setattrofunc )0,                 /* tp_setattro */
     ( PyBufferProcs* )0,               /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC |
+    Py_TPFLAGS_DEFAULT |
+        Py_TPFLAGS_BASETYPE |
+        Py_TPFLAGS_HAVE_GC |
         Py_TPFLAGS_HAVE_VERSION_TAG,  /* tp_flags */
     0,                                /* Documentation string */
     ( traverseproc )Member_traverse,  /* tp_traverse */
@@ -290,7 +215,81 @@ PyTypeObject Member_Type = {
 };
 
 
-int import_member()
+bool Member::Ready()
 {
-    return PyType_Ready( &Member_Type );
+    return PyType_Ready( &TypeObject ) == 0;
 }
+
+
+PyObject* Member::getDefault( PyObject* atom, PyObject* name )
+{
+    cppy::ptr result( Py_None, true );
+    if( m_default )
+    {
+        cppy::ptr args( PyTuple_Pack( 2, atom, name ) );
+        if( !args )
+        {
+            return 0;
+        }
+        result = PyObject_Call( m_default, args.get(), 0 );
+        if( !result )
+        {
+            return 0;
+        }
+    }
+    return validate( atom, name, result.get() );
+}
+
+
+PyObject* Member::validate( PyObject* atom, PyObject* name, PyObject* value )
+{
+    cppy::ptr result( value, true );
+    if( m_validate )
+    {
+        cppy::ptr args( PyTuple_Pack( 3, atom, name, result.get() ) );
+        if( !args )
+        {
+            return 0;
+        }
+        result = PyObject_Call( m_validate, args.get(), 0 );
+        if( !result )
+        {
+            return 0;
+        }
+    }
+    if( m_post_validate )
+    {
+        cppy::ptr args( PyTuple_Pack( 3, atom, name, result.get() ) );
+        if( !args )
+        {
+            return 0;
+        }
+        result = PyObject_Call( m_post_validate, args.get(), 0 );
+        if( !result )
+        {
+            return 0;
+        }
+    }
+    return result.release();
+}
+
+
+int Member::postSetAttr( PyObject* atom, PyObject* name, PyObject* value )
+{
+    if( m_post_setattr )
+    {
+        cppy::ptr args( PyTuple_Pack( 3, atom, name, value ) );
+        if( !args )
+        {
+            return 0;
+        }
+        cppy::ptr result( PyObject_Call( m_post_setattr, args.get(), 0 ) );
+        if( !result )
+        {
+            return -1;
+        }
+    }
+    return 0;
+}
+
+} // namespace atom

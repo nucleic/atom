@@ -30,7 +30,7 @@ struct Atom
 
     static PyTypeObject TypeObject;
 
-    static bool Import();
+    static bool Ready();
 
     static bool TypeCheck( PyObject* ob )
     {

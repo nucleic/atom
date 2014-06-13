@@ -15,13 +15,6 @@ namespace atom
 namespace
 {
 
-struct NullObjectHelper
-{
-    static PyObject Object;
-    static PyTypeObject TypeObject;
-};
-
-
 void tp_dealloc( PyObject* ignore )
 {
     Py_FatalError( "deallocating null" );
@@ -34,7 +27,7 @@ PyObject* tp_repr( PyObject* op )
 }
 
 
-PyTypeObject NullObjectHelper::TypeObject = {
+PyTypeObject NullObject_Type = {
     PyObject_HEAD_INIT( &PyType_Type ) /* header */
     0,                                 /* ob_size */
     "NullType",                        /* tp_name */
@@ -53,15 +46,15 @@ PyTypeObject NullObjectHelper::TypeObject = {
 };
 
 
-PyObject NullObjectHelper::Object = {
+PyObject _NullObject = {
     _PyObject_EXTRA_INIT
     1,
-    &NullObjectHelper::TypeObject
+    &NullObject_Type
 };
 
 } // namespace
 
 
-PyObject* NullObject = &NullObjectHelper::Object;
+PyObject* NullObject = &_NullObject;
 
 } // namespace atom
