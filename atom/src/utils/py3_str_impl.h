@@ -15,7 +15,4 @@
 #define Py23Str_FromString PyUnicode_FromString
 
 
-namespace atom
-{
-	// XXX implement me
-} // namespace atom
+// XXX implement extra string functions

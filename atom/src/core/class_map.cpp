@@ -30,7 +30,7 @@ namespace
 void insert_member( ClassMap* map, Py23StrObject* name, Member* member )
 {
     uint32_t mask = map->m_allocated - 1;
-    uint32_t hash = py23_str_hash( name );
+    uint32_t hash = Py23Str_Hash( name );
     uint32_t bucket = hash & mask;
     ClassMapEntry* base = map->m_entries;
     while( true ) // table is never full, so always terminates in loop
@@ -72,7 +72,7 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     }
     static const uint32_t min_size = 4;
     uint32_t size = static_cast<uint32_t>( PyDict_Size( members ) );
-    uint32_t allocated = next_power_of_2( std::max( size, min_size ) );
+    uint32_t allocated = utils::next_power_of_2( std::max( size, min_size ) );
     size_t mem_size = sizeof( ClassMapEntry ) * allocated;
     void* entries = PyObject_Malloc( mem_size );
     if( !entries )
@@ -225,7 +225,7 @@ bool ClassMap::Ready()
 void ClassMap::getMember( Py23StrObject* name, Member** member, uint32_t* index )
 {
     uint32_t mask = m_allocated - 1;
-    uint32_t hash = py23_str_hash( name );
+    uint32_t hash = Py23Str_Hash( name );
     uint32_t bucket = hash & mask;
     ClassMapEntry* base = m_entries;
     while( true ) // table is never full, so always terminates in loop
@@ -235,7 +235,7 @@ void ClassMap::getMember( Py23StrObject* name, Member** member, uint32_t* index 
         {
             return;
         }
-        if( py23_str_equal( name, entry->name ) )
+        if( Py23Str_Equal( name, entry->name ) )
         {
             *member = entry->member;
             *index = entry->index;

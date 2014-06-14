@@ -15,10 +15,7 @@
 #define Py23Str_FromString PyString_FromString
 
 
-namespace atom
-{
-
-inline size_t py23_str_hash( Py23StrObject* op )
+inline size_t Py23Str_Hash( Py23StrObject* op )
 {
     long hash = op->ob_shash;
     if( hash == -1 )
@@ -29,7 +26,7 @@ inline size_t py23_str_hash( Py23StrObject* op )
 }
 
 
-inline bool py23_str_equal( Py23StrObject* a, Py23StrObject* b )
+inline bool Py23Str_Equal( Py23StrObject* a, Py23StrObject* b )
 {
     if( a == b )
     {
@@ -41,5 +38,3 @@ inline bool py23_str_equal( Py23StrObject* a, Py23StrObject* b )
     }
     return false;
 }
-
-} // namespace atom

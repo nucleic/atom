@@ -13,6 +13,9 @@
 namespace atom
 {
 
+namespace utils
+{
+
 inline uint32_t next_power_of_2( uint32_t n ) // n must be greater than zero
 {
     n = n - 1;
@@ -23,5 +26,7 @@ inline uint32_t next_power_of_2( uint32_t n ) // n must be greater than zero
     n = n | ( n >> 16 );
     return n + 1;
 }
+
+} // namespace utils
 
 } // namespace atom
