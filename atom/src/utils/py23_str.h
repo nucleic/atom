@@ -7,8 +7,8 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#ifdef _MSC_VER
-#include "ms_stdint.h"
+#if PY_MAJOR_VERSION >= 3
+#include "py3_str_impl.h"
 #else
-#include <stdint.h>
+#include "py2_str_impl.h"
 #endif

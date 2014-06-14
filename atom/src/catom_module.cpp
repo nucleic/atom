@@ -9,7 +9,6 @@
 #include <core/atom.h>
 #include <core/class_map.h>
 #include <core/member.h>
-#include <core/null_object.h>
 
 using namespace atom;
 
@@ -41,12 +40,10 @@ PyMODINIT_FUNC initcatom( void )
     Py_INCREF( &Member::TypeObject );
     Py_INCREF( &ClassMap::TypeObject );
     Py_INCREF( &Atom::TypeObject );
-    Py_INCREF( NullObject );
     PyModule_AddObject(
         mod, "Member", reinterpret_cast<PyObject*>( &Member::TypeObject ) );
     PyModule_AddObject(
         mod, "ClassMap", reinterpret_cast<PyObject*>( &ClassMap::TypeObject ) );
     PyModule_AddObject(
         mod, "Atom", reinterpret_cast<PyObject*>( &Atom::TypeObject ) );
-    PyModule_AddObject( mod, "null", NullObject );
 }

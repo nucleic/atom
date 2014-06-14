@@ -9,12 +9,14 @@
 
 #include <Python.h>
 #include <utils/stdint.h>
+#include <utils/py23_str.h>
 
 
 namespace atom
 {
 
 struct ClassMapEntry;
+
 struct Member;
 
 
@@ -41,8 +43,7 @@ struct ClassMap
     }
 
     // Borrowed member + index on success, untouched on failure
-    // 'name' must be PyStringObject on Py2k - PyUnicodeObject on Py3k
-    void getMember( PyObject* name, Member** member, uint32_t* index );
+    void getMember( Py23StrObject* name, Member** member, uint32_t* index );
 };
 
 } // namespace atom

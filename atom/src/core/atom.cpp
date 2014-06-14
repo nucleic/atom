@@ -6,10 +6,10 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
+#include <utils/py23_str.h>
 #include "atom.h"
 #include "class_map.h"
 #include "member.h"
-#include "null_object.h"
 
 
 namespace atom
@@ -128,7 +128,9 @@ PyObject* Atom_getattro( PyObject* self, PyObject* name )
     uint32_t index;
     Member* member = 0;
     Atom* atom = reinterpret_cast<Atom*>( self );
-    atom->m_class_map->getMember( name, &member, &index );
+    atom->m_class_map->getMember(
+        // the interpreter guarantees this raw cast is safe
+        reinterpret_cast<Py23StrObject*>( name ), &member, &index );
     if( member )
     {
         PyObject* value = atom->m_slots[ index ];
@@ -150,10 +152,17 @@ PyObject* Atom_getattro( PyObject* self, PyObject* name )
 
 int Atom_setattro( PyObject* self, PyObject* name, PyObject* val )
 {
+    if( !val )
+    {
+        // XXX handle deletes
+        return 0;
+    }
     uint32_t index;
     Member* member = 0;
     Atom* atom = reinterpret_cast<Atom*>( self );
-    atom->m_class_map->getMember( name, &member, &index );
+    atom->m_class_map->getMember(
+        // the interpreter guarantees this raw cast is safe
+        reinterpret_cast<Py23StrObject*>( name ), &member, &index );
     if( member )
     {
         PyObject* old = atom->m_slots[ index ];
@@ -161,7 +170,7 @@ int Atom_setattro( PyObject* self, PyObject* name, PyObject* val )
         {
             return 0;
         }
-        val = member->validate( self, name, val ? val : NullObject );
+        val = member->validate( self, name, val );
         if( !val )
         {
             return -1;
@@ -250,7 +259,7 @@ PyTypeObject Atom::TypeObject = {
 
 bool Atom::Ready()
 {
-    class_map_str = PyString_FromString( "_[class map]" );
+    class_map_str = Py23Str_FromString( "_[class map]" );
     if( !class_map_str )
     {
         return false;

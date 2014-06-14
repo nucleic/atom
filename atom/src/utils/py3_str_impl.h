@@ -10,9 +10,12 @@
 #include <Python.h>
 
 
+#define Py23StrObject PyUnicodeObject
+#define Py23Str_Check PyUnicode_Check
+#define Py23Str_FromString PyUnicode_FromString
+
+
 namespace atom
 {
-
-extern PyObject* NullObject;
-
+	// XXX implement me
 } // namespace atom

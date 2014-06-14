@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cstring>
 #include <cppy/cppy.h>
-#include <utils/utils.h>
+#include <utils/math.h>
 #include "class_map.h"
 #include "member.h"
 
@@ -18,7 +18,7 @@ namespace atom
 
 struct ClassMapEntry
 {
-    PyObject* name;
+    Py23StrObject* name;
     Member* member;
     uint32_t index;
 };
@@ -27,10 +27,10 @@ struct ClassMapEntry
 namespace
 {
 
-void insert_member( ClassMap* map, PyObject* name, Member* member )
+void insert_member( ClassMap* map, Py23StrObject* name, Member* member )
 {
     uint32_t mask = map->m_allocated - 1;
-    uint32_t hash = utils::pystr_hash( name );
+    uint32_t hash = py23_str_hash( name );
     uint32_t bucket = hash & mask;
     ClassMapEntry* base = map->m_entries;
     while( true ) // table is never full, so always terminates in loop
@@ -40,11 +40,9 @@ void insert_member( ClassMap* map, PyObject* name, Member* member )
         ClassMapEntry* entry = base + bucket;
         if( !entry->name )
         {
-            entry->name = name;
-            entry->member = member;
+            entry->name = cppy::incref( name );
+            entry->member = cppy::incref( member );
             entry->index = map->m_count++;
-            Py_INCREF( name );
-            Py_INCREF( member );
             return;
         }
         // CPython's collision resolution scheme
@@ -57,9 +55,9 @@ void insert_member( ClassMap* map, PyObject* name, Member* member )
 PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     static char* kwlist[] = { "members", 0 };
+    static char* spec = "O:__new__";
     PyObject* members;
-    if( !PyArg_ParseTupleAndKeywords(
-        args, kwargs, "O:__new__", kwlist, &members ) )
+    if( !PyArg_ParseTupleAndKeywords( args, kwargs, spec, kwlist, &members ) )
     {
         return 0;
     }
@@ -72,9 +70,9 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     {
         return 0;
     }
+    static const uint32_t min_size = 4;
     uint32_t size = static_cast<uint32_t>( PyDict_Size( members ) );
-    uint32_t count = std::max( size, static_cast<uint32_t>( 3 ) );
-    uint32_t allocated = utils::next_power_of_2( count * 4 / 3 );
+    uint32_t allocated = next_power_of_2( std::max( size, min_size ) );
     size_t mem_size = sizeof( ClassMapEntry ) * allocated;
     void* entries = PyObject_Malloc( mem_size );
     if( !entries )
@@ -90,7 +88,7 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     Py_ssize_t pos = 0;
     while( PyDict_Next( members, &pos, &key, &value ) )
     {
-        if( !PyString_Check( key ) )
+        if( !Py23Str_Check( key ) )
         {
             return cppy::type_error( key, "str" );
         }
@@ -98,7 +96,9 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         {
             return cppy::type_error( value, "Member" );
         }
-        insert_member( map, key, reinterpret_cast<Member*>( value ) );
+        insert_member( map,
+            reinterpret_cast<Py23StrObject*>( key ),
+            reinterpret_cast<Member*>( value ) );
     }
     return self_ptr.release();
 }
@@ -222,10 +222,10 @@ bool ClassMap::Ready()
 }
 
 
-void ClassMap::getMember( PyObject* name, Member** member, uint32_t* index )
+void ClassMap::getMember( Py23StrObject* name, Member** member, uint32_t* index )
 {
     uint32_t mask = m_allocated - 1;
-    uint32_t hash = utils::pystr_hash( name );
+    uint32_t hash = py23_str_hash( name );
     uint32_t bucket = hash & mask;
     ClassMapEntry* base = m_entries;
     while( true ) // table is never full, so always terminates in loop
@@ -235,7 +235,7 @@ void ClassMap::getMember( PyObject* name, Member** member, uint32_t* index )
         {
             return;
         }
-        if( utils::pystr_equal( name, entry->name ) )
+        if( py23_str_equal( name, entry->name ) )
         {
             *member = entry->member;
             *index = entry->index;
