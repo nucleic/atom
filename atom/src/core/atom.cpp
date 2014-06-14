@@ -204,30 +204,30 @@ PyMethodDef Atom_methods[] = {
 
 
 PyTypeObject Atom::TypeObject = {
-    PyObject_HEAD_INIT( &PyType_Type ) /* header */
-    0,                                 /* ob_size */
-    "atom.catom.Atom",                 /* tp_name */
-    sizeof( Atom ),                    /* tp_basicsize */
-    0,                                 /* tp_itemsize */
-    ( destructor )Atom_dealloc,        /* tp_dealloc */
-    ( printfunc )0,                    /* tp_print */
-    ( getattrfunc )0,                  /* tp_getattr */
-    ( setattrfunc )0,                  /* tp_setattr */
-    ( cmpfunc )0,                      /* tp_compare */
-    ( reprfunc )0,                     /* tp_repr */
-    ( PyNumberMethods* )0,             /* tp_as_number */
-    ( PySequenceMethods* )0,           /* tp_as_sequence */
-    ( PyMappingMethods* )0,            /* tp_as_mapping */
-    ( hashfunc )0,                     /* tp_hash */
-    ( ternaryfunc )0,                  /* tp_call */
-    ( reprfunc )0,                     /* tp_str */
-    ( getattrofunc )Atom_getattro,     /* tp_getattro */
-    ( setattrofunc )Atom_setattro,     /* tp_setattro */
-    ( PyBufferProcs* )0,               /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT |
-        Py_TPFLAGS_BASETYPE |
-        Py_TPFLAGS_HAVE_GC |
-        Py_TPFLAGS_HAVE_VERSION_TAG,     /* tp_flags */
+    PyObject_HEAD_INIT( &PyType_Type )
+    0,                                   /* ob_size */
+    "atom.catom.Atom",                   /* tp_name */
+    sizeof( Atom ),                      /* tp_basicsize */
+    0,                                   /* tp_itemsize */
+    ( destructor )Atom_dealloc,          /* tp_dealloc */
+    ( printfunc )0,                      /* tp_print */
+    ( getattrfunc )0,                    /* tp_getattr */
+    ( setattrfunc )0,                    /* tp_setattr */
+    ( cmpfunc )0,                        /* tp_compare */
+    ( reprfunc )0,                       /* tp_repr */
+    ( PyNumberMethods* )0,               /* tp_as_number */
+    ( PySequenceMethods* )0,             /* tp_as_sequence */
+    ( PyMappingMethods* )0,              /* tp_as_mapping */
+    ( hashfunc )0,                       /* tp_hash */
+    ( ternaryfunc )0,                    /* tp_call */
+    ( reprfunc )0,                       /* tp_str */
+    ( getattrofunc )Atom_getattro,       /* tp_getattro */
+    ( setattrofunc )Atom_setattro,       /* tp_setattro */
+    ( PyBufferProcs* )0,                 /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT
+    | Py_TPFLAGS_BASETYPE
+    | Py_TPFLAGS_HAVE_GC
+    | Py_TPFLAGS_HAVE_VERSION_TAG,       /* tp_flags */
     0,                                   /* Documentation string */
     ( traverseproc )Atom_traverse,       /* tp_traverse */
     ( inquiry )Atom_clear,               /* tp_clear */
