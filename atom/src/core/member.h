@@ -8,6 +8,7 @@
 #pragma once
 
 #include <Python.h>
+#include <utils/stdint.h>
 
 
 namespace atom
@@ -21,6 +22,10 @@ struct Member
     PyObject* m_validate;
     PyObject* m_post_validate;
     PyObject* m_post_setattr;
+    uint32_t m_flags;
+
+    enum Flag
+    {};
 
     static PyTypeObject TypeObject;
 
@@ -29,6 +34,23 @@ struct Member
     static bool TypeCheck( PyObject* ob )
     {
         return PyObject_TypeCheck( ob, &TypeObject ) != 0;
+    }
+
+    bool testFlag( Flag flag )
+    {
+        return ( m_flags & static_cast<uint32_t>( flag ) ) != 0;
+    }
+
+    bool setFlag( Flag flag, bool on = true )
+    {
+        if( on )
+        {
+            m_flags |= static_cast<uint32_t>( flag );
+        }
+        else
+        {
+            m_flags &= ~( static_cast<uint32_t>( flag ) );
+        }
     }
 
     PyObject* getDefault( PyObject* atom, PyObject* name );

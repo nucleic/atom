@@ -6,7 +6,8 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
-#include <utils/py23_str.h>
+#include <iostream>
+#include <utils/py23compat.h>
 #include "atom.h"
 #include "class_map.h"
 #include "member.h"
@@ -23,14 +24,14 @@ PyObject* class_map_str;
 
 PyObject* lookup_class_map( PyTypeObject* type )
 {
-    PyObject* py_map = PyDict_GetItem( type->tp_dict, class_map_str );
-    if( py_map )
+    PyObject* class_map = PyDict_GetItem( type->tp_dict, class_map_str );
+    if( class_map )
     {
-        if( !ClassMap::TypeCheck( py_map ) )
+        if( !ClassMap::TypeCheck( class_map ) )
         {
             return cppy::bad_internal_call( "class map has invalid type" );
         }
-        return cppy::incref( py_map );
+        return cppy::incref( class_map );
     }
     return cppy::bad_internal_call( "atom type has no class map" );
 }
@@ -48,21 +49,23 @@ PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     {
         return 0;
     }
-    Atom* atom = reinterpret_cast<Atom*>( self_ptr.get() );
+
+    Atom* self = reinterpret_cast<Atom*>( self_ptr.get() );
     ClassMap* map = reinterpret_cast<ClassMap*>( map_ptr.get() );
-    uint32_t count = map->getMemberCount();
-    if( count > 0 )
+    uint32_t member_count = map->getMemberCount();
+    if( member_count > 0 )
     {
-        size_t memsize = sizeof( PyObject* ) * count;
-        void* slotmem = PyObject_Malloc( memsize );
-        if( !slotmem )
+        size_t mem_size = sizeof( PyObject* ) * member_count;
+        void* slot_mem = PyObject_Malloc( mem_size );
+        if( !slot_mem )
         {
             return PyErr_NoMemory();
         }
-        memset( slotmem, 0, memsize );
-        atom->m_slots = reinterpret_cast<PyObject**>( slotmem );
+        memset( slot_mem, 0, mem_size );
+        self->m_slots = reinterpret_cast<PyObject**>( slot_mem );
     }
-    atom->m_class_map = reinterpret_cast<ClassMap*>( map_ptr.release() );
+    self->m_class_map = reinterpret_cast<ClassMap*>( map_ptr.release() );
+
     return self_ptr.release();
 }
 
@@ -125,12 +128,16 @@ void Atom_dealloc( Atom* self )
 
 PyObject* Atom_getattro( PyObject* self, PyObject* name )
 {
+    cppy::ptr name_ptr( PyName_As23Str( name ) );
+    if( !name_ptr )
+    {
+        return 0;
+    }
     uint32_t index;
     Member* member = 0;
     Atom* atom = reinterpret_cast<Atom*>( self );
-    atom->m_class_map->getMember(
-        // the interpreter guarantees this raw cast is safe
-        reinterpret_cast<Py23StrObject*>( name ), &member, &index );
+    Py23StrObject* sname = reinterpret_cast<Py23StrObject*>( name_ptr.get() );
+    atom->m_class_map->getMember( sname, &member, &index );
     if( member )
     {
         PyObject* value = atom->m_slots[ index ];
@@ -138,7 +145,7 @@ PyObject* Atom_getattro( PyObject* self, PyObject* name )
         {
             return cppy::incref( value );
         }
-        value = member->getDefault( self, name );
+        value = member->getDefault( self, name_ptr.get() );
         if( !value )
         {
             return 0;
@@ -146,41 +153,45 @@ PyObject* Atom_getattro( PyObject* self, PyObject* name )
         atom->m_slots[ index ] = value;
         return cppy::incref( value );
     }
-    return PyObject_GenericGetAttr( self, name );
+    return PyObject_GenericGetAttr( self, name_ptr.get() );
 }
 
 
-int Atom_setattro( PyObject* self, PyObject* name, PyObject* val )
+int Atom_setattro( PyObject* self, PyObject* name, PyObject* value )
 {
-    if( !val )
+    cppy::ptr name_ptr( PyName_As23Str( name ) );
+    if( !name_ptr )
     {
-        // XXX handle deletes
-        return 0;
+        return -1;
     }
     uint32_t index;
     Member* member = 0;
     Atom* atom = reinterpret_cast<Atom*>( self );
-    atom->m_class_map->getMember(
-        // the interpreter guarantees this raw cast is safe
-        reinterpret_cast<Py23StrObject*>( name ), &member, &index );
+    Py23StrObject* sname = reinterpret_cast<Py23StrObject*>( name_ptr.get() );
+    atom->m_class_map->getMember( sname, &member, &index );
     if( member )
     {
         PyObject* old = atom->m_slots[ index ];
-        if( old == val )
+        if( value == old )
         {
             return 0;
         }
-        val = member->validate( self, name, val );
-        if( !val )
+        if( !value )
+        {
+            // XXX handle deletes
+            return 0;
+        }
+        value = member->validate( self, name_ptr.get(), value );
+        if( !value )
         {
             return -1;
         }
-        atom->m_slots[ index ] = val;
-        int result = member->postSetAttr( self, name, val );
-        Py_XDECREF( old );
+        atom->m_slots[ index ] = value; // 'old' is now an owned ref
+        int result = member->postSetAttr( self, name_ptr.get(), value );
+        cppy::xdecref( old );
         return result;
     }
-    return PyObject_GenericSetAttr( self, name, val );
+    return PyObject_GenericSetAttr( self, name_ptr.get(), value );
 }
 
 

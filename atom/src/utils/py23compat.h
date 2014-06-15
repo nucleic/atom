@@ -8,7 +8,7 @@
 #pragma once
 
 #if PY_MAJOR_VERSION >= 3
-#include "py3_str_impl.h"
+#include "py3compat.h"
 #else
-#include "py2_str_impl.h"
+#include "py2compat.h"
 #endif

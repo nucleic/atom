@@ -13,6 +13,24 @@
 #define Py23StrObject PyUnicodeObject
 #define Py23Str_Check PyUnicode_Check
 #define Py23Str_FromString PyUnicode_FromString
+#define Py23Bytes_Check PyBytes_Check
+#define Py23Int_Check PyLong_Check
+#define Py23Number_Int PyNumber_Long
 
 
-// XXX implement extra string functions
+inline size_t Py23Str_Hash( Py23StrObject* op )
+{
+	// XXX implement me
+}
+
+
+inline bool Py23Str_Equal( Py23StrObject* a, Py23StrObject* b )
+{
+	// XXX implement me
+}
+
+
+inline PyObject* PyName_As23Str( PyObject* name )
+{
+	// XXX implement me
+}

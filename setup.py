@@ -18,6 +18,7 @@ ext_modules = [
             'atom/src/core/atom.cpp',
             'atom/src/core/class_map.cpp',
             'atom/src/core/member.cpp',
+            'atom/src/core/validator.cpp',
             'atom/src/catom_module.cpp',
         ],
         include_dirs=[cppy.get_include(), 'atom/src'],

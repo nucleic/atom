@@ -8,25 +8,51 @@
 #pragma once
 
 #include <Python.h>
-#include <utils/stdint.h>
-#include <utils/py23compat.h>
 
 
 namespace atom
 {
 
-struct ClassMapEntry;
+namespace Validate
+{
 
-struct Member;
+enum Mode
+{
+    Bool,
+    Int,
+    Float,
+    Bytes,
+    Str,
+    Unicode,
+    Tuple,
+    List,
+    Dict,
+    Instance,
+    Typed,
+    Subclass,
+    Enum,
+    Callable,
+    Range,
+    Coerced,
+    Last // sentinel
+};
+
+} // namespace Validate
+
+
+struct Validator;
+
+
+typedef PyObject* ( *ValidateHandler )(
+    Validator* validator, PyObject* atom, PyObject* name, PyObject* value );
 
 
 // POD struct - all member fields are considered private
-struct ClassMap
+struct Validator
 {
     PyObject_HEAD
-    ClassMapEntry* m_entries;
-    uint32_t m_allocated;
-    uint32_t m_count;
+    PyObject* m_context;
+    ValidateHandler m_handler;
 
     static PyTypeObject TypeObject;
 
@@ -36,14 +62,6 @@ struct ClassMap
     {
         return Py_TYPE( ob ) == &TypeObject;
     }
-
-    uint32_t getMemberCount()
-    {
-        return m_count;
-    }
-
-    // Borrowed member + index on success, untouched on non-existent
-    void getMember( Py23StrObject* name, Member** member, uint32_t* index );
 };
 
 } // namespace atom

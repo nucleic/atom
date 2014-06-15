@@ -8,11 +8,15 @@
 #pragma once
 
 #include <Python.h>
+#include <cppy/cppy.h>
 
 
 #define Py23StrObject PyStringObject
 #define Py23Str_Check PyString_Check
 #define Py23Str_FromString PyString_FromString
+#define Py23Bytes_Check PyString_Check
+#define Py23Int_Check( ob ) ( PyInt_Check( ob ) || PyLong_Check( ob ) )
+#define Py23Number_Int PyNumber_Int
 
 
 inline size_t Py23Str_Hash( Py23StrObject* op )
@@ -37,4 +41,22 @@ inline bool Py23Str_Equal( Py23StrObject* a, Py23StrObject* b )
         return memcmp( a->ob_sval, b->ob_sval, Py_SIZE( a ) ) == 0;
     }
     return false;
+}
+
+
+inline PyObject* PyName_As23Str( PyObject* name )
+{
+    if( PyString_Check( name ) )
+    {
+        return cppy::incref( name );
+    }
+    if( PyUnicode_Check( name ) )
+    {
+        return PyUnicode_AsEncodedString( name, 0, 0 );
+    }
+    PyErr_Format(
+        PyExc_TypeError,
+        "attribute name must be string, not '%.200s'",
+        Py_TYPE( name )->tp_name );
+    return 0;
 }
