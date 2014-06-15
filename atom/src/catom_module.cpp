@@ -50,27 +50,11 @@ PyMODINIT_FUNC initcatom( void )
     Py_INCREF( &Validator::TypeObject );
 
     PyModule_AddObject(
-        mod, "Member", reinterpret_cast<PyObject*>( &Member::TypeObject ) );
+        mod, "CMember", reinterpret_cast<PyObject*>( &Member::TypeObject ) );
     PyModule_AddObject(
         mod, "ClassMap", reinterpret_cast<PyObject*>( &ClassMap::TypeObject ) );
     PyModule_AddObject(
-        mod, "Atom", reinterpret_cast<PyObject*>( &Atom::TypeObject ) );
+        mod, "CAtom", reinterpret_cast<PyObject*>( &Atom::TypeObject ) );
     PyModule_AddObject(
-        mod, "Validator", reinterpret_cast<PyObject*>( &Validator::TypeObject ) );
-
-    PyModule_AddIntConstant( mod, "Validate_Bool", Validate::Bool );
-    PyModule_AddIntConstant( mod, "Validate_Int", Validate::Int );
-    PyModule_AddIntConstant( mod, "Validate_Float", Validate::Float );
-    PyModule_AddIntConstant( mod, "Validate_Bytes", Validate::Bytes );
-    PyModule_AddIntConstant( mod, "Validate_Str", Validate::Str );
-    PyModule_AddIntConstant( mod, "Validate_Unicode", Validate::Unicode );
-    PyModule_AddIntConstant( mod, "Validate_Tuple", Validate::Tuple );
-    PyModule_AddIntConstant( mod, "Validate_List", Validate::List );
-    PyModule_AddIntConstant( mod, "Validate_Instance", Validate::Instance );
-    PyModule_AddIntConstant( mod, "Validate_Typed", Validate::Typed );
-    PyModule_AddIntConstant( mod, "Validate_Subclass", Validate::Subclass );
-    PyModule_AddIntConstant( mod, "Validate_Enum", Validate::Enum );
-    PyModule_AddIntConstant( mod, "Validate_Callable", Validate::Callable );
-    PyModule_AddIntConstant( mod, "Validate_Range", Validate::Range );
-    PyModule_AddIntConstant( mod, "Validate_Coerced", Validate::Coerced );
+        mod, "CValidator", reinterpret_cast<PyObject*>( &Validator::TypeObject ) );
 }

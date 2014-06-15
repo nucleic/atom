@@ -13,46 +13,38 @@
 namespace atom
 {
 
-namespace Validate
-{
-
-enum Mode
-{
-    Bool,
-    Int,
-    Float,
-    Bytes,
-    Str,
-    Unicode,
-    Tuple,
-    List,
-    Dict,
-    Instance,
-    Typed,
-    Subclass,
-    Enum,
-    Callable,
-    Range,
-    Coerced,
-    Last // sentinel
-};
-
-} // namespace Validate
-
-
-struct Validator;
-
-
-typedef PyObject* ( *ValidateHandler )(
-    Validator* validator, PyObject* atom, PyObject* name, PyObject* value );
-
-
 // POD struct - all member fields are considered private
 struct Validator
 {
+    typedef PyObject* ( *Handler )(
+        Validator* validator, PyObject* atom, PyObject* name, PyObject* value
+    );
+
     PyObject_HEAD
     PyObject* m_context;
-    ValidateHandler m_handler;
+    PyObject* m_error_handler;
+    Handler m_validate_handler;
+
+    enum Mode
+    {
+        Bool,
+        Int,
+        Float,
+        Bytes,
+        Str,
+        Unicode,
+        Tuple,
+        List,
+        Dict,
+        Instance,
+        Typed,
+        Subclass,
+        Enum,
+        Callable,
+        Range,
+        Coerced,
+        Last // sentinel
+    };
 
     static PyTypeObject TypeObject;
 

@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 import copy_reg
 
-from .catom import Atom as CAtom, ClassMap, Member
+from .catom import CAtom, ClassMap, CMember
 
 
 #: The string key constant used to store the type member dictionary.
@@ -51,7 +51,7 @@ class AtomMeta(type):
 
         # Walk the current class dict to collect the new members.
         for key, value in dct.iteritems():
-            if isinstance(value, Member):
+            if isinstance(value, CMember):
                 members[key] = value
 
         # Creat the class map for the new class.

@@ -17,13 +17,13 @@ namespace
 {
 
 // true on success, false and exception on failure
-bool check_context( Validate::Mode mode, PyObject* context )
+bool check_context( Validator::Mode mode, PyObject* context )
 {
     switch( mode )
     {
-   	case Validate::Bool:
-   	case Validate::Int:
-   	case Validate::Float:
+   	case Validator::Bool:
+   	case Validator::Int:
+   	case Validator::Float:
    		if( context != Py_True && context != Py_False )
    		{
    			cppy::type_error( context, "bool" );
@@ -31,7 +31,7 @@ bool check_context( Validate::Mode mode, PyObject* context )
    		}
    		break;
     // xxx validate a valid isinstance context for tuple, list and dict?
-    case Validate::Dict:
+    case Validator::Dict:
     {
         if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 2 )
         {
@@ -41,7 +41,7 @@ bool check_context( Validate::Mode mode, PyObject* context )
         break;
     }
     // XXX validate a valid isinstance context for Instance?
-    case Validate::Typed:
+    case Validator::Typed:
         if( !PyType_Check( context ) )
         {
             cppy::type_error( context, "type" );
@@ -49,23 +49,23 @@ bool check_context( Validate::Mode mode, PyObject* context )
         }
         break;
     // XXX validate a valid issubclass context?
-    case Validate::Enum:
+    case Validator::Enum:
         if( !PySequence_Check( context ) )
         {
             cppy::type_error( context, "sequence" );
             return false;
         }
         break;
-    case Validate::Range:
+    case Validator::Range:
     {
-        if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 2 )
+        if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 3 )
         {
-            cppy::type_error( context, "2-tuple" );
+            cppy::type_error( context, "3-tuple" );
             return false;
         }
         break;
     }
-    case Validate::Coerced:
+    case Validator::Coerced:
     {
         if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 2 )
         {
@@ -88,8 +88,25 @@ bool check_context( Validate::Mode mode, PyObject* context )
 }
 
 
-// XXX fill implement me
-#define VALIDATION_ERROR return 0
+PyObject* raise_validation_error(
+    Validator* self, PyObject* atom, PyObject* name, PyObject* value )
+{
+    cppy::ptr args( PyTuple_Pack( 4, self, atom, name, value ) );
+    if( !args )
+    {
+        return 0;
+    }
+    cppy::ptr res( PyObject_Call( self->m_error_handler, args.get(), 0 ) );
+    if( !res )
+    {
+        return 0;
+    }
+    return cppy::bad_internal_call( "error handler did not raise exception" );
+}
+
+
+#define RAISE_VALIDATION_ERROR \
+    return raise_validation_error( self, atom, name, value )
 
 
 PyObject* bool_handler(
@@ -108,7 +125,7 @@ PyObject* bool_handler(
 		}
 		return PyBool_FromLong( ok );
 	}
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -123,7 +140,7 @@ PyObject* int_handler(
     {
     	return Py23Number_Int( value );
     }
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -138,7 +155,7 @@ PyObject* float_handler(
     {
     	return PyNumber_Float( value );
     }
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -149,7 +166,7 @@ PyObject* bytes_handler(
     {
         return cppy::incref( value );
     }
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -166,7 +183,7 @@ PyObject* str_handler(
 		return PyUnicode_AsUTF8String( value );
     }
 #endif
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -177,7 +194,7 @@ PyObject* unicode_handler(
     {
         return cppy::incref( value );
     }
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -186,7 +203,7 @@ PyObject* tuple_handler(
 {
     if( !PyTuple_Check( value ) )
     {
-        VALIDATION_ERROR;
+        RAISE_VALIDATION_ERROR;
     }
    	PyObject* type = self->m_context;
     if( type == Py_None )
@@ -206,15 +223,13 @@ PyObject* tuple_handler(
         if( r == 1 )
         {
         	PyTuple_SET_ITEM( result.get(), i, cppy::incref( item ) );
+            continue;
         }
-        else if( r == -1 )
+        if( r == -1 )
         {
         	return 0;
         }
-        else
-        {
-      		VALIDATION_ERROR;
-      	}
+        RAISE_VALIDATION_ERROR;
     }
     return result.release();
 }
@@ -225,7 +240,7 @@ PyObject* list_handler(
 {
 	if( !PyList_Check( value ) )
 	{
-		VALIDATION_ERROR;
+		RAISE_VALIDATION_ERROR;
 	}
 	return PyList_GetSlice( value, 0, PyList_GET_SIZE( value ) );
 	// XXX handle list types
@@ -237,7 +252,7 @@ PyObject* dict_handler(
 {
     if( !PyDict_Check( value ) )
     {
-        VALIDATION_ERROR;
+        RAISE_VALIDATION_ERROR;
     }
     return PyDict_Copy( value );
     // XXX handle dict types
@@ -260,7 +275,7 @@ PyObject* instance_handler(
     {
     	return 0;
     }
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -276,7 +291,7 @@ PyObject* typed_handler(
     {
         return cppy::incref( value );
     }
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -296,7 +311,7 @@ PyObject* subclass_handler(
     {
     	return 0;
     }
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -312,7 +327,7 @@ PyObject* enum_handler(
     {
     	return 0;
     }
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -323,7 +338,7 @@ PyObject* callable_handler(
     {
         return cppy::incref( value );
     }
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
@@ -332,23 +347,39 @@ PyObject* range_handler(
 {
     PyObject* min_val = PyTuple_GET_ITEM( self->m_context, 0 );
     PyObject* max_val = PyTuple_GET_ITEM( self->m_context, 1 );
-    int lt = PyObject_RichCompareBool( value, min_val, Py_LT );
-    if( lt == 1 )
+    PyObject* kind = PyTuple_GET_ITEM( self->m_context, 2 );
+    int ok = PyObject_IsInstance( value, kind );
+    if( ok == -1 )
     {
-    	VALIDATION_ERROR;
+        return 0;
     }
-    if( lt == -1 )
+    if( ok == 0 )
     {
-    	return 0;
+        RAISE_VALIDATION_ERROR;
     }
-    int gt = PyObject_RichCompareBool( value, max_val, Py_GT );
-    if( gt == 1 )
+    if( min_val != Py_None )
     {
-    	VALIDATION_ERROR;
+        int r = PyObject_RichCompareBool( value, min_val, Py_LT );
+        if( r == 1 )
+        {
+        	RAISE_VALIDATION_ERROR;
+        }
+        if( r == -1 )
+        {
+        	return 0;
+        }
     }
-    if( gt == -1 )
+    if( max_val != Py_None )
     {
-    	return 0;
+        int r = PyObject_RichCompareBool( value, max_val, Py_GT );
+        if( r == 1 )
+        {
+        	RAISE_VALIDATION_ERROR;
+        }
+        if( r == -1 )
+        {
+        	return 0;
+        }
     }
     return cppy::incref( value );
 }
@@ -387,11 +418,11 @@ PyObject* coerced_handler(
     {
     	return 0;
     }
-    VALIDATION_ERROR;
+    RAISE_VALIDATION_ERROR;
 }
 
 
-ValidateHandler handlers[] = {
+Validator::Handler validate_handlers[] = {
 	bool_handler,
     int_handler,
     float_handler,
@@ -417,20 +448,24 @@ PyObject* Validator_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	{
 		return cppy::type_error( "__new__ takes no keyword arguments" );
 	}
-    int imode;
+    long mode;
     PyObject* context;
-    if( !PyArg_ParseTuple( args, "iO", &imode, &context ) )
+    PyObject* error_handler;
+    if( !PyArg_ParseTuple( args, "lOO", &mode, &context, &error_handler ) )
     {
         return 0;
     }
-    if( imode < 0 || imode >= Validate::Last )
+    if( mode < 0 || mode >= Validator::Last )
     {
     	return cppy::value_error( "validate mode out of range" );
     }
-    Validate::Mode mode = static_cast<Validate::Mode>( imode );
-    if( !check_context( mode, context ) )
+    if( !check_context( static_cast<Validator::Mode>( mode ), context ) )
     {
     	return 0;
+    }
+    if( !PyCallable_Check( error_handler ) )
+    {
+        return cppy::type_error( error_handler, "callable" );
     }
     PyObject* py_self = PyType_GenericNew( type, 0, 0 );
     if( !py_self )
@@ -439,7 +474,8 @@ PyObject* Validator_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     }
     Validator* self = reinterpret_cast<Validator*>( py_self );
     self->m_context = cppy::incref( context );
-    self->m_handler = handlers[ mode ];
+    self->m_error_handler = cppy::incref( error_handler );
+    self->m_validate_handler = validate_handlers[ mode ];
     return py_self;
 }
 
@@ -447,12 +483,14 @@ PyObject* Validator_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 void Validator_clear( Validator* self )
 {
     Py_CLEAR( self->m_context );
+    Py_CLEAR( self->m_error_handler );
 }
 
 
 int Validator_traverse( Validator* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->m_context );
+    Py_VISIT( self->m_error_handler );
     return 0;
 }
 
@@ -483,8 +521,47 @@ PyObject* Validator_call( Validator* self, PyObject* args, PyObject* kwargs )
 	PyObject* atom = PyTuple_GET_ITEM( args, 0 );
 	PyObject* name = PyTuple_GET_ITEM( args, 1 );
 	PyObject* value = PyTuple_GET_ITEM( args, 2 );
-	return self->m_handler( self, atom, name, value );
+	return self->m_validate_handler( self, atom, name, value );
 }
+
+
+PyObject* Validator_get_context( Validator* self, void* ctxt )
+{
+    return cppy::incref( self->m_context );
+}
+
+
+PyObject* Validator_get_error_handler( Validator* self, void* ctxt )
+{
+    return cppy::incref( self->m_error_handler );
+}
+
+
+PyObject* Validator_get_mode( Validator* self, void* ctxt )
+{
+    for( long i = 0; i < Validator::Last; ++i )
+    {
+        if( validate_handlers[ i ] == self->m_validate_handler )
+        {
+            return Py23Int_FromLong( i );
+        }
+    }
+    return cppy::bad_internal_call( "validate mode out of range" );
+}
+
+
+PyGetSetDef Validator_getset[] = {
+    { "context",
+      ( getter )Validator_get_context, ( setter )0,
+      "Get the validation context for the validator." },
+    { "error_handler",
+      ( getter )Validator_get_error_handler, ( setter )0,
+      "Get the error handler for the validator." },
+    { "mode",
+      ( getter )Validator_get_mode, ( setter )0,
+      "Get the validation mode for the validator." },
+    { 0 } // sentinel
+};
 
 } // namespace
 
@@ -492,7 +569,7 @@ PyObject* Validator_call( Validator* self, PyObject* args, PyObject* kwargs )
 PyTypeObject Validator::TypeObject = {
     PyObject_HEAD_INIT( &PyType_Type )
     0,                                  		/* ob_size */
-    "atom.catom.Validator",             		/* tp_name */
+    "atom.catom.CValidator",             		/* tp_name */
     sizeof( Validator ),                		/* tp_basicsize */
     0,                                  		/* tp_itemsize */
     ( destructor )Validator_dealloc,    		/* tp_dealloc */
@@ -520,7 +597,7 @@ PyTypeObject Validator::TypeObject = {
     ( iternextfunc )0,                 			/* tp_iternext */
     ( struct PyMethodDef* )0,          			/* tp_methods */
     ( struct PyMemberDef* )0,          			/* tp_members */
-    0,			                       			/* tp_getset */
+    Validator_getset,			                /* tp_getset */
     0,                                 			/* tp_base */
     0,                                 			/* tp_dict */
     ( descrgetfunc )0,                 			/* tp_descr_get */
@@ -540,9 +617,58 @@ PyTypeObject Validator::TypeObject = {
 };
 
 
+namespace
+{
+
+bool add_validate_mode( const char* name, Validator::Mode mode )
+{
+    cppy::ptr value( Py23Int_FromLong( mode ) );
+    if( !value )
+    {
+        return false;
+    }
+    PyObject* type_dict = Validator::TypeObject.tp_dict;
+    return PyDict_SetItemString( type_dict, name, value.get() ) == 0;
+};
+
+} // namespace
+
+
 bool Validator::Ready()
 {
-	return PyType_Ready( &TypeObject ) == 0;
+	if( PyType_Ready( &TypeObject ) != 0 )
+    {
+        return false;
+    }
+
+#define STR_HELPER( x ) #x
+#define STR( x ) STR_HELPER( x )
+#define ADD_HELPER( a, b ) if( !add_validate_mode( a, b ) ) return false;
+#define ADD_MODE( m ) ADD_HELPER( STR( m ), m )
+
+    ADD_MODE( Bool )
+    ADD_MODE( Int )
+    ADD_MODE( Float )
+    ADD_MODE( Bytes )
+    ADD_MODE( Str )
+    ADD_MODE( Unicode )
+    ADD_MODE( Tuple )
+    ADD_MODE( List )
+    ADD_MODE( Dict )
+    ADD_MODE( Instance )
+    ADD_MODE( Typed )
+    ADD_MODE( Subclass )
+    ADD_MODE( Enum )
+    ADD_MODE( Callable )
+    ADD_MODE( Range )
+    ADD_MODE( Coerced )
+
+#undef ADD_MODE
+#undef ADD_HELPER
+#undef STR
+#undef STR_HELPER
+
+    return true;
 }
 
 } // namespace atom

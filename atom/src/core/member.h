@@ -25,7 +25,8 @@ struct Member
     uint32_t m_flags;
 
     enum Flag
-    {};
+    {
+    };
 
     static PyTypeObject TypeObject;
 

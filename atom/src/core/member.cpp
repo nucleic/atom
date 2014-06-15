@@ -164,7 +164,7 @@ PyGetSetDef Member_getset[] = {
 PyTypeObject Member::TypeObject = {
     PyObject_HEAD_INIT( &PyType_Type )
     0,                                 /* ob_size */
-    "atom.catom.Member",               /* tp_name */
+    "atom.catom.CMember",              /* tp_name */
     sizeof( Member ),                  /* tp_basicsize */
     0,                                 /* tp_itemsize */
     ( destructor )Member_dealloc,      /* tp_dealloc */

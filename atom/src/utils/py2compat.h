@@ -16,6 +16,7 @@
 #define Py23Str_FromString PyString_FromString
 #define Py23Bytes_Check PyString_Check
 #define Py23Int_Check( ob ) ( PyInt_Check( ob ) || PyLong_Check( ob ) )
+#define Py23Int_FromLong PyInt_FromLong
 #define Py23Number_Int PyNumber_Int
 
 

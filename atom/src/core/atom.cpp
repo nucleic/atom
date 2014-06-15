@@ -6,7 +6,6 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
-#include <iostream>
 #include <utils/py23compat.h>
 #include "atom.h"
 #include "class_map.h"
@@ -136,8 +135,8 @@ PyObject* Atom_getattro( PyObject* self, PyObject* name )
     uint32_t index;
     Member* member = 0;
     Atom* atom = reinterpret_cast<Atom*>( self );
-    Py23StrObject* sname = reinterpret_cast<Py23StrObject*>( name_ptr.get() );
-    atom->m_class_map->getMember( sname, &member, &index );
+    atom->m_class_map->getMember(
+        reinterpret_cast<Py23StrObject*>( name_ptr.get() ), &member, &index );
     if( member )
     {
         PyObject* value = atom->m_slots[ index ];
@@ -167,8 +166,8 @@ int Atom_setattro( PyObject* self, PyObject* name, PyObject* value )
     uint32_t index;
     Member* member = 0;
     Atom* atom = reinterpret_cast<Atom*>( self );
-    Py23StrObject* sname = reinterpret_cast<Py23StrObject*>( name_ptr.get() );
-    atom->m_class_map->getMember( sname, &member, &index );
+    atom->m_class_map->getMember(
+        reinterpret_cast<Py23StrObject*>( name_ptr.get() ), &member, &index );
     if( member )
     {
         PyObject* old = atom->m_slots[ index ];
@@ -217,7 +216,7 @@ PyMethodDef Atom_methods[] = {
 PyTypeObject Atom::TypeObject = {
     PyObject_HEAD_INIT( &PyType_Type )
     0,                                   /* ob_size */
-    "atom.catom.Atom",                   /* tp_name */
+    "atom.catom.CAtom",                  /* tp_name */
     sizeof( Atom ),                      /* tp_basicsize */
     0,                                   /* tp_itemsize */
     ( destructor )Atom_dealloc,          /* tp_dealloc */
