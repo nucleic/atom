@@ -52,12 +52,23 @@ void map_insert( ClassMap* map, Py23StrObject* name, Member* member )
 }
 
 
+// Compute the allocation size for a map with 'n' entries. This returns
+// the closest power of two with a maximum load factor of 0.75
+inline uint32_t map_alloc_size( uint32_t n )
+{
+    n = std::max( n, static_cast<uint32_t>( 3 ) );
+    return next_power_of_2( n * 4 / 3 );
+}
+
+
 PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-    static char* spec = "O:__new__";
-    static char* kwlist[] = { "members", 0 };
+    if( kwargs )
+    {
+        return cppy::type_error( "__new__ takes no keyword arguments" );
+    }
     PyObject* members;
-    if( !PyArg_ParseTupleAndKeywords( args, kwargs, spec, kwlist, &members ) )
+    if( !PyArg_ParseTuple( args, "O", &members ) )
     {
         return 0;
     }
@@ -72,10 +83,9 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         return 0;
     }
 
-    static const uint32_t min_size = 4;
-    uint32_t size = static_cast<uint32_t>( PyDict_Size( members ) );
-    uint32_t allocated = next_power_of_2( std::max( size, min_size ) );
-    size_t mem_size = sizeof( ClassMapEntry ) * allocated;
+    uint32_t count = static_cast<uint32_t>( PyDict_Size( members ) );
+    uint32_t alloc_size = map_alloc_size( count );
+    size_t mem_size = sizeof( ClassMapEntry ) * alloc_size;
     void* entries = PyObject_Malloc( mem_size );
     if( !entries )
     {
@@ -84,7 +94,7 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     memset( entries, 0, mem_size );
     ClassMap* self = reinterpret_cast<ClassMap*>( self_ptr.get() );
     self->m_entries = reinterpret_cast<ClassMapEntry*>( entries );
-    self->m_allocated = allocated;
+    self->m_allocated = alloc_size;
 
     PyObject* key;
     PyObject* value;
