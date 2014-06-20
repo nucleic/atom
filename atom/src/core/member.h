@@ -18,14 +18,70 @@ namespace atom
 struct Member
 {
     PyObject_HEAD
-    PyObject* m_default;
-    PyObject* m_validate;
-    PyObject* m_post_validate;
-    PyObject* m_post_setattr;
+    PyObject* m_default_context;
+    PyObject* m_validate_context;
+    PyObject* m_post_validate_context;
+    PyObject* m_post_setattr_context;
     uint32_t m_flags;
+    uint8_t m_default_mode;
+    uint8_t m_validate_mode;
+    uint8_t m_post_validate_mode;
+    uint8_t m_post_setattr_mode;
 
     enum Flag
     {
+    };
+
+    enum DefaultMode
+    {
+        NoDefault,
+        DefaultValue,
+        DefaultList,
+        DefaultDict,
+        DefaultFactory,
+        DefaultAtomMethod,
+        DefaultMemberMethod,
+        DefaultLast // sentinel
+    };
+
+    enum ValidateMode
+    {
+        NoValidate,
+        ValidateBool,
+        ValidateInt,
+        ValidateFloat,
+        ValidateBytes,
+        ValidateStr,
+        ValidateUnicode,
+        ValidateTuple,
+        ValidateList,
+        ValidateDict,
+        ValidateTyped,
+        ValidateInstance,
+        ValidateSubclass,
+        ValidateEnum,
+        ValidateCallable,
+        ValidateRange,
+        ValidateCoerced,
+        ValidateAtomMethod,
+        ValidateMemberMethod,
+        ValidateLast // sentinel
+    };
+
+    enum PostValidateMode
+    {
+        NoPostValidate,
+        PostValidateAtomMethod,
+        PostValidateMemberMethod,
+        PostValidateNone // sentinel
+    };
+
+    enum PostSetAttrMode
+    {
+        NoPostSetAttr,
+        PostSetAttrAtomMethod,
+        PostSetAttrMemberMethod,
+        PostSetAttrLast // sentinel
     };
 
     static PyTypeObject TypeObject;
@@ -54,11 +110,11 @@ struct Member
         }
     }
 
-    PyObject* getDefault( PyObject* atom, PyObject* name );
+    PyObject* defaultValue( PyObject* atom, PyObject* name );
 
-    PyObject* validate( PyObject* atom, PyObject* name, PyObject* value );
+    PyObject* validateValue( PyObject* atom, PyObject* name, PyObject* value );
 
-    int postSetAttr( PyObject* atom, PyObject* name, PyObject* value );
+    int postSetAttrValue( PyObject* atom, PyObject* name, PyObject* value );
 };
 
 } // namespace atom
