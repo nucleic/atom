@@ -7,17 +7,22 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#include <Python.h>
 #include <utils/stdint.h>
+
+#include <Python.h>
 
 
 namespace atom
 {
 
+extern PyObject* ValidationError;
+
+
 // POD struct - all member fields are considered private
 struct Member
 {
     PyObject_HEAD
+    PyObject* m_metadata;
     PyObject* m_default_context;
     PyObject* m_validate_context;
     PyObject* m_post_validate_context;
@@ -76,7 +81,7 @@ struct Member
         PostValidateCallObject,
         PostValidateAtomMethod,
         PostValidateMemberMethod,
-        PostValidateNone // sentinel
+        PostValidateLast // sentinel
     };
 
     enum PostSetAttrMode

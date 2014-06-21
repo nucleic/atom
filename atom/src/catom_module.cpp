@@ -5,11 +5,11 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <atom.h>
+#include <class_map.h>
+#include <member.h>
+
 #include <Python.h>
-#include <core/atom.h>
-#include <core/class_map.h>
-#include <core/member.h>
-#include <core/validator.h>
 
 
 using namespace atom;
@@ -39,15 +39,11 @@ PyMODINIT_FUNC initcatom( void )
     {
         return;
     }
-    if( !Validator::Ready() )
-    {
-        return;
-    }
 
     Py_INCREF( &Member::TypeObject );
     Py_INCREF( &ClassMap::TypeObject );
     Py_INCREF( &Atom::TypeObject );
-    Py_INCREF( &Validator::TypeObject );
+    Py_INCREF( ValidationError );
 
     PyModule_AddObject(
         mod, "CMember", reinterpret_cast<PyObject*>( &Member::TypeObject ) );
@@ -55,6 +51,5 @@ PyMODINIT_FUNC initcatom( void )
         mod, "ClassMap", reinterpret_cast<PyObject*>( &ClassMap::TypeObject ) );
     PyModule_AddObject(
         mod, "CAtom", reinterpret_cast<PyObject*>( &Atom::TypeObject ) );
-    PyModule_AddObject(
-        mod, "CValidator", reinterpret_cast<PyObject*>( &Validator::TypeObject ) );
+    PyModule_AddObject( mod, "ValidationError", ValidationError );
 }

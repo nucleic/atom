@@ -15,10 +15,9 @@ ext_modules = [
     Extension(
         'atom.catom',
         [
-            'atom/src/core/atom.cpp',
-            'atom/src/core/class_map.cpp',
-            'atom/src/core/member.cpp',
-            'atom/src/core/validator.cpp',
+            'atom/src/atom.cpp',
+            'atom/src/class_map.cpp',
+            'atom/src/member.cpp',
             'atom/src/catom_module.cpp',
         ],
         include_dirs=[cppy.get_include(), 'atom/src'],

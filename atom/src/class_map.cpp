@@ -5,12 +5,15 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <class_map.h>
+
+#include <member.h>
+#include <utils/math.h>
+
+#include <cppy/cppy.h>
+
 #include <algorithm>
 #include <cstring>
-#include <cppy/cppy.h>
-#include <utils/math.h>
-#include "class_map.h"
-#include "member.h"
 
 
 namespace atom
@@ -33,7 +36,7 @@ void map_insert( ClassMap* map, Py23StrObject* name, Member* member )
     uint32_t hash = Py23Str_Hash( name );
     uint32_t bucket = hash & mask;
     ClassMapEntry* base = map->m_entries;
-    while( true ) // table is never full, so always terminates in loop
+    while( true ) // table is never full - this always terminates in loop
     {
         // The table is pre-allocated with guaranteed sufficient space
         // and no two keys will be equal while populating the table.
@@ -54,10 +57,12 @@ void map_insert( ClassMap* map, Py23StrObject* name, Member* member )
 
 // Compute the allocation size for a map with 'n' entries. This returns
 // the closest power of two with a maximum load factor of 0.75
-inline uint32_t map_alloc_size( uint32_t n )
+uint32_t map_alloc_size( uint32_t n )
 {
-    n = std::max( n, static_cast<uint32_t>( 3 ) );
-    return next_power_of_2( n * 4 / 3 );
+    static const uint32_t min_slots = 3;
+    static const uint32_t min_alloc = 4;
+    n = std::max( n, min_slots );
+    return next_power_of_2( n * min_alloc / min_slots );
 }
 
 
@@ -68,23 +73,18 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         return cppy::type_error( "__new__ takes no keyword arguments" );
     }
     PyObject* members;
-    if( !PyArg_ParseTuple( args, "O", &members ) )
+    if( !PyArg_ParseTuple( args, "O!", &PyDict_Type, &members ) )
     {
         return 0;
     }
-    if( !PyDict_CheckExact( members ) )
-    {
-        return cppy::type_error( members, "dict" );
-    }
-
     cppy::ptr self_ptr( PyType_GenericNew( type, 0, 0 ) );
     if( !self_ptr )
     {
         return 0;
     }
 
-    uint32_t count = static_cast<uint32_t>( PyDict_Size( members ) );
-    uint32_t alloc_size = map_alloc_size( count );
+    uint32_t member_count = static_cast<uint32_t>( PyDict_Size( members ) );
+    uint32_t alloc_size = map_alloc_size( member_count );
     size_t mem_size = sizeof( ClassMapEntry ) * alloc_size;
     void* entries = PyObject_Malloc( mem_size );
     if( !entries )
@@ -236,13 +236,13 @@ bool ClassMap::Ready()
 }
 
 
-void ClassMap::getMember( Py23StrObject* name, Member** member, uint32_t* index )
+void ClassMap::member( Py23StrObject* name, Member** member, uint32_t* index )
 {
     uint32_t mask = m_allocated - 1;
     uint32_t hash = Py23Str_Hash( name );
     uint32_t bucket = hash & mask;
     ClassMapEntry* base = m_entries;
-    while( true ) // table is never full, so always terminates in loop
+    while( true ) // table is never full - this always terminates in loop
     {
         ClassMapEntry* entry = base + bucket;
         if( !entry->name )

@@ -7,14 +7,15 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#include <Python.h>
 #include <cppy/cppy.h>
+#include <Python.h>
 
 
 #define Py23StrObject PyStringObject
 #define Py23Str_Check PyString_Check
 #define Py23Str_FromString PyString_FromString
 #define Py23Bytes_Check PyString_Check
+#define Py23Bytes_AS_STRING PyString_AS_STRING
 #define Py23Int_Check( ob ) ( PyInt_Check( ob ) || PyLong_Check( ob ) )
 #define Py23Int_FromLong PyInt_FromLong
 #define Py23Number_Int PyNumber_Int
@@ -53,6 +54,7 @@ inline PyObject* PyName_As23Str( PyObject* name )
     }
     if( PyUnicode_Check( name ) )
     {
+        // CPython's name conversion policy
         return PyUnicode_AsEncodedString( name, 0, 0 );
     }
     PyErr_Format(

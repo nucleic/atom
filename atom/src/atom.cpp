@@ -5,11 +5,13 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-#include <cppy/cppy.h>
+#include <atom.h>
+
+#include <class_map.h>
+#include <member.h>
 #include <utils/py23compat.h>
-#include "atom.h"
-#include "class_map.h"
-#include "member.h"
+
+#include <cppy/cppy.h>
 
 
 namespace atom
@@ -24,15 +26,15 @@ PyObject* class_map_str;
 PyObject* lookup_class_map( PyTypeObject* type )
 {
     PyObject* class_map = PyDict_GetItem( type->tp_dict, class_map_str );
-    if( class_map )
+    if( !class_map )
     {
-        if( !ClassMap::TypeCheck( class_map ) )
-        {
-            return cppy::bad_internal_call( "class map has invalid type" );
-        }
-        return cppy::incref( class_map );
+        return cppy::system_error( "atom type has no class map" );
     }
-    return cppy::bad_internal_call( "atom type has no class map" );
+    if( !ClassMap::TypeCheck( class_map ) )
+    {
+        return cppy::system_error( "atom class map has invalid type" );
+    }
+    return cppy::incref( class_map );
 }
 
 
@@ -51,7 +53,7 @@ PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 
     Atom* self = reinterpret_cast<Atom*>( self_ptr.get() );
     ClassMap* map = reinterpret_cast<ClassMap*>( map_ptr.get() );
-    uint32_t member_count = map->getMemberCount();
+    uint32_t member_count = map->memberCount();
     if( member_count > 0 )
     {
         size_t mem_size = sizeof( PyObject* ) * member_count;
@@ -95,7 +97,7 @@ int Atom_init( PyObject* self, PyObject* args, PyObject* kwargs )
 
 void Atom_clear( Atom* self )
 {
-    uint32_t count = self->m_class_map->getMemberCount();
+    uint32_t count = self->m_class_map->memberCount();
     for( uint32_t i = 0; i < count; ++i )
     {
         Py_CLEAR( self->m_slots[ i ] );
@@ -106,7 +108,7 @@ void Atom_clear( Atom* self )
 
 int Atom_traverse( Atom* self, visitproc visit, void* arg )
 {
-    uint32_t count = self->m_class_map->getMemberCount();
+    uint32_t count = self->m_class_map->memberCount();
     for( uint32_t i = 0; i < count; ++i )
     {
         Py_VISIT( self->m_slots[ i ] );
@@ -135,7 +137,7 @@ PyObject* Atom_getattro( PyObject* self, PyObject* name )
     uint32_t index;
     Member* member = 0;
     Atom* atom = reinterpret_cast<Atom*>( self );
-    atom->m_class_map->getMember(
+    atom->m_class_map->member(
         reinterpret_cast<Py23StrObject*>( name_ptr.get() ), &member, &index );
     if( member )
     {
@@ -144,7 +146,7 @@ PyObject* Atom_getattro( PyObject* self, PyObject* name )
         {
             return cppy::incref( value );
         }
-        value = member->getDefault( self, name_ptr.get() );
+        value = member->defaultValue( self, name_ptr.get() );
         if( !value )
         {
             return 0;
@@ -166,7 +168,7 @@ int Atom_setattro( PyObject* self, PyObject* name, PyObject* value )
     uint32_t index;
     Member* member = 0;
     Atom* atom = reinterpret_cast<Atom*>( self );
-    atom->m_class_map->getMember(
+    atom->m_class_map->member(
         reinterpret_cast<Py23StrObject*>( name_ptr.get() ), &member, &index );
     if( member )
     {
@@ -180,13 +182,13 @@ int Atom_setattro( PyObject* self, PyObject* name, PyObject* value )
             // XXX handle deletes
             return 0;
         }
-        value = member->validate( self, name_ptr.get(), value );
+        value = member->validateValue( self, name_ptr.get(), value );
         if( !value )
         {
             return -1;
         }
         atom->m_slots[ index ] = value; // 'old' is now an owned ref
-        int result = member->postSetAttr( self, name_ptr.get(), value );
+        int result = member->postSetAttrValue( self, name_ptr.get(), value );
         cppy::xdecref( old );
         return result;
     }
@@ -197,7 +199,7 @@ int Atom_setattro( PyObject* self, PyObject* name, PyObject* value )
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
     Py_ssize_t size = self->ob_type->tp_basicsize;
-    size += sizeof( PyObject* ) * self->m_class_map->getMemberCount();
+    size += sizeof( PyObject* ) * self->m_class_map->memberCount();
     return PyInt_FromSsize_t( size );
 }
 

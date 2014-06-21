@@ -7,8 +7,9 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#include <Python.h>
 #include <utils/stdint.h>
+
+#include <Python.h>
 
 
 namespace atom
@@ -26,7 +27,8 @@ struct Atom
     uint32_t m_flags;
 
     enum Flag
-    {};
+    {
+    };
 
     static PyTypeObject TypeObject;
 

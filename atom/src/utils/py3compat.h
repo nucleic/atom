@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
+#include <cppy/cppy.h>
 #include <Python.h>
 
 
@@ -14,6 +15,7 @@
 #define Py23Str_Check PyUnicode_Check
 #define Py23Str_FromString PyUnicode_FromString
 #define Py23Bytes_Check PyBytes_Check
+#define Py23Bytes_AS_STRING PyBytes_AS_STRING
 #define Py23Int_Check PyLong_Check
 #define Py23Int_FromLong PyLong_FromLong
 #define Py23Number_Int PyNumber_Long

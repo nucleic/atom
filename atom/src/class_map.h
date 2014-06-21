@@ -7,16 +7,16 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#include <Python.h>
-#include <utils/stdint.h>
 #include <utils/py23compat.h>
+#include <utils/stdint.h>
+
+#include <Python.h>
 
 
 namespace atom
 {
 
 struct ClassMapEntry;
-
 struct Member;
 
 
@@ -37,13 +37,13 @@ struct ClassMap
         return Py_TYPE( ob ) == &TypeObject;
     }
 
-    uint32_t getMemberCount()
+    uint32_t memberCount()
     {
         return m_count;
     }
 
     // Borrowed member + index on success, untouched on non-existent
-    void getMember( Py23StrObject* name, Member** member, uint32_t* index );
+    void member( Py23StrObject* name, Member** member, uint32_t* index );
 };
 
 } // namespace atom

@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import CMember, CValidator
+from .catom import CMember, ValidationError
 
 
 def _add_article(name):
@@ -34,49 +34,50 @@ def _instance_repr(kind):
     return result
 
 
-def _error_handler(allowed):
-    """ Create an error handler for validating scalar values.
-
-    Parameters
-    ----------
-    allowed : str
-        The phrase describing the allowed value type(s).
-
-    Returns
-    -------
-    result : callable
-        A callable which accepts four arguments and raises a TypeError
-        with an appropriate message indicating the validation failure.
-
-    """
-    def error_handler(validator, atom, name, value):
-        msg = "The '%s' member of %s instance must be %s, "
-        msg += "but a value of %s was specified."
-        type_name = _add_article(type(atom).__name__)
-        repr_value = '%r %r' % (value, type(value))
-        raise TypeError(msg % (name, type_name, allowed, repr_value))
-    return error_handler
-
-
 def _range_error(validator, atom, name, value):
     """ A validation error handler for Range members.
 
     """
-    low, high, kind = validator.context
-    inst_repr = _instance_repr(kind)
-    allowed = "%s in the range %r to %r inclusive" % (inst_repr, low, high)
-    _error_handler(allowed)(validator, atom, name, value)
+    #low, high, kind = validator.context
+    #inst_repr = _instance_repr(kind)
+    #allowed = "%s in the range %r to %r inclusive" % (inst_repr, low, high)
+    #_error_handler(allowed)(validator, atom, name, value)
 
 
 class Member(CMember):
-    """ An empty subclass of the C-level member class.
+    """ The public interface to the low-level CMember class.
 
-    This class serves as the base of all user facing member classes. It
-    allows member instances to carry an instance dict for storing user
-    defined metadata.
+    This class serves as the base of all user facing member classes.
 
     """
-    pass
+    __slots__ = ()
+
+    def __init__(self, **metadata):
+        """ Initialize a Member instance.
+
+        Parameters
+        ----------
+        **metadata
+            The optional metadata to store on the member.
+
+        """
+        if metadata:
+            self.metadata = metadata
+
+    def validation_error(self, atom, name, value):
+        """ Raise a generic validation error for the given parameters.
+
+        This method can be reimplemented by subclasses as needed to
+        provide a more specific validation error and/or message.
+
+        """
+        raise ValidationError(name)
+
+    def clone(self):
+        raise NotImplementedError
+
+    def tag(self):
+        raise NotImplementedError
 
 
 class Value(Member):
@@ -88,6 +89,13 @@ class Value(Member):
     where type checking is not needed (such as private attributes).
 
     """
+    __slots__ = ()
+
+    #: The type info for the allowed type of the value. This is used
+    #: to generate a reasonable validation error message, and can be
+    #: overridden as needed by subclasses.
+    type_info = 'an object'
+
     def __init__(self, default=None, factory=None, **metadata):
         """ Initialize a Value member.
 
@@ -109,26 +117,32 @@ class Value(Member):
         """
         super(Value, self).__init__(**metadata)
         if factory is not None:
-            self.default_handler = lambda atom, name: factory()
+            self.set_default_mode(CMember.DefaultFactory, factory)
         elif default is not None:
-            self.default_handler = lambda atom, name: default
+            self.set_default_mode(CMember.DefaultValue, default)
+
+    def validation_error(self, atom, name, value):
+        """ Raise a scalar validation error for the given parameters.
+
+        """
+        type_name = _add_article(type(atom).__name__)
+        repr_value = '%r %r' % (value, type(value))
+        msg = "The '%s' member of %s instance must be %s, "
+        msg += "but a value of %s was specified."
+        msg %= (name, type_name, self.type_info, repr_value)
+        raise ValidationError(msg)
 
 
 class Bool(Value):
     """ A Value member which only accepts boolean values.
 
     """
-    #: The C validator instance shared by all Bool members.
-    _c_validator = CValidator(
-        CValidator.Bool, False, _error_handler("a boolean value")
-    )
+    __slots__ = ()
 
-    #: The C Validator which casts via bool(value).
-    _c_cast_validator = CValidator(
-        CValidator.Bool, True, _error_handler("a truth-like value")
-    )
+    #: The type info for boolean values.
+    type_info = 'a bool'
 
-    def __init__(self, default=None, factory=None, cast=False, **metadata):
+    def __init__(self, default=False, factory=None, strict=True, **metadata):
         """ Initialize a Bool member.
 
         Parameters
@@ -136,46 +150,38 @@ class Bool(Value):
         default : object, optional
             The default value for the member. If this is provided, it
             should be an immutable value. The value will be shared
-            among all instances of the Atom class.
+            among all instances of the Atom class. The default is False.
 
         factory : callable, optional
             A callable object which is called with zero arguments and
             returns a default value for the member. This factory will
             take precedence over any value given by `default`.
 
-        cast : boolean, optional
-            Whether to cast assigned values to booleans. This is
-            equivalent to calling bool(value) on the assigned value.
+        strict : boolean, optional
+            Whether to enforce strict boolean checking (True), or to
+            allow ints and floats to be casted to bools (False). The
+            default is True.
 
         **metadata
             Additional metadata to apply to the member.
 
         """
         super(Bool, self).__init__(default, factory, **metadata)
-        if not cast:
-            self.validate_handler = Bool._c_validator
-        else:
-            self.validate_handler = Bool._c_cast_validator
+        self.set_validate_mode(CMember.ValidateBool, strict)
 
 
 class Int(Value):
     """ A value member which only accepts integer values.
 
-    On Python 2, int and longs are accepted. Python 3 only has one
-    integer type.
+    On Py2k, both ints and longs are accepted.
 
     """
-    #: The C validator instance shared by all Int members.
-    _c_validator = CValidator(
-        CValidator.Int, False, _error_handler("an integer value")
-    )
+    __slots__ = ()
 
-    #: The C Validator which casts via int(value).
-    _c_cast_validator = CValidator(
-        CValidator.Int, True, _error_handler("an int-like value")
-    )
+    #: The type info for integer values.
+    type_info = 'an int'
 
-    def __init__(self, default=None, factory=None, cast=False, **metadata):
+    def __init__(self, default=0, factory=None, strict=True, **metadata):
         """ Initialize an Int member.
 
         Parameters
@@ -183,43 +189,36 @@ class Int(Value):
         default : object, optional
             The default value for the member. If this is provided, it
             should be an immutable value. The value will be shared
-            among all instances of the Atom class.
+            among all instances of the Atom class. The default is 0.
 
         factory : callable, optional
             A callable object which is called with zero arguments and
             returns a default value for the member. This factory will
             take precedence over any value given by `default`.
 
-        cast : boolean, optional
-            Whether to cast assigned values to integers. This is
-            equivalent to calling int(value) on the assigned value.
+        strict : boolean, optional
+            Whether to enforce strict integer checking (True), or to
+            allow floats to be casted to integers (False). The default
+            is True.
 
         **metadata
             Additional metadata to apply to the member.
 
         """
         super(Int, self).__init__(default, factory, **metadata)
-        if not cast:
-            self.validate_handler = Int._c_validator
-        else:
-            self.validate_handler = Int._c_cast_validator
+        self.set_validate_mode(CMember.ValidateInt, strict)
 
 
 class Float(Value):
     """ A value member which only accepts floating point values.
 
     """
-    #: The C validator instance shared by all Float members.
-    _c_validator = CValidator(
-        CValidator.Float, False, _error_handler("a floating point value")
-    )
+    __slots__ = ()
 
-    #: The C Validator which casts via float(value).
-    _c_cast_validator = CValidator(
-        CValidator.Float, True, _error_handler("a float-like value")
-    )
+    #: The type info for floating point values.
+    type_info = 'a float'
 
-    def __init__(self, default=None, factory=None, cast=False, **metadata):
+    def __init__(self, default=0.0, factory=None, strict=False, **metadata):
         """ Initialize a Float member.
 
         Parameters
@@ -227,26 +226,24 @@ class Float(Value):
         default : object, optional
             The default value for the member. If this is provided, it
             should be an immutable value. The value will be shared
-            among all instances of the Atom class.
+            among all instances of the Atom class. The default is 0.0.
 
         factory : callable, optional
             A callable object which is called with zero arguments and
             returns a default value for the member. This factory will
             take precedence over any value given by `default`.
 
-        cast : boolean, optional
-            Whether to cast assigned values to floats. This is
-            equivalent to calling float(value) on the assigned value.
+        strict : boolean, optional
+            Whether to enforce strict float checking (True), or to
+            allow ints to be casted to floats (False). The default
+            is False.
 
         **metadata
             Additional metadata to apply to the member.
 
         """
         super(Float, self).__init__(default, factory, **metadata)
-        if not cast:
-            self.validate_handler = Float._c_validator
-        else:
-            self.validate_handler = Float._c_cast_validator
+        self.set_validate_mode(CMember.ValidateFloat, strict)
 
 
 class Bytes(Value):
@@ -255,12 +252,12 @@ class Bytes(Value):
     On Py2k this is the 'str' type. On Py3k this is the 'bytes' type.
 
     """
-    #: The C validator instance shared by all Bytes members.
-    _c_validator = CValidator(
-        CValidator.Bytes, None, _error_handler("a byte string")
-    )
+    __slots__ = ()
 
-    def __init__(self, default=b'', factory=None, **metadata):
+    #: The type info for byte string values.
+    type_info = 'a byte string'
+
+    def __init__(self, default=b'', factory=None, strict=False, **metadata):
         """ Initialize a Bytes member.
 
         Parameters
@@ -268,19 +265,24 @@ class Bytes(Value):
         default : object, optional
             The default value for the member. If this is provided, it
             should be an immutable value. The value will be shared
-            among all instances of the Atom class.
+            among all instances of the Atom class. The default is b''.
 
         factory : callable, optional
             A callable object which is called with zero arguments and
             returns a default value for the member. This factory will
             take precedence over any value given by `default`.
 
+        strict : boolean, optional
+            Whether to enforce strict byte string checking (True), or
+            to allow unicode strings to be casted to UTF8 byte strings
+            (False). The default is False.
+
         **metadata
             Additional metadata to apply to the member.
 
         """
         super(Bytes, self).__init__(default, factory, **metadata)
-        self.validate_handler = Bytes._c_validator
+        self.set_validate_mode(CMember.ValidateBytes, strict)
 
 
 class Str(Value):
@@ -289,12 +291,12 @@ class Str(Value):
     On Py2k this is the 'str' type. On Py3k this is the 'str' type.
 
     """
-    #: The C validator instance shared by all Str members.
-    _c_validator = CValidator(
-        CValidator.Str, None, _error_handler("a string")
-    )
+    __slots__ = ()
 
-    def __init__(self, default='', factory=None, **metadata):
+    #: The type info for str values.
+    type_info = 'a str'
+
+    def __init__(self, default='', factory=None, strict=False, **metadata):
         """ Initialize a Str member.
 
         Parameters
@@ -302,19 +304,24 @@ class Str(Value):
         default : object, optional
             The default value for the member. If this is provided, it
             should be an immutable value. The value will be shared
-            among all instances of the Atom class.
+            among all instances of the Atom class. The default is ''.
 
         factory : callable, optional
             A callable object which is called with zero arguments and
             returns a default value for the member. This factory will
             take precedence over any value given by `default`.
 
+        strict : boolean, optional
+            Whether to enforce strict str checking (True), or to allow
+            unicode/byte strings to be casted to UTF8/unicode strings
+            on Py2k/Py3k (False). The default is False.
+
         **metadata
             Additional metadata to apply to the member.
 
         """
         super(Str, self).__init__(default, factory, **metadata)
-        self.validate_handler = Str._c_validator
+        self.set_validate_mode(CMember.ValidateStr, strict)
 
 
 class Unicode(Value):
@@ -323,12 +330,12 @@ class Unicode(Value):
     On Py2k this is the 'unicode' type. On Py3k this is the 'str' type.
 
     """
-    #: The C validator instance shared by all Unicode members.
-    _c_validator = CValidator(
-        CValidator.Unicode, None, _error_handler("a unicode string")
-    )
+    __slots__ = ()
 
-    def __init__(self, default=u'', factory=None, **metadata):
+    #: The type info for unicode values.
+    type_info = 'a unicode string'
+
+    def __init__(self, default=u'', factory=None, strict=False, **metadata):
         """ Initialize a Unicode member.
 
         Parameters
@@ -336,29 +343,34 @@ class Unicode(Value):
         default : object, optional
             The default value for the member. If this is provided, it
             should be an immutable value. The value will be shared
-            among all instances of the Atom class.
+            among all instances of the Atom class. The default is u''.
 
         factory : callable, optional
             A callable object which is called with zero arguments and
             returns a default value for the member. This factory will
             take precedence over any value given by `default`.
 
+        strict : boolean, optional
+            Whether to enforce strict unicode checking (True), or to
+            allow UTF8 byte strings to be casted to usicode (False).
+            The default is False.
+
         **metadata
             Additional metadata to apply to the member.
 
         """
         super(Unicode, self).__init__(default, factory, **metadata)
-        self.validate_handler = Unicode._c_validator
+        self.set_validate_mode(CMember.ValidateUnicode, strict)
 
 
 class Callable(Value):
     """ A Value member which only accepts callable values.
 
     """
-    #: The C validator instance shared by all Callable members.
-    _c_validator = CValidator(
-        CValidator.Callable, None, _error_handler("a callable value or None")
-    )
+    __slots__ = ()
+
+    #: The type info for a callable value.
+    type_info = 'a callable object'
 
     def __init__(self, default=None, factory=None, **metadata):
         """ Initialize a Callable member.
@@ -380,13 +392,15 @@ class Callable(Value):
 
         """
         super(Callable, self).__init__(default, factory, **metadata)
-        self.validate_handler = Callable._c_validator
+        self.set_validate_mode(CMember.ValidateCallable, None)
 
 
 class Range(Value):
     """ A member which accepts values within a given range.
 
     """
+    __slots__ = ()
+
     def __init__(self, low=None, high=None, value=None, kind=int, **metadata):
         """ Initialize a Range member.
 
@@ -415,7 +429,7 @@ class Range(Value):
         """
         if low is not None and high is None and low > high:
             low, high = high, low
-        default = None
+        default = 0
         if value is not None:
             default = value
         elif low is not None:
@@ -423,9 +437,7 @@ class Range(Value):
         elif high is not None:
             default = high
         super(Range, self).__init__(default, None, **metadata)
-        context = (low, high, kind)
-        validator = CValidator(CValidator.Range, context, _range_error)
-        self.validate_handler = validator
+        self.set_validate_mode(CMember.ValidateRange, (low, high, kind))
 
 
 class List(Value):
