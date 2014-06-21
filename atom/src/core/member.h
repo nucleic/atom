@@ -39,6 +39,7 @@ struct Member
         DefaultList,
         DefaultDict,
         DefaultFactory,
+        DefaultCallObject,
         DefaultAtomMethod,
         DefaultMemberMethod,
         DefaultLast // sentinel
@@ -63,6 +64,7 @@ struct Member
         ValidateCallable,
         ValidateRange,
         ValidateCoerced,
+        ValidateCallObject,
         ValidateAtomMethod,
         ValidateMemberMethod,
         ValidateLast // sentinel
@@ -71,6 +73,7 @@ struct Member
     enum PostValidateMode
     {
         NoPostValidate,
+        PostValidateCallObject,
         PostValidateAtomMethod,
         PostValidateMemberMethod,
         PostValidateNone // sentinel
@@ -79,6 +82,7 @@ struct Member
     enum PostSetAttrMode
     {
         NoPostSetAttr,
+        PostSetAttrCallObject,
         PostSetAttrAtomMethod,
         PostSetAttrMemberMethod,
         PostSetAttrLast // sentinel

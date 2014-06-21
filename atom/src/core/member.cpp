@@ -35,9 +35,10 @@ bool check_context( Member::DefaultMode mode, PyObject* context )
         }
         break;
     case Member::DefaultFactory:
+    case Member::DefaultCallObject:
         if( !PyCallable_Check( context ) )
         {
-            cppy::type_error( context, "callable" ):
+            cppy::type_error( context, "callable" );
             return false;
         }
         break;
@@ -114,13 +115,15 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
     {
         if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 3 )
         {
-            cppy::type_error( context, "3-tuple of (low, high, member or None)" );
+            cppy::type_error(
+                context, "3-tuple of (low, high, member or None)" );
             return false;
         }
         PyObject* kind = PyTuple_GET_ITEM( context, 2 );
         if( kind != Py_None && !Member::TypeCheck( kind ) )
         {
-            cppy::type_error( context, "3-tuple of (low, high, member or None)" );
+            cppy::type_error(
+                context, "3-tuple of (low, high, member or None)" );
             return false;
         }
         break;
@@ -141,6 +144,13 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
         }
         break;
     }
+    case Member::ValidateCallObject:
+        if( !PyCallable_Check( context ) )
+        {
+            cppy::type_error( context, "callable" );
+            return false;
+        }
+        break;
     case Member::ValidateAtomMethod:
     case Member::ValidateMemberMethod:
         if( !Py23Str_Check( context ) )
@@ -194,19 +204,19 @@ bool check_context( Member::PostSetAttrMode mode, PyObject* context )
 }
 
 
-PyObject* d_noop_h( Member* member, Atom* atom, PyObject* name )
+PyObject* d_noop_h( Member* member, PyObject* atom, PyObject* name )
 {
     return cppy::incref( Py_None );
 }
 
 
-PyObject* d_value_h( Member* member, Atom* atom, PyObject* name )
+PyObject* d_value_h( Member* member, PyObject* atom, PyObject* name )
 {
     return cppy::incref( member->m_default_context );
 }
 
 
-PyObject* d_list_h( Member* member, Atom* atom, PyObject* name )
+PyObject* d_list_h( Member* member, PyObject* atom, PyObject* name )
 {
     if( member->m_default_context == Py_None )
     {
@@ -217,7 +227,7 @@ PyObject* d_list_h( Member* member, Atom* atom, PyObject* name )
 }
 
 
-PyObject* d_dict_h( Member* member, Atom* atom, PyObject* name )
+PyObject* d_dict_h( Member* member, PyObject* atom, PyObject* name )
 {
     if( member->m_default_context == Py_None )
     {
@@ -227,7 +237,7 @@ PyObject* d_dict_h( Member* member, Atom* atom, PyObject* name )
 }
 
 
-PyObject* d_factory_h( Member* member, Atom* atom, PyObject* name )
+PyObject* d_factory_h( Member* member, PyObject* atom, PyObject* name )
 {
     cppy::ptr args( PyTuple_New( 0 ) )
     if( !args )
@@ -238,10 +248,20 @@ PyObject* d_factory_h( Member* member, Atom* atom, PyObject* name )
 }
 
 
-PyObject* d_atom_method_h( Member* member, Atom* atom, PyObject* name )
+PyObject* d_call_object_h( Member* member, PyObject* atom, PyObject* name )
 {
-    cppy::ptr method( PyObject_GetAttr(
-        reinterpret_cast<PyObject*>( atom ), member->m_default_context ) );
+    cppy::ptr args( PyTuple_Pack( 3, member, atom, name ) );
+    if( !args )
+    {
+        return 0;
+    }
+    return PyObject_Call( member->m_default_context, args.get(), 0 );
+}
+
+
+PyObject* d_atom_method_h( Member* member, PyObject* atom, PyObject* name )
+{
+    cppy::ptr method( PyObject_GetAttr( atom, member->m_default_context ) );
     if( !method )
     {
         return 0;
@@ -255,7 +275,7 @@ PyObject* d_atom_method_h( Member* member, Atom* atom, PyObject* name )
 }
 
 
-PyObject* d_member_method_h( Member* member, Atom* atom, PyObject* name )
+PyObject* d_member_method_h( Member* member, PyObject* atom, PyObject* name )
 {
     cppy::ptr method( PyObject_GetAttr(
         reinterpret_cast<PyObject*>( member ), member->m_default_context ) );
@@ -273,7 +293,7 @@ PyObject* d_member_method_h( Member* member, Atom* atom, PyObject* name )
 
 
 PyObject* v_noop_h(
-    Member* member, Atom* atom, PyObject* name, PyObject* value )
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
     return cppy::incref( value );
 }
@@ -394,13 +414,13 @@ PyObject* v_tuple_h(
     Member* inner = reinterpret_cast<Member*>( member->m_validate_context );
     for( Py_ssize_t i = 0; i < size; ++i )
     {
-        PyObject* valid_item = inner->validateValue(
+        PyObject* item = inner->validateValue(
             atom, name, PyTuple_GET_ITEM( value, i ) );
         if( !item )
         {
             return validation_error( member, atom, name, value );
         }
-        PyTuple_SET_ITEM( result.get(), i, valid_item );
+        PyTuple_SET_ITEM( result.get(), i, item );
     }
     return result.release();
 }
@@ -592,11 +612,22 @@ PyObject* coerced_handler(
 }
 
 
-PyObject* v_atom_method_h(
-    Member* member, Atom* atom, PyObject* name, PyObject* value )
+PyObject* v_call_object_h(
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
-    cppy::ptr method( PyObject_GetAttr(
-        reinterpret_cast<PyObject*>( atom ), member->m_validate_context ) );
+    cppy::ptr args( PyTuple_Pack( 4, member, atom, name, value ) );
+    if( !args )
+    {
+        return 0;
+    }
+    return PyObject_Call( member->m_validate_context, args.get(), 0 );
+}
+
+
+PyObject* v_atom_method_h(
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+    cppy::ptr method( PyObject_GetAttr( atom, member->m_validate_context ) );
     if( !method )
     {
         return 0;
@@ -611,7 +642,7 @@ PyObject* v_atom_method_h(
 
 
 PyObject* v_member_method_h(
-    Member* member, Atom* atom, PyObject* name, PyObject* value )
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
     cppy::ptr method( PyObject_GetAttr(
         reinterpret_cast<PyObject*>( member ), member->m_validate_context ) );
@@ -629,18 +660,29 @@ PyObject* v_member_method_h(
 
 
 PyObject* pv_noop_h(
-    Member* member, Atom* atom, PyObject* name, PyObject* value )
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
     return cppy::incref( value );
 }
 
 
+PyObject* pv_call_object_h(
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+    cppy::ptr args( PyTuple_Pack( 4, member, atom, name, value ) );
+    if( !args )
+    {
+        return 0;
+    }
+    return PyObject_Call( member->m_post_validate_context, args.get(), 0 );
+}
+
+
 PyObject* pv_atom_method_h(
-    Member* member, Atom* atom, PyObject* name, PyObject* value )
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
     cppy::ptr method( PyObject_GetAttr(
-        reinterpret_cast<PyObject*>( atom ),
-        member->m_post_validate_context ) );
+        atom, member->m_post_validate_context ) );
     if( !method )
     {
         return 0;
@@ -655,7 +697,7 @@ PyObject* pv_atom_method_h(
 
 
 PyObject* pv_member_method_h(
-    Member* member, Atom* atom, PyObject* name, PyObject* value )
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
     cppy::ptr method( PyObject_GetAttr(
         reinterpret_cast<PyObject*>( member ),
@@ -674,18 +716,35 @@ PyObject* pv_member_method_h(
 
 
 int ps_noop_h(
-    Member* member, Atom* atom, PyObject* name, PyObject* value )
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
     return 0;
 }
 
 
+PyObject* ps_call_object_h(
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+    cppy::ptr args( PyTuple_Pack( 4, member, atom, name, value ) );
+    if( !args )
+    {
+        return -1;
+    }
+    cppt::pytr res( PyObject_Call(
+        member->m_post_setattr_context, args.get(), 0 ) );
+    if( !res )
+    {
+        return -1;
+    }
+    return 0;
+}
+
+
 int ps_atom_method_h(
-    Member* member, Atom* atom, PyObject* name, PyObject* value )
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
     cppy::ptr method( PyObject_GetAttr(
-        reinterpret_cast<PyObject*>( atom ),
-        member->m_post_setattr_context ) );
+        atom, member->m_post_setattr_context ) );
     if( !method )
     {
         return -1;
@@ -705,7 +764,7 @@ int ps_atom_method_h(
 
 
 int ps_member_method_h(
-    Member* member, Atom* atom, PyObject* name, PyObject* value )
+    Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
     cppy::ptr method( PyObject_GetAttr(
         reinterpret_cast<PyObject*>( member ),
@@ -750,6 +809,7 @@ DefaultHandler default_handlers[] = {
     d_list_h,
     d_dict_h,
     d_factory_h,
+    d_call_object_h,
     d_atom_method_h,
     d_member_method_h
 };
@@ -757,6 +817,7 @@ DefaultHandler default_handlers[] = {
 
 ValidateHandler validate_handlers[] = {
     v_noop_h,
+    v_call_object_h,
     v_atom_method_h,
     v_member_method_h
 };
@@ -764,6 +825,7 @@ ValidateHandler validate_handlers[] = {
 
 PostValidateHandler post_validate_handlers = {
     pv_noop_h,
+    pv_call_object_h,
     pv_atom_method_h,
     pv_member_method_h
 };
@@ -771,6 +833,7 @@ PostValidateHandler post_validate_handlers = {
 
 PostSetAttrHandler post_setattr_handlers = {
     ps_noop_h,
+    ps_call_object_h,
     ps_atom_method_h,
     ps_member_method_h
 };
