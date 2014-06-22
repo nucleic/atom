@@ -543,8 +543,28 @@ PyObject* v_list_h(
     {
         return validation_error( member, atom, name, value );
     }
-    return PyList_GetSlice( value, 0, PyList_GET_SIZE( value ) );
-    // XXX handle list types
+    Py_ssize_t size = PyList_GET_SIZE( value );
+    if( member->m_validate_context == Py_None )
+    {
+        return PyList_GetSlice( value, 0, size );
+    }
+    cppy::ptr result( PyList_New( size ) );
+    if( !result )
+    {
+        return 0;
+    }
+    Member* inner = reinterpret_cast<Member*>( member->m_validate_context );
+    for( Py_ssize_t i = 0; i < size; ++i )
+    {
+        PyObject* item = PyList_GET_ITEM( value, i );
+        PyObject* valid_item = inner->validateValue( atom, name, item );
+        if( !valid_item )
+        {
+            return validation_error( member, atom, name, value );
+        }
+        PyList_SET_ITEM( result.get(), i, valid_item );
+    }
+    return result.release();
 }
 
 
@@ -602,6 +622,10 @@ PyObject* v_subclass_h(
     if( value == Py_None )
     {
         return cppy::incref( value );
+    }
+    if( !PyType_Check( value ) )
+    {
+        return validation_error( member, atom, name, value );
     }
     int r = PyObject_IsSubclass( value, member->m_validate_context );
     if( r == 1 )
@@ -708,6 +732,12 @@ PyObject* v_coerced_h(
     cppy::ptr result( PyObject_Call( coercer, args.get(), 0 ) );
     if( !result )
     {
+        if( PyErr_ExceptionMatches( PyExc_TypeError ) ||
+            PyErr_ExceptionMatches( PyExc_ValueError ) )
+        {
+            PyErr_Clear();
+            return validation_error( member, atom, name, value );
+        }
         return 0;
     }
     r = PyObject_IsInstance( result.get(), kind );
@@ -1148,6 +1178,35 @@ PyObject* Member_set_post_setattr_mode( Member* self, PyObject* args )
 }
 
 
+PyObject* Member_clone( Member* self, PyObject* args )
+{
+    cppy::ptr pyclone( PyType_GenericNew( self->ob_type, 0, 0 ) );
+    if( !pyclone )
+    {
+        return 0;
+    }
+    Member* clone = reinterpret_cast<Member*>( pyclone.get() );
+    if( self->m_metadata )
+    {
+        clone->m_metadata = PyDict_Copy( self->m_metadata );
+        if( !clone->m_metadata )
+        {
+            return 0;
+        }
+    }
+    clone->m_default_context = cppy::xincref( self->m_default_context );
+    clone->m_validate_context = cppy::xincref( self->m_validate_context );
+    clone->m_post_validate_context = cppy::xincref( self->m_post_validate_context );
+    clone->m_post_setattr_context = cppy::xincref( self->m_post_setattr_context );
+    clone->m_flags = self->m_flags;
+    clone->m_default_mode = self->m_default_mode;
+    clone->m_validate_mode = self->m_validate_mode;
+    clone->m_post_validate_mode = self->m_post_validate_mode;
+    clone->m_post_setattr_mode = self->m_post_setattr_mode;
+    return pyclone.release();
+}
+
+
 PyGetSetDef Member_getset[] = {
     { "metadata",
       ( getter )Member_get_metadata,
@@ -1190,6 +1249,10 @@ PyMethodDef Member_methods[] = {
       ( PyCFunction )Member_set_post_setattr_mode,
       METH_VARARGS,
       "Set the post setattr mode for the member." },
+    { "clone",
+      ( PyCFunction )Member_clone,
+      METH_NOARGS,
+      "Create a clone of the member." },
     { 0 } // sentinel
 };
 

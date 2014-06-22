@@ -17,15 +17,16 @@ def _add_article(name):
     return 'a ' + name
 
 
-def _instance_repr(kind):
-    """ Convert a type or tuple of types to a proper repr.
+def _kind_repr(kind, prefix):
+    """ Create a string description for a kind argument.
 
     """
+    result = prefix
     if not isinstance(kind, tuple):
-        return _add_article(kind.__name__) + " value"
+        return result + kind.__name__
+    result += kind[0].__name__
     if len(kind) == 1:
-        return _add_article(kind[0].__name__) + " value"
-    result = _add_article(kind[0].__name__)
+        return result
     if len(kind) == 2:
         return result + " or " + kind[1].__name__
     for k in kind[1:-1]:
@@ -34,14 +35,25 @@ def _instance_repr(kind):
     return result
 
 
-def _range_error(validator, atom, name, value):
-    """ A validation error handler for Range members.
+def _instance_repr(kind):
+    """ Create a string description for an isinstance() kind argument.
 
     """
-    #low, high, kind = validator.context
-    #inst_repr = _instance_repr(kind)
-    #allowed = "%s in the range %r to %r inclusive" % (inst_repr, low, high)
-    #_error_handler(allowed)(validator, atom, name, value)
+    return _kind_repr(kind, 'an instance of ')
+
+
+def _sublass_repr(kind):
+    """ Create a string description for an issubclass() kind argument.
+
+    """
+    return _kind_repr(kind, 'a subclass of ')
+
+
+def _coerced_repr(kind):
+    """ Create a string description for a coerceable kind argument.
+
+    """
+    return _kind_repr(kind, 'coercible to ')
 
 
 class Member(CMember):
@@ -51,6 +63,11 @@ class Member(CMember):
 
     """
     __slots__ = ()
+
+    #: The type info for the allowed type of the value. This is used
+    #: to generate a reasonable validation error message, and can be
+    #: overridden as needed by subclasses.
+    type_info = 'an object'
 
     def __init__(self, **metadata):
         """ Initialize a Member instance.
@@ -71,13 +88,37 @@ class Member(CMember):
         provide a more specific validation error and/or message.
 
         """
-        raise ValidationError(name)
+        type_name = _add_article(type(atom).__name__)
+        repr_value = '%r %r' % (value, type(value))
+        msg = "The '%s' member of %s instance must be %s, "
+        msg += "but a value of %s was specified."
+        msg %= (name, type_name, self.type_info, repr_value)
+        raise ValidationError(msg)
 
-    def clone(self):
-        raise NotImplementedError
+    def tag(self, **kwargs):
+        """ Add metadata to the member.
 
-    def tag(self):
-        raise NotImplementedError
+        This method is a convenience to add metadata to the member
+        when passing the data to the constructor is not feasible.
+
+        Parameters
+        ----------
+        **kwargs
+            Metadata to apply to the member.
+
+        Returns
+        -------
+        result : Member
+            Returns 'self' to enable this method to be conveniently
+            used within the class body declaration.
+
+        """
+        metadata = self.metadata
+        if metadata is None:
+            self.metadata = kwargs
+        else:
+            metadata.update(kwargs)
+        return self
 
 
 class Value(Member):
@@ -90,11 +131,6 @@ class Value(Member):
 
     """
     __slots__ = ()
-
-    #: The type info for the allowed type of the value. This is used
-    #: to generate a reasonable validation error message, and can be
-    #: overridden as needed by subclasses.
-    type_info = 'an object'
 
     def __init__(self, default=None, factory=None, **metadata):
         """ Initialize a Value member.
@@ -121,20 +157,9 @@ class Value(Member):
         elif default is not None:
             self.set_default_mode(CMember.DefaultValue, default)
 
-    def validation_error(self, atom, name, value):
-        """ Raise a scalar validation error for the given parameters.
-
-        """
-        type_name = _add_article(type(atom).__name__)
-        repr_value = '%r %r' % (value, type(value))
-        msg = "The '%s' member of %s instance must be %s, "
-        msg += "but a value of %s was specified."
-        msg %= (name, type_name, self.type_info, repr_value)
-        raise ValidationError(msg)
-
 
 class Bool(Value):
-    """ A Value member which only accepts boolean values.
+    """ A value member which only accepts boolean values.
 
     """
     __slots__ = ()
@@ -363,8 +388,386 @@ class Unicode(Value):
         self.set_validate_mode(CMember.ValidateUnicode, strict)
 
 
+class Tuple(Member):
+    """ A member which allows a tuple of optionally typed values.
+
+    If item validation is used, then assignment will create a copy of
+    the tuple before validating the items. This is required since the
+    item validation may change the item values.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, item=None, default=(), **metadata):
+        """ Initialize a Tuple member.
+
+        Parameters
+        ----------
+        item : Member, type, or tuple of types, optional
+            A member to use for validating the types of items allowed
+            in the tuple. This can also be a type object or a tuple of
+            types, in which case it will be wrapped with an Instance
+            member. If not given, no item validation is performed.
+
+        default : tuple, optional
+            The default tuple of values.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        super(Tuple, self).__init__(**metadata)
+        if item is not None and not isinstance(item, Member):
+            item = Instance(item)
+        self.set_default_mode(CMember.DefaultValue, default)
+        self.set_validate_mode(CMember.ValidateTuple, item)
+
+    @property
+    def type_info(self):
+        """ The type info for a Tuple member.
+
+        """
+        item = self.validate_mode()[1]
+        if item is None:
+            return 'a tuple'
+        return 'a tuple of items which are ' + item.type_info
+
+
+class List(Member):
+    """ A member which allows a list of optionally typed values.
+
+    Assigning to a List member creates a copy of the list. The orginal
+    list will remain unmodified. This is similar to the semantics of the
+    assignment operator of C++ STL container classes. Copying the list
+    is required to ensure correct error reporting and internal ownership
+    semantics. If traditional non-copying list behavior is desired, use
+    a Typed(list) member instead.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, item=None, default=None, **metadata):
+        """ Initialize a List member.
+
+        Parameters
+        ----------
+        item : Member, type, or tuple of types, optional
+            A member to use for validating the types of items allowed in
+            the list. This can also be a type object or a tuple of types,
+            in which case it will be wrapped with an Instance member. If
+            this is not given, no item validation is performed.
+
+        default : list, optional
+            The default list of values. A new copy of this list will be
+            created for each atom instance.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        super(List, self).__init__(**metadata)
+        if item is not None and not isinstance(item, Member):
+            item = Instance(item)
+        self.set_default_mode(CMember.DefaultList, default)
+        self.set_validate_mode(CMember.ValidateList, item)
+
+    @property
+    def type_info(self):
+        """ The type info for a List member.
+
+        """
+        item = self.validate_mode()[1]
+        if item is None:
+            return 'a list'
+        return 'a list of items which are ' + item.type_info
+
+
+class Dict(Member):
+    """ A member which allows a dict of optionally typed values.
+
+    Assigning to a Dict member creates a copy of the dict. The orginal
+    dict will remain unmodified. This is similar to the semantics of the
+    assignment operator of C++ STL container classes. Copying the dict
+    is required to ensure correct error reporting and internal ownership
+    semantics. If traditional non-copying dict behavior is desired, use
+    a Typed(dict) member instead.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, key=None, value=None, default=None, **metadata):
+        """ Initialize a Dict member.
+
+        Parameters
+        ----------
+        key : Member, type, tuple of types, or None, optional
+            A member to use for validating the types of keys allowed in
+            the dict. This can also be a type or a tuple of types, which
+            will be wrapped with an Instance member. If this is not
+            given, no key validation is performed.
+
+        value : Member, type, tuple of types, or None, optional
+            A member to use for validating the types of values allowed
+            in the dict. This can also be a type or a tuple of types,
+            which will be wrapped with an Instance member. If this is
+            not given, no value validation is performed.
+
+        default : dict, optional
+            The default dict of items. A new copy of this dict will be
+            created for each atom instance.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        super(Dict, self).__init__(**metadata)
+        if key is not None and not isinstance(key, Member):
+            key = Instance(key)
+        if value is not None and not isinstance(value, Member):
+            value = Instance(value)
+        self.set_default_mode(CMember.DefaultDict, default)
+        self.set_validate_mode(CMember.ValidateDict, (key, value))
+
+    @property
+    def type_info(self):
+        """ The type info for a Dict member.
+
+        """
+        key, val = self.validate_mode()[1]
+        if key is None and val is None:
+            return 'a dict'
+        key_info = key.type_info if key is not None else 'an object'
+        val_info = val.type_info if val is not None else 'an object'
+        msg = 'a dict with keys which are %s and with values which are %s'
+        return msg % (key_info, val_info)
+
+
+class Typed(Value):
+    """ A value member which allows objects of a given type.
+
+    Typed validation is performed using a C-api call which is faster
+    than the equivalent `isinstance` but only allows checking against
+    a single type. A Typed member should be used over an Instance when
+    multiple value types or `__instancecheck__` hooks are not required.
+
+    The value of a Typed member may also be set to None.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, kind, args=None, kwargs=None, factory=None, **metadata):
+        """ Initialize an Typed member.
+
+        Parameters
+        ----------
+        kind : type
+            The allowed type for the value
+
+        args : tuple, optional
+            If 'factory' is None, then 'kind' is a callable type and
+            these arguments will be passed to the constructor to create
+            the default value.
+
+        kwargs : dict, optional
+            If 'factory' is None, then 'kind' is a callable type and
+            these keywords will be passed to the constructor to create
+            the default value.
+
+        factory : callable, optional
+            An optional factory to use for creating the default value.
+            If this is not provided and 'args' and 'kwargs' is None,
+            then the default value will be None.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        if factory is None and (args is not None or kwargs is not None):
+            args = args or ()
+            kwargs = kwargs or {}
+            factory = lambda: kind(*args, **kwargs)
+        super(Typed, self).__init__(None, factory, **metadata)
+        self.set_validate_mode(CMember.ValidateTyped, kind)
+
+    @property
+    def type_info(self):
+        """ The type info for a Typed member.
+
+        """
+        kind = self.validate_mode()[1]
+        return _add_article(kind.__name__)
+
+
+class Instance(Value):
+    """ A value member which allows objects of a given type or types.
+
+    Instance validation is performed using the C-api equivalent of a
+    call to `isinstance(value, kind)` and all the same rules apply.
+
+    The value of an Instance member may also be set to None.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, kind, args=None, kwargs=None, factory=None, **metadata):
+        """ Initialize an Instance member.
+
+        Parameters
+        ----------
+        kind : type or tuple of types
+            The allowed type or types for the instance.
+
+        args : tuple, optional
+            If 'factory' is None, then 'kind' is a callable type and
+            these arguments will be passed to the constructor to create
+            the default value.
+
+        kwargs : dict, optional
+            If 'factory' is None, then 'kind' is a callable type and
+            these keywords will be passed to the constructor to create
+            the default value.
+
+        factory : callable, optional
+            An optional factory to use for creating the default value.
+            If this is not provided and 'args' and 'kwargs' is None,
+            then the default value will be None.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        if factory is None and (args is not None or kwargs is not None):
+            args = args or ()
+            kwargs = kwargs or {}
+            factory = lambda: kind(*args, **kwargs)
+        super(Instance, self).__init__(None, factory, **metadata)
+        self.set_validate_mode(CMember.ValidateInstance, kind)
+
+    @property
+    def type_info(self):
+        """ The type info for an Instance member.
+
+        """
+        kind = self.validate_mode()[1]
+        return _instance_repr(kind)
+
+
+class Subclass(Value):
+    """ A value member which allows types of a given subtype or subtypes.
+
+    Subclass validation is performed using the C-api equivalent of a
+    call to `issubclass(value, kind)` and all the same rules apply.
+
+    The value of a Subclass member may also be set to None.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, kind, default=None, factory=None, **metadata):
+        """ Initialize a Subclass member.
+
+        Parameters
+        ----------
+        kind : type or tuple of types
+            The allowed type or types for the subclass. This will be
+            used as the default value if no default is given.
+
+        default : type, optional
+            The default value for the member.
+
+        factory : callable, optional
+            A callable object which is called with zero arguments and
+            returns a default value for the member. This factory will
+            take precedence over any value given by `default`.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        super(Subclass, self).__init__(default, factory, **metadata)
+        self.set_validate_mode(CMember.ValidateSubclass, kind)
+
+    @property
+    def type_info(self):
+        """ The type info for a Subclass member.
+
+        """
+        kind = self.validate_mode()[1]
+        return _sublass_repr(kind)
+
+
+class Enum(Value):
+    """ A value member which accepts one of a sequence of items.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, items, default=None, factory=None, **metadata):
+        """ Initialize an Enum member.
+
+        Parameters
+        ----------
+        items : sequence
+            The allowed values which can be assigned to the enum.
+
+        default : object, optional
+            The default value for the member. If this is not given,
+            the first value from the items sequence will be used.
+
+        factory : callable, optional
+            A callable object which is called with zero arguments and
+            returns a default value for the member. This factory will
+            take precedence over any value given by `default`.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        if len(items) == 0:
+            raise ValueError('an Enum sequence requires at least 1 item')
+        if default is None:
+            default = items[0]
+        super(Enum, self).__init__(default, factory, **metadata)
+        self.set_validate_mode(CMember.ValidateEnum, items)
+
+    @property
+    def type_info(self):
+        """ The type info for an Enum member.
+
+        """
+        items = self.validate_mode()[1]
+        return 'one of %s' % list(items)
+
+    @property
+    def items(self):
+        """ The items sequence for the Enum member.
+
+        """
+        return self.validate_mode()[1]
+
+    def __call__(self, item):
+        """ Create a clone of the Enum with a new default value.
+
+        Parameters
+        ----------
+        item : object
+            The item to use as the new Enum default.
+
+        Returns
+        -------
+        result : Enum
+            The cloned member with the updated default value.
+
+        """
+        clone = self.clone()
+        clone.set_default_mode(CMember.DefaultValue, item)
+        return clone
+
+
 class Callable(Value):
-    """ A Value member which only accepts callable values.
+    """ A value member which only accepts callable values.
+
+    The value of an Callable member may also be set to None.
 
     """
     __slots__ = ()
@@ -417,7 +820,8 @@ class Range(Value):
         value : object or None
             The default value of the range. If not provided, the low
             value will be used. If the low value is also not provided,
-            the high value will be used.
+            the high value will be used. In the absence of any given
+            value, the default will be 0.
 
         kind : type or tuple of types
             The type of value allowed in the range. This is equivalent
@@ -439,30 +843,76 @@ class Range(Value):
         super(Range, self).__init__(default, None, **metadata)
         self.set_validate_mode(CMember.ValidateRange, (low, high, kind))
 
+    @property
+    def type_info(self):
+        """ The type info for a Range member.
 
-class List(Value):
-    pass
-
-
-class Dict(Value):
-    pass
-
-
-class Instance(Value):
-    pass
-
-
-class Typed(Value):
-    pass
-
-
-class Subclass(Value):
-    pass
-
-
-class Enum(Value):
-    pass
+        """
+        low, high, kind = self.validate_mode()[1]
+        if low is None:
+            low = '-infinity'
+        if high is None:
+            high = 'infinity'
+        name = _instance_repr(kind)
+        return '%s in the range %s to %s inclusive' % (name, low, high)
 
 
 class Coerced(Value):
-    pass
+    """ A value member which will coerce a value to a given type.
+
+    Unlike Typed or Instance, a Coerced member can not be set to None
+    unless NoneType is indicated as an acceptable value type.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, kind, args=None, kwargs=None,
+                 factory=None, coercer=None, **metadata):
+        """ Initialize a Coerced member.
+
+        Parameters
+        ----------
+        kind : type or tuple of types
+            The allowed type or types for the coerced value.
+
+        args : tuple, optional
+            If 'factory' is None, then 'kind' is a callable type and
+            these arguments will be passed to the constructor to create
+            the default value.
+
+        kwargs : dict, optional
+            If 'factory' is None, then 'kind' is a callable type and
+            these keywords will be passed to the constructor to create
+            the default value.
+
+        factory : callable, optional
+            An optional factory to use for creating the default value.
+            If this is not provided then 'args' and 'kwargs' should be
+            provided, as 'kind' will be called to create the default.
+
+        coercer : callable, optional
+            An optional callable which takes the value and returns the
+            coerced value. If this is not given, then 'kind' must be a
+            callable type which will be called with the value to coerce
+            the value to the appropriate type.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        if factory is None:
+            args = args or ()
+            kwargs = kwargs or {}
+            factory = lambda: kind(*args, **kwargs)
+        super(Coerced, self).__init__(None, factory, **metadata)
+        if coercer is None:
+            coercer = kind
+        self.set_validate_mode(CMember.ValidateCoerced, (kind, coercer))
+
+    @property
+    def type_info(self):
+        """ The type info for a Coerced member.
+
+        """
+        kind = self.validate_mode()[1][0]
+        return _coerced_repr(kind)
