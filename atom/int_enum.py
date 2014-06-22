@@ -89,7 +89,8 @@ class IntEnumMeta(type):
         if cls.__flags_class__ is not None:
             return cls.__flags_class__
         name = cls.__name__ + 'Flags'
-        flags_class = type(name, (IntEnumFlags,), {})
+        dct = {'__slots__': ()}
+        flags_class = type(name, (IntEnumFlags,), dct)
         flags_class.__enum_class__ = cls
         cls.__flags_class__ = flags_class
         copy_reg.pickle(flags_class, int_enum_flags_pickler)
