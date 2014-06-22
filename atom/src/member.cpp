@@ -1207,6 +1207,48 @@ PyObject* Member_clone( Member* self, PyObject* args )
 }
 
 
+PyObject* Member_do_default( Member* self, PyObject* args )
+{
+    PyObject* atom;
+    PyObject* name;
+    if( !PyArg_ParseTuple( args, "OO", &atom, &name ) )
+    {
+        return 0;
+    }
+    return self->defaultValue( atom, name );
+}
+
+
+PyObject* Member_do_validate( Member* self, PyObject* args )
+{
+    PyObject* atom;
+    PyObject* name;
+    PyObject* value;
+    if( !PyArg_ParseTuple( args, "OOO", &atom, &name, &value ) )
+    {
+        return 0;
+    }
+    return self->validateValue( atom, name, value );
+}
+
+
+PyObject* Member_do_post_setattr( Member* self, PyObject* args )
+{
+    PyObject* atom;
+    PyObject* name;
+    PyObject* value;
+    if( !PyArg_ParseTuple( args, "OOO", &atom, &name, &value ) )
+    {
+        return 0;
+    }
+    if( self->postSetAttrValue( atom, name, value ) < 0 )
+    {
+        return 0;
+    }
+    return cppy::incref( Py_None );
+}
+
+
 PyGetSetDef Member_getset[] = {
     { "metadata",
       ( getter )Member_get_metadata,
@@ -1253,6 +1295,18 @@ PyMethodDef Member_methods[] = {
       ( PyCFunction )Member_clone,
       METH_NOARGS,
       "Create a clone of the member." },
+    { "do_default",
+      ( PyCFunction )Member_do_default,
+      METH_VARARGS,
+      "Run the default value handler for the member." },
+    { "do_validate",
+      ( PyCFunction )Member_do_validate,
+      METH_VARARGS,
+      "Run the validate value handler for the member." },
+    { "do_post_setattr",
+      ( PyCFunction )Member_do_post_setattr,
+      METH_VARARGS,
+      "Run the post setattr value handler for the member." },
     { 0 } // sentinel
 };
 
@@ -1410,8 +1464,7 @@ PyObject* Member::validateValue(
     cppy::ptr result( value, true );
     if( m_validate_mode )
     {
-        result = v_handlers[ m_validate_mode ](
-            this, atom, name, result.get() );
+        result = v_handlers[ m_validate_mode ]( this, atom, name, result.get() );
         if( !result )
         {
             return 0;
@@ -1419,8 +1472,7 @@ PyObject* Member::validateValue(
     }
     if( m_post_validate_mode )
     {
-        result = pv_handlers[ m_post_validate_mode ](
-            this, atom, name, result.get() );
+        result = pv_handlers[ m_post_validate_mode ]( this, atom, name, result.get() );
         if( !result )
         {
             return 0;
