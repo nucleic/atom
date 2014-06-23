@@ -37,6 +37,7 @@ class AtomMeta(type):
         # other space consuming features unless explicitly requested.
         if '__slots__' not in dct:
             dct['__slots__'] = ()
+        # XXX ensure weakref slot isn't redeclared
 
         # Create the class object.
         cls = type.__new__(meta, name, bases, dct)
@@ -88,6 +89,8 @@ class Atom(CAtom):
 
     """
     __metaclass__ = AtomMeta
+
+    __slots__ = '__weakref__'
 
     def __reduce_ex__(self, proto):
         """ An implementation of the reduce protocol.
