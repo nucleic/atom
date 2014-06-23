@@ -536,6 +536,26 @@ PyObject* v_tuple_h(
 }
 
 
+PyObject* AtomListType()
+{
+    static PyObject* the_type = 0;
+    if( !the_type )
+    {
+        cppy::ptr mod( PyImport_ImportModule( "atom.atom_list" ) );
+        if( !mod )
+        {
+            return 0;
+        }
+        the_type = PyObject_GetAttrString( mod.get(), "AtomList" );
+        if( !the_type )
+        {
+            return 0;
+        }
+    }
+    return the_type;
+}
+
+
 PyObject* v_list_h(
     Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
@@ -548,8 +568,8 @@ PyObject* v_list_h(
     {
         return PyList_GetSlice( value, 0, size );
     }
-    cppy::ptr result( PyList_New( size ) );
-    if( !result )
+    cppy::ptr temp( PyTuple_New( size ) );
+    if( !temp )
     {
         return 0;
     }
@@ -557,14 +577,24 @@ PyObject* v_list_h(
     for( Py_ssize_t i = 0; i < size; ++i )
     {
         PyObject* item = PyList_GET_ITEM( value, i );
-        PyObject* valid_item = inner->validateValue( atom, name, item );
-        if( !valid_item )
+        PyObject* valid = inner->validateValue( atom, name, item );
+        if( !valid )
         {
             return validation_error( member, atom, name, value );
         }
-        PyList_SET_ITEM( result.get(), i, valid_item );
+        PyTuple_SET_ITEM( temp.get(), i, valid );
     }
-    return result.release();
+    PyObject* AtomList = AtomListType(); // borrowed ref
+    if( !AtomList )
+    {
+        return 0;
+    }
+    cppy::ptr args( PyTuple_Pack( 4, temp.get(), inner, atom, name ) );
+    if( !args )
+    {
+        return 0;
+    }
+    return PyObject_Call( AtomList, args.get(), 0 );
 }
 
 
