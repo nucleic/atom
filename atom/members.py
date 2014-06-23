@@ -6,54 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from .catom import CMember, ValidationError
-
-
-def _add_article(name):
-    """ Prefix the given name with the proper article 'a' or 'an'.
-
-    """
-    if name[0].lower() in 'aeiou':
-        return 'an ' + name
-    return 'a ' + name
-
-
-def _kind_repr(kind, prefix):
-    """ Create a string description for a kind argument.
-
-    """
-    result = prefix
-    if not isinstance(kind, tuple):
-        return result + kind.__name__
-    result += kind[0].__name__
-    if len(kind) == 1:
-        return result
-    if len(kind) == 2:
-        return result + " or " + kind[1].__name__
-    for k in kind[1:-1]:
-        result += ", " + k.__name__
-    result += ", or " + kind[-1].__name__
-    return result
-
-
-def _instance_repr(kind):
-    """ Create a string description for an isinstance() kind argument.
-
-    """
-    return _kind_repr(kind, 'an instance of ')
-
-
-def _sublass_repr(kind):
-    """ Create a string description for an issubclass() kind argument.
-
-    """
-    return _kind_repr(kind, 'a subclass of ')
-
-
-def _coerced_repr(kind):
-    """ Create a string description for a coerceable kind argument.
-
-    """
-    return _kind_repr(kind, 'coercible to ')
+from . import formatting
 
 
 class Member(CMember):
@@ -88,11 +41,7 @@ class Member(CMember):
         provide a more specific validation error and/or message.
 
         """
-        type_name = _add_article(type(atom).__name__)
-        repr_value = '%r %r' % (value, type(value))
-        msg = "The '%s' member of %s instance must be %s, "
-        msg += "but a value of %s was specified."
-        msg %= (name, type_name, self.type_info, repr_value)
+        msg = formatting.member_message(atom, name, value, self.type_info)
         raise ValidationError(msg)
 
     def tag(self, **kwargs):
@@ -595,7 +544,7 @@ class Typed(Value):
 
         """
         kind = self.validate_mode()[1]
-        return _add_article(kind.__name__)
+        return formatting.add_article(kind.__name__)
 
 
 class Instance(Value):
@@ -649,7 +598,7 @@ class Instance(Value):
 
         """
         kind = self.validate_mode()[1]
-        return _instance_repr(kind)
+        return formatting.instance_repr(kind)
 
 
 class Subclass(Value):
@@ -693,7 +642,7 @@ class Subclass(Value):
 
         """
         kind = self.validate_mode()[1]
-        return _sublass_repr(kind)
+        return formatting.subclass_repr(kind)
 
 
 class Enum(Value):
@@ -853,7 +802,7 @@ class Range(Value):
             low = '-infinity'
         if high is None:
             high = 'infinity'
-        name = _instance_repr(kind)
+        name = formatting.instance_repr(kind)
         return '%s in the range %s to %s inclusive' % (name, low, high)
 
 
@@ -915,4 +864,4 @@ class Coerced(Value):
 
         """
         kind = self.validate_mode()[1][0]
-        return _coerced_repr(kind)
+        return formatting.coerced_repr(kind)
