@@ -5,9 +5,14 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-""" A collection of functions to assist in formatting error messages.
+""" Functions to assist with formatting error messages.
 
 """
+# IMPORTANT!
+# These functions are imported by the C++ code when needed. Do not move
+# or rename this module unless also changing the C++ code.
+
+
 def add_article(name):
     """ Prefix the given name with the proper article 'a' or 'an'.
 
@@ -56,7 +61,7 @@ def coerced_repr(kind):
     return kind_repr(kind, 'coercible to ')
 
 
-def validation_message(prefix, atom, value, type_info):
+def validation_message(prefix, member, atom, value):
     """ Create an error message for a ValidationError.
 
     Parameters
@@ -64,27 +69,30 @@ def validation_message(prefix, atom, value, type_info):
     prefix : str
         The prefix string for the error message.
 
+    member : Member
+        The member involved in the error.
+
     atom : Atom
         The Atom object involved in the error.
 
     value : object
         The invalid member value.
-
-    type_info : str
-        The type info associated with the member.
 
     """
     type_name = add_article(type(atom).__name__)
     repr_value = '%r %r' % (value, type(value))
     msg = "%s of %s instance must be %s, but a value of %s was specified."
-    return msg % (prefix, type_name, type_info, repr_value)
+    return msg % (prefix, type_name, member.type_info, repr_value)
 
 
-def member_message(atom, name, value, type_info):
+def member_message(member, atom, name, value):
     """ Create an error message for a member validation error.
 
     Parameters
     ----------
+    member : Member
+        The member involved in the error.
+
     atom : Atom
         The Atom object involved in the error.
 
@@ -94,19 +102,19 @@ def member_message(atom, name, value, type_info):
     value : object
         The invalid member value.
 
-    type_info : str
-        The type info associated with the member.
-
     """
     prefix = "The '%s' member" % name
-    return validation_message(prefix, atom, value, type_info)
+    return validation_message(prefix, member, atom, value)
 
 
-def element_message(atom, name, value, type_info):
+def element_message(member, atom, name, value):
     """ Create an error message for an element validation error.
 
     Parameters
     ----------
+    member : Member
+        The member involved in the error.
+
     atom : Atom
         The Atom object involved in the error.
 
@@ -116,9 +124,6 @@ def element_message(atom, name, value, type_info):
     value : object
         The invalid member value.
 
-    type_info : str
-        The type info associated with the member.
-
     """
     prefix = "Each element of the '%s' member" % name
-    return validation_message(prefix, atom, value, type_info)
+    return validation_message(prefix, member, atom, value)

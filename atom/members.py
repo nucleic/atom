@@ -41,7 +41,7 @@ class Member(CMember):
         provide a more specific validation error and/or message.
 
         """
-        msg = formatting.member_message(atom, name, value, self.type_info)
+        msg = formatting.member_message(self, atom, name, value)
         raise ValidationError(msg)
 
     def tag(self, **kwargs):

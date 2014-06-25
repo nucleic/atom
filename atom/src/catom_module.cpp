@@ -6,6 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <atom.h>
+#include <atom_list.h>
 #include <class_map.h>
 #include <member.h>
 
@@ -36,6 +37,10 @@ PyMODINIT_FUNC initcatom( void )
         return;
     }
     if( !Atom::Ready() )
+    {
+        return;
+    }
+    if( !AtomList::Ready() )
     {
         return;
     }

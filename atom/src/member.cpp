@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include <member.h>
 
+#include <atom_list.h>
 #include <utils/py23compat.h>
 
 #include <cppy/cppy.h>
@@ -536,26 +537,6 @@ PyObject* v_tuple_h(
 }
 
 
-PyObject* AtomListType()
-{
-    static PyObject* the_type = 0;
-    if( !the_type )
-    {
-        cppy::ptr mod( PyImport_ImportModule( "atom.atom_list" ) );
-        if( !mod )
-        {
-            return 0;
-        }
-        the_type = PyObject_GetAttrString( mod.get(), "AtomList" );
-        if( !the_type )
-        {
-            return 0;
-        }
-    }
-    return the_type;
-}
-
-
 PyObject* v_list_h(
     Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
@@ -584,17 +565,7 @@ PyObject* v_list_h(
         }
         PyTuple_SET_ITEM( temp.get(), i, valid );
     }
-    PyObject* AtomList = AtomListType(); // borrowed ref
-    if( !AtomList )
-    {
-        return 0;
-    }
-    cppy::ptr args( PyTuple_Pack( 4, temp.get(), inner, atom, name ) );
-    if( !args )
-    {
-        return 0;
-    }
-    return PyObject_Call( AtomList, args.get(), 0 );
+    return AtomList::Create( inner, atom, name, temp.get() );
 }
 
 
@@ -1026,13 +997,14 @@ PostSetAttrHandler ps_handlers[] = {
 };
 
 
-void Member_clear( Member* self )
+int Member_clear( Member* self )
 {
     Py_CLEAR( self->m_metadata );
     Py_CLEAR( self->m_default_context );
     Py_CLEAR( self->m_validate_context );
     Py_CLEAR( self->m_post_validate_context );
     Py_CLEAR( self->m_post_setattr_context );
+    return 0;
 }
 
 
