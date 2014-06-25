@@ -118,7 +118,7 @@ PyObject* ClassMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-void ClassMap_clear( ClassMap* self )
+int ClassMap_clear( ClassMap* self )
 {
     uint32_t allocated = self->m_allocated;
     ClassMapEntry* base = self->m_entries;
@@ -131,6 +131,7 @@ void ClassMap_clear( ClassMap* self )
             Py_CLEAR( entry->member );
         }
     }
+    return 0;
 }
 
 

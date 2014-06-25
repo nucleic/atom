@@ -95,7 +95,7 @@ int Atom_init( PyObject* self, PyObject* args, PyObject* kwargs )
 }
 
 
-void Atom_clear( Atom* self )
+int Atom_clear( Atom* self )
 {
     uint32_t count = self->m_class_map->memberCount();
     for( uint32_t i = 0; i < count; ++i )
@@ -103,6 +103,7 @@ void Atom_clear( Atom* self )
         Py_CLEAR( self->m_slots[ i ] );
     }
     Py_CLEAR( self->m_class_map );
+    return 0;
 }
 
 
