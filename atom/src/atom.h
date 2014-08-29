@@ -7,54 +7,36 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#include <utils/stdint.h>
-
+#include <cppy/cppy.h>
 #include <Python.h>
+#include <vector>
 
 
 namespace atom
 {
 
-struct ClassMap;
-
-
 // POD struct - all member fields are considered private
 struct Atom
 {
-    PyObject_HEAD
-    ClassMap* m_class_map;
-    PyObject** m_slots;
-    uint32_t m_flags;
+	typedef std::vector<cppy::ptr> ValueVector;
 
-    enum Flag
-    {
-    };
+	PyObject_HEAD
+	PyObject* m_class_members;
+	PyObject* m_extra_members;
+	ValueVector m_values;  // instantiated with placement new
 
-    static PyTypeObject TypeObject;
+	static PyTypeObject TypeObject;
 
-    static bool Ready();
+	static bool Ready();
 
-    static bool TypeCheck( PyObject* ob )
-    {
-        return PyObject_TypeCheck( ob, &TypeObject ) != 0;
-    }
+	static bool TypeCheck( PyObject* ob )
+	{
+		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
+	}
 
-    bool testFlag( Flag flag )
-    {
-        return ( m_flags & static_cast<uint32_t>( flag ) ) != 0;
-    }
+	static PyObject* RegisterMembers( PyTypeObject* type, PyObject* members );
 
-    bool setFlag( Flag flag, bool on = true )
-    {
-        if( on )
-        {
-            m_flags |= static_cast<uint32_t>( flag );
-        }
-        else
-        {
-            m_flags &= ~( static_cast<uint32_t>( flag ) );
-        }
-    }
+	static PyObject* LookupMembers( PyTypeObject* type );
 };
 
 }  // namespace atom
