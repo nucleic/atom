@@ -27,6 +27,7 @@ struct Member
 	PyObject* m_validate_context;
 	PyObject* m_post_validate_context;
 	PyObject* m_post_setattr_context;
+	uint32_t m_value_index;
 	uint8_t m_default_mode;
 	uint8_t m_validate_mode;
 	uint8_t m_post_validate_mode;
@@ -90,6 +91,16 @@ struct Member
 	static bool TypeCheck( PyObject* ob )
 	{
 		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
+	}
+
+	uint32_t valueIndex()
+	{
+		return m_value_index;
+	}
+
+	void setValueIndex( uint32_t index )
+	{
+		m_value_index = index;
 	}
 
 	PyObject* defaultValue( PyObject* atom, PyObject* name );

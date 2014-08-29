@@ -997,6 +997,32 @@ int Member_set_post_setattr_mode( Member* self, PyObject* arg )
 }
 
 
+PyObject* Member_get_value_index( Member* self, void* context )
+{
+	return Py23Int_FromLong( static_cast<long>( self->valueIndex() ) );
+}
+
+
+int Member_set_value_index( Member* self, PyObject* arg )
+{
+	if( !Py23Int_Check( arg ) )
+	{
+		cppy::type_error( arg, "int" );
+		return -1;
+	}
+	long index = Py23Int_AsLong( arg );
+	if( index == -1 && PyErr_Occurred() )
+	{
+		return -1;
+	}
+	if( index < 0 )
+	{
+		cppy::value_error( "value index must be positive" );
+	}
+	self->setValueIndex( static_cast<uint32_t>( index ) );
+}
+
+
 PyObject* Member_clone( Member* self, PyObject* args )
 {
 	cppy::ptr pyclone( PyType_GenericNew( self->ob_type, 0, 0 ) );
@@ -1072,6 +1098,10 @@ PyGetSetDef Member_getset[] = {
 	  ( getter )Member_get_metadata,
 	  ( setter )Member_set_metadata,
 	  "metadata for the member (if defined)" },
+	{ "value_index",
+	  ( getter )Member_get_value_index,
+	  ( setter )Member_set_value_index,
+	  "the value index for the member" },
 	{ "default_mode",
 	  ( getter )Member_get_default_mode,
 	  ( setter )Member_set_default_mode,
