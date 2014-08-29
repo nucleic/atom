@@ -7,8 +7,10 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
+#include <Python.h>
+
 #if PY_MAJOR_VERSION >= 3
-#include <utils/py3compat.h>
+#include <py3_compat.h>
 #else
-#include <utils/py2compat.h>
+#include <py2_compat.h>
 #endif
