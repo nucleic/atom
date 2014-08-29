@@ -36,8 +36,6 @@ struct Member
 	{
 		NoDefault,
 		DefaultValue,
-		DefaultList,
-		DefaultDict,
 		DefaultFactory,
 		DefaultCallObject,
 		DefaultAtomMethod,
@@ -54,9 +52,6 @@ struct Member
 		ValidateBytes,
 		ValidateStr,
 		ValidateUnicode,
-		ValidateTuple,
-		ValidateList,
-		ValidateDict,
 		ValidateTyped,
 		ValidateInstance,
 		ValidateSubclass,
