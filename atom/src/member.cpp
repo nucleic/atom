@@ -857,7 +857,7 @@ struct ParseMode
 {
 	int operator()( PyObject* arg, uint8_t* mode, PyObject** context )
 	{
-		if( !PyTuple_Check( arg ) || PyTuple_GET_SIZE( arg ) !== 2 )
+		if( !PyTuple_Check( arg ) || PyTuple_GET_SIZE( arg ) != 2 )
 		{
 			cppy::type_error( arg, "2-tuple" );
 			return -1;
