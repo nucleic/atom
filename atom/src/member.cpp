@@ -1020,6 +1020,7 @@ int Member_set_value_index( Member* self, PyObject* arg )
 		cppy::value_error( "value index must be positive" );
 	}
 	self->setValueIndex( static_cast<uint32_t>( index ) );
+	return 0;
 }
 
 
@@ -1031,18 +1032,15 @@ PyObject* Member_clone( Member* self, PyObject* args )
 		return 0;
 	}
 	Member* clone = reinterpret_cast<Member*>( pyclone.get() );
-	if( self->m_metadata )
+	if( self->m_metadata && !( clone->m_metadata = PyDict_Copy( self->m_metadata ) ) )
 	{
-		clone->m_metadata = PyDict_Copy( self->m_metadata );
-		if( !clone->m_metadata )
-		{
-			return 0;
-		}
+		return 0;
 	}
 	clone->m_default_context = cppy::xincref( self->m_default_context );
 	clone->m_validate_context = cppy::xincref( self->m_validate_context );
 	clone->m_post_validate_context = cppy::xincref( self->m_post_validate_context );
 	clone->m_post_setattr_context = cppy::xincref( self->m_post_setattr_context );
+	clone->m_value_index = self->m_value_index;
 	clone->m_default_mode = self->m_default_mode;
 	clone->m_validate_mode = self->m_validate_mode;
 	clone->m_post_validate_mode = self->m_post_validate_mode;
