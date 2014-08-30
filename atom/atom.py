@@ -7,28 +7,58 @@
 #------------------------------------------------------------------------------
 import copy_reg
 
-from .catom import CAtom, ClassMap, CMember
+from .catom import CAtom, CMember, _register_members, _lookup_members
 
 
-#: The string key constant used to store the type member dictionary.
-CLASS_MEMBERS = '_[atom members]'
+def _uniquify_memory_layout(members):
+    """ Ensure that the given members occupy a unique memory layout.
 
+    This function will ensure that each member has a unique and
+    monotonically increasing value index which corresponds to the
+    memory slot index of the value in C++.
 
-#: The string key constant used to store the type class map.
-CLASS_MAP = '_[class map]'
+    This function operates on the members dict in-place.
+
+    Parameters
+    ----------
+    members : dict
+        A dict of member name -> member.
+
+    """
+    # Members with indices which conflict with other members are
+    # collected into this list, then cloned and given a new index.
+    conflicts = []
+
+    # The set of all valid indices for this collection of members.
+    # Indices are removed from this set as they are claimed.
+    indices = set(range(len(members)))
+
+    # Pass over the members and claim the used indices. Any member
+    # which conflicts with another is added to the conflicts list.
+    for name, member in members.iteritems():
+        index = member.value_index
+        if index in indices:
+            indices.remove(index)
+        else:
+            conflicts.append((name, member))
+
+    # The remaining indices are distributed among the conflicts. The
+    # conflicting member is cloned since its index may be valid if it
+    # belongs to a base class in a multiple inheritance hierarchy.
+    for (name, member), index in zip(conflicts, indices):
+        member = member.clone()
+        member.value_index = index
+        members[name] = member
 
 
 class AtomMeta(type):
     """ The metaclass for classes derived from Atom.
 
-    This metaclass computes the atom class map for the new type so
+    This metaclass computes the atom member layout for the class so
     that the CAtom class can allocate exactly enough space for the
-    the object data slots when it instantiates an object.
+    instance data slots when it instantiates an object.
 
-    All classes deriving from Atom will be automatically slotted, which
-    will prevent the creation of an instance dictionary and also the
-    ability of an Atom to be weakly referenceable. If that behavior is
-    required, then a subclasss should declare the appropriate slots.
+    All classes deriving from Atom are automatically slotted.
 
     """
     def __new__(meta, name, bases, dct):
@@ -37,7 +67,6 @@ class AtomMeta(type):
         # other space consuming features unless explicitly requested.
         if '__slots__' not in dct:
             dct['__slots__'] = ()
-        # XXX ensure weakref slot isn't redeclared
 
         # Create the class object.
         cls = type.__new__(meta, name, bases, dct)
@@ -48,19 +77,23 @@ class AtomMeta(type):
         members = {}
         for base in reversed(cls.__mro__[1:-1]):
             if base is not CAtom and issubclass(base, CAtom):
-                members.update(getattr(base, CLASS_MEMBERS))
+                members.update(_lookup_members(base))
 
-        # Walk the current class dict to collect the new members.
+        # Walk the current class dict and collect the new members.
+        # The index of the new members can be computed immediately.
         for key, value in dct.iteritems():
             if isinstance(value, CMember):
+                if key in members:
+                    value.value_index = members[key].value_index
+                else:
+                    value.value_index = len(members)
                 members[key] = value
 
-        # Creat the class map for the new class.
-        class_map = ClassMap(members)
+        # Compute a unique memory layout for the members.
+        _uniquify_memory_layout(members)
 
-        # Store a reference to the class members and the class_map
-        setattr(cls, CLASS_MEMBERS, members)
-        setattr(cls, CLASS_MAP, class_map)
+        # Register the final members with the C++ member registry.
+        _register_members(cls, members)
 
         return cls
 

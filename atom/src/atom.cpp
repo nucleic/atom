@@ -19,6 +19,44 @@ namespace
 {
 
 PyObject* members_registry;
+PyObject* clone_str;
+
+
+// returns borrowed reference to Member or null - no-except
+inline Member* lookup_member( Atom* atom, PyObject* name )
+{
+	PyObject* member = PyDict_GetItem( atom->m_members, name );
+	if( !member )
+	{
+		PyObject* others = PyDict_GetItem( atom->m_members, Py_None );
+		if( others )
+		{
+			member = PyDict_GetItem( others, name );
+		}
+	}
+	return reinterpret_cast<Member*>( member );
+}
+
+
+// returns true on success false and exception on failure
+bool ensure_instance_members( Atom* atom )
+{
+	if( PyDict_GetItem( atom->m_members, Py_None ) )
+	{
+		return true;
+	}
+	cppy::ptr dct( PyDict_New() );
+	if( !dct )
+	{
+		return false;
+	}
+	if( PyDict_SetItem( dct.get(), Py_None, atom->m_members ) < 0 )
+	{
+		return false;
+	}
+	cppy::replace( &atom->m_members, dct.get() );
+	return true;
+}
 
 
 PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
@@ -97,10 +135,9 @@ void Atom_dealloc( Atom* self )
 
 PyObject* Atom_getattro( Atom* self, PyObject* name )
 {
-	PyObject* pymember = PyDict_GetItem( self->m_members, name );
-	if( pymember )
+	Member* member = lookup_member( self, name );
+	if( member )
 	{
-		Member* member = reinterpret_cast<Member*>( pymember );
 		uint32_t index = member->valueIndex();
 		if( index >= self->m_values.size() )
 		{
@@ -125,10 +162,9 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 
 int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 {
-	PyObject* pymember = PyDict_GetItem( self->m_members, name );
-	if( pymember )
+	Member* member = lookup_member( self, name );
+	if( member )
 	{
-		Member* member = reinterpret_cast<Member*>( pymember );
 		uint32_t index = member->valueIndex();
 		if( index >= self->m_values.size() )
 		{
@@ -157,21 +193,65 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 }
 
 
+PyObject* Atom_add_member( Atom* self, PyObject* args )
+{
+	PyObject* name;
+	PyObject* pymember;
+	if( !PyArg_ParseTuple( args, "OO", &name, &pymember ) )
+	{
+		return 0;
+	}
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
+	if( !Member::TypeCheck( pymember ) )
+	{
+		return cppy::type_error( pymember, "Member" );
+	}
+	if( !ensure_instance_members( self ) )
+	{
+		return 0;
+	}
+	Member* existing = lookup_member( self, name );
+	if( PyDict_SetItem( self->m_members, name, pymember ) < 0 )
+	{
+		return 0;
+	}
+	Member* member = reinterpret_cast<Member*>( pymember );
+	if( existing )
+	{
+		member->setValueIndex( existing->valueIndex() );
+		self->m_values[ member->valueIndex() ] = 0;
+	}
+	else
+	{
+		member->setValueIndex( self->m_values.size() );
+		self->m_values.push_back( 0 );
+	}
+	return cppy::incref( Py_None );
+}
+
+
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
 	Py_ssize_t size = self->ob_type->tp_basicsize;
 	size_t capacity = self->m_values.capacity();
 	size_t vec_size = capacity * sizeof( Atom::ValueVector::value_type );
 	size += static_cast<Py_ssize_t>( vec_size );
-	return PyInt_FromSsize_t( size );
+	return Py23Int_FromSsize_t( size );
 }
 
 
 PyMethodDef Atom_methods[] = {
+	{ "add_member",
+	  ( PyCFunction )Atom_add_member,
+	  METH_VARARGS,
+	  "add_member(name, member) add a member to the instance" },
 	{ "__sizeof__",
 	  ( PyCFunction )Atom_sizeof,
 	  METH_NOARGS,
-	  "__sizeof__() -> size of object in memory, in bytes"},
+	  "__sizeof__() -> size of object in memory, in bytes" },
 	{ 0 } // sentinel
 };
 
@@ -236,6 +316,11 @@ bool Atom::Ready()
 {
 	members_registry = PyDict_New();
 	if( !members_registry )
+	{
+		return false;
+	}
+	clone_str = PyString_FromString( "clone" );
+	if( !clone_str )
 	{
 		return false;
 	}
