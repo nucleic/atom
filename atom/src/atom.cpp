@@ -36,7 +36,7 @@ PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	Atom* self = reinterpret_cast<Atom*>( self_ptr.get() );
 	Py_ssize_t count = PyDict_Size( members_ptr.get() );
 	new( &self->m_values ) Atom::ValueVector( count );
-	self->m_class_members = members_ptr.release();
+	self->m_members = members_ptr.release();
 	return self_ptr.release();
 }
 
@@ -68,8 +68,7 @@ int Atom_init( PyObject* self, PyObject* args, PyObject* kwargs )
 int Atom_clear( Atom* self )
 {
 	self->m_values.clear();
-	Py_CLEAR( self->m_class_members );
-	Py_CLEAR( self->m_extra_members );
+	Py_CLEAR( self->m_members );
 	return 0;
 }
 
@@ -82,8 +81,7 @@ int Atom_traverse( Atom* self, visitproc visit, void* arg )
 	{
 		Py_VISIT( it->get() );
 	}
-	Py_VISIT( self->m_class_members );
-	Py_VISIT( self->m_extra_members );
+	Py_VISIT( self->m_members );
 	return 0;
 }
 
@@ -99,7 +97,7 @@ void Atom_dealloc( Atom* self )
 
 PyObject* Atom_getattro( Atom* self, PyObject* name )
 {
-	PyObject* pymember = PyDict_GetItem( self->m_class_members, name );
+	PyObject* pymember = PyDict_GetItem( self->m_members, name );
 	if( pymember )
 	{
 		Member* member = reinterpret_cast<Member*>( pymember );
@@ -127,7 +125,7 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 
 int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 {
-	PyObject* pymember = PyDict_GetItem( self->m_class_members, name );
+	PyObject* pymember = PyDict_GetItem( self->m_members, name );
 	if( pymember )
 	{
 		Member* member = reinterpret_cast<Member*>( pymember );
