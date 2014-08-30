@@ -162,7 +162,9 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
 	Py_ssize_t size = self->ob_type->tp_basicsize;
-	// XXX fill me in
+	size_t capacity = self->m_values.capacity();
+	size_t vec_size = capacity * sizeof( Atom::ValueVector::value_type );
+	size += static_cast<Py_ssize_t>( vec_size );
 	return PyInt_FromSsize_t( size );
 }
 
