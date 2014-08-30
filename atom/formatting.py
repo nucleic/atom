@@ -8,9 +8,6 @@
 """ Functions to assist with formatting error messages.
 
 """
-# IMPORTANT!
-# These functions are imported by the C++ code when needed. Do not move
-# or rename this module unless also changing the C++ code.
 
 
 def add_article(name):
