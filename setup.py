@@ -16,8 +16,6 @@ ext_modules = [
         'atom.catom',
         [
             'atom/src/atom.cpp',
-            'atom/src/atom_list.cpp',
-            'atom/src/class_map.cpp',
             'atom/src/member.cpp',
             'atom/src/catom_module.cpp',
         ],
