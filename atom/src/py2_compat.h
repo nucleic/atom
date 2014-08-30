@@ -18,3 +18,5 @@
 #define Py23Int_FromLong PyInt_FromLong
 #define Py23Int_AsLong PyInt_AsLong
 #define Py23Number_Int PyNumber_Int
+#define Py23Int_AsSsize_t PyInt_AsSsize_t
+#define Py23Int_FromSsize_t PyInt_FromSsize_t
