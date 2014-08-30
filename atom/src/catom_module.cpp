@@ -47,14 +47,14 @@ PyObject* lookup_members( PyObject* mod, PyObject* type )
 
 
 static PyMethodDef catom_methods[] = {
-	{ "register_members",
+	{ "_register_members",
 	  ( PyCFunction )register_members,
 	  METH_VARARGS,
-	  "register the members for a given type object" },
-	{ "lookup_members",
+	  "*private* register the members for a given type object" },
+	{ "_lookup_members",
 	  ( PyCFunction )lookup_members,
 	  METH_O,
-	  "lookup the members for a given type object" },
+	  "*private* lookup the members for a given type object" },
 	{ 0 } // sentinel
 };
 
