@@ -37,12 +37,7 @@ PyObject* lookup_members( PyObject* mod, PyObject* type )
 	{
 		return cppy::type_error( type, "type" );
 	}
-	cppy::ptr members( Atom::LookupMembers( reinterpret_cast<PyTypeObject*>( type ) ) );
-	if( !members )
-	{
-		return 0;
-	}
-	return PyDict_Copy( members.get() );
+	return Atom::LookupMembers( reinterpret_cast<PyTypeObject*>( type ) );
 }
 
 

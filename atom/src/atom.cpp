@@ -19,7 +19,18 @@ namespace
 {
 
 PyObject* members_registry;
-PyObject* clone_str;
+
+
+inline PyObject* lookup_type_members( PyTypeObject* type )
+{
+	PyObject* pyo = reinterpret_cast<PyObject*>( type );
+	PyObject* members = PyDict_GetItem( members_registry, pyo );
+	if( members )
+	{
+		return cppy::incref( members );
+	}
+	return cppy::type_error( "type has no registered members" );
+}
 
 
 // returns borrowed reference to Member or null - no-except
@@ -45,23 +56,23 @@ bool ensure_instance_members( Atom* atom )
 	{
 		return true;
 	}
-	cppy::ptr dct( PyDict_New() );
-	if( !dct )
+	cppy::ptr dict( PyDict_New() );
+	if( !dict )
 	{
 		return false;
 	}
-	if( PyDict_SetItem( dct.get(), Py_None, atom->m_members ) < 0 )
+	if( PyDict_SetItem( dict.get(), Py_None, atom->m_members ) < 0 )
 	{
 		return false;
 	}
-	cppy::replace( &atom->m_members, dct.get() );
+	cppy::replace( &atom->m_members, dict.get() );
 	return true;
 }
 
 
 PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-	cppy::ptr members_ptr( Atom::LookupMembers( type ) );
+	cppy::ptr members_ptr( lookup_type_members( type ) );
 	if( !members_ptr )
 	{
 		return 0;
@@ -135,6 +146,10 @@ void Atom_dealloc( Atom* self )
 
 PyObject* Atom_getattro( Atom* self, PyObject* name )
 {
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( "attribute name must be a string" );
+	}
 	Member* member = lookup_member( self, name );
 	if( member )
 	{
@@ -162,6 +177,11 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 
 int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 {
+	if( !Py23Str_Check( name ) )
+	{
+		cppy::type_error( "attribute name must be a string" );
+		return -1;
+	}
 	Member* member = lookup_member( self, name );
 	if( member )
 	{
@@ -173,7 +193,7 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 		}
 		if( !value )
 		{
-			cppy::type_error( "can't delete atom member" );
+			cppy::type_error( "can't delete member value" );
 			return -1;
 		}
 		cppy::ptr oldptr( self->m_values[ index ] );
@@ -237,9 +257,8 @@ PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
 	Py_ssize_t size = self->ob_type->tp_basicsize;
 	size_t capacity = self->m_values.capacity();
-	size_t vec_size = capacity * sizeof( Atom::ValueVector::value_type );
-	size += static_cast<Py_ssize_t>( vec_size );
-	return Py23Int_FromSsize_t( size );
+	size_t vecsize = capacity * sizeof( Atom::ValueVector::value_type );
+	return Py23Int_FromSsize_t( size + static_cast<Py_ssize_t>( vecsize ) );
 }
 
 
@@ -319,11 +338,6 @@ bool Atom::Ready()
 	{
 		return false;
 	}
-	clone_str = PyString_FromString( "clone" );
-	if( !clone_str )
-	{
-		return false;
-	}
 	return PyType_Ready( &TypeObject ) == 0;
 }
 
@@ -334,15 +348,15 @@ PyObject* Atom::RegisterMembers( PyTypeObject* type, PyObject* members )
 	{
 		return cppy::type_error( members, "dict" );
 	}
-	cppy::ptr members_copy( PyDict_New() );
-	if( !members_copy )
+	cppy::ptr copied( PyDict_Copy( members ) );
+	if( !copied )
 	{
 		return 0;
 	}
 	PyObject* key;
 	PyObject* value;
 	Py_ssize_t pos = 0;
-	while( PyDict_Next( members, &pos, &key, &value ) )
+	while( PyDict_Next( copied.get(), &pos, &key, &value ) )
 	{
 		if( !Py23Str_Check( key ) )
 		{
@@ -352,13 +366,9 @@ PyObject* Atom::RegisterMembers( PyTypeObject* type, PyObject* members )
 		{
 			return cppy::type_error( value, "Member" );
 		}
-		if( PyDict_SetItem( members_copy.get(), key, value ) < 0 )
-		{
-			return 0;
-		}
 	}
 	PyObject* pyo = reinterpret_cast<PyObject*>( type );
-	if( PyDict_SetItem( members_registry, pyo, members_copy.get() ) < 0 )
+	if( PyDict_SetItem( members_registry, pyo, copied.get() ) < 0 )
 	{
 		return 0;
 	}
@@ -368,13 +378,12 @@ PyObject* Atom::RegisterMembers( PyTypeObject* type, PyObject* members )
 
 PyObject* Atom::LookupMembers( PyTypeObject* type )
 {
-	PyObject* pyo = reinterpret_cast<PyObject*>( type );
-	PyObject* members = PyDict_GetItem( members_registry, pyo );
-	if( members )
+	cppy::ptr members( lookup_type_members( type ) );
+	if( !members )
 	{
-		return cppy::incref( members );
+		return 0;
 	}
-	return cppy::type_error( "type has no registered members" );
+	return PyDict_Copy( members.get() );
 }
 
 } // namespace atom
