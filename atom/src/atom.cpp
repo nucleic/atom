@@ -18,13 +18,13 @@ namespace atom
 namespace
 {
 
-PyObject* members_registry;
+PyObject* class_members_registry;
 
 
-inline PyObject* lookup_type_members( PyTypeObject* type )
+inline PyObject* lookup_class_members( PyTypeObject* type )
 {
 	PyObject* pyo = reinterpret_cast<PyObject*>( type );
-	PyObject* members = PyDict_GetItem( members_registry, pyo );
+	PyObject* members = PyDict_GetItem( class_members_registry, pyo );
 	if( members )
 	{
 		return cppy::incref( members );
@@ -36,43 +36,22 @@ inline PyObject* lookup_type_members( PyTypeObject* type )
 // returns borrowed reference to Member or null - no-except
 inline Member* lookup_member( Atom* atom, PyObject* name )
 {
-	PyObject* member = PyDict_GetItem( atom->m_members, name );
+	PyObject* member = 0;
+	if( atom->m_extra_members )
+	{
+		member = PyDict_GetItem( atom->m_extra_members, name );
+	}
 	if( !member )
 	{
-		PyObject* others = PyDict_GetItem( atom->m_members, Py_None );
-		if( others )
-		{
-			member = PyDict_GetItem( others, name );
-		}
+		member = PyDict_GetItem( atom->m_class_members, name );
 	}
 	return reinterpret_cast<Member*>( member );
 }
 
 
-// returns true on success false and exception on failure
-bool ensure_instance_members( Atom* atom )
-{
-	if( PyDict_GetItem( atom->m_members, Py_None ) )
-	{
-		return true;
-	}
-	cppy::ptr dict( PyDict_New() );
-	if( !dict )
-	{
-		return false;
-	}
-	if( PyDict_SetItem( dict.get(), Py_None, atom->m_members ) < 0 )
-	{
-		return false;
-	}
-	cppy::replace( &atom->m_members, dict.get() );
-	return true;
-}
-
-
 PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-	cppy::ptr members_ptr( lookup_type_members( type ) );
+	cppy::ptr members_ptr( lookup_class_members( type ) );
 	if( !members_ptr )
 	{
 		return 0;
@@ -85,7 +64,7 @@ PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	Atom* self = reinterpret_cast<Atom*>( self_ptr.get() );
 	Py_ssize_t count = PyDict_Size( members_ptr.get() );
 	new( &self->m_values ) Atom::ValueVector( count );
-	self->m_members = members_ptr.release();
+	self->m_class_members = members_ptr.release();
 	return self_ptr.release();
 }
 
@@ -117,7 +96,8 @@ int Atom_init( PyObject* self, PyObject* args, PyObject* kwargs )
 int Atom_clear( Atom* self )
 {
 	self->m_values.clear();
-	Py_CLEAR( self->m_members );
+	Py_CLEAR( self->m_class_members );
+	Py_CLEAR( self->m_extra_members );
 	return 0;
 }
 
@@ -130,7 +110,8 @@ int Atom_traverse( Atom* self, visitproc visit, void* arg )
 	{
 		Py_VISIT( it->get() );
 	}
-	Py_VISIT( self->m_members );
+	Py_VISIT( self->m_class_members );
+	Py_VISIT( self->m_extra_members );
 	return 0;
 }
 
@@ -213,7 +194,79 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 }
 
 
-PyObject* Atom_add_member( Atom* self, PyObject* args )
+PyObject* Atom_get_member( Atom* self, PyObject* name )
+{
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
+	Member* member = lookup_member( self, name );
+	PyObject* pyo = reinterpret_cast<PyObject*>( member );
+	return cppy::incref( pyo ? pyo : Py_None );
+}
+
+
+PyObject* Atom_get_class_member( Atom* self, PyObject* name )
+{
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
+	PyObject* pyo = PyDict_GetItem( self->m_class_members, name );
+	return cppy::incref( pyo ? pyo : Py_None );
+}
+
+
+PyObject* Atom_get_extra_member( Atom* self, PyObject* name )
+{
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
+	if( !self->m_extra_members )
+	{
+		return cppy::incref( Py_None );
+	}
+	PyObject* pyo = PyDict_GetItem( self->m_extra_members, name );
+	return cppy::incref( pyo ? pyo : Py_None );
+}
+
+
+PyObject* Atom_get_members( Atom* self, PyObject* args )
+{
+	cppy::ptr result( PyDict_Copy( self->m_class_members ) );
+	if( !result )
+	{
+		return 0;
+	}
+	if( self->m_extra_members )
+	{
+		if( PyDict_Update( result.get(), self->m_extra_members ) < 0 )
+		{
+			return 0;
+		}
+	}
+	return result.release();
+}
+
+
+PyObject* Atom_get_class_members( Atom* self, PyObject* args )
+{
+	return PyDict_Copy( self->m_class_members );
+}
+
+
+PyObject* Atom_get_extra_members( Atom* self, PyObject* args )
+{
+	if( self->m_extra_members )
+	{
+		return PyDict_Copy( self->m_extra_members );
+	}
+	return PyDict_New();
+}
+
+
+PyObject* Atom_add_extra_member( Atom* self, PyObject* args )
 {
 	PyObject* name;
 	PyObject* pymember;
@@ -229,25 +282,25 @@ PyObject* Atom_add_member( Atom* self, PyObject* args )
 	{
 		return cppy::type_error( pymember, "Member" );
 	}
-	if( !ensure_instance_members( self ) )
-	{
-		return 0;
-	}
-	Member* existing = lookup_member( self, name );
-	if( PyDict_SetItem( self->m_members, name, pymember ) < 0 )
-	{
-		return 0;
-	}
+	Member* current = lookup_member( self, name );
 	Member* member = reinterpret_cast<Member*>( pymember );
-	if( existing )
+	if( !self->m_extra_members && !( self->m_extra_members = PyDict_New() ) )
 	{
-		member->setValueIndex( existing->valueIndex() );
-		self->m_values[ member->valueIndex() ] = 0;
+		return 0;
+	}
+	if( PyDict_SetItem( self->m_extra_members, name, pymember ) < 0 )
+	{
+		return 0;
+	}
+	if( current )
+	{
+		member->setValueIndex( current->valueIndex() );
+		self->m_values[ member->valueIndex() ] = 0;  // TODO fix the new value semantics
 	}
 	else
 	{
 		member->setValueIndex( self->m_values.size() );
-		self->m_values.push_back( 0 );
+		self->m_values.push_back( 0 ); // TODO fix the new value semantics
 	}
 	return cppy::incref( Py_None );
 }
@@ -263,10 +316,34 @@ PyObject* Atom_sizeof( Atom* self, PyObject* args )
 
 
 PyMethodDef Atom_methods[] = {
-	{ "add_member",
-	  ( PyCFunction )Atom_add_member,
+	{ "get_member",
+	  ( PyCFunction )Atom_get_member,
+	  METH_O,
+	  "get_member(name) get the named member for the object or None" },
+	{ "get_class_member",
+	  ( PyCFunction )Atom_get_class_member,
+	  METH_O,
+	  "get_class_member(name) get the named class member for the object or None" },
+	{ "get_extra_member",
+	  ( PyCFunction )Atom_get_extra_member,
+	  METH_O,
+	  "get_extra_member(name) get the named extra member for the object or None" },
+	{ "get_members",
+	  ( PyCFunction )Atom_get_members,
+	  METH_NOARGS,
+	  "get_members() get all of the members for the object as a dict" },
+	{ "get_class_members",
+	  ( PyCFunction )Atom_get_class_members,
+	  METH_NOARGS,
+	  "get_class_members() get the class members for the object as a dict" },
+	{ "get_extra_members",
+	  ( PyCFunction )Atom_get_extra_members,
+	  METH_NOARGS,
+	  "get_extra_members() get the extra members for the object as a dict" },
+	{ "add_extra_member",
+	  ( PyCFunction )Atom_add_extra_member,
 	  METH_VARARGS,
-	  "add_member(name, member) add a member to the instance" },
+	  "add_extra_member(name, member) add an extra member to the object" },
 	{ "__sizeof__",
 	  ( PyCFunction )Atom_sizeof,
 	  METH_NOARGS,
@@ -333,8 +410,8 @@ PyTypeObject Atom::TypeObject = {
 
 bool Atom::Ready()
 {
-	members_registry = PyDict_New();
-	if( !members_registry )
+	class_members_registry = PyDict_New();
+	if( !class_members_registry )
 	{
 		return false;
 	}
@@ -368,7 +445,7 @@ PyObject* Atom::RegisterMembers( PyTypeObject* type, PyObject* members )
 		}
 	}
 	PyObject* pyo = reinterpret_cast<PyObject*>( type );
-	if( PyDict_SetItem( members_registry, pyo, copied.get() ) < 0 )
+	if( PyDict_SetItem( class_members_registry, pyo, copied.get() ) < 0 )
 	{
 		return 0;
 	}
@@ -378,7 +455,7 @@ PyObject* Atom::RegisterMembers( PyTypeObject* type, PyObject* members )
 
 PyObject* Atom::LookupMembers( PyTypeObject* type )
 {
-	cppy::ptr members( lookup_type_members( type ) );
+	cppy::ptr members( lookup_class_members( type ) );
 	if( !members )
 	{
 		return 0;
