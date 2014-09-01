@@ -36,7 +36,7 @@ def _uniquify_memory_layout(members):
     # Pass over the members and claim the used indices. Any member
     # which conflicts with another is added to the conflicts list.
     for name, member in members.iteritems():
-        index = member.value_index
+        index = member._value_index
         if index in indices:
             indices.remove(index)
         else:
@@ -47,7 +47,7 @@ def _uniquify_memory_layout(members):
     # belongs to a base class in a multiple inheritance hierarchy.
     for (name, member), index in zip(conflicts, indices):
         member = member.clone()
-        member.value_index = index
+        member._value_index = index
         members[name] = member
 
 
@@ -84,9 +84,9 @@ class AtomMeta(type):
         for key, value in dct.iteritems():
             if isinstance(value, CMember):
                 if key in members:
-                    value.value_index = members[key].value_index
+                    value._value_index = members[key]._value_index
                 else:
-                    value.value_index = len(members)
+                    value._value_index = len(members)
                 members[key] = value
 
         # Compute a unique memory layout for the members.

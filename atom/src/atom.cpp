@@ -172,14 +172,13 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 			cppy::system_error( "value index out of range" );
 			return -1;
 		}
+		if( self->m_values[ index ] == value )
+		{
+			return 0;
+		}
 		if( !value )
 		{
-			cppy::type_error( "can't delete member value" );
-			return -1;
-		}
-		cppy::ptr oldptr( self->m_values[ index ] );
-		if( oldptr == value )
-		{
+			self->m_values[ index ] = 0;
 			return 0;
 		}
 		cppy::ptr valptr( member->validateValue( reinterpret_cast<PyObject*>( self ), name, value ) );
@@ -188,7 +187,7 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 			return -1;
 		}
 		self->m_values[ index ] = valptr;
-		return member->postSetAttrValue( reinterpret_cast<PyObject*>( self ), name, valptr.get() );
+		return 0;
 	}
 	return PyObject_GenericSetAttr( reinterpret_cast<PyObject*>( self ), name, value );
 }
@@ -308,6 +307,7 @@ PyObject* Atom_add_extra_member( Atom* self, PyObject* args )
 
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
+	// TODO account for extra members dict size
 	Py_ssize_t size = self->ob_type->tp_basicsize;
 	size_t capacity = self->m_values.capacity();
 	size_t vecsize = capacity * sizeof( Atom::ValueVector::value_type );
