@@ -724,33 +724,6 @@ PyObject* Member_get_value_index( Member* self, void* context )
 }
 
 
-int Member_set_value_index( Member* self, PyObject* arg )
-{
-	if( !Py23Int_Check( arg ) )
-	{
-		cppy::type_error( arg, "int" );
-		return -1;
-	}
-	long index = Py23Int_AsLong( arg );
-	if( index == -1 && PyErr_Occurred() )
-	{
-		return -1;
-	}
-	if( index < 0 )
-	{
-		cppy::value_error( "value index must be positive" );
-		return -1;
-	}
-	if( index >= ( 1 << 16 ) )
-	{
-		cppy::value_error( "value index too large" );
-		return -1;
-	}
-	self->setValueIndex( static_cast<uint16_t>( index ) );
-	return 0;
-}
-
-
 PyObject* Member_clone( Member* self, PyObject* args )
 {
 	cppy::ptr pyclone( PyType_GenericNew( self->ob_type, 0, 0 ) );
@@ -811,9 +784,8 @@ PyGetSetDef Member_getset[] = {
 	  ( setter )Member_set_validate_mode,
 	  "the validate mode for the member" },
 	{ "_value_index",
-	  ( getter )Member_get_value_index,
-	  ( setter )Member_set_value_index,
-	  "*private* the value index for the member" },
+	  ( getter )Member_get_value_index, 0,
+	  "*private* the read-only value index for the member" },
 	{ 0 } // sentinel
 };
 
