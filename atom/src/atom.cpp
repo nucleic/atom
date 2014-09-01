@@ -260,7 +260,8 @@ PyObject* Atom_add_extra_member( Atom* self, PyObject* args )
 {
 	PyObject* name;
 	PyObject* pyo;
-	if( !PyArg_ParseTuple( args, "OO", &name, &pyo ) )
+	PyObject* value = 0;
+	if( !PyArg_ParseTuple( args, "OO|O", &name, &pyo, &value ) )
 	{
 		return 0;
 	}
@@ -290,12 +291,16 @@ PyObject* Atom_add_extra_member( Atom* self, PyObject* args )
 	if( existing )
 	{
 		member->setValueIndex( existing->valueIndex() );
-		self->m_values[ member->valueIndex() ] = 0;  // TODO fix the new value semantics
+		self->m_values[ member->valueIndex() ] = 0;
 	}
 	else
 	{
 		member->setValueIndex( static_cast<uint16_t>( self->m_values.size() ) );
-		self->m_values.push_back( 0 ); // TODO fix the new value semantics
+		self->m_values.push_back( 0 );
+	}
+	if( value && PyObject_SetAttr( reinterpret_cast<PyObject*>( self ), name, value ) < 0 )
+	{
+		return 0;
 	}
 	return cppy::incref( Py_None );
 }
