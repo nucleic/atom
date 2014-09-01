@@ -6,7 +6,6 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "atom.h"
-
 #include "member.h"
 #include "py23_compat.h"
 #include "stdint.h"
@@ -19,18 +18,6 @@ namespace
 {
 
 PyObject* class_members_registry;
-
-
-inline PyObject* lookup_class_members( PyTypeObject* type )
-{
-	PyObject* pyo = reinterpret_cast<PyObject*>( type );
-	PyObject* members = PyDict_GetItem( class_members_registry, pyo );
-	if( members )
-	{
-		return cppy::incref( members );
-	}
-	return cppy::type_error( "type has no registered members" );
-}
 
 
 // returns borrowed reference to Member or null - no-except
@@ -51,7 +38,7 @@ inline Member* lookup_member( Atom* atom, PyObject* name )
 
 PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-	cppy::ptr members_ptr( lookup_class_members( type ) );
+	cppy::ptr members_ptr( Atom::LookupMembers( type ) );
 	if( !members_ptr )
 	{
 		return 0;
@@ -419,48 +406,22 @@ bool Atom::Ready()
 }
 
 
-PyObject* Atom::RegisterMembers( PyTypeObject* type, PyObject* members )
+bool Atom::RegisterMembers( PyTypeObject* type, PyObject* members )
 {
-	if( !PyDict_Check( members ) )
-	{
-		return cppy::type_error( members, "dict" );
-	}
-	cppy::ptr copied( PyDict_Copy( members ) );
-	if( !copied )
-	{
-		return 0;
-	}
-	PyObject* key;
-	PyObject* value;
-	Py_ssize_t pos = 0;
-	while( PyDict_Next( copied.get(), &pos, &key, &value ) )
-	{
-		if( !Py23Str_Check( key ) )
-		{
-			return cppy::type_error( key, "str" );
-		}
-		if( !Member::TypeCheck( value ) )
-		{
-			return cppy::type_error( value, "Member" );
-		}
-	}
 	PyObject* pyo = reinterpret_cast<PyObject*>( type );
-	if( PyDict_SetItem( class_members_registry, pyo, copied.get() ) < 0 )
-	{
-		return 0;
-	}
-	return cppy::incref( Py_None );
+	return PyDict_SetItem( class_members_registry, pyo, members ) == 0;
 }
 
 
 PyObject* Atom::LookupMembers( PyTypeObject* type )
 {
-	cppy::ptr members( lookup_class_members( type ) );
-	if( !members )
+	PyObject* pyo = reinterpret_cast<PyObject*>( type );
+	PyObject* members = PyDict_GetItem( class_members_registry, pyo );
+	if( members )
 	{
-		return 0;
+		return cppy::incref( members );
 	}
-	return PyDict_Copy( members.get() );
+	return cppy::type_error( "type has no registered members" );
 }
 
 } // namespace atom
