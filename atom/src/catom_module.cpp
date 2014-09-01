@@ -6,50 +6,26 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "atom.h"
+#include "atom_meta.h"
 #include "member.h"
 
-#include <cppy/cppy.h>
 #include <Python.h>
 
 
 using namespace atom;
 
 
-PyObject* register_members( PyObject* mod, PyObject* args )
+PyObject* atom_meta_create_class( PyObject* mod, PyObject* args )
 {
-	PyObject* type;
-	PyObject* members;
-	if( !PyArg_ParseTuple( args, "OO", &type, &members ) )
-	{
-		return 0;
-	}
-	if( !PyType_Check( type ) )
-	{
-		return cppy::type_error( type, "type" );
-	}
-	return Atom::RegisterMembers( reinterpret_cast<PyTypeObject*>( type ), members );
-}
-
-
-PyObject* lookup_members( PyObject* mod, PyObject* type )
-{
-	if( !PyType_Check( type ) )
-	{
-		return cppy::type_error( type, "type" );
-	}
-	return Atom::LookupMembers( reinterpret_cast<PyTypeObject*>( type ) );
+	return AtomMeta::CreateClass( args );
 }
 
 
 static PyMethodDef catom_methods[] = {
-	{ "_register_members",
-	  ( PyCFunction )register_members,
+	{ "_atom_meta_create_class",
+	  ( PyCFunction )atom_meta_create_class,
 	  METH_VARARGS,
-	  "*private* register the members for a given type object" },
-	{ "_lookup_members",
-	  ( PyCFunction )lookup_members,
-	  METH_O,
-	  "*private* lookup the members for a given type object" },
+	  "*private* create a new Atom subclass" },
 	{ 0 } // sentinel
 };
 
@@ -69,11 +45,13 @@ PyMODINIT_FUNC initcatom( void )
 	{
 		return;
 	}
-
+	if( !AtomMeta::Ready() )
+	{
+		return;
+	}
 	Py_INCREF( &Member::TypeObject );
 	Py_INCREF( &Atom::TypeObject );
 	Py_INCREF( ValidationError );
-
 	PyModule_AddObject( mod, "CMember", reinterpret_cast<PyObject*>( &Member::TypeObject ) );
 	PyModule_AddObject( mod, "CAtom", reinterpret_cast<PyObject*>( &Atom::TypeObject ) );
 	PyModule_AddObject( mod, "ValidationError", ValidationError );
