@@ -255,8 +255,8 @@ PyObject* Atom_get_extra_members( Atom* self, PyObject* args )
 PyObject* Atom_add_extra_member( Atom* self, PyObject* args )
 {
 	PyObject* name;
-	PyObject* pymember;
-	if( !PyArg_ParseTuple( args, "OO", &name, &pymember ) )
+	PyObject* pyo;
+	if( !PyArg_ParseTuple( args, "OO", &name, &pyo ) )
 	{
 		return 0;
 	}
@@ -264,28 +264,33 @@ PyObject* Atom_add_extra_member( Atom* self, PyObject* args )
 	{
 		return cppy::type_error( name, "str" );
 	}
-	if( !Member::TypeCheck( pymember ) )
+	if( !Member::TypeCheck( pyo ) )
 	{
-		return cppy::type_error( pymember, "Member" );
+		return cppy::type_error( pyo, "Member" );
 	}
-	Member* current = lookup_member( self, name );
-	Member* member = reinterpret_cast<Member*>( pymember );
+	cppy::ptr clone( Member::Clone( pyo ) );
+	if( !clone )
+	{
+		return 0;
+	}
+	Member* existing = lookup_member( self, name );
 	if( !self->m_extra_members && !( self->m_extra_members = PyDict_New() ) )
 	{
 		return 0;
 	}
-	if( PyDict_SetItem( self->m_extra_members, name, pymember ) < 0 )
+	if( PyDict_SetItem( self->m_extra_members, name, clone.get() ) < 0 )
 	{
 		return 0;
 	}
-	if( current )
+	Member* member = reinterpret_cast<Member*>( clone.get() );
+	if( existing )
 	{
-		member->setValueIndex( current->valueIndex() );
+		member->setValueIndex( existing->valueIndex() );
 		self->m_values[ member->valueIndex() ] = 0;  // TODO fix the new value semantics
 	}
 	else
 	{
-		member->setValueIndex( self->m_values.size() );
+		member->setValueIndex( static_cast<uint16_t>( self->m_values.size() ) );
 		self->m_values.push_back( 0 ); // TODO fix the new value semantics
 	}
 	return cppy::incref( Py_None );
