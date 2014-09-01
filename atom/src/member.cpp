@@ -20,6 +20,10 @@ PyObject* ValidationError;
 namespace
 {
 
+PyObject* clone_str;
+PyObject* empty_tuple;
+
+
 PyObject* validation_error( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
 	if( PyErr_Occurred() )
@@ -726,12 +730,12 @@ PyObject* Member_get_value_index( Member* self, void* context )
 
 PyObject* Member_clone( Member* self, PyObject* args )
 {
-	cppy::ptr pyclone( PyType_GenericNew( self->ob_type, 0, 0 ) );
-	if( !pyclone )
+	cppy::ptr pyo( PyType_GenericNew( self->ob_type, 0, 0 ) );
+	if( !pyo )
 	{
 		return 0;
 	}
-	Member* clone = reinterpret_cast<Member*>( pyclone.get() );
+	Member* clone = reinterpret_cast<Member*>( pyo.get() );
 	if( self->m_metadata && !( clone->m_metadata = PyDict_Copy( self->m_metadata ) ) )
 	{
 		return 0;
@@ -741,7 +745,7 @@ PyObject* Member_clone( Member* self, PyObject* args )
 	clone->m_value_index = self->m_value_index;
 	clone->m_default_mode = self->m_default_mode;
 	clone->m_validate_mode = self->m_validate_mode;
-	return pyclone.release();
+	return pyo.release();
 }
 
 
@@ -882,9 +886,15 @@ bool Member::Ready()
 	{
 		return false;
 	}
-
-	ValidationError = PyErr_NewException( "catom.ValidationError", 0, 0 );
-	if( !ValidationError )
+	if( !( ValidationError = PyErr_NewException( "catom.ValidationError", 0, 0 ) ) )
+	{
+		return false;
+	}
+	if( !( clone_str = PyString_FromString( "clone" ) ) )
+	{
+		return false;
+	}
+	if( !( empty_tuple = PyTuple_New( 0 ) ) )
 	{
 		return false;
 	}
@@ -923,6 +933,26 @@ bool Member::Ready()
 #undef STR_HELPER
 
 	return true;
+}
+
+
+PyObject* Member::Clone( PyObject* member )
+{
+	cppy::ptr method( PyObject_GetAttr( member, clone_str ) );
+	if( !method )
+	{
+		return 0;
+	}
+	cppy::ptr clone( method.call( empty_tuple ) );
+	if( !clone )
+	{
+		return 0;
+	}
+	if( !Member::TypeCheck( clone.get() ) )
+	{
+		return cppy::type_error( "member.clone() returned a non-Member type" );
+	}
+	return clone.release();
 }
 
 

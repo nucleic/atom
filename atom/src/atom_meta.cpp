@@ -26,7 +26,6 @@ namespace
 {
 
 PyObject* slots_str;
-PyObject* clone_str;
 PyObject* empty_tuple;
 
 
@@ -148,27 +147,6 @@ bool add_new_class_members( PyObject* members, PyObject* class_dict )
 
 
 /**
- * Clone a member by calling its Python 'clone' method.
- *
- * The cloned value is checked to ensure it is a Member.
- */
-PyObject* clone_member( PyObject* member )
-{
-	cppy::ptr method( PyObject_GetAttr( member, clone_str ) );
-	if( !method )
-	{
-		return 0;
-	}
-	cppy::ptr clone( method.call( empty_tuple ) );
-	if( !Member::TypeCheck( clone.get() ) )
-	{
-		return cppy::type_error( "member.clone() returned a non-Member type" );
-	}
-	return clone.release();
-}
-
-
-/**
  * Ensure that the members have a unique monotonic memory layout.
  *
  * This will clone any member which has a value index which conflicts
@@ -223,7 +201,7 @@ bool fixup_memory_layout( PyObject* members )
   		continue;
   	}
 		pair_t& pair( conflicts[ conflict_index++ ] );
-		cppy::ptr clone( clone_member( pair.second.get() ) );
+		cppy::ptr clone( Member::Clone( pair.second.get() ) );
 		if( !clone )
 		{
 			return false;
@@ -301,10 +279,6 @@ PyObject* AtomMeta::CreateClass( PyObject* args )
 bool AtomMeta::Ready()
 {
 	if( !( slots_str = PyString_FromString( "__slots__" ) ) )
-	{
-		return false;
-	}
-	if( !( clone_str = PyString_FromString( "clone" ) ) )
 	{
 		return false;
 	}

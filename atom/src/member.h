@@ -69,6 +69,8 @@ struct Member
 		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
 	}
 
+	static PyObject* Clone( PyObject* member );
+
 	uint16_t valueIndex()
 	{
 		return m_value_index;
