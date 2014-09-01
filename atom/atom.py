@@ -5,50 +5,20 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-import copy_reg
-
-from .catom import CAtom, CMember, _register_members, _lookup_members
+from .catom import CAtom, _atom_meta_create_class
 
 
-def _uniquify_memory_layout(members):
-    """ Ensure that the given members occupy a unique memory layout.
+#: The key used to store pickled extra members
+EXTRA_MEMBERS = '_[atom-extra-members]'
 
-    This function will ensure that each member has a unique and
-    monotonically increasing value index which corresponds to the
-    memory slot index of the value in C++.
 
-    This function operates on the members dict in-place.
+def __newobj__(cls, *args):
+    """ A compatibility pickler function.
 
-    Parameters
-    ----------
-    members : dict
-        A dict of member name -> member.
+    This function is not part of the public Atom api.
 
     """
-    # Members with indices which conflict with other members are
-    # collected into this list, then cloned and given a new index.
-    conflicts = []
-
-    # The set of all valid indices for this collection of members.
-    # Indices are removed from this set as they are claimed.
-    indices = set(range(len(members)))
-
-    # Pass over the members and claim the used indices. Any member
-    # which conflicts with another is added to the conflicts list.
-    for name, member in members.iteritems():
-        index = member._value_index
-        if index in indices:
-            indices.remove(index)
-        else:
-            conflicts.append((name, member))
-
-    # The remaining indices are distributed among the conflicts. The
-    # conflicting member is cloned since its index may be valid if it
-    # belongs to a base class in a multiple inheritance hierarchy.
-    for (name, member), index in zip(conflicts, indices):
-        member = member.clone()
-        member._value_index = index
-        members[name] = member
+    return cls.__new__(cls, *args)
 
 
 class AtomMeta(type):
@@ -62,68 +32,24 @@ class AtomMeta(type):
 
     """
     def __new__(meta, name, bases, dct):
-        # Unless the developer requests slots, they are automatically
-        # turned off. This prevents the creation of instance dicts and
-        # other space consuming features unless explicitly requested.
-        if '__slots__' not in dct:
-            dct['__slots__'] = ()
-
-        # Create the class object.
-        cls = type.__new__(meta, name, bases, dct)
-
-        # Walk the mro of the class, excluding itself, in reverse order
-        # collecting all of the members into a single dict. The reverse
-        # update preserves the mro of overridden members.
-        members = {}
-        for base in reversed(cls.__mro__[1:-1]):
-            if base is not CAtom and issubclass(base, CAtom):
-                members.update(_lookup_members(base))
-
-        # Walk the current class dict and collect the new members.
-        # The index of the new members can be computed immediately.
-        for key, value in dct.iteritems():
-            if isinstance(value, CMember):
-                if key in members:
-                    value._value_index = members[key]._value_index
-                else:
-                    value._value_index = len(members)
-                members[key] = value
-
-        # Compute a unique memory layout for the members.
-        _uniquify_memory_layout(members)
-
-        # Register the final members with the C++ member registry.
-        _register_members(cls, members)
-
-        return cls
-
-
-def __newobj__(cls, *args):
-    """ A compatibility pickler function.
-
-    This function is not part of the public Atom api.
-
-    """
-    return cls.__new__(cls, *args)
+        return _atom_meta_create_class(meta, name, bases, dct)
 
 
 class Atom(CAtom):
     """ The base class for defining atom objects.
 
-    `Atom` objects are special Python objects which never allocate an
-    instance dictionary unless one is explicitly requested. The storage
-    for an atom is instead computed from the `Member` objects declared
-    on the class. Memory is reserved for these members with no over
-    allocation.
+    Atom objects are special Python objects which never allocate an
+    instance dictionary unless one is explicitly requested. The data
+    storage for an atom instance is instead computed from the Member
+    objects declared in the class body. Memory is reserved for these
+    members with no over-allocation.
 
     This restriction make atom objects a bit less flexible than normal
-    Python objects, but they are between 3x-10x more memory efficient
-    than normal objects depending on the number of attributes.
+    Python objects, but they are 3x - 10x more memory efficient than
+    normal objects, and are 10% - 20%  faster on attribute access.
 
     """
     __metaclass__ = AtomMeta
-
-    __slots__ = '__weakref__'
 
     def __reduce_ex__(self, proto):
         """ An implementation of the reduce protocol.
@@ -148,21 +74,14 @@ class Atom(CAtom):
         """ The base implementation of the pickle getstate protocol.
 
         This base class implementation handles the generic case where
-        the object and all of its state are pickable. This includes
-        state stored in Atom members, as well as any instance dict or
-        slot attributes. Subclasses which require further customization
-        should reimplement this method and modify the dict generated by
-        this base class method.
+        the object and all of its state are pickable. Subclasses which
+        require custom behavior should reimplement this method.
 
         """
         state = {}
-        state.update(getattr(self, '__dict__', {}))
-        slots = copy_reg._slotnames(type(self))
-        if slots:
-            for name in slots:
-                state[name] = getattr(self, name)
-        for key in self.members():
+        for key in self.get_members():
             state[key] = getattr(self, key)
+        state[EXTRA_MEMBERS] = self.get_extra_members()
         return state
 
     def __setstate__(self, state):
@@ -174,5 +93,8 @@ class Atom(CAtom):
         behavior should reimplement this method.
 
         """
+        extra = state.pop(EXTRA_MEMBERS)
+        for name, member in extra.iteritems():
+            self.add_extra_member(name, member)
         for key, value in state.iteritems():
             setattr(self, key, value)
