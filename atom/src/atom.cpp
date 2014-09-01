@@ -106,6 +106,10 @@ int Atom_traverse( Atom* self, visitproc visit, void* arg )
 void Atom_dealloc( Atom* self )
 {
 	PyObject_GC_UnTrack( self );
+	if( self->m_weakreflist )
+	{
+		PyObject_ClearWeakRefs( reinterpret_cast<PyObject*>( self ) );
+	}
 	Atom_clear( self );
 	self->m_values.Atom::ValueVector::~ValueVector();
 	self->ob_type->tp_free( reinterpret_cast<PyObject*>( self ) );
@@ -375,7 +379,7 @@ PyTypeObject Atom::TypeObject = {
 	( traverseproc )Atom_traverse,       /* tp_traverse */
 	( inquiry )Atom_clear,               /* tp_clear */
 	( richcmpfunc )0,                    /* tp_richcompare */
-	0,                                   /* tp_weaklistoffset */
+	offsetof(Atom, m_weakreflist),       /* tp_weaklistoffset */
 	( getiterfunc )0,                    /* tp_iter */
 	( iternextfunc )0,                   /* tp_iternext */
 	( struct PyMethodDef* )Atom_methods, /* tp_methods */

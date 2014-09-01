@@ -21,6 +21,7 @@ struct Atom
 	typedef std::vector<cppy::ptr> ValueVector;
 
 	PyObject_HEAD
+	PyObject* m_weakreflist;
 	PyObject* m_class_members;
 	PyObject* m_extra_members;
 	ValueVector m_values;  // instantiated with placement new

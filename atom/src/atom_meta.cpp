@@ -30,17 +30,16 @@ PyObject* empty_tuple;
 
 
 /**
- * Ensure slots are added to the class dict.
+ * Ensure empty slots are added to the class dict.
  *
- * Unless the developer requests slots, they are automatically
- * turned off. This prevents the creation of instance dicts and
- * other space consuming features unless explicitly requested.
+ * This prevents the creation of space-consuming instance dicts.
  */
 bool ensure_slots( PyObject* dict )
 {
 	if( PyDict_GetItem( dict, slots_str ) )
 	{
-		return true;
+		cppy::type_error( "Atom classes must not declare slots" );
+		return false;
 	}
 	return PyDict_SetItem( dict, slots_str, empty_tuple ) == 0;
 }
