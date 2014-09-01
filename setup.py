@@ -17,6 +17,7 @@ ext_modules = [
         [
             'atom/src/atom.cpp',
             'atom/src/member.cpp',
+            'atom/src/dispatcher.cpp',
             'atom/src/catom_module.cpp',
         ],
         include_dirs=[cppy.get_include(), 'atom/src'],
