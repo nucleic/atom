@@ -35,7 +35,6 @@ struct Member
 		DefaultValue,
 		DefaultFactory,
 		DefaultCallObject,
-		DefaultAtomMethod,
 		DefaultMemberMethod,
 		DefaultLast // sentinel
 	};
@@ -57,7 +56,6 @@ struct Member
 		ValidateRange,
 		ValidateCoerced,
 		ValidateCallObject,
-		ValidateAtomMethod,
 		ValidateMemberMethod,
 		ValidateLast // sentinel
 	};

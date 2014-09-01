@@ -68,7 +68,6 @@ bool check_context( Member::DefaultMode mode, PyObject* context )
 			}
 			break;
 		}
-		case Member::DefaultAtomMethod:
 		case Member::DefaultMemberMethod:
 		{
 			if( !Py23Str_Check( context ) )
@@ -167,7 +166,6 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 			}
 			break;
 		}
-		case Member::ValidateAtomMethod:
 		case Member::ValidateMemberMethod:
 		{
 			if( !Py23Str_Check( context ) )
@@ -211,28 +209,12 @@ PyObject* default_factory( Member* member, PyObject* atom, PyObject* name )
 
 PyObject* default_call_object( Member* member, PyObject* atom, PyObject* name )
 {
-	cppy::ptr args( PyTuple_Pack( 3, member, atom, name ) );
+	cppy::ptr args( PyTuple_Pack( 2, atom, name ) );
 	if( !args )
 	{
 		return 0;
 	}
 	return PyObject_Call( member->m_default_context, args.get(), 0 );
-}
-
-
-PyObject* default_atom_method( Member* member, PyObject* atom, PyObject* name )
-{
-	cppy::ptr method( PyObject_GetAttr( atom, member->m_default_context ) );
-	if( !method )
-	{
-		return 0;
-	}
-	cppy::ptr args( PyTuple_New( 0 ) );
-	if( !args )
-	{
-		return 0;
-	}
-	return method.call( args );
 }
 
 
@@ -540,28 +522,12 @@ PyObject* validate_coerced( Member* member, PyObject* atom, PyObject* name, PyOb
 
 PyObject* validate_call_object( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
-	cppy::ptr args( PyTuple_Pack( 4, member, atom, name, value ) );
+	cppy::ptr args( PyTuple_Pack( 3, atom, name, value ) );
 	if( !args )
 	{
 		return 0;
 	}
 	return PyObject_Call( member->m_validate_context, args.get(), 0 );
-}
-
-
-PyObject* validate_atom_method( Member* member, PyObject* atom, PyObject* name, PyObject* value )
-{
-	cppy::ptr method( PyObject_GetAttr( atom, member->m_validate_context ) );
-	if( !method )
-	{
-		return 0;
-	}
-	cppy::ptr args( PyTuple_Pack( 1, value ) );
-	if( !args )
-	{
-		return 0;
-	}
-	return method.call( args );
 }
 
 
@@ -593,7 +559,6 @@ DefaultHandler default_handlers[] = {
 	default_value,
 	default_factory,
 	default_call_object,
-	default_atom_method,
 	default_member_method
 };
 
@@ -614,7 +579,6 @@ ValidateHandler validate_handlers[] = {
 	validate_range,
 	validate_coerced,
 	validate_call_object,
-	validate_atom_method,
 	validate_member_method
 };
 
@@ -962,8 +926,8 @@ bool Member::Ready()
 	ADD_MODE( DefaultValue )
 	ADD_MODE( DefaultFactory )
 	ADD_MODE( DefaultCallObject )
-	ADD_MODE( DefaultAtomMethod )
 	ADD_MODE( DefaultMemberMethod )
+
 	ADD_MODE( NoValidate )
 	ADD_MODE( ValidateBool )
 	ADD_MODE( ValidateInt )
@@ -979,7 +943,6 @@ bool Member::Ready()
 	ADD_MODE( ValidateRange )
 	ADD_MODE( ValidateCoerced )
 	ADD_MODE( ValidateCallObject )
-	ADD_MODE( ValidateAtomMethod )
 	ADD_MODE( ValidateMemberMethod )
 
 #undef ADD_MODE
