@@ -7,6 +7,8 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
+#include "callback_set.h"
+
 #include <Python.h>
 #include <cppy/cppy.h>
 #include <utility>
@@ -16,34 +18,8 @@
 namespace atom
 {
 
-class CallbackSet
-{
-
-public:
-
-	CallbackSet() { }
-
-	CallbackSet( PyObject* callback ) :
-		m_single( callback, true ) { }
-
-	~CallbackSet() { }
-
-	void add( PyObject* callback );
-
-	void remove( PyObject* callback );
-
-	void dispatch( PyObject* args, PyObject* kwargs = 0 );
-
-private:
-
-	cppy::ptr m_single;
-	cppy::ptr m_set;
-};
-
-
 class Dispatcher
 {
-
 public:
 
 	Dispatcher() { }
@@ -60,6 +36,10 @@ public:
 
 	void emit( PyObject* name, PyObject* args, PyObject* kwargs = 0 );
 
+	static bool Ready();
+
+	static PyTypeObject TypeObject;
+
 private:
 
 	typedef std::pair<cppy::ptr, CallbackSet> CBSPair;
@@ -69,6 +49,8 @@ private:
 	Dispatcher& operator=( Dispatcher& );
 
 	CBSVector::iterator find( PyObject* name );
+
+	CBSVector::iterator lowerBound( PyObject* name );
 
 	CBSVector m_cbsets;
 };
