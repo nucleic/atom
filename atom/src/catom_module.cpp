@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include "atom.h"
 #include "atom_meta.h"
-#include "dispatcher.h"
+#include "emitter.h"
 #include "member.h"
 
 #include <Python.h>
@@ -38,6 +38,10 @@ PyMODINIT_FUNC initcatom( void )
 	{
 		return;
 	}
+	if( !Emitter::Ready() )
+	{
+		return;
+	}
 	if( !Member::Ready() )
 	{
 		return;
@@ -50,16 +54,12 @@ PyMODINIT_FUNC initcatom( void )
 	{
 		return;
 	}
-	if( !Dispatcher::Ready() )
-	{
-		return;
-	}
+	Py_INCREF( &Emitter::TypeObject );
 	Py_INCREF( &Member::TypeObject );
 	Py_INCREF( &Atom::TypeObject );
-	Py_INCREF( &Dispatcher::TypeObject );
 	Py_INCREF( ValidationError );
+	PyModule_AddObject( mod, "Emitter", reinterpret_cast<PyObject*>( &Emitter::TypeObject ) );
 	PyModule_AddObject( mod, "CMember", reinterpret_cast<PyObject*>( &Member::TypeObject ) );
 	PyModule_AddObject( mod, "CAtom", reinterpret_cast<PyObject*>( &Atom::TypeObject ) );
-	PyModule_AddObject( mod, "Dispatcher", reinterpret_cast<PyObject*>( &Dispatcher::TypeObject ) );
 	PyModule_AddObject( mod, "ValidationError", ValidationError );
 }
