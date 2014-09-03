@@ -30,6 +30,8 @@ public:
 
 	void dispatch( PyObject* args, PyObject* kwargs = 0 );
 
+	int traverse( visitproc visit, void* arg );
+
 private:
 
 	cppy::ptr m_single;
