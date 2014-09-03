@@ -7,14 +7,48 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
+#include <Python.h>
+
 
 namespace atom
 {
 
-// stub out
+struct Emitter;
+
+
+// POD struct - all member fields are considered private
 struct Signal
 {
-	static bool TypeCheck( PyObject* arg ) { return false; }
+	PyObject_HEAD
+
+	static PyTypeObject TypeObject;
+
+	static bool Ready();
+
+	static bool TypeCheck( PyObject* ob )
+	{
+		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
+	}
+};
+
+
+// POD struct - all member fields are considered private
+struct BoundSignal
+{
+	PyObject_HEAD
+	Signal* m_signal;
+	Emitter* m_emitter;
+
+	static PyTypeObject TypeObject;
+
+	static bool Ready();
+
+	static bool TypeCheck( PyObject* ob )
+	{
+		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
+	}
+
+	static PyObject* Create( Signal* sig, Emitter* emitter );
 };
 
 } // namespace atom

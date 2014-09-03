@@ -9,20 +9,21 @@
 #include "atom_meta.h"
 #include "emitter.h"
 #include "member.h"
+#include "signal.h"
 
 #include <Python.h>
 
 
-using namespace atom;
-
+namespace
+{
 
 PyObject* atom_meta_create_class( PyObject* mod, PyObject* args )
 {
-	return AtomMeta::CreateClass( args );
+	return atom::AtomMeta::CreateClass( args );
 }
 
 
-static PyMethodDef catom_methods[] = {
+PyMethodDef catom_methods[] = {
 	{ "_atom_meta_create_class",
 	  ( PyCFunction )atom_meta_create_class,
 	  METH_VARARGS,
@@ -30,15 +31,26 @@ static PyMethodDef catom_methods[] = {
 	{ 0 } // sentinel
 };
 
+} // namespace
+
 
 PyMODINIT_FUNC initcatom( void )
 {
+	using namespace atom;
 	PyObject* mod = Py_InitModule( "catom", catom_methods );
 	if( !mod )
 	{
 		return;
 	}
 	if( !Emitter::Ready() )
+	{
+		return;
+	}
+	if( !Signal::Ready() )
+	{
+		return;
+	}
+	if( !BoundSignal::Ready() )
 	{
 		return;
 	}
@@ -55,10 +67,14 @@ PyMODINIT_FUNC initcatom( void )
 		return;
 	}
 	Py_INCREF( &Emitter::TypeObject );
+	Py_INCREF( &Signal::TypeObject );
+	Py_INCREF( &BoundSignal::TypeObject );
 	Py_INCREF( &Member::TypeObject );
 	Py_INCREF( &Atom::TypeObject );
 	Py_INCREF( ValidationError );
 	PyModule_AddObject( mod, "Emitter", reinterpret_cast<PyObject*>( &Emitter::TypeObject ) );
+	PyModule_AddObject( mod, "Signal", reinterpret_cast<PyObject*>( &Signal::TypeObject ) );
+	PyModule_AddObject( mod, "BoundSignal", reinterpret_cast<PyObject*>( &BoundSignal::TypeObject ) );
 	PyModule_AddObject( mod, "CMember", reinterpret_cast<PyObject*>( &Member::TypeObject ) );
 	PyModule_AddObject( mod, "CAtom", reinterpret_cast<PyObject*>( &Atom::TypeObject ) );
 	PyModule_AddObject( mod, "ValidationError", ValidationError );

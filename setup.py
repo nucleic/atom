@@ -17,10 +17,11 @@ ext_modules = [
         [
             'atom/src/atom.cpp',
             'atom/src/atom_meta.cpp',
-            'atom/src/member.cpp',
             'atom/src/callback_set.cpp',
-            'atom/src/emitter.cpp',
             'atom/src/catom_module.cpp',
+            'atom/src/emitter.cpp',
+            'atom/src/member.cpp',
+            'atom/src/signal.cpp',
         ],
         include_dirs=[cppy.get_include(), 'atom/src'],
         language='c++',
