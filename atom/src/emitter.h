@@ -32,6 +32,11 @@ struct Emitter
 
 	static bool Ready();
 
+	static bool TypeCheck( PyObject* ob )
+	{
+		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
+	}
+
 	void connect( Signal* sig, PyObject* callback );
 
 	void disconnect();
