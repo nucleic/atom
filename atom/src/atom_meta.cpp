@@ -115,7 +115,7 @@ bool add_new_class_members( PyObject* members, PyObject* class_dict )
 	PyObject* key;
 	PyObject* value;
 	Py_ssize_t pos = 0;
-	Py_ssize_t count = PyDict_Size( members );
+	uint32_t count = static_cast<uint32_t>( PyDict_Size( members ) );
 	while( PyDict_Next( class_dict, &pos, &key, &value ) )
 	{
 		if( !Member::TypeCheck( value ) )
@@ -134,7 +134,7 @@ bool add_new_class_members( PyObject* members, PyObject* class_dict )
 		}
 		else
 		{
-			mbr->setValueIndex( static_cast<uint16_t>( count++ ) );
+			mbr->setValueIndex( count++ );
 		}
 		if( PyDict_SetItem( members, key, value ) < 0 )
 		{
@@ -161,7 +161,7 @@ bool fixup_memory_layout( PyObject* members )
 
   // The set of all valid indices for this collection of members.
   // Indices are added to this set as they are claimed by a member.
-	size_t count = static_cast<size_t>( PyDict_Size( members ) );
+	uint32_t count = static_cast<uint32_t>( PyDict_Size( members ) );
 	std::vector<bool> indices( count, false );
 
 	// Pass over the members and claim the used indices. Any member
@@ -171,7 +171,7 @@ bool fixup_memory_layout( PyObject* members )
   Py_ssize_t pos = 0;
   while( PyDict_Next( members, &pos, &key, &value ) )
   {
-  	size_t index = member_cast( value )->valueIndex();
+  	uint32_t index = member_cast( value )->valueIndex();
   	if( index >= count || indices[ index ] )
   	{
 			pair_t pair( cppy::incref( key ), cppy::incref( value ) );
@@ -192,8 +192,8 @@ bool fixup_memory_layout( PyObject* members )
   // The unused indices are distributed among the conflicts. The
   // conflicting member is cloned as its index may be valid if it
   // belongs to a base class in a multiple inheritance hierarchy.
-  size_t conflict_index = 0;
-  for( size_t index = 0; index < count; ++index )
+  uint32_t conflict_index = 0;
+  for( uint32_t index = 0; index < count; ++index )
   {
   	if( indices[ index ] )
   	{
@@ -205,8 +205,7 @@ bool fixup_memory_layout( PyObject* members )
 		{
 			return false;
 		}
-		uint16_t idx = static_cast<uint16_t>( index );
-		member_cast( clone.get() )->setValueIndex( idx );
+		member_cast( clone.get() )->setValueIndex( index );
 		if( PyDict_SetItem( members, pair.first.get(), clone.get() ) < 0 )
 		{
 			return false;

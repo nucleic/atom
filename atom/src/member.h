@@ -25,9 +25,11 @@ struct Member
 	PyObject* m_metadata;
 	PyObject* m_default_context;
 	PyObject* m_validate_context;
-	uint16_t m_value_index;
+	uint32_t m_value_index;
 	uint8_t m_default_mode;
 	uint8_t m_validate_mode;
+	uint8_t m_unused_1;
+	uint8_t m_unused_2;
 
 	enum DefaultMode
 	{
@@ -71,12 +73,12 @@ struct Member
 
 	static PyObject* Clone( PyObject* member );
 
-	uint16_t valueIndex()
+	uint32_t valueIndex()
 	{
 		return m_value_index;
 	}
 
-	void setValueIndex( uint16_t index )
+	void setValueIndex( uint32_t index )
 	{
 		m_value_index = index;
 	}
