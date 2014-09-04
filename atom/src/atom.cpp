@@ -10,9 +10,12 @@
 #include "py23_compat.h"
 #include "stdint.h"
 
+#include <algorithm>
+
 
 #define atom_cast( o ) reinterpret_cast<Atom*>( o )
 #define member_cast( o ) reinterpret_cast<Member*>( o )
+#define signal_cast( o ) reinterpret_cast<Signal*>( o )
 #define pyobject_cast( o ) reinterpret_cast<PyObject*>( o )
 
 
@@ -22,7 +25,86 @@ namespace atom
 namespace
 {
 
+typedef Atom::ValueVector ValueVector;
+typedef Atom::CSVector CSVector;
+
+
 PyObject* registry;
+
+
+struct CmpLess
+{
+	template <typename T>
+	bool operator()( T& lhs, Signal* rhs )
+	{
+		return lhs.first < pyobject_cast( rhs );
+	}
+
+	template <typename T>
+	bool operator()( Signal* lhs, T& rhs )
+	{
+		return pyobject_cast( lhs ) < rhs.first;
+	}
+};
+
+
+struct CmpEqual
+{
+	template <typename T>
+	bool operator()( T& lhs, Signal* rhs )
+	{
+		return lhs.first == pyobject_cast( rhs );
+	}
+
+	template <typename T>
+	bool operator()( Signal* lhs, T& rhs )
+	{
+		return pyobject_cast( lhs ) == rhs.first;
+	}
+};
+
+
+inline CSVector::iterator lowerBound( CSVector* cbsets, Signal* sig )
+{
+	return std::lower_bound( cbsets->begin(), cbsets->end(), sig, CmpLess() );
+}
+
+
+inline CSVector::iterator binaryFind( CSVector* cbsets, Signal* sig )
+{
+	CSVector::iterator it = lowerBound( cbsets, sig );
+	if( it != cbsets->end() && CmpEqual()( *it, sig ) )
+	{
+		return it;
+	}
+	return cbsets->end();
+}
+
+
+int traverse( ValueVector& vec, visitproc visit, void* arg )
+{
+	typedef ValueVector::iterator iter_t;
+	for( iter_t it = vec.begin(), end = vec.end(); it != end; ++it )
+	{
+		Py_VISIT( it->get() );
+	}
+	return 0;
+}
+
+
+int traverse( CSVector& vec, visitproc visit, void* arg )
+{
+	typedef CSVector::iterator iter_t;
+	for( iter_t it = vec.begin(), end = vec.end(); it != end; ++it )
+	{
+		Py_VISIT( it->first.get() );
+		if( int ret = it->second.traverse( visit, arg ) )
+		{
+			return ret;
+		}
+	}
+	return 0;
+}
 
 
 PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
@@ -39,7 +121,7 @@ PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	}
 	Atom* self = atom_cast( self_ptr.get() );
 	Py_ssize_t count = PyDict_Size( members_ptr.get() );
-	new( &self->m_values ) Atom::ValueVector( count );
+	new( &self->m_values ) ValueVector( count );
 	self->m_members = members_ptr.release();
 	return self_ptr.release();
 }
@@ -71,6 +153,10 @@ int Atom_init( PyObject* self, PyObject* args, PyObject* kwargs )
 
 int Atom_clear( Atom* self )
 {
+	if( self->m_cbsets )
+	{
+		self->m_cbsets->clear();
+	}
 	self->m_values.clear();
 	Py_CLEAR( self->m_members );
 	return 0;
@@ -79,11 +165,14 @@ int Atom_clear( Atom* self )
 
 int Atom_traverse( Atom* self, visitproc visit, void* arg )
 {
-	typedef Atom::ValueVector::iterator iter_t;
-	iter_t end = self->m_values.end();
-	for( iter_t it = self->m_values.begin(); it != end; ++it )
+	int ret;
+	if( self->m_cbsets && ( ret = traverse( *self->m_cbsets, visit, arg ) ) )
 	{
-		Py_VISIT( it->get() );
+		return ret;
+	}
+	if( ret = traverse( self->m_values, visit, arg ) )
+	{
+		return ret;
 	}
 	Py_VISIT( self->m_members );
 	return 0;
@@ -98,7 +187,8 @@ void Atom_dealloc( Atom* self )
 		PyObject_ClearWeakRefs( pyobject_cast( self ) );
 	}
 	Atom_clear( self );
-	self->m_values.Atom::ValueVector::~ValueVector();
+	delete self->m_cbsets;
+	self->m_values.ValueVector::~ValueVector();
 	self->ob_type->tp_free( pyobject_cast( self ) );
 }
 
@@ -188,11 +278,87 @@ PyObject* Atom_get_members( Atom* self, PyObject* args )
 }
 
 
+PyObject* Atom_connect( Atom* self, PyObject* args )
+{
+	PyObject* sig;
+	PyObject* callback;
+	if( !PyArg_ParseTuple( args, "OO", &sig, &callback ) )
+	{
+		return 0;
+	}
+	if( !Signal::TypeCheck( sig ) )
+	{
+		return cppy::type_error( sig, "Signal" );
+	}
+	if( !PyCallable_Check( callback ) )
+	{
+		return cppy::type_error( callback, "callable" );
+	}
+	// TODO support weak methods
+	self->connect( signal_cast( sig ), callback );
+	return cppy::incref( Py_None );
+}
+
+
+PyObject* Atom_disconnect( Atom* self, PyObject* args )
+{
+	PyObject* sig = 0;
+	PyObject* callback = 0;
+	if( !PyArg_ParseTuple( args, "|OO", &sig, &callback ) )
+	{
+		return 0;
+	}
+	if( sig && !Signal::TypeCheck( sig ) )
+	{
+		return cppy::type_error( sig, "Signal" );
+	}
+	if( callback && !PyCallable_Check( callback ) )
+	{
+		return cppy::type_error( callback, "callable" );
+	}
+	if( !sig )
+	{
+		self->disconnect();
+	}
+	else if( !callback )
+	{
+		self->disconnect( signal_cast( sig ) );
+	}
+	else
+	{
+		// TODO support weak methods
+		self->disconnect( signal_cast( sig ), callback );
+	}
+	return cppy::incref( Py_None );
+}
+
+
+PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
+{
+	Py_ssize_t arg_count = PyTuple_GET_SIZE( args );
+	if( arg_count == 0 )
+	{
+		return cppy::type_error( "emit() takes at least 1 argument (0 given)" );
+	}
+	PyObject* sig = PyTuple_GET_ITEM( args, 0 );
+	if( !Signal::TypeCheck( sig ) )
+	{
+		return cppy::type_error( sig, "Signal" );
+	}
+	// TODO can this be made faster?
+	cppy::ptr rest( PyTuple_GetSlice( args, 1, arg_count ) );
+	// TODO push to a sender stack
+	self->emit( signal_cast( sig ), rest.get(), kwargs );
+	// TODO pop from a sender stack
+	return cppy::incref( Py_None );
+}
+
+
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
 	Py_ssize_t size = self->ob_type->tp_basicsize;
 	size_t capacity = self->m_values.capacity();
-	size_t vecsize = capacity * sizeof( Atom::ValueVector::value_type );
+	size_t vecsize = capacity * sizeof( ValueVector::value_type );
 	return Py23Int_FromSsize_t( size + static_cast<Py_ssize_t>( vecsize ) );
 }
 
@@ -206,6 +372,18 @@ PyMethodDef Atom_methods[] = {
 	  ( PyCFunction )Atom_get_members,
 	  METH_NOARGS,
 	  "get_members() get all of the members for the object as a dict" },
+	{ "connect",
+	  ( PyCFunction )Atom_connect,
+	  METH_VARARGS,
+	  "connect(signal, callback) connect a signal to a callback" },
+	{ "disconnect",
+	  ( PyCFunction )Atom_disconnect,
+	  METH_VARARGS,
+	  "disconnect([signal[, callback]) disconnect a signal from a callback" },
+	{ "emit",
+	  ( PyCFunction )Atom_emit,
+	  METH_VARARGS | METH_KEYWORDS,
+	  "emit(signal, *args, **kwargs) emit a signal with the given arguments" },
 	{ "__sizeof__",
 	  ( PyCFunction )Atom_sizeof,
 	  METH_NOARGS,
@@ -294,6 +472,74 @@ PyObject* Atom::LookupMembers( PyTypeObject* type )
 		return cppy::incref( members );
 	}
 	return cppy::type_error( "type has no registered members" );
+}
+
+
+void Atom::connect( Signal* sig, PyObject* callback )
+{
+	if( !m_cbsets )
+	{
+		m_cbsets = new CSVector();
+	}
+	cppy::ptr pyptr( pyobject_cast( sig ), true );
+	CSVector::iterator it = lowerBound( m_cbsets, sig );
+	if( it == m_cbsets->end() || it->first != pyptr )
+	{
+		CallbackSet cbset( callback );
+		m_cbsets->insert( it, CSPair( pyptr, cbset ) );
+	}
+	else
+	{
+		it->second.add( callback );
+	}
+}
+
+
+void Atom::disconnect()
+{
+	if( m_cbsets )
+	{
+		m_cbsets->clear();
+	}
+}
+
+
+void Atom::disconnect( Signal* sig )
+{
+	if( m_cbsets )
+	{
+		CSVector::iterator it = binaryFind( m_cbsets, sig );
+		if( it != m_cbsets->end() )
+		{
+			m_cbsets->erase( it );
+		}
+	}
+}
+
+
+void Atom::disconnect( Signal* sig, PyObject* callback )
+{
+	if( m_cbsets )
+	{
+		CSVector::iterator it = binaryFind( m_cbsets, sig );
+		if( it != m_cbsets->end() )
+		{
+			it->second.remove( callback );
+		}
+	}
+}
+
+
+void Atom::emit( Signal* sig, PyObject* args, PyObject* kwargs )
+{
+	if( m_cbsets )
+	{
+		CSVector::iterator it = binaryFind( m_cbsets, sig );
+		if( it != m_cbsets->end() )
+		{
+			it->second.dispatch( args, kwargs );
+		}
+	}
 }
 
 } // namespace atom

@@ -7,7 +7,6 @@
 |----------------------------------------------------------------------------*/
 #include "atom.h"
 #include "atom_meta.h"
-#include "emitter.h"
 #include "member.h"
 #include "signal.h"
 
@@ -42,10 +41,6 @@ PyMODINIT_FUNC initcatom( void )
 	{
 		return;
 	}
-	if( !Emitter::Ready() )
-	{
-		return;
-	}
 	if( !Signal::Ready() )
 	{
 		return;
@@ -66,13 +61,11 @@ PyMODINIT_FUNC initcatom( void )
 	{
 		return;
 	}
-	Py_INCREF( &Emitter::TypeObject );
 	Py_INCREF( &Signal::TypeObject );
 	Py_INCREF( &BoundSignal::TypeObject );
 	Py_INCREF( &Member::TypeObject );
 	Py_INCREF( &Atom::TypeObject );
 	Py_INCREF( ValidationError );
-	PyModule_AddObject( mod, "Emitter", reinterpret_cast<PyObject*>( &Emitter::TypeObject ) );
 	PyModule_AddObject( mod, "Signal", reinterpret_cast<PyObject*>( &Signal::TypeObject ) );
 	PyModule_AddObject( mod, "BoundSignal", reinterpret_cast<PyObject*>( &BoundSignal::TypeObject ) );
 	PyModule_AddObject( mod, "CMember", reinterpret_cast<PyObject*>( &Member::TypeObject ) );

@@ -13,7 +13,7 @@
 namespace atom
 {
 
-struct Emitter;
+struct Atom;
 
 
 // POD struct - all member fields are considered private
@@ -37,7 +37,7 @@ struct BoundSignal
 {
 	PyObject_HEAD
 	Signal* m_signal;
-	Emitter* m_emitter;
+	Atom* m_atom;
 
 	static PyTypeObject TypeObject;
 
@@ -48,7 +48,7 @@ struct BoundSignal
 		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
 	}
 
-	static PyObject* Create( Signal* sig, Emitter* emitter );
+	static PyObject* Create( Signal* sig, Atom* atom );
 };
 
 } // namespace atom

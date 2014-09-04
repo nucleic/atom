@@ -6,12 +6,17 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "signal.h"
-#include "emitter.h"
+#include "atom.h"
 
 #include <cppy/cppy.h>
 
 
 #define FREELIST_MAX 128
+
+#define atom_cast( o ) reinterpret_cast<Atom*>( o )
+#define signal_cast( o ) reinterpret_cast<Signal*>( o )
+#define pyobject_cast( o ) reinterpret_cast<PyObject*>( o )
+#define boundsignal_cast( o ) reinterpret_cast<BoundSignal*>( o )
 
 
 namespace atom
@@ -26,7 +31,7 @@ BoundSignal* freelist[ FREELIST_MAX ];
 
 void Signal_dealloc( Signal* self )
 {
-	self->ob_type->tp_free( reinterpret_cast<PyObject*>( self ) );
+	self->ob_type->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -34,19 +39,19 @@ PyObject* Signal_descr_get( Signal* self, PyObject* obj, PyObject* type )
 {
 	if( !obj )
 	{
-		return cppy::incref( reinterpret_cast<PyObject*>( self ) );
+		return cppy::incref( pyobject_cast( self ) );
 	}
-	if( !Emitter::TypeCheck( obj ) )
+	if( !Atom::TypeCheck( obj ) )
 	{
-		return cppy::type_error( obj, "Emitter" );
+		return cppy::type_error( obj, "Atom" );
 	}
-	return BoundSignal::Create( self, reinterpret_cast<Emitter*>( obj ) );
+	return BoundSignal::Create( self, atom_cast( obj ) );
 };
 
 
 int Signal_descr_set( Signal* self, PyObject* obj, PyObject* value )
 {
-	cppy::type_error( "signal is read only" );
+	cppy::type_error( "can't modify signal" );
 	return -1;
 };
 
@@ -57,30 +62,28 @@ PyObject* BoundSignal_new( PyTypeObject* type, PyObject* args, PyObject* kwargs 
 	{
 		return cppy::type_error( "BoundSignal() does not take keyword arguments" );
 	}
-	PyObject* pysig;
-	PyObject* pyemitter;
-	if( !PyArg_ParseTuple( args, "OO", &pysig, &pyemitter ) )
+	PyObject* sig;
+	PyObject* atom;
+	if( !PyArg_ParseTuple( args, "OO", &sig, &atom ) )
 	{
 		return 0;
 	}
-	if( !Signal::TypeCheck( pysig ) )
+	if( !Signal::TypeCheck( sig ) )
 	{
-		return cppy::type_error( pysig, "Signal" );
+		return cppy::type_error( sig, "Signal" );
 	}
-	if( !Emitter::TypeCheck( pyemitter ) )
+	if( !Atom::TypeCheck( atom ) )
 	{
-		return cppy::type_error( pyemitter, "Emitter" );
+		return cppy::type_error( atom, "Atom" );
 	}
-	Signal* sig = reinterpret_cast<Signal*>( pysig );
-	Emitter* emitter = reinterpret_cast<Emitter*>( pyemitter );
-	return BoundSignal::Create( sig, emitter );
+	return BoundSignal::Create( signal_cast( sig ), atom_cast( atom ) );
 }
 
 
 int BoundSignal_clear( BoundSignal* self )
 {
 	Py_CLEAR( self->m_signal );
-	Py_CLEAR( self->m_emitter );
+	Py_CLEAR( self->m_atom );
 	return 0;
 }
 
@@ -88,7 +91,7 @@ int BoundSignal_clear( BoundSignal* self )
 int BoundSignal_traverse( BoundSignal* self, visitproc visit, void* arg )
 {
 	Py_VISIT( self->m_signal );
-	Py_VISIT( self->m_emitter );
+	Py_VISIT( self->m_atom );
 	return 0;
 }
 
@@ -103,7 +106,7 @@ void BoundSignal_dealloc( BoundSignal* self )
 	}
 	else
 	{
-		self->ob_type->tp_free( reinterpret_cast<PyObject*>( self ) );
+		self->ob_type->tp_free( pyobject_cast( self ) );
 	}
 }
 
@@ -115,8 +118,8 @@ PyObject* BoundSignal_richcompare( BoundSignal* self, PyObject* rhs, int op )
 		bool res = false;
 		if( BoundSignal::TypeCheck( rhs ) )
 		{
-			BoundSignal* s = reinterpret_cast<BoundSignal*>( rhs );
-			res = self->m_signal == s->m_signal && self->m_emitter == s->m_emitter;
+			BoundSignal* bsig = boundsignal_cast( rhs );
+			res = self->m_signal == bsig->m_signal && self->m_atom == bsig->m_atom;
 		}
 		if( op == Py_NE )
 		{
@@ -131,7 +134,7 @@ PyObject* BoundSignal_richcompare( BoundSignal* self, PyObject* rhs, int op )
 PyObject* BoundSignal_call( BoundSignal* self, PyObject* args, PyObject* kwargs )
 {
 	// TODO push to a sender stack
-	self->m_emitter->emit( self->m_signal, args, kwargs );
+	self->m_atom->emit( self->m_signal, args, kwargs );
 	// TODO pop from a sender stack
 	return cppy::incref( Py_None );
 }
@@ -144,7 +147,7 @@ PyObject* BoundSignal_connect( BoundSignal* self, PyObject* callback )
 		return cppy::type_error( callback, "callable" );
 	}
 	// TODO support weak methods
-	self->m_emitter->connect( self->m_signal, callback );
+	self->m_atom->connect( self->m_signal, callback );
 	return cppy::incref( Py_None );
 }
 
@@ -163,11 +166,11 @@ PyObject* BoundSignal_disconnect( BoundSignal* self, PyObject* args )
 	// TODO support weak methods
 	if( !callback )
 	{
-		self->m_emitter->disconnect( self->m_signal );
+		self->m_atom->disconnect( self->m_signal );
 	}
 	else
 	{
-		self->m_emitter->disconnect( self->m_signal, callback );
+		self->m_atom->disconnect( self->m_signal, callback );
 	}
 	return cppy::incref( Py_None );
 }
@@ -177,11 +180,11 @@ PyMethodDef BoundSignal_methods[] = {
 	{ "connect",
 	  ( PyCFunction )BoundSignal_connect,
 	  METH_O,
-	  "connect(callback) connect a callback to the signal." },
+	  "connect(callback) connect a callback to the signal" },
 	{ "disconnect",
 	  ( PyCFunction )BoundSignal_disconnect,
 	  METH_VARARGS,
-	  "disconnect([callback]) disconnect a callback from the signal." },
+	  "disconnect([callback]) disconnect a callback from the signal" },
 	{ 0 } // sentinel
 };
 
@@ -304,12 +307,12 @@ bool BoundSignal::Ready()
 }
 
 
-PyObject* BoundSignal::Create( Signal* sig, Emitter* emitter )
+PyObject* BoundSignal::Create( Signal* sig, Atom* atom )
 {
 	PyObject* pyo;
 	if( numfree > 0 )
 	{
-		pyo = reinterpret_cast<PyObject*>( freelist[ --numfree ] );
+		pyo = pyobject_cast( freelist[ --numfree ] );
 		_Py_NewReference( pyo );
 	}
 	else
@@ -320,9 +323,9 @@ PyObject* BoundSignal::Create( Signal* sig, Emitter* emitter )
 			return 0;
 		}
 	}
-	BoundSignal* bound = reinterpret_cast<BoundSignal*>( pyo );
-	bound->m_signal = cppy::incref( sig );
-	bound->m_emitter = cppy::incref( emitter );
+	BoundSignal* bsig = boundsignal_cast( pyo );
+	bsig->m_signal = cppy::incref( sig );
+	bsig->m_atom = cppy::incref( atom );
 	return pyo;
 }
 

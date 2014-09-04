@@ -7,8 +7,12 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
+#include "callback_set.h"
+#include "signal.h"
+
 #include <cppy/cppy.h>
 #include <Python.h>
+#include <utility>
 #include <vector>
 
 
@@ -19,10 +23,13 @@ namespace atom
 struct Atom
 {
 	typedef std::vector<cppy::ptr> ValueVector;
+	typedef std::pair<cppy::ptr, CallbackSet> CSPair;
+	typedef std::vector<CSPair> CSVector;
 
 	PyObject_HEAD
 	PyObject* m_weaklist;
 	PyObject* m_members;
+	CSVector* m_cbsets;
 	ValueVector m_values;  // instantiated with placement new
 
 	static PyTypeObject TypeObject;
@@ -37,6 +44,16 @@ struct Atom
 	static bool RegisterMembers( PyTypeObject* type, PyObject* members );
 
 	static PyObject* LookupMembers( PyTypeObject* type );
+
+	void connect( Signal* sig, PyObject* callback );
+
+	void disconnect();
+
+	void disconnect( Signal* sig );
+
+	void disconnect( Signal* sig, PyObject* callback );
+
+	void emit( Signal* sig, PyObject* args, PyObject* kwargs = 0 );
 };
 
 }  // namespace atom
