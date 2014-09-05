@@ -362,6 +362,7 @@ PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
 
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
+	// TODO add in cbset size
 	Py_ssize_t size = self->ob_type->tp_basicsize;
 	uint32_t valsize = self->m_count * sizeof( PyObject* );
 	return Py23Int_FromSsize_t( size + static_cast<Py_ssize_t>( valsize ) );
