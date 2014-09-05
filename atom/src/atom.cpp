@@ -8,7 +8,6 @@
 #include "atom.h"
 #include "member.h"
 #include "py23compat.h"
-#include "stdint.h"
 
 #include <algorithm>
 
@@ -25,7 +24,6 @@ namespace atom
 namespace
 {
 
-typedef Atom::ValueVector ValueVector;
 typedef Atom::CSVector CSVector;
 
 
@@ -81,17 +79,6 @@ inline CSVector::iterator binaryFind( CSVector* cbsets, Signal* sig )
 }
 
 
-int traverse( ValueVector& vec, visitproc visit, void* arg )
-{
-	typedef ValueVector::iterator iter_t;
-	for( iter_t it = vec.begin(), end = vec.end(); it != end; ++it )
-	{
-		Py_VISIT( it->get() );
-	}
-	return 0;
-}
-
-
 int traverse( CSVector& vec, visitproc visit, void* arg )
 {
 	typedef CSVector::iterator iter_t;
@@ -109,21 +96,32 @@ int traverse( CSVector& vec, visitproc visit, void* arg )
 
 PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-	cppy::ptr members_ptr( Atom::LookupMembers( type ) );
-	if( !members_ptr )
+	cppy::ptr members( Atom::LookupMembers( type ) );
+	if( !members )
 	{
 		return 0;
 	}
-	cppy::ptr self_ptr( PyType_GenericNew( type, args, kwargs ) );
-	if( !self_ptr )
+	cppy::ptr self( PyType_GenericNew( type, args, kwargs ) );
+	if( !self )
 	{
 		return 0;
 	}
-	Atom* self = atom_cast( self_ptr.get() );
-	Py_ssize_t count = PyDict_Size( members_ptr.get() );
-	new( &self->m_values ) ValueVector( count );
-	self->m_members = members_ptr.release();
-	return self_ptr.release();
+	Atom* atom = atom_cast( self.get() );
+	Py_ssize_t size = PyDict_Size( members.get() );
+	if( size > 0 )
+	{
+		uint32_t count = static_cast<uint32_t>( size );
+		void* values = PyObject_Malloc( count * sizeof( PyObject* ) );
+		if( !values )
+		{
+			return PyErr_NoMemory();
+		}
+		memset( values, 0, count * sizeof( PyObject* ) );
+		atom->m_values = reinterpret_cast<PyObject**>( values );
+		atom->m_count = count;
+	}
+	atom->m_members = members.release();
+	return self.release();
 }
 
 
@@ -157,7 +155,10 @@ int Atom_clear( Atom* self )
 	{
 		self->m_cbsets->clear();
 	}
-	self->m_values.clear();
+	for( uint32_t i = 0, n = self->m_count; i < n; ++i )
+	{
+		Py_CLEAR( self->m_values[ i ] );
+	}
 	Py_CLEAR( self->m_members );
 	return 0;
 }
@@ -165,14 +166,16 @@ int Atom_clear( Atom* self )
 
 int Atom_traverse( Atom* self, visitproc visit, void* arg )
 {
-	int ret;
-	if( self->m_cbsets && ( ret = traverse( *self->m_cbsets, visit, arg ) ) )
+	if( self->m_cbsets )
 	{
-		return ret;
+		if( int ret = traverse( *self->m_cbsets, visit, arg ) )
+		{
+			return ret;
+		}
 	}
-	if( ret = traverse( self->m_values, visit, arg ) )
+	for( uint32_t i = 0, n = self->m_count; i < n; ++i )
 	{
-		return ret;
+		Py_VISIT( self->m_values[ i ] );
 	}
 	Py_VISIT( self->m_members );
 	return 0;
@@ -188,7 +191,10 @@ void Atom_dealloc( Atom* self )
 	}
 	Atom_clear( self );
 	delete self->m_cbsets;
-	self->m_values.ValueVector::~ValueVector();
+	if( self->m_values )
+	{
+		PyObject_Free( self->m_values );
+	}
 	self->ob_type->tp_free( pyobject_cast( self ) );
 }
 
@@ -203,11 +209,11 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 	if( member )
 	{
 		uint32_t index = member->valueIndex();
-		if( index >= self->m_values.size() )
+		if( index >= self->m_count )
 		{
 			return cppy::system_error( "value index out of range" );
 		}
-		cppy::ptr valptr( self->m_values[ index ] );
+		cppy::ptr valptr( self->m_values[ index ], true );
 		if( valptr )
 		{
 			return valptr.release();
@@ -217,7 +223,7 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 		{
 			return 0;
 		}
-		self->m_values[ index ] = valptr;
+		self->m_values[ index ] = cppy::incref( valptr.get() );
 		return valptr.release();
 	}
 	return PyObject_GenericGetAttr( pyobject_cast( self ), name );
@@ -235,14 +241,14 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 	if( member )
 	{
 		uint32_t index = member->valueIndex();
-		if( index >= self->m_values.size() )
+		if( index >= self->m_count )
 		{
 			cppy::system_error( "value index out of range" );
 			return -1;
 		}
 		if( !value )
 		{
-			self->m_values[ index ] = 0;
+			cppy::replace( self->m_values + index, pyobject_cast( 0 ) );
 			return 0;
 		}
 		if( self->m_values[ index ] == value )
@@ -254,7 +260,7 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 		{
 			return -1;
 		}
-		self->m_values[ index ] = valptr;
+		cppy::replace( self->m_values + index, valptr.get() );
 		return 0;
 	}
 	return PyObject_GenericSetAttr( pyobject_cast( self ), name, value );
@@ -357,9 +363,8 @@ PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
 	Py_ssize_t size = self->ob_type->tp_basicsize;
-	size_t capacity = self->m_values.capacity();
-	size_t vecsize = capacity * sizeof( ValueVector::value_type );
-	return Py23Int_FromSsize_t( size + static_cast<Py_ssize_t>( vecsize ) );
+	uint32_t valsize = self->m_count * sizeof( PyObject* );
+	return Py23Int_FromSsize_t( size + static_cast<Py_ssize_t>( valsize ) );
 }
 
 

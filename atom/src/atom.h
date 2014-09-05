@@ -9,6 +9,7 @@
 
 #include "callbackset.h"
 #include "signal.h"
+#include "stdint.h"
 
 #include <cppy/cppy.h>
 #include <Python.h>
@@ -22,7 +23,6 @@ namespace atom
 // POD struct - all member fields are considered private
 struct Atom
 {
-	typedef std::vector<cppy::ptr> ValueVector;
 	typedef std::pair<cppy::ptr, CallbackSet> CSPair;
 	typedef std::vector<CSPair> CSVector;
 
@@ -30,7 +30,8 @@ struct Atom
 	PyObject* m_weaklist;
 	PyObject* m_members;
 	CSVector* m_cbsets;
-	ValueVector m_values;  // instantiated with placement new
+	PyObject** m_values;
+	uint32_t m_count;
 
 	static PyTypeObject TypeObject;
 
