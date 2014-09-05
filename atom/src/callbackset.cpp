@@ -5,7 +5,7 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-#include "callback_set.h"
+#include "callbackset.h"
 
 
 namespace atom

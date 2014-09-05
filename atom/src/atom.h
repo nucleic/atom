@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#include "callback_set.h"
+#include "callbackset.h"
 #include "signal.h"
 
 #include <cppy/cppy.h>

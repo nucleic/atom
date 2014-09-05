@@ -8,7 +8,7 @@
 #pragma once
 
 #ifdef _MSC_VER
-#include "ms_stdint.h"
+#include "msstdint.h"
 #else
 #include <stdint.h>
 #endif

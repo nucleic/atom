@@ -5,10 +5,10 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-#include "atom_meta.h"
+#include "atommeta.h"
 #include "atom.h"
 #include "member.h"
-#include "py23_compat.h"
+#include "py23compat.h"
 
 #include <cppy/cppy.h>
 #include <vector>

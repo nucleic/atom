@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include "atom.h"
 #include "member.h"
-#include "py23_compat.h"
+#include "py23compat.h"
 #include "stdint.h"
 
 #include <algorithm>

@@ -6,7 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "atom.h"
-#include "atom_meta.h"
+#include "atommeta.h"
 #include "member.h"
 #include "signal.h"
 

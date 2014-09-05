@@ -10,7 +10,7 @@
 #include <Python.h>
 
 #if PY_MAJOR_VERSION >= 3
-#include <py3_compat.h>
+#include <py3compat.h>
 #else
-#include <py2_compat.h>
+#include <py2compat.h>
 #endif

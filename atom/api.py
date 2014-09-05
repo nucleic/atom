@@ -6,7 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from .atom import AtomMeta, Atom  #, observe, set_default
-from .int_enum import IntEnum
+from .intenum import IntEnum
 from .members import (
     Member,
     Value,

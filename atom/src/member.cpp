@@ -6,7 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "member.h"
-#include "py23_compat.h"
+#include "py23compat.h"
 
 #include <cppy/cppy.h>
 
