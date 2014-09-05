@@ -35,7 +35,7 @@ public:
 private:
 
 	cppy::ptr m_single;
-	cppy::ptr m_set;
+	cppy::ptr m_extras;
 };
 
 } // namespace atom
