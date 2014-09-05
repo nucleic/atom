@@ -11,6 +11,11 @@
 #include <cppy/cppy.h>
 
 
+#define member_cast( o ) reinterpret_cast<Member*>( o )
+#define pyobject_cast( o ) reinterpret_cast<PyObject*>( o )
+#define pytype_cast( o ) reinterpret_cast<PyTypeObject*>( o )
+
+
 namespace atom
 {
 
@@ -37,8 +42,7 @@ PyObject* validation_error( Member* member, PyObject* atom, PyObject* name, PyOb
 			return 0;
 		}
 	}
-	PyObject* pyo = reinterpret_cast<PyObject*>( member );
-	cppy::ptr method( PyObject_GetAttrString( pyo, "validation_error" ) );
+	cppy::ptr method( PyObject_GetAttrString( pyobject_cast( member ), "validation_error" ) );
 	if( !method )
 	{
 		return 0;
@@ -224,8 +228,7 @@ PyObject* default_call_object( Member* member, PyObject* atom, PyObject* name )
 
 PyObject* default_member_method( Member* member, PyObject* atom, PyObject* name )
 {
-	PyObject* pyo = reinterpret_cast<PyObject*>( member );
-	cppy::ptr method( PyObject_GetAttr( pyo, member->m_default_context ) );
+	cppy::ptr method( PyObject_GetAttr( pyobject_cast( member ), member->m_default_context ) );
 	if( !method )
 	{
 		return 0;
@@ -366,7 +369,7 @@ PyObject* validate_typed( Member* member, PyObject* atom, PyObject* name, PyObje
 		return cppy::incref( value );
 	}
 	PyObject* ctxt = member->m_validate_context;
-	if( PyObject_TypeCheck( value, reinterpret_cast<PyTypeObject*>( ctxt ) ) )
+	if( PyObject_TypeCheck( value, pytype_cast( ctxt ) ) )
 	{
 		return cppy::incref( value );
 	}
@@ -537,8 +540,7 @@ PyObject* validate_call_object( Member* member, PyObject* atom, PyObject* name, 
 
 PyObject* validate_member_method( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
-	PyObject* pyo = reinterpret_cast<PyObject*>( member );
-	cppy::ptr method( PyObject_GetAttr( pyo, member->m_validate_context ) );
+	cppy::ptr method( PyObject_GetAttr( pyobject_cast( member ), member->m_validate_context ) );
 	if( !method )
 	{
 		return 0;
@@ -670,7 +672,7 @@ void Member_dealloc( Member* self )
 {
 	PyObject_GC_UnTrack( self );
 	Member_clear( self );
-	self->ob_type->tp_free( reinterpret_cast<PyObject*>( self ) );
+	self->ob_type->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -735,7 +737,7 @@ PyObject* Member_clone( Member* self, PyObject* args )
 	{
 		return 0;
 	}
-	Member* clone = reinterpret_cast<Member*>( pyo.get() );
+	Member* clone = member_cast( pyo.get() );
 	if( self->m_metadata && !( clone->m_metadata = PyDict_Copy( self->m_metadata ) ) )
 	{
 		return 0;

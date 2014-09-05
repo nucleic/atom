@@ -13,6 +13,9 @@
 #include <Python.h>
 
 
+#define pyobject_cast( o ) reinterpret_cast<PyObject*>( o )
+
+
 namespace
 {
 
@@ -66,9 +69,9 @@ PyMODINIT_FUNC initcatom( void )
 	Py_INCREF( &Member::TypeObject );
 	Py_INCREF( &Atom::TypeObject );
 	Py_INCREF( ValidationError );
-	PyModule_AddObject( mod, "Signal", reinterpret_cast<PyObject*>( &Signal::TypeObject ) );
-	PyModule_AddObject( mod, "BoundSignal", reinterpret_cast<PyObject*>( &BoundSignal::TypeObject ) );
-	PyModule_AddObject( mod, "CMember", reinterpret_cast<PyObject*>( &Member::TypeObject ) );
-	PyModule_AddObject( mod, "CAtom", reinterpret_cast<PyObject*>( &Atom::TypeObject ) );
+	PyModule_AddObject( mod, "Signal", pyobject_cast( &Signal::TypeObject ) );
+	PyModule_AddObject( mod, "BoundSignal", pyobject_cast( &BoundSignal::TypeObject ) );
+	PyModule_AddObject( mod, "CMember", pyobject_cast( &Member::TypeObject ) );
+	PyModule_AddObject( mod, "CAtom", pyobject_cast( &Atom::TypeObject ) );
 	PyModule_AddObject( mod, "ValidationError", ValidationError );
 }
