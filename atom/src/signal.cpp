@@ -310,6 +310,7 @@ PyObject* BoundSignal::Create( Signal* sig, Atom* atom )
 	{
 		pyo = pyobject_cast( freelist[ --numfree ] );
 		_Py_NewReference( pyo );
+		PyObject_GC_Track( pyo );
 	}
 	else
 	{
