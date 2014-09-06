@@ -20,6 +20,7 @@ ext_modules = [
             'atom/src/callbackset.cpp',
             'atom/src/catommodule.cpp',
             'atom/src/member.cpp',
+            'atom/src/methodwrapper.cpp',
             'atom/src/signal.cpp',
         ],
         include_dirs=[cppy.get_include(), 'atom/src'],

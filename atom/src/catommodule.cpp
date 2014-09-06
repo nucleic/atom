@@ -8,6 +8,7 @@
 #include "atom.h"
 #include "atommeta.h"
 #include "member.h"
+#include "methodwrapper.h"
 #include "signal.h"
 
 #include <Python.h>
@@ -61,6 +62,10 @@ PyMODINIT_FUNC initcatom( void )
 		return;
 	}
 	if( !AtomMeta::Ready() )
+	{
+		return;
+	}
+	if( !MethodWrapper::Ready() )
 	{
 		return;
 	}
