@@ -19,3 +19,4 @@
 #define Py23Number_Int PyNumber_Long
 #define Py23Int_AsSsize_t PyLong_AsSsize_t
 #define Py23Int_FromSsize_t PyLong_FromSsize_t
+#define Py23Method_New PyMethod_New

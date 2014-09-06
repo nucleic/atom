@@ -19,3 +19,9 @@
 #define Py23Number_Int PyNumber_Int
 #define Py23Int_AsSsize_t PyInt_AsSsize_t
 #define Py23Int_FromSsize_t PyInt_FromSsize_t
+
+
+inline PyObject* Py23Method_New( PyObject* func, PyObject* ob )
+{
+	return PyMethod_New( func, ob, reinterpret_cast<PyObject*>( ob->ob_type ) );
+}
