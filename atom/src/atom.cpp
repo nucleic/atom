@@ -287,7 +287,6 @@ PyObject* Atom_connect( Atom* self, PyObject* args )
 	{
 		return cppy::type_error( callback, "callable" );
 	}
-	// TODO support weak methods
 	self->connect( signal_cast( sig ), callback );
 	return cppy::incref( Py_None );
 }
@@ -319,7 +318,6 @@ PyObject* Atom_disconnect( Atom* self, PyObject* args )
 	}
 	else
 	{
-		// TODO support weak methods
 		self->disconnect( signal_cast( sig ), callback );
 	}
 	return cppy::incref( Py_None );
@@ -340,9 +338,7 @@ PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
 	}
 	// TODO can this be made faster?
 	cppy::ptr rest( PyTuple_GetSlice( args, 1, arg_count ) );
-	// TODO push to a sender stack
 	self->emit( signal_cast( sig ), rest.get(), kwargs );
-	// TODO pop from a sender stack
 	return cppy::incref( Py_None );
 }
 
@@ -473,6 +469,7 @@ PyObject* Atom::LookupMembers( PyTypeObject* type )
 
 void Atom::connect( Signal* sig, PyObject* callback )
 {
+	// TODO support weak methods
 	if( !m_cbsets )
 	{
 		m_cbsets = new CSVector();
@@ -505,6 +502,7 @@ void Atom::disconnect( Signal* sig )
 {
 	if( m_cbsets )
 	{
+		// TODO support weak methods
 		CSVector::iterator it = binaryFind( m_cbsets, sig );
 		if( it != m_cbsets->end() )
 		{
@@ -518,6 +516,7 @@ void Atom::disconnect( Signal* sig, PyObject* callback )
 {
 	if( m_cbsets )
 	{
+		// TODO support weak methods
 		CSVector::iterator it = binaryFind( m_cbsets, sig );
 		if( it != m_cbsets->end() )
 		{
@@ -534,7 +533,9 @@ void Atom::emit( Signal* sig, PyObject* args, PyObject* kwargs )
 		CSVector::iterator it = binaryFind( m_cbsets, sig );
 		if( it != m_cbsets->end() )
 		{
+			// TODO push to a sender stack
 			it->second.dispatch( args, kwargs );
+			// TODO pop from a sender stack
 		}
 	}
 }
