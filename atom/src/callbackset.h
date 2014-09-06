@@ -30,7 +30,15 @@ public:
 
 	void dispatch( PyObject* args, PyObject* kwargs = 0 );
 
-	int traverse( visitproc visit, void* arg );
+	PyObject* single()  // for GC traversing only
+	{
+		return m_single.get();
+	}
+
+	PyObject* extras()  // for GC traversing only
+	{
+		return m_extras.get();
+	}
 
 private:
 

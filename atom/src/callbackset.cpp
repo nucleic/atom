@@ -175,11 +175,4 @@ void CallbackSet::dispatch( PyObject* args, PyObject* kwargs )
 	}
 }
 
-
-int CallbackSet::traverse( visitproc visit, void* arg )
-{
-	Py_VISIT( m_single.get() );
-	Py_VISIT( m_extras.get() );
-}
-
 } // namespace atom
