@@ -8,9 +8,9 @@
 #include "atom.h"
 #include "member.h"
 #include "py23compat.h"
+#include "utils.h"
 
 #include <algorithm>
-
 
 #define atom_cast( o ) reinterpret_cast<Atom*>( o )
 #define member_cast( o ) reinterpret_cast<Member*>( o )
@@ -79,18 +79,26 @@ inline CSVector::iterator binaryFind( CSVector* cbsets, Signal* sig )
 }
 
 
-int traverse( CSVector& vec, visitproc visit, void* arg )
+Py_ssize_t getsizeof( CSVector* cbsets )
 {
+	Py_ssize_t extras = 0;
 	typedef CSVector::iterator iter_t;
-	for( iter_t it = vec.begin(), end = vec.end(); it != end; ++it )
+	for( iter_t it = cbsets->begin(), end = cbsets->end(); it != end; ++it )
 	{
-		Py_VISIT( it->first.get() );
-		if( it->second.traverse( visit, arg ) )
+		if( it->second.extras() )
 		{
-			return -1;
+			Py_ssize_t size = sys_getsizeof( it->second.extras() );
+			if( size < 0 && PyErr_Occurred() )
+			{
+				return -1;
+			}
+			extras += size;
 		}
 	}
-	return 0;
+	Py_ssize_t vec = static_cast<Py_ssize_t>( sizeof( CSVector ) );
+	Py_ssize_t val = static_cast<Py_ssize_t>( sizeof( CSVector::value_type ) );
+	Py_ssize_t cap = static_cast<Py_ssize_t>( cbsets->capacity() );
+	return vec + cap * val + extras;
 }
 
 
@@ -141,7 +149,8 @@ int Atom_clear( Atom* self )
 {
 	if( self->m_cbsets )
 	{
-		self->m_cbsets->clear();
+		CSVector temp; // safe clear
+		self->m_cbsets->swap( temp );
 	}
 	for( Py_ssize_t i = 0, n = Py_SIZE( self ); i < n; ++i )
 	{
@@ -154,9 +163,16 @@ int Atom_clear( Atom* self )
 
 int Atom_traverse( Atom* self, visitproc visit, void* arg )
 {
-	if( self->m_cbsets && traverse( *self->m_cbsets, visit, arg ) )
+	if( self->m_cbsets )
 	{
-		return -1;
+		typedef CSVector::iterator iter_t;
+		iter_t end = self->m_cbsets->end();
+		for( iter_t it = self->m_cbsets->begin(); it != end; ++it )
+		{
+			Py_VISIT( it->first.get() );
+			Py_VISIT( it->second.single() );
+			Py_VISIT( it->second.extras() );
+		}
 	}
 	for( Py_ssize_t i = 0, n = Py_SIZE( self ); i < n; ++i )
 	{
@@ -182,10 +198,13 @@ void Atom_dealloc( Atom* self )
 
 PyObject* Atom_getattro( Atom* self, PyObject* name )
 {
-	if( !Py23Str_Check( name ) )
-	{
-		return cppy::type_error( "attribute name must be a string" );
-	}
+	// This is not *strictly* a known-safe cast. While effort is made
+	// ensure that the user does not have access to the member registry
+	// and hence cannot modify the dict, the GC module will still allow
+	// the user to dig into it and add a non-member. My stance is that
+	// if they do that, they deserve the segfault. I don't want to pay
+	// the extra type checking cost just to protect against a motivated
+	// attacker. You can always crash the interpreted with ctypes anyway.
 	Member* member = member_cast( PyDict_GetItem( self->m_members, name ) );
 	if( member )
 	{
@@ -208,11 +227,13 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 
 int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 {
-	if( !Py23Str_Check( name ) )
-	{
-		cppy::type_error( "attribute name must be a string" );
-		return -1;
-	}
+	// This is not *strictly* a known-safe cast. While effort is made
+	// ensure that the user does not have access to the member registry
+	// and hence cannot modify the dict, the GC module will still allow
+	// the user to dig into it and add a non-member. My stance is that
+	// if they do that, they deserve the segfault. I don't want to pay
+	// the extra type checking cost just to protect against a motivated
+	// attacker. You can always crash the interpreted with ctypes anyway.
 	Member* member = member_cast( PyDict_GetItem( self->m_members, name ) );
 	if( member )
 	{
@@ -328,10 +349,14 @@ PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
 
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
-	// TODO add in cbset size
-	Py_ssize_t size = self->ob_type->tp_basicsize;
+	Py_ssize_t basic = self->ob_type->tp_basicsize;
 	Py_ssize_t items = Py_SIZE( self ) * sizeof( PyObject* );
-	return Py23Int_FromSsize_t( size + items );
+	Py_ssize_t cbsets = self->m_cbsets ? getsizeof( self->m_cbsets ) : 0;
+	if( cbsets < 0 && PyErr_Occurred() )
+	{
+		return 0;
+	}
+	return Py23Int_FromSsize_t( basic + items + cbsets );
 }
 
 
@@ -470,7 +495,8 @@ void Atom::disconnect()
 {
 	if( m_cbsets )
 	{
-		m_cbsets->clear();
+		CSVector temp;  // safe clear
+		m_cbsets->swap( temp );
 	}
 }
 
