@@ -5,25 +5,27 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .atom import AtomMeta, Atom  #, observe, set_default
+from .atom import Atom, AtomMeta
+from .catom import BoundSignal, Signal, ValidationError
 from .intenum import IntEnum
 from .members import (
-    Member,
-    Value,
     Bool,
-    Int,
-    Float,
     Bytes,
-    Str,
-    Unicode,
-    #Tuple,
-    #List,
-    #Dict,
-    Typed,
-    Instance,
-    Subclass,
-    Enum,
     Callable,
+    Coerced,
+    # Dict,
+    Enum,
+    Float,
+    Instance,
+    Int,
+    # List,
+    Member,
     Range,
-    Coerced
+    # Set,
+    Str,
+    Subclass,
+    # Tuple,
+    Typed,
+    Unicode,
+    Value
 )
