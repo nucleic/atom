@@ -133,9 +133,7 @@ PyObject* BoundSignal_richcompare( BoundSignal* self, PyObject* rhs, int op )
 
 PyObject* BoundSignal_call( BoundSignal* self, PyObject* args, PyObject* kwargs )
 {
-	// TODO push to a sender stack
 	self->m_atom->emit( self->m_signal, args, kwargs );
-	// TODO pop from a sender stack
 	return cppy::incref( Py_None );
 }
 
@@ -146,7 +144,6 @@ PyObject* BoundSignal_connect( BoundSignal* self, PyObject* callback )
 	{
 		return cppy::type_error( callback, "callable" );
 	}
-	// TODO support weak methods
 	self->m_atom->connect( self->m_signal, callback );
 	return cppy::incref( Py_None );
 }
@@ -163,7 +160,6 @@ PyObject* BoundSignal_disconnect( BoundSignal* self, PyObject* args )
 	{
 		return cppy::type_error( callback, "callable" );
 	}
-	// TODO support weak methods
 	if( !callback )
 	{
 		self->m_atom->disconnect( self->m_signal );
