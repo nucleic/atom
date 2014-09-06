@@ -22,10 +22,10 @@ extern PyObject* ValidationError;
 struct Member
 {
 	PyObject_HEAD
+	Py_ssize_t m_index;
 	PyObject* m_metadata;
 	PyObject* m_default_context;
 	PyObject* m_validate_context;
-	uint32_t m_value_index;
 	uint8_t m_default_mode;
 	uint8_t m_validate_mode;
 	uint8_t m_unused_1;
@@ -73,19 +73,19 @@ struct Member
 
 	static PyObject* Clone( PyObject* member );
 
-	uint32_t valueIndex()
+	Py_ssize_t index()
 	{
-		return m_value_index;
+		return m_index;
 	}
 
-	void setValueIndex( uint32_t index )
+	void setIndex( Py_ssize_t index )
 	{
-		m_value_index = index;
+		m_index = index;
 	}
 
 	PyObject* defaultValue( PyObject* atom, PyObject* name );
 
-	PyObject* validateValue( PyObject* atom, PyObject* name, PyObject* value );
+	PyObject* validate( PyObject* atom, PyObject* name, PyObject* value );
 };
 
 } // namespace atom

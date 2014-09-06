@@ -6,6 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "member.h"
+#include "atom.h"
 #include "py23compat.h"
 
 #include <cppy/cppy.h>
@@ -368,8 +369,7 @@ PyObject* validate_typed( Member* member, PyObject* atom, PyObject* name, PyObje
 	{
 		return cppy::incref( value );
 	}
-	PyObject* ctxt = member->m_validate_context;
-	if( PyObject_TypeCheck( value, pytype_cast( ctxt ) ) )
+	if( PyObject_TypeCheck( value, pytype_cast( member->m_validate_context ) ) )
 	{
 		return cppy::incref( value );
 	}
@@ -678,8 +678,7 @@ void Member_dealloc( Member* self )
 
 PyObject* Member_get_metadata( Member* self, void* context )
 {
-	PyObject* ob = self->m_metadata;
-	return cppy::incref( ob ? ob : Py_None );
+	return cppy::incref( self->m_metadata ? self->m_metadata : Py_None );
 }
 
 
@@ -724,9 +723,9 @@ int Member_set_validate_mode( Member* self, PyObject* arg )
 }
 
 
-PyObject* Member_get_value_index( Member* self, void* context )
+PyObject* Member_get_index( Member* self, void* context )
 {
-	return Py23Int_FromLong( static_cast<long>( self->valueIndex() ) );
+	return Py23Int_FromSsize_t( self->index() );
 }
 
 
@@ -742,9 +741,9 @@ PyObject* Member_clone( Member* self, PyObject* args )
 	{
 		return 0;
 	}
+	clone->m_index = self->m_index;
 	clone->m_default_context = cppy::xincref( self->m_default_context );
 	clone->m_validate_context = cppy::xincref( self->m_validate_context );
-	clone->m_value_index = self->m_value_index;
 	clone->m_default_mode = self->m_default_mode;
 	clone->m_validate_mode = self->m_validate_mode;
 	return pyo.release();
@@ -759,6 +758,14 @@ PyObject* Member_do_default( Member* self, PyObject* args )
 	{
 		return 0;
 	}
+	if( !Atom::TypeCheck( atom ) )
+	{
+		return cppy::type_error( atom, "Atom" );
+	}
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
 	return self->defaultValue( atom, name );
 }
 
@@ -772,7 +779,15 @@ PyObject* Member_do_validate( Member* self, PyObject* args )
 	{
 		return 0;
 	}
-	return self->validateValue( atom, name, value );
+	if( !Atom::TypeCheck( atom ) )
+	{
+		return cppy::type_error( atom, "Atom" );
+	}
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
+	return self->validate( atom, name, value );
 }
 
 
@@ -789,8 +804,8 @@ PyGetSetDef Member_getset[] = {
 	  ( getter )Member_get_validate_mode,
 	  ( setter )Member_set_validate_mode,
 	  "the validate mode for the member" },
-	{ "_value_index",
-	  ( getter )Member_get_value_index, 0,
+	{ "_index",
+	  ( getter )Member_get_index, 0,
 	  "*private* the read-only value index for the member" },
 	{ 0 } // sentinel
 };
@@ -961,11 +976,11 @@ PyObject* Member::Clone( PyObject* member )
 PyObject* Member::defaultValue( PyObject* atom, PyObject* name )
 {
 	cppy::ptr value( default_handlers[ m_default_mode ]( this, atom, name ) );
-	return value ? validateValue( atom, name, value.get() ) : 0;
+	return value ? validate( atom, name, value.get() ) : 0;
 }
 
 
-PyObject* Member::validateValue( PyObject* atom, PyObject* name, PyObject* value )
+PyObject* Member::validate( PyObject* atom, PyObject* name, PyObject* value )
 {
 	return validate_handlers[ m_validate_mode ]( this, atom, name, value );
 }
