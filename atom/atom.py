@@ -8,10 +8,6 @@
 from .catom import CAtom, _atom_meta_create_class
 
 
-#: The key used to store pickled extra members
-EXTRA_MEMBERS = '_[atom-extra-members]'
-
-
 def __newobj__(cls, *args):
     """ A compatibility pickler function.
 
@@ -81,7 +77,6 @@ class Atom(CAtom):
         state = {}
         for key in self.get_members():
             state[key] = getattr(self, key)
-        state[EXTRA_MEMBERS] = self.get_extra_members()
         return state
 
     def __setstate__(self, state):
@@ -93,8 +88,5 @@ class Atom(CAtom):
         behavior should reimplement this method.
 
         """
-        extra = state.pop(EXTRA_MEMBERS)
-        for name, member in extra.iteritems():
-            self.add_extra_member(name, member)
         for key, value in state.iteritems():
             setattr(self, key, value)
