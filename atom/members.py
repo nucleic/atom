@@ -44,31 +44,6 @@ class Member(CMember):
         msg = formatting.member_message(self, atom, name, value)
         raise ValidationError(msg)
 
-    def tag(self, **kwargs):
-        """ Add metadata to the member.
-
-        This method is a convenience to add metadata to the member
-        when passing the data to the constructor is not feasible.
-
-        Parameters
-        ----------
-        **kwargs
-            Metadata to apply to the member.
-
-        Returns
-        -------
-        result : Member
-            Returns 'self' to enable this method to be conveniently
-            used within the class body declaration.
-
-        """
-        metadata = self.metadata
-        if metadata is None:
-            self.metadata = kwargs
-        else:
-            metadata.update(kwargs)
-        return self
-
 
 class Value(Member):
     """ A member class which supports default value initialization.
