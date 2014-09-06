@@ -326,8 +326,8 @@ PyObject* Atom_disconnect( Atom* self, PyObject* args )
 
 PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
 {
-	Py_ssize_t arg_count = PyTuple_GET_SIZE( args );
-	if( arg_count == 0 )
+	Py_ssize_t count = PyTuple_GET_SIZE( args );
+	if( count == 0 )
 	{
 		return cppy::type_error( "emit() takes at least 1 argument (0 given)" );
 	}
@@ -336,8 +336,7 @@ PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
 	{
 		return cppy::type_error( sig, "Signal" );
 	}
-	// TODO can this be made faster?
-	cppy::ptr rest( PyTuple_GetSlice( args, 1, arg_count ) );
+	cppy::ptr rest( PyTuple_GetSlice( args, 1, count ) );
 	self->emit( signal_cast( sig ), rest.get(), kwargs );
 	return cppy::incref( Py_None );
 }
