@@ -38,7 +38,7 @@ bool ensure_slots( PyObject* dict )
 {
 	if( PyDict_GetItem( dict, slots_str ) )
 	{
-		cppy::type_error( "Atom classes must not declare slots" );
+		cppy::type_error( "Atom classes cannot not declare slots" );
 		return false;
 	}
 	return PyDict_SetItem( dict, slots_str, empty_tuple ) == 0;
@@ -115,7 +115,7 @@ bool add_new_class_members( PyObject* members, PyObject* class_dict )
 	PyObject* key;
 	PyObject* value;
 	Py_ssize_t pos = 0;
-	uint32_t count = static_cast<uint32_t>( PyDict_Size( members ) );
+	Py_ssize_t count = PyDict_Size( members );
 	while( PyDict_Next( class_dict, &pos, &key, &value ) )
 	{
 		if( !Member::TypeCheck( value ) )
@@ -127,14 +127,13 @@ bool add_new_class_members( PyObject* members, PyObject* class_dict )
 			cppy::type_error( "metaclass dict has non-string member keys" );
 			return false;
 		}
-		Member* mbr = member_cast( value );
 		if( PyObject* existing = PyDict_GetItem( members, key ) )
 		{
-			mbr->setValueIndex( member_cast( existing )->valueIndex() );
+			member_cast( value )->setIndex( member_cast( existing )->index() );
 		}
 		else
 		{
-			mbr->setValueIndex( count++ );
+			member_cast( value )->setIndex( count++ );
 		}
 		if( PyDict_SetItem( members, key, value ) < 0 )
 		{
@@ -161,7 +160,7 @@ bool fixup_memory_layout( PyObject* members )
 
   // The set of all valid indices for this collection of members.
   // Indices are added to this set as they are claimed by a member.
-	uint32_t count = static_cast<uint32_t>( PyDict_Size( members ) );
+	Py_ssize_t count = PyDict_Size( members );
 	std::vector<bool> indices( count, false );
 
 	// Pass over the members and claim the used indices. Any member
@@ -171,7 +170,7 @@ bool fixup_memory_layout( PyObject* members )
   Py_ssize_t pos = 0;
   while( PyDict_Next( members, &pos, &key, &value ) )
   {
-  	uint32_t index = member_cast( value )->valueIndex();
+  	Py_ssize_t index = member_cast( value )->index();
   	if( index >= count || indices[ index ] )
   	{
 			pair_t pair( cppy::incref( key ), cppy::incref( value ) );
@@ -192,8 +191,8 @@ bool fixup_memory_layout( PyObject* members )
   // The unused indices are distributed among the conflicts. The
   // conflicting member is cloned as its index may be valid if it
   // belongs to a base class in a multiple inheritance hierarchy.
-  uint32_t conflict_index = 0;
-  for( uint32_t index = 0; index < count; ++index )
+  Py_ssize_t conflict_index = 0;
+  for( Py_ssize_t index = 0; index < count; ++index )
   {
   	if( indices[ index ] )
   	{
@@ -205,7 +204,7 @@ bool fixup_memory_layout( PyObject* members )
 		{
 			return false;
 		}
-		member_cast( clone.get() )->setValueIndex( index );
+		member_cast( clone.get() )->setIndex( index );
 		if( PyDict_SetItem( members, pair.first.get(), clone.get() ) < 0 )
 		{
 			return false;
