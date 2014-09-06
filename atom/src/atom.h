@@ -30,7 +30,7 @@ struct Atom
 	PyObject* m_weaklist;
 	PyObject* m_members;
 	CSVector* m_cbsets;
-	PyObject* m_values[1];  // values live off end of struct
+	PyObject* m_values[1];  // values are inlined in the struct
 
 	static PyTypeObject TypeObject;
 
