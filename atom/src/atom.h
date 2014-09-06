@@ -26,12 +26,11 @@ struct Atom
 	typedef std::pair<cppy::ptr, CallbackSet> CSPair;
 	typedef std::vector<CSPair> CSVector;
 
-	PyObject_HEAD
+	PyObject_VAR_HEAD
 	PyObject* m_weaklist;
 	PyObject* m_members;
 	CSVector* m_cbsets;
-	PyObject** m_values;
-	uint32_t m_count;
+	PyObject* m_values[1];  // values live off end of struct
 
 	static PyTypeObject TypeObject;
 
@@ -57,4 +56,4 @@ struct Atom
 	void emit( Signal* sig, PyObject* args, PyObject* kwargs = 0 );
 };
 
-}  // namespace atom
+} // namespace atom

@@ -101,25 +101,13 @@ PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	{
 		return 0;
 	}
-	cppy::ptr self( PyType_GenericNew( type, args, kwargs ) );
+	Py_ssize_t size = PyDict_Size( members.get() );
+	cppy::ptr self( type->tp_alloc( type, size ) );
 	if( !self )
 	{
 		return 0;
 	}
 	Atom* atom = atom_cast( self.get() );
-	Py_ssize_t size = PyDict_Size( members.get() );
-	if( size > 0 )
-	{
-		uint32_t count = static_cast<uint32_t>( size );
-		void* values = PyObject_Malloc( count * sizeof( PyObject* ) );
-		if( !values )
-		{
-			return PyErr_NoMemory();
-		}
-		memset( values, 0, count * sizeof( PyObject* ) );
-		atom->m_values = reinterpret_cast<PyObject**>( values );
-		atom->m_count = count;
-	}
 	atom->m_members = members.release();
 	return self.release();
 }
@@ -155,7 +143,7 @@ int Atom_clear( Atom* self )
 	{
 		self->m_cbsets->clear();
 	}
-	for( uint32_t i = 0, n = self->m_count; i < n; ++i )
+	for( Py_ssize_t i = 0, n = self->ob_size; i < n; ++i )
 	{
 		Py_CLEAR( self->m_values[ i ] );
 	}
@@ -173,7 +161,7 @@ int Atom_traverse( Atom* self, visitproc visit, void* arg )
 			return ret;
 		}
 	}
-	for( uint32_t i = 0, n = self->m_count; i < n; ++i )
+	for( Py_ssize_t i = 0, n = self->ob_size; i < n; ++i )
 	{
 		Py_VISIT( self->m_values[ i ] );
 	}
@@ -191,10 +179,6 @@ void Atom_dealloc( Atom* self )
 	}
 	Atom_clear( self );
 	delete self->m_cbsets;
-	if( self->m_values )
-	{
-		PyObject_Free( self->m_values );
-	}
 	self->ob_type->tp_free( pyobject_cast( self ) );
 }
 
@@ -209,7 +193,7 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 	if( member )
 	{
 		uint32_t index = member->valueIndex();
-		if( index >= self->m_count )
+		if( index >= static_cast<uint32_t>( self->ob_size ) )
 		{
 			return cppy::system_error( "value index out of range" );
 		}
@@ -241,14 +225,14 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 	if( member )
 	{
 		uint32_t index = member->valueIndex();
-		if( index >= self->m_count )
+		if( index >= static_cast<uint32_t>( self->ob_size ) )
 		{
 			cppy::system_error( "value index out of range" );
 			return -1;
 		}
 		if( !value )
 		{
-			cppy::replace( self->m_values + index, pyobject_cast( 0 ) );
+			cppy::clear( &self->m_values[ index ] );
 			return 0;
 		}
 		if( self->m_values[ index ] == value )
@@ -260,7 +244,7 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 		{
 			return -1;
 		}
-		cppy::replace( self->m_values + index, valptr.get() );
+		cppy::replace( &self->m_values[ index ], valptr.get() );
 		return 0;
 	}
 	return PyObject_GenericSetAttr( pyobject_cast( self ), name, value );
@@ -364,8 +348,8 @@ PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
 	// TODO add in cbset size
 	Py_ssize_t size = self->ob_type->tp_basicsize;
-	uint32_t valsize = self->m_count * sizeof( PyObject* );
-	return Py23Int_FromSsize_t( size + static_cast<Py_ssize_t>( valsize ) );
+	Py_ssize_t items = self->ob_size * sizeof( PyObject* );
+	return Py23Int_FromSsize_t( size + items );
 }
 
 
@@ -401,11 +385,10 @@ PyMethodDef Atom_methods[] = {
 
 
 PyTypeObject Atom::TypeObject = {
-	PyObject_HEAD_INIT( &PyType_Type )
-	0,                                   /* ob_size */
-	"atom.catom.CAtom",                  /* tp_name */
-	sizeof( Atom ),                      /* tp_basicsize */
-	0,                                   /* tp_itemsize */
+	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
+	"atom.catom.CAtom",
+	sizeof( Atom ) - sizeof( PyObject* ),
+	sizeof( PyObject* ),
 	( destructor )Atom_dealloc,          /* tp_dealloc */
 	( printfunc )0,                      /* tp_print */
 	( getattrfunc )0,                    /* tp_getattr */
