@@ -45,7 +45,7 @@ struct BoundSignal
 
 	static bool TypeCheck( PyObject* ob )
 	{
-		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
+		return Py_TYPE( ob ) == &TypeObject;
 	}
 
 	static PyObject* Create( Signal* sig, Atom* atom );
