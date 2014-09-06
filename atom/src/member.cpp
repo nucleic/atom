@@ -650,6 +650,27 @@ PyObject* packMode( uint8_t mode, PyObject* context )
 }
 
 
+int Member_init( PyObject* self, PyObject* args, PyObject* kwargs )
+{
+	if( PyTuple_GET_SIZE( args ) > 0 )
+	{
+		cppy::type_error( "__init__() takes no positional arguments" );
+		return -1;
+	}
+	if( kwargs && PyDict_Size( kwargs ) )
+	{
+		cppy::ptr copy( PyDict_Copy( kwargs ) );
+		if( !copy )
+		{
+			return -1;
+		}
+		Member* member = member_cast( self );
+		cppy::replace( &member->m_metadata , copy.get() );
+	}
+	return 0;
+}
+
+
 int Member_clear( Member* self )
 {
 	Py_CLEAR( self->m_metadata );
@@ -883,7 +904,7 @@ PyTypeObject Member::TypeObject = {
 	( descrgetfunc )0,                     /* tp_descr_get */
 	( descrsetfunc )0,                     /* tp_descr_set */
 	0,                                     /* tp_dictoffset */
-	( initproc )0,                         /* tp_init */
+	( initproc )Member_init,               /* tp_init */
 	( allocfunc )PyType_GenericAlloc,      /* tp_alloc */
 	( newfunc )PyType_GenericNew,          /* tp_new */
 	( freefunc )PyObject_GC_Del,           /* tp_free */

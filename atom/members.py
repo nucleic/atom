@@ -22,18 +22,6 @@ class Member(CMember):
     #: overridden as needed by subclasses.
     type_info = 'an object'
 
-    def __init__(self, **metadata):
-        """ Initialize a Member instance.
-
-        Parameters
-        ----------
-        **metadata
-            The optional metadata to store on the member.
-
-        """
-        if metadata:
-            self.metadata = metadata
-
     def validation_error(self, atom, name, value):
         """ Raise a generic validation error for the given parameters.
 
