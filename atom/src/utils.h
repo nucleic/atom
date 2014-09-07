@@ -16,6 +16,9 @@
 namespace atom
 {
 
+namespace utils
+{
+
 inline Py_ssize_t sys_getsizeof( PyObject* pyo )
 {
 	PyObject* sysdict = PyThreadState_GET()->interp->sysdict;
@@ -37,5 +40,7 @@ inline Py_ssize_t sys_getsizeof( PyObject* pyo )
 	}
 	return Py23Int_AsSsize_t( size.get() );
 }
+
+} // namespace utils
 
 } // namespace atom
