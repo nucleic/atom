@@ -7,14 +7,17 @@
 |----------------------------------------------------------------------------*/
 #include "atom.h"
 #include "member.h"
+#include "methodwrapper.h"
 #include "py23compat.h"
 #include "utils.h"
 
 #include <algorithm>
 
+
 #define atom_cast( o ) reinterpret_cast<Atom*>( o )
 #define member_cast( o ) reinterpret_cast<Member*>( o )
 #define signal_cast( o ) reinterpret_cast<Signal*>( o )
+#define pymethod_cast( o ) reinterpret_cast<PyMethodObject*>( o )
 #define pyobject_cast( o ) reinterpret_cast<PyObject*>( o )
 
 
@@ -76,6 +79,16 @@ inline CSVector::iterator binaryFind( CSVector* cbsets, Signal* sig )
 		return it;
 	}
 	return cbsets->end();
+}
+
+
+inline PyObject* wrapCallback( PyObject* callback )
+{
+	if( PyMethod_Check( callback ) && PyMethod_GET_SELF( callback ) )
+	{
+		return MethodWrapper::Create( pymethod_cast( callback ) );
+	}
+	return cppy::incref( callback );
 }
 
 
@@ -287,8 +300,7 @@ PyObject* Atom_connect( Atom* self, PyObject* args )
 	{
 		return cppy::type_error( callback, "callable" );
 	}
-	self->connect( signal_cast( sig ), callback );
-	return cppy::incref( Py_None );
+	return self->connect( signal_cast( sig ), callback );
 }
 
 
@@ -466,9 +478,13 @@ PyObject* Atom::LookupMembers( PyTypeObject* type )
 }
 
 
-void Atom::connect( Signal* sig, PyObject* callback )
+PyObject* Atom::connect( Signal* sig, PyObject* callback )
 {
-	// TODO support weak methods
+	cppy::ptr wrapped( wrapCallback( callback ) );
+	if( !wrapped )
+	{
+		return 0;
+	}
 	if( !m_cbsets )
 	{
 		m_cbsets = new CSVector();
@@ -477,13 +493,14 @@ void Atom::connect( Signal* sig, PyObject* callback )
 	CSVector::iterator it = lowerBound( m_cbsets, sig );
 	if( it == m_cbsets->end() || it->first != pyptr )
 	{
-		CallbackSet cbset( callback );
+		CallbackSet cbset( wrapped.get() );
 		m_cbsets->insert( it, CSPair( pyptr, cbset ) );
 	}
 	else
 	{
-		it->second.add( callback );
+		it->second.add( wrapped.get() );
 	}
+	return cppy::incref( Py_None );
 }
 
 
@@ -501,7 +518,6 @@ void Atom::disconnect( Signal* sig )
 {
 	if( m_cbsets )
 	{
-		// TODO support weak methods
 		CSVector::iterator it = binaryFind( m_cbsets, sig );
 		if( it != m_cbsets->end() )
 		{
@@ -515,7 +531,6 @@ void Atom::disconnect( Signal* sig, PyObject* callback )
 {
 	if( m_cbsets )
 	{
-		// TODO support weak methods
 		CSVector::iterator it = binaryFind( m_cbsets, sig );
 		if( it != m_cbsets->end() )
 		{

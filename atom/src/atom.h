@@ -45,7 +45,7 @@ struct Atom
 
 	static PyObject* LookupMembers( PyTypeObject* type );
 
-	void connect( Signal* sig, PyObject* callback );
+	PyObject* connect( Signal* sig, PyObject* callback );
 
 	void disconnect();
 
