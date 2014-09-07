@@ -11,6 +11,7 @@
 #include "methodwrapper.h"
 #include "signal.h"
 
+#include <cppy/cppy.h>
 #include <Python.h>
 
 
@@ -69,14 +70,14 @@ PyMODINIT_FUNC initcatom( void )
 	{
 		return;
 	}
-	Py_INCREF( &Signal::TypeObject );
-	Py_INCREF( &BoundSignal::TypeObject );
-	Py_INCREF( &Member::TypeObject );
-	Py_INCREF( &Atom::TypeObject );
-	Py_INCREF( ValidationError );
-	PyModule_AddObject( mod, "Signal", pyobject_cast( &Signal::TypeObject ) );
-	PyModule_AddObject( mod, "BoundSignal", pyobject_cast( &BoundSignal::TypeObject ) );
-	PyModule_AddObject( mod, "CMember", pyobject_cast( &Member::TypeObject ) );
-	PyModule_AddObject( mod, "CAtom", pyobject_cast( &Atom::TypeObject ) );
-	PyModule_AddObject( mod, "ValidationError", ValidationError );
+	PyModule_AddObject( mod, "Signal",
+		cppy::incref( pyobject_cast( &Signal::TypeObject ) ) );
+	PyModule_AddObject( mod, "BoundSignal",
+		cppy::incref( pyobject_cast( &BoundSignal::TypeObject ) ) );
+	PyModule_AddObject( mod, "CMember",
+		cppy::incref( pyobject_cast( &Member::TypeObject ) ) );
+	PyModule_AddObject( mod, "CAtom",
+		cppy::incref( pyobject_cast( &Atom::TypeObject ) ) );
+	PyModule_AddObject( mod, "ValidationError",
+		cppy::incref( ValidationError ) );
 }

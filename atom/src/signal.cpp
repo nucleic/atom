@@ -118,8 +118,8 @@ PyObject* BoundSignal_richcompare( BoundSignal* self, PyObject* rhs, int op )
 		bool res = false;
 		if( BoundSignal::TypeCheck( rhs ) )
 		{
-			BoundSignal* bsig = boundsignal_cast( rhs );
-			res = self->m_signal == bsig->m_signal && self->m_atom == bsig->m_atom;
+			BoundSignal* other = boundsignal_cast( rhs );
+			res = self->m_signal == other->m_signal && self->m_atom == other->m_atom;
 		}
 		if( op == Py_NE )
 		{

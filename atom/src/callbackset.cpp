@@ -178,8 +178,7 @@ void CallbackSet::dispatch( PyObject* args, PyObject* kwargs )
 	{
 		return;
 	}
-	Py_ssize_t n = PyList_GET_SIZE( list.get() );
-	for( Py_ssize_t i = 0; i < n; ++i )
+	for( Py_ssize_t i = 0, n = PyList_GET_SIZE( list.get() ); i < n; ++i )
 	{
 		PyObject* cb = PyList_GET_ITEM( list.get(), i );
 		if( safeIsTruthy( cb ) )

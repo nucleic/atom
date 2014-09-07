@@ -924,7 +924,7 @@ bool Member::Ready()
 	{
 		return false;
 	}
-	if( !( ValidationError = PyErr_NewException( "catom.ValidationError", 0, 0 ) ) )
+	if( !( ValidationError = PyErr_NewException( "atom.catom.ValidationError", 0, 0 ) ) )
 	{
 		return false;
 	}

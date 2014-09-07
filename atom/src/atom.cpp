@@ -82,7 +82,7 @@ inline CSVector::iterator binaryFind( CSVector* cbsets, Signal* sig )
 }
 
 
-inline PyObject* wrapCallback( PyObject* callback )
+inline PyObject* maybeWrapCallback( PyObject* callback )
 {
 	if( PyMethod_Check( callback ) && PyMethod_GET_SELF( callback ) )
 	{
@@ -100,7 +100,7 @@ Py_ssize_t getsizeof( CSVector* cbsets )
 	{
 		if( it->second.extras() )
 		{
-			Py_ssize_t size = sys_getsizeof( it->second.extras() );
+			Py_ssize_t size = utils::sys_getsizeof( it->second.extras() );
 			if( size < 0 && PyErr_Occurred() )
 			{
 				return -1;
@@ -109,8 +109,8 @@ Py_ssize_t getsizeof( CSVector* cbsets )
 		}
 	}
 	Py_ssize_t vec = static_cast<Py_ssize_t>( sizeof( CSVector ) );
-	Py_ssize_t val = static_cast<Py_ssize_t>( sizeof( CSVector::value_type ) );
 	Py_ssize_t cap = static_cast<Py_ssize_t>( cbsets->capacity() );
+	Py_ssize_t val = static_cast<Py_ssize_t>( sizeof( CSVector::value_type ) );
 	return vec + cap * val + extras;
 }
 
@@ -349,6 +349,10 @@ PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
 		return cppy::type_error( sig, "Signal" );
 	}
 	cppy::ptr rest( PyTuple_GetSlice( args, 1, count ) );
+	if( !rest )
+	{
+		return 0;
+	}
 	self->emit( signal_cast( sig ), rest.get(), kwargs );
 	return cppy::incref( Py_None );
 }
@@ -480,7 +484,7 @@ PyObject* Atom::LookupMembers( PyTypeObject* type )
 
 PyObject* Atom::connect( Signal* sig, PyObject* callback )
 {
-	cppy::ptr wrapped( wrapCallback( callback ) );
+	cppy::ptr wrapped( maybeWrapCallback( callback ) );
 	if( !wrapped )
 	{
 		return 0;

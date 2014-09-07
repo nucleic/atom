@@ -9,7 +9,6 @@
 
 #include "callbackset.h"
 #include "signal.h"
-#include "stdint.h"
 
 #include <cppy/cppy.h>
 #include <Python.h>
@@ -28,8 +27,8 @@ struct Atom
 
 	PyObject_VAR_HEAD
 	PyObject* m_weaklist;
-	PyObject* m_members;
 	CSVector* m_cbsets;
+	PyObject* m_members;
 	PyObject* m_values[1];  // values are inlined in the struct
 
 	static PyTypeObject TypeObject;
