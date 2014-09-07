@@ -13,6 +13,14 @@
 
 #include <algorithm>
 
+#ifdef _WIN32
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
+
 
 #define atom_cast( o ) reinterpret_cast<Atom*>( o )
 #define member_cast( o ) reinterpret_cast<Member*>( o )
@@ -31,6 +39,13 @@ typedef Atom::CSVector CSVector;
 
 
 PyObject* registry;
+
+
+#ifdef _WIN32
+DWORD tls_sender_key;
+#else
+pthread_key_t tls_sender_key;
+#endif
 
 
 struct CmpLess
@@ -358,6 +373,12 @@ PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
 }
 
 
+PyObject* Atom_sender( PyObject* mod, PyObject* args )
+{
+	return Atom::Sender();
+}
+
+
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
 	Py_ssize_t basic = self->ob_type->tp_basicsize;
@@ -392,6 +413,10 @@ PyMethodDef Atom_methods[] = {
 	  ( PyCFunction )Atom_emit,
 	  METH_VARARGS | METH_KEYWORDS,
 	  "emit(signal, *args, **kwargs) emit a signal with the given arguments" },
+	{ "sender",
+	  ( PyCFunction )Atom_sender,
+	  METH_NOARGS | METH_STATIC,
+	  "sender() get the object emitting the current signal (staticmethod)" },
 	{ "__sizeof__",
 	  ( PyCFunction )Atom_sizeof,
 	  METH_NOARGS,
@@ -461,6 +486,20 @@ bool Atom::Ready()
 	{
 		return false;
 	}
+#ifdef _WIN32
+	tls_sender_key = TlsAlloc();
+	if( tls_sender_key == TLS_OUT_OF_INDEXES )
+	{
+		cppy::system_error( "failed to allocate tls key" );
+		return false;
+	}
+#else
+	if( pthread_key_create( &tls_sender_key, 0 ) != 0 )
+	{
+		cppy::system_error( "failed to allocate tls key" );
+		return false;
+	}
+#endif
 	return PyType_Ready( &TypeObject ) == 0;
 }
 
@@ -479,6 +518,17 @@ PyObject* Atom::LookupMembers( PyTypeObject* type )
 		return cppy::incref( members );
 	}
 	return cppy::type_error( "type has no registered members" );
+}
+
+
+PyObject* Atom::Sender()
+{
+#ifdef _WIN32
+	void* curr = TlsGetValue( tls_sender_key );
+#else
+	void* curr = pthread_getspecific( tls_sender_key );
+#endif
+	return cppy::incref( curr ? pyobject_cast( curr ) : Py_None );
 }
 
 
@@ -551,9 +601,17 @@ void Atom::emit( Signal* sig, PyObject* args, PyObject* kwargs )
 		CSVector::iterator it = binaryFind( m_cbsets, sig );
 		if( it != m_cbsets->end() )
 		{
-			// TODO push to a sender stack
+#ifdef _WIN32
+			void* prev = TlsGetValue( tls_sender_key );
+			TlsSetValue( tls_sender_key, this );
 			it->second.dispatch( args, kwargs );
-			// TODO pop from a sender stack
+			TlsSetValue( tls_sender_key, prev );
+#else
+			void* prev = pthread_getspecific( tls_sender_key );
+			pthread_setspecific( tls_sender_key, this );
+			it->second.dispatch( args, kwargs );
+			pthread_setspecific( tls_sender_key, prev );
+#endif
 		}
 	}
 }
