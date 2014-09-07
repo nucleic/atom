@@ -55,36 +55,48 @@ inline bool safeIsTruthy( PyObject* pyo )
 }
 
 
-inline bool safeSetContains( PyObject* set, PyObject* value )
+inline bool safeListContains( PyObject* list, PyObject* value )
 {
-	int ok = PySet_Contains( set, value );
-	if( ok == 1 )
+	for( Py_ssize_t i = 0; i < PyList_GET_SIZE( list ); ++i )
 	{
-		return true;
+		if( safeCmpEqual( PyList_GET_ITEM( list, i ), value ) )
+		{
+			return true;
+		}
 	}
-	if( ok == 0 )
-	{
-		return false;
-	}
-	printAndClearError();
 	return false;
 }
 
 
-inline void safeSetAdd( PyObject* set, PyObject* value )
+inline void safeListAdd( PyObject* list, PyObject* value )
 {
-	if( PySet_Add( set, value ) < 0 )
+	for( Py_ssize_t i = 0; i < PyList_GET_SIZE( list ); ++i )
+	{
+		if( safeCmpEqual( PyList_GET_ITEM( list, i ), value ) )
+		{
+			return;
+		}
+	}
+	if( PyList_Append( list, value ) < 0 )
 	{
 		printAndClearError();
+		return;
 	}
 }
 
 
-inline void safeSetDiscard( PyObject* set, PyObject* value )
+inline void safeListDiscard( PyObject* list, PyObject* value )
 {
-	if( PySet_Discard( set, value ) < 0 )
+	for( Py_ssize_t i = 0; i < PyList_GET_SIZE( list ); ++i )
 	{
-		printAndClearError();
+		if( safeCmpEqual( PyList_GET_ITEM( list, i ), value ) )
+		{
+			if( PyList_SetSlice( list, i, i + 1, 0 ) < 0 )
+			{
+				printAndClearError();
+			}
+			return;
+		}
 	}
 }
 
@@ -98,6 +110,12 @@ inline void safeCallObject( PyObject* cb, PyObject* args, PyObject* kwargs )
 	}
 }
 
+
+inline PyObject* copyList( PyObject* list )
+{
+	return PyList_GetSlice( list, 0, PyList_GET_SIZE( list ) );
+}
+
 } // namespace
 
 
@@ -107,7 +125,7 @@ void CallbackSet::add( PyObject* callback )
 	{
 		return;
 	}
-	if( m_extras && safeSetContains( m_extras.get(), callback ) )
+	if( m_extras && safeListContains( m_extras.get(), callback ) )
 	{
 		return;
 	}
@@ -116,12 +134,12 @@ void CallbackSet::add( PyObject* callback )
 		m_single = cppy::incref( callback );
 		return;
 	}
-	if( !m_extras && !( m_extras = PySet_New( 0 ) ) )
+	if( !m_extras && !( m_extras = PyList_New( 0 ) ) )
 	{
 		printAndClearError();
 		return;
 	}
-	safeSetAdd( m_extras.get(), callback );
+	safeListAdd( m_extras.get(), callback );
 }
 
 
@@ -133,7 +151,7 @@ void CallbackSet::remove( PyObject* callback )
 	}
 	else if( m_extras )
 	{
-		safeSetDiscard( m_extras.get(), callback );
+		safeListDiscard( m_extras.get(), callback );
 	}
 }
 
@@ -141,7 +159,7 @@ void CallbackSet::remove( PyObject* callback )
 void CallbackSet::dispatch( PyObject* args, PyObject* kwargs )
 {
 	cppy::ptr list;
-	if( m_extras && !( list = PySequence_List( m_extras.get() ) ) )
+	if( m_extras && !( list = copyList( m_extras.get() ) ) )
 	{
 		printAndClearError();
 	}
@@ -170,7 +188,7 @@ void CallbackSet::dispatch( PyObject* args, PyObject* kwargs )
 		}
 		else
 		{
-			safeSetDiscard( m_extras.get(), cb );
+			safeListDiscard( m_extras.get(), cb );
 		}
 	}
 }
