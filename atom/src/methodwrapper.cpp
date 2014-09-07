@@ -6,7 +6,6 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "methodwrapper.h"
-#include "py23compat.h"
 
 #include <cppy/cppy.h>
 
@@ -47,16 +46,23 @@ void MethodWrapper_dealloc( MethodWrapper* self )
 PyObject* MethodWrapper_call( MethodWrapper* self, PyObject* args, PyObject* kwargs )
 {
 	PyObject* pyo = PyWeakref_GET_OBJECT( self->m_obref );
-	if( pyo != Py_None )
+	if( pyo == Py_None )
 	{
-		cppy::ptr method( Py23Method_New( self->m_func, pyo ) );
-		if( !method )
-		{
-			return 0;
-		}
-		return method.call( args, kwargs );
+		return cppy::incref( Py_None );
 	}
-	return cppy::incref( Py_None );
+	Py_ssize_t count = PyTuple_GET_SIZE( args );
+	cppy::ptr newargs( PyTuple_New( count + 1 ) );
+	if( !newargs )
+	{
+		return 0;
+	}
+	PyTuple_SET_ITEM( newargs.get(), 0, cppy::incref( pyo ) );
+	for( Py_ssize_t i = 0; i < count; ++i )
+	{
+		PyObject* v = PyTuple_GET_ITEM( args, i );
+		PyTuple_SET_ITEM( newargs.get(), i + 1, cppy::incref( v ) );
+	}
+	return PyObject_Call( self->m_func, newargs.get(), kwargs );
 }
 
 
@@ -67,14 +73,14 @@ PyObject* MethodWrapper_richcompare( MethodWrapper* self, PyObject* rhs, int op 
 		bool res = false;
 		if( MethodWrapper::TypeCheck( rhs ) )
 		{
-			MethodWrapper* mw = methodwrapper_cast( rhs );
-			res = self->m_func == mw->m_func && self->m_obref == mw->m_obref;
+			MethodWrapper* other = methodwrapper_cast( rhs );
+			res = self->m_func == other->m_func && self->m_obref == other->m_obref;
 		}
 		else if ( PyMethod_Check( rhs ) && PyMethod_GET_SELF( rhs ) )
 		{
+			PyObject* ob1 = PyWeakref_GET_OBJECT( self->m_obref );
+			PyObject* ob2 = PyMethod_GET_SELF( rhs );
 			PyObject* func = PyMethod_GET_FUNCTION( rhs );
-			PyObject* ob1 = PyMethod_GET_SELF( rhs );
-			PyObject* ob2 = PyWeakref_GET_OBJECT( self->m_obref );
 			res = self->m_func == func && ob1 == ob2;
 		}
 		if( op == Py_NE )
