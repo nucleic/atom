@@ -75,6 +75,10 @@ def validation_message(prefix, member, atom, value):
     value : object
         The invalid member value.
 
+    Returns
+    -------
+    result : str
+
     """
     type_name = add_article(type(atom).__name__)
     repr_value = '%r %r' % (value, type(value))
@@ -99,28 +103,39 @@ def member_message(member, atom, name, value):
     value : object
         The invalid member value.
 
+    Returns
+    -------
+    result : str
+
     """
     prefix = "The '%s' member" % name
     return validation_message(prefix, member, atom, value)
 
 
-def element_message(member, atom, name, value):
-    """ Create an error message for an element validation error.
+def container_message(container, kind, name, value):
+    """ Create an error message for a container validation error.
 
     Parameters
     ----------
-    member : Member
-        The member involved in the error.
+    container : object
+        The container object.
 
-    atom : Atom
-        The Atom object involved in the error.
+    kine : type
+        The required type of the value.
 
     name : str
-        The name of the member involved in the error.
+        The name to use when referring to the value.
 
     value : object
-        The invalid member value.
+        The invalid container value.
+
+    Returns
+    -------
+    result : str
 
     """
-    prefix = "Each element of the '%s' member" % name
-    return validation_message(prefix, member, atom, value)
+    msg = "Each %s of %s must be %s, but a value of %s was specified."
+    container_name = add_article(type(container).__name__)
+    kind_name = add_article(kind.__name__)
+    value_name = '%r %r' % (value, type(value))
+    return msg % (name, container_name, kind_name, value_name)
