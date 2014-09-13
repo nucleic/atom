@@ -7,25 +7,21 @@
 #------------------------------------------------------------------------------
 from .atom import Atom, AtomMeta
 from .catom import BoundSignal, Signal, ValidationError
-from .intenum import IntEnum
+from .list import List
 from .members import (
     Bool,
     Bytes,
     Callable,
     Coerced,
-    # Dict,
     Enum,
     Float,
     Instance,
     Int,
-    # List,
     Member,
     Range,
-    # Set,
     Str,
     Subclass,
-    # Tuple,
     Typed,
     Unicode,
-    Value
+    Value,
 )
