@@ -63,6 +63,28 @@ PyObject* validation_error( Member* member, PyObject* atom, PyObject* name, PyOb
 }
 
 
+bool is_type_or_tuple_of_types( PyObject* pyo )
+{
+	if( PyType_Check( pyo ) )
+	{
+		return true;
+	}
+	if( !PyTuple_Check( pyo ) )
+	{
+		return false;
+	}
+	Py_ssize_t count = PyTuple_GET_SIZE( pyo );
+	for( Py_ssize_t i = 0; i < count; ++i )
+	{
+		if( !is_type_or_tuple_of_types( PyTuple_GET_ITEM( pyo, i ) ) )
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
 bool check_context( Member::DefaultMode mode, PyObject* context )
 {
 	switch( mode )
@@ -123,13 +145,13 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 			break;
 		}
 		case Member::ValidateInstance:
-		{
-			// XXX validate a valid isinstance context for Instance?
-			break;
-		}
 		case Member::ValidateSubclass:
 		{
-			// XXX validate a valid issubclass context for Subclass?
+			if( !is_type_or_tuple_of_types( context ) )
+			{
+				cppy::type_error( context, "type or tuple of types" );
+				return false;
+			}
 			break;
 		}
 		case Member::ValidateEnum:
@@ -148,7 +170,12 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 				cppy::type_error( context, "3-tuple of (low, high, kind)" );
 				return false;
 			}
-			// XXX validate valid isinstance context for range kind?
+			PyObject* kind = PyTuple_GET_ITEM( context, 2 );
+			if( !is_type_or_tuple_of_types( kind ) )
+			{
+				cppy::type_error( kind, "type or tuple of types" );
+				return false;
+			}
 			break;
 		}
 		case Member::ValidateCoerced:
@@ -158,12 +185,17 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 				cppy::type_error( context, "2-tuple of (kind, callable)" );
 				return false;
 			}
+			PyObject* kind = PyTuple_GET_ITEM( context, 0 );
+			if( !is_type_or_tuple_of_types( kind ) )
+			{
+				cppy::type_error( kind, "type or tuple of types" );
+				return false;
+			}
 			if( !PyCallable_Check( PyTuple_GET_ITEM( context, 1 ) ) )
 			{
 				cppy::type_error( context, "2-tuple of (kind, callable)" );
 				return false;
 			}
-			// XXX validate valid isinstance context for kind?
 			break;
 		}
 		case Member::ValidateCallObject:
