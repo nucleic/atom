@@ -265,6 +265,10 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 	Member* member = member_cast( PyDict_GetItem( self->m_members, name ) );
 	if( member )
 	{
+		if( self->m_values[ member->index() ] == value )
+		{
+			return 0;
+		}
 		if( !value )
 		{
 			cppy::clear( &self->m_values[ member->index() ] );
