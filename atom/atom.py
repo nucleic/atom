@@ -27,8 +27,7 @@ class AtomMeta(type):
     All classes deriving from Atom are automatically slotted.
 
     """
-    def __new__(meta, name, bases, dct):
-        return _atom_meta_create_class(meta, name, bases, dct)
+    __new__ = _atom_meta_create_class
 
 
 class Atom(CAtom):
