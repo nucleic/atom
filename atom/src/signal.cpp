@@ -133,7 +133,7 @@ PyObject* BoundSignal_richcompare( BoundSignal* self, PyObject* rhs, int op )
 
 PyObject* BoundSignal_call( BoundSignal* self, PyObject* args, PyObject* kwargs )
 {
-	self->m_atom->emit( self->m_signal, args, kwargs );
+	Atom::Emit( self->m_atom, self->m_signal, args, kwargs );
 	return cppy::incref( Py_None );
 }
 
@@ -144,7 +144,7 @@ PyObject* BoundSignal_connect( BoundSignal* self, PyObject* callback )
 	{
 		return cppy::type_error( callback, "callable" );
 	}
-	return self->m_atom->connect( self->m_signal, callback );
+	return Atom::Connect( self->m_atom, self->m_signal, callback );
 }
 
 
@@ -161,11 +161,11 @@ PyObject* BoundSignal_disconnect( BoundSignal* self, PyObject* args )
 	}
 	if( !callback )
 	{
-		self->m_atom->disconnect( self->m_signal );
+		Atom::Disconnect( self->m_atom, self->m_signal );
 	}
 	else
 	{
-		self->m_atom->disconnect( self->m_signal, callback );
+		Atom::Disconnect( self->m_atom, self->m_signal, callback );
 	}
 	return cppy::incref( Py_None );
 }

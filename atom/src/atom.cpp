@@ -303,13 +303,18 @@ PyObject* Atom_get_members( Atom* self, PyObject* args )
 }
 
 
-PyObject* Atom_connect( Atom* self, PyObject* args )
+PyObject* Atom_connect( PyObject* ignored, PyObject* args )
 {
+	PyObject* pyo;
 	PyObject* sig;
 	PyObject* callback;
-	if( !PyArg_ParseTuple( args, "OO", &sig, &callback ) )
+	if( !PyArg_ParseTuple( args, "OOO", &pyo, &sig, &callback ) )
 	{
 		return 0;
+	}
+	if( !Atom::TypeCheck( pyo ) )
+	{
+		return cppy::type_error( pyo, "Atom" );
 	}
 	if( !Signal::TypeCheck( sig ) )
 	{
@@ -319,17 +324,22 @@ PyObject* Atom_connect( Atom* self, PyObject* args )
 	{
 		return cppy::type_error( callback, "callable" );
 	}
-	return self->connect( signal_cast( sig ), callback );
+	return Atom::Connect( atom_cast( pyo ), signal_cast( sig ), callback );
 }
 
 
-PyObject* Atom_disconnect( Atom* self, PyObject* args )
+PyObject* Atom_disconnect( PyObject* ignored, PyObject* args )
 {
+	PyObject* pyo;
 	PyObject* sig = 0;
 	PyObject* callback = 0;
-	if( !PyArg_ParseTuple( args, "|OO", &sig, &callback ) )
+	if( !PyArg_ParseTuple( args, "O|OO", &pyo, &sig, &callback ) )
 	{
 		return 0;
+	}
+	if( !Atom::TypeCheck( pyo ) )
+	{
+		return cppy::type_error( pyo, "Atom" );
 	}
 	if( sig && !Signal::TypeCheck( sig ) )
 	{
@@ -341,38 +351,43 @@ PyObject* Atom_disconnect( Atom* self, PyObject* args )
 	}
 	if( !sig )
 	{
-		self->disconnect();
+		Atom::Disconnect( atom_cast( pyo ) );
 	}
 	else if( !callback )
 	{
-		self->disconnect( signal_cast( sig ) );
+		Atom::Disconnect( atom_cast( pyo ), signal_cast( sig ) );
 	}
 	else
 	{
-		self->disconnect( signal_cast( sig ), callback );
+		Atom::Disconnect( atom_cast( pyo ), signal_cast( sig ), callback );
 	}
 	return cppy::incref( Py_None );
 }
 
 
-PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
+PyObject* Atom_emit( PyObject* ignored, PyObject* args, PyObject* kwargs )
 {
 	Py_ssize_t count = PyTuple_GET_SIZE( args );
-	if( count == 0 )
+	if( count < 2 )
 	{
-		return cppy::type_error( "emit() takes at least 1 argument (0 given)" );
+		return cppy::type_error( "Atom.emit() takes at least 2 arguments" );
 	}
-	PyObject* sig = PyTuple_GET_ITEM( args, 0 );
+	PyObject* pyo = PyTuple_GET_ITEM( args, 0 );
+	PyObject* sig = PyTuple_GET_ITEM( args, 1 );
+	if( !Atom::TypeCheck( pyo ) )
+	{
+		return cppy::type_error( pyo, "Atom" );
+	}
 	if( !Signal::TypeCheck( sig ) )
 	{
 		return cppy::type_error( sig, "Signal" );
 	}
-	cppy::ptr rest( PyTuple_GetSlice( args, 1, count ) );
+	cppy::ptr rest( PyTuple_GetSlice( args, 2, count ) );
 	if( !rest )
 	{
 		return 0;
 	}
-	self->emit( signal_cast( sig ), rest.get(), kwargs );
+	Atom::Emit( atom_cast( pyo ), signal_cast( sig ), rest.get(), kwargs );
 	return cppy::incref( Py_None );
 }
 
@@ -407,20 +422,20 @@ PyMethodDef Atom_methods[] = {
 	  "get_members() get all of the members for the object as a dict" },
 	{ "connect",
 	  ( PyCFunction )Atom_connect,
-	  METH_VARARGS,
-	  "connect(signal, callback) connect a signal to a callback" },
+	  METH_VARARGS | METH_STATIC,
+	  "Atom.connect(atom, signal, callback) connect a signal to a callback" },
 	{ "disconnect",
 	  ( PyCFunction )Atom_disconnect,
-	  METH_VARARGS,
-	  "disconnect([signal[, callback]) disconnect a signal from a callback" },
+	  METH_VARARGS | METH_STATIC,
+	  "Atom.disconnect(atom[, signal[, callback]) disconnect a signal from a callback" },
 	{ "emit",
 	  ( PyCFunction )Atom_emit,
-	  METH_VARARGS | METH_KEYWORDS,
-	  "emit(signal, *args, **kwargs) emit a signal with the given arguments" },
+	  METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	  "Atom.emit(atom, signal, *args, **kwargs) emit a signal with the given arguments" },
 	{ "sender",
 	  ( PyCFunction )Atom_sender,
 	  METH_NOARGS | METH_STATIC,
-	  "sender() get the object emitting the current signal (staticmethod)" },
+	  "Atom.sender() get the object emitting the current signal" },
 	{ "__sizeof__",
 	  ( PyCFunction )Atom_sizeof,
 	  METH_NOARGS,
@@ -536,23 +551,23 @@ PyObject* Atom::Sender()
 }
 
 
-PyObject* Atom::connect( Signal* sig, PyObject* callback )
+PyObject* Atom::Connect( Atom* atom, Signal* sig, PyObject* callback )
 {
 	cppy::ptr wrapped( maybeWrapCallback( callback ) );
 	if( !wrapped )
 	{
 		return 0;
 	}
-	if( !m_cbsets )
+	if( !atom->m_cbsets )
 	{
-		m_cbsets = new CSVector();
+		atom->m_cbsets = new CSVector();
 	}
 	cppy::ptr pyptr( pyobject_cast( sig ), true );
-	CSVector::iterator it = lowerBound( m_cbsets, sig );
-	if( it == m_cbsets->end() || it->first != pyptr )
+	CSVector::iterator it = lowerBound( atom->m_cbsets, sig );
+	if( it == atom->m_cbsets->end() || it->first != pyptr )
 	{
 		CallbackSet cbset( wrapped.get() );
-		m_cbsets->insert( it, CSPair( pyptr, cbset ) );
+		atom->m_cbsets->insert( it, CSPair( pyptr, cbset ) );
 	}
 	else
 	{
@@ -562,35 +577,35 @@ PyObject* Atom::connect( Signal* sig, PyObject* callback )
 }
 
 
-void Atom::disconnect()
+void Atom::Disconnect( Atom* atom )
 {
-	if( m_cbsets )
+	if( atom->m_cbsets )
 	{
 		CSVector temp;  // safe clear
-		m_cbsets->swap( temp );
+		atom->m_cbsets->swap( temp );
 	}
 }
 
 
-void Atom::disconnect( Signal* sig )
+void Atom::Disconnect( Atom* atom, Signal* sig )
 {
-	if( m_cbsets )
+	if( atom->m_cbsets )
 	{
-		CSVector::iterator it = binaryFind( m_cbsets, sig );
-		if( it != m_cbsets->end() )
+		CSVector::iterator it = binaryFind( atom->m_cbsets, sig );
+		if( it != atom->m_cbsets->end() )
 		{
-			m_cbsets->erase( it );
+			atom->m_cbsets->erase( it );
 		}
 	}
 }
 
 
-void Atom::disconnect( Signal* sig, PyObject* callback )
+void Atom::Disconnect( Atom* atom, Signal* sig, PyObject* callback )
 {
-	if( m_cbsets )
+	if( atom->m_cbsets )
 	{
-		CSVector::iterator it = binaryFind( m_cbsets, sig );
-		if( it != m_cbsets->end() )
+		CSVector::iterator it = binaryFind( atom->m_cbsets, sig );
+		if( it != atom->m_cbsets->end() )
 		{
 			it->second.remove( callback );
 		}
@@ -598,21 +613,21 @@ void Atom::disconnect( Signal* sig, PyObject* callback )
 }
 
 
-void Atom::emit( Signal* sig, PyObject* args, PyObject* kwargs )
+void Atom::Emit( Atom* atom, Signal* sig, PyObject* args, PyObject* kwargs )
 {
-	if( m_cbsets )
+	if( atom->m_cbsets )
 	{
-		CSVector::iterator it = binaryFind( m_cbsets, sig );
-		if( it != m_cbsets->end() )
+		CSVector::iterator it = binaryFind( atom->m_cbsets, sig );
+		if( it != atom->m_cbsets->end() )
 		{
 #ifdef _WIN32
 			void* prev = TlsGetValue( tls_sender_key );
-			TlsSetValue( tls_sender_key, this );
+			TlsSetValue( tls_sender_key, atom );
 			it->second.dispatch( args, kwargs );
 			TlsSetValue( tls_sender_key, prev );
 #else
 			void* prev = pthread_getspecific( tls_sender_key );
-			pthread_setspecific( tls_sender_key, this );
+			pthread_setspecific( tls_sender_key, atom );
 			it->second.dispatch( args, kwargs );
 			pthread_setspecific( tls_sender_key, prev );
 #endif

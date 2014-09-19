@@ -28,7 +28,7 @@ struct Atom
 	PyObject_VAR_HEAD
 	PyObject* m_weaklist;
 	CSVector* m_cbsets;
-	PyObject* m_members;
+	PyObject* m_members;    // members are shared by all instances
 	PyObject* m_values[1];  // values are inlined in the struct
 
 	static PyTypeObject TypeObject;
@@ -46,15 +46,15 @@ struct Atom
 
 	static PyObject* Sender();
 
-	PyObject* connect( Signal* sig, PyObject* callback );
+	static PyObject* Connect( Atom* atom, Signal* sig, PyObject* callback );
 
-	void disconnect();
+	static void Disconnect( Atom* atom );
 
-	void disconnect( Signal* sig );
+	static void Disconnect( Atom* atom, Signal* sig );
 
-	void disconnect( Signal* sig, PyObject* callback );
+	static void Disconnect( Atom* atom, Signal* sig, PyObject* callback );
 
-	void emit( Signal* sig, PyObject* args, PyObject* kwargs = 0 );
+	static void Emit( Atom* atom, Signal* sig, PyObject* args, PyObject* kwargs = 0 );
 };
 
 } // namespace atom
