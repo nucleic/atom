@@ -14,7 +14,7 @@ namespace atom
 {
 
 // POD struct - all member fields are considered private
-struct AtomList
+struct TypedList
 {
 	PyListObject list;
 	PyObject* m_value_type;
@@ -28,7 +28,7 @@ struct AtomList
 		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
 	}
 
-	static PyObject* Create( PyObject* value_type );
+	static PyObject* Create( PyObject* value_type, PyObject* values );
 };
 
 } // namespace atom
