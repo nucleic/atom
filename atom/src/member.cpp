@@ -190,9 +190,10 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 				cppy::type_error( kind, "type or tuple of types" );
 				return false;
 			}
-			if( !PyCallable_Check( PyTuple_GET_ITEM( context, 1 ) ) )
+			PyObject* callable = PyTuple_GET_ITEM( context, 1 );
+			if( !PyCallable_Check( callable ) )
 			{
-				cppy::type_error( context, "2-tuple of (kind, callable)" );
+				cppy::type_error( callable, "callable" );
 				return false;
 			}
 			break;
