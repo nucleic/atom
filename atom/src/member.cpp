@@ -8,6 +8,7 @@
 #include "member.h"
 #include "atom.h"
 #include "errors.h"
+#include "utils.h"
 #include "py23compat.h"
 
 #include <cppy/cppy.h>
@@ -57,28 +58,6 @@ PyObject* validation_error( Member* member, PyObject* atom, PyObject* name, PyOb
 		return 0;
 	}
 	return cppy::system_error( "member failed to raise validation error" );
-}
-
-
-bool is_type_or_tuple_of_types( PyObject* pyo )
-{
-	if( PyType_Check( pyo ) )
-	{
-		return true;
-	}
-	if( !PyTuple_Check( pyo ) )
-	{
-		return false;
-	}
-	Py_ssize_t count = PyTuple_GET_SIZE( pyo );
-	for( Py_ssize_t i = 0; i < count; ++i )
-	{
-		if( !is_type_or_tuple_of_types( PyTuple_GET_ITEM( pyo, i ) ) )
-		{
-			return false;
-		}
-	}
-	return true;
 }
 
 
@@ -144,7 +123,7 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 		case Member::ValidateInstance:
 		case Member::ValidateSubclass:
 		{
-			if( !is_type_or_tuple_of_types( context ) )
+			if( !utils::is_type_or_tuple_of_types( context ) )
 			{
 				cppy::type_error( context, "type or tuple of types" );
 				return false;
@@ -168,7 +147,7 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 				return false;
 			}
 			PyObject* kind = PyTuple_GET_ITEM( context, 2 );
-			if( !is_type_or_tuple_of_types( kind ) )
+			if( !utils::is_type_or_tuple_of_types( kind ) )
 			{
 				cppy::type_error( kind, "type or tuple of types" );
 				return false;
@@ -183,7 +162,7 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 				return false;
 			}
 			PyObject* kind = PyTuple_GET_ITEM( context, 0 );
-			if( !is_type_or_tuple_of_types( kind ) )
+			if( !utils::is_type_or_tuple_of_types( kind ) )
 			{
 				cppy::type_error( kind, "type or tuple of types" );
 				return false;
