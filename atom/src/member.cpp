@@ -58,8 +58,7 @@ PyObject* validation_error( Member* member, PyObject* atom, PyObject* name, PyOb
 	{
 		return 0;
 	}
-	cppy::system_error( "member failed to raise validation error" );
-	return 0;
+	return cppy::system_error( "member failed to raise validation error" );
 }
 
 
