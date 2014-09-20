@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include "member.h"
 #include "atom.h"
+#include "errors.h"
 #include "py23compat.h"
 
 #include <cppy/cppy.h>
@@ -20,9 +21,6 @@
 namespace atom
 {
 
-PyObject* ValidationError;
-
-
 namespace
 {
 
@@ -34,7 +32,7 @@ PyObject* validation_error( Member* member, PyObject* atom, PyObject* name, PyOb
 {
 	if( PyErr_Occurred() )
 	{
-		if( PyErr_ExceptionMatches( ValidationError ) )
+		if( PyErr_ExceptionMatches( Errors::ValidationError ) )
 		{
 			PyErr_Clear();
 		}
@@ -953,10 +951,6 @@ PyTypeObject Member::TypeObject = {
 bool Member::Ready()
 {
 	if( PyType_Ready( &TypeObject ) != 0 )
-	{
-		return false;
-	}
-	if( !( ValidationError = PyErr_NewException( "atom.catom.ValidationError", 0, 0 ) ) )
 	{
 		return false;
 	}

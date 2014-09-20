@@ -15,9 +15,6 @@
 namespace atom
 {
 
-extern PyObject* ValidationError;
-
-
 // POD struct - all member fields are considered private
 struct Member
 {
