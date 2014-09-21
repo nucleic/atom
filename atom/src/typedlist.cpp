@@ -75,7 +75,7 @@ PyObject* TypedList_extend( TypedList* self, PyObject* iterable );
 
 PyObject* TypedList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-	PyObject* self = PyType_GenericNew( type, args, kwargs );
+	PyObject* self = PyList_Type.tp_new( type, args, kwargs );
 	if( !self )
 	{
 		return 0;
