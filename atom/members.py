@@ -719,6 +719,8 @@ class List(Value):
     type to such a member.
 
     """
+    __slots__ = ()
+
     def __init__(self, kind=object, default=[], factory=None, **metadata):
         """ Initialize a Value member.
 
