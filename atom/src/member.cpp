@@ -30,7 +30,8 @@ PyObject* empty_tuple;
 
 PyObject* validation_error( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
-	cppy::ptr method( PyObject_GetAttrString( pyobject_cast( member ), "validation_error" ) );
+	cppy::ptr memberptr( pyobject_cast( member ), true );
+	cppy::ptr method( memberptr.getattr( "validation_error" ) );
 	if( !method )
 	{
 		return 0;
