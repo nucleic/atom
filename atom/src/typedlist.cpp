@@ -6,7 +6,6 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "typedlist.h"
-#include "errors.h"
 #include "utils.h"
 
 #include <cppy/cppy.h>
@@ -21,10 +20,25 @@ namespace atom
 namespace
 {
 
-inline void validation_error( TypedList* list, PyObject* value )
+void validation_error( TypedList* list, PyObject* value )
 {
-	// TODO impelement me
-	PyErr_SetString( Errors::ValidationError, "invalid element type" );
+	cppy::ptr listptr( pyobject_cast( list ), true );
+	cppy::ptr method( listptr.getattr( "validation_error" ) );
+	if( !method )
+	{
+		return;
+	}
+	cppy::ptr args( PyTuple_Pack( 1, value ) );
+	if( !args )
+	{
+		return;
+	}
+	cppy::ptr result( method.call( args ) );
+	if( !result )
+	{
+		return;
+	}
+	cppy::system_error( "typed list failed to raise validation error" );
 }
 
 
@@ -66,11 +80,8 @@ PyObject* TypedList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	{
 		return 0;
 	}
-	// ensure m_value_type is never null
-	// overridden by the __init__ method
 	TypedList* list = reinterpret_cast<TypedList*>( self );
-	PyObject* object = pyobject_cast( &PyBaseObject_Type );
-	list->m_value_type = cppy::incref( object );
+	list->m_value_type = cppy::incref( pyobject_cast( &PyBaseObject_Type ) );
 	return self;
 }
 
@@ -354,24 +365,6 @@ PyTypeObject TypedList::TypeObject = {
 bool TypedList::Ready()
 {
 	return PyType_Ready( &TypeObject ) == 0;
-}
-
-
-PyObject* TypedList::Create( PyObject* value_type, PyObject* values )
-{
-	PyObject* pyo = PyType_GenericNew( &TypedList::TypeObject, 0, 0 );
-	if( !pyo )
-	{
-		return 0;
-	}
-	TypedList* list = reinterpret_cast<TypedList*>( pyo );
-	list->m_value_type = cppy::incref( value_type );
-	cppy::ptr ignored( TypedList_extend( list, values ) );
-	if( !ignored )
-	{
-		return 0;
-	}
-	return pyo;
 }
 
 } // namespace atom

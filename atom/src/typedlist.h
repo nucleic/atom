@@ -27,8 +27,6 @@ struct TypedList
 	{
 		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
 	}
-
-	static PyObject* Create( PyObject* value_type, PyObject* values );
 };
 
 } // namespace atom
