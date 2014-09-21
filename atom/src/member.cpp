@@ -7,7 +7,6 @@
 |----------------------------------------------------------------------------*/
 #include "member.h"
 #include "atom.h"
-#include "errors.h"
 #include "utils.h"
 #include "py23compat.h"
 
