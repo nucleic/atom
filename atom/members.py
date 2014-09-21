@@ -5,7 +5,9 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import CMember, ValidationError
+from .catom import CMember
+from .errors import ValidationError
+from .formatting import add_article, kind_repr
 
 
 class Member(CMember):
@@ -696,72 +698,3 @@ class Coerced(Value):
         """
         kind = self.validate_mode[1][0]
         return 'coercible to ' + kind_repr(kind)
-
-
-def add_article(noun):
-    """ Prefix a noun with the proper article 'a' or 'an'.
-
-    Parameters
-    ----------
-    noun : str
-        The noun to be prefixed with a proper article.
-
-    Returns
-    -------
-    result : str
-        The prefixed noun.
-
-    """
-    if noun[0].lower() in 'aeiou':
-        return 'an ' + noun
-    return 'a ' + noun
-
-
-def kind_names(kind):
-    """ Create a list of type names from a type or tuple of types.
-
-    Parameters
-    ----------
-    kind : type or tuple of types
-        The type(s) of interest. The semantics of this argument is
-        the same as the second argument to the builtin isinstance().
-
-    Returns
-    -------
-    result : list
-        The flat list of type names.
-
-    """
-    if not isinstance(kind, tuple):
-        return [kind.__name__]
-    return sum(map(kind_names, kind), [])
-
-
-def kind_repr(kind):
-    """ Create a string description for a kind argument.
-
-    Parameters
-    ----------
-    kind : type or tuple of types
-        The type(s) of interest. The semantics of this argument is
-        the same as the second argument to the builtin isinstance().
-
-    Returns
-    -------
-    result : str
-        The expanding string representation.
-
-    """
-    names = kind_names(kind)
-    count = len(names)
-    if count == 0:
-        return ''
-    if count == 1:
-        return names[0]
-    if count == 2:
-        return names[0] + " or " + names[1]
-    result = names[0]
-    for name in names[1:-1]:
-        result += ", " + name
-    result += ", or " + names[-1]
-    return result
