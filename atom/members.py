@@ -8,6 +8,7 @@
 from .catom import CMember
 from .errors import ValidationError
 from .formatting import add_article, kind_repr
+from .typedlist import TypedList
 
 
 class Member(CMember):
@@ -698,3 +699,53 @@ class Coerced(Value):
         """
         kind = self.validate_mode[1][0]
         return 'coercible to ' + kind_repr(kind)
+
+
+class List(Value):
+    """ A member which accepts a list of a given element type.
+
+    A List() member has copy-on-assignment semantics similar to C++
+    containers. This behavior is required to ensure that in-place
+    modifications to the list can be type-checked.
+
+    If non-copying behavior (reference semantics) is required, use
+    a Typed(list) member instead. Note that in-place modifications
+    to such a list cannot be type-checked.
+
+    If reference semantics AND in-place type-checking is required,
+    use a Typed(TypedList, (value_type,)) member. Note that direct
+    assignment of a list literal to such a member is not valid. It
+    is also possible to assign a TypedList with a different value
+    type to such a member.
+
+    """
+    def __init__(self, kind=object, default=[], factory=None, **metadata):
+        """ Initialize a Value member.
+
+        Parameters
+        ----------
+        kind : type or tuple of types
+            The allowed type or types for the list elements.
+
+        default : list, optional
+            The default list for the member.
+
+        factory : callable, optional
+            A callable object which is called with zero arguments and
+            returns a default list for the member. This factory will
+            take precedence over any value given by `default`.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        super(List, self).__init__(default, factory, **metadata)
+        self.validate_mode = (CMember.ValidateList, (kind, TypedList))
+
+    @property
+    def type_info(self):
+        """ The type info for a Coerced member.
+
+        """
+        kind = self.validate_mode[1][0]
+        return 'a list of ' + kind_repr(kind)

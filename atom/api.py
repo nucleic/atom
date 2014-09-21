@@ -17,6 +17,7 @@ from .members import (
     Float,
     Instance,
     Int,
+    List,
     Member,
     Range,
     Str,

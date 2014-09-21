@@ -54,6 +54,7 @@ struct Member
 		ValidateCallable,
 		ValidateRange,
 		ValidateCoerced,
+		ValidateList,
 		ValidateCallObject,
 		ValidateMemberMethod,
 		ValidateLast // sentinel
