@@ -746,7 +746,7 @@ class List(Value):
 
     @property
     def type_info(self):
-        """ The type info for a Coerced member.
+        """ The type info for a List member.
 
         """
         kind = self.validate_mode[1][0]
