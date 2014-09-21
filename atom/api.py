@@ -26,4 +26,4 @@ from .members import (
     Unicode,
     Value,
 )
-from typedlist import TypedList
+from .typedlist import TypedList
