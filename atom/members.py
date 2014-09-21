@@ -28,8 +28,8 @@ class Member(CMember):
 
         This is called by the C++ layer when value validation fails.
 
-        This method can be reimplemented by subclasses as needed to
-        raise a customized ValidationError.
+        This method may be reimplemented by subclasses if necessary
+        in order to raise a custom ValidationError.
 
         Parameters
         ----------
