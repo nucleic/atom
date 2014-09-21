@@ -13,7 +13,6 @@
 
 
 #define pyobject_cast( o ) reinterpret_cast<PyObject*>( o )
-#define typedlist_cast( o ) reinterpret_cast<TypedList*>( o )
 
 
 namespace atom
@@ -25,11 +24,11 @@ namespace
 inline void validation_error( TypedList* list, PyObject* value )
 {
 	// TODO impelement me
-	PyErr_SetString( Errors::ValidationError, "foo" );
+	PyErr_SetString( Errors::ValidationError, "invalid element type" );
 }
 
 
-inline bool validate( TypedList* list, PyObject* value )
+inline bool validate_value( TypedList* list, PyObject* value )
 {
 	int ok = PyObject_IsInstance( value, list->m_value_type );
 	if( ok == 1 )
@@ -44,21 +43,16 @@ inline bool validate( TypedList* list, PyObject* value )
 }
 
 
-inline PyObject* validate_sequence( TypedList* list, PyObject* value )
+inline bool validate_list( TypedList* list, PyObject* value )
 {
-	cppy::ptr res( value, true );
-	if( !PyList_Check( res.get() ) && !( res = PySequence_List( value ) ) )
+	for( Py_ssize_t i = 0; i < PyList_GET_SIZE( value ); ++i )
 	{
-		return 0;
-	}
-	for( Py_ssize_t i = 0; i < PyList_GET_SIZE( res.get() ); ++i )
-	{
-		if( !validate( list, PyList_GET_ITEM( res.get(), i ) ) )
+		if( !validate_value( list, PyList_GET_ITEM( value, i ) ) )
 		{
-			return 0;
+			return false;
 		}
 	}
-	return res.release();
+	return true;
 }
 
 
@@ -73,7 +67,8 @@ PyObject* TypedList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 		return 0;
 	}
 	// ensure m_value_type is never null
-	TypedList* list = typedlist_cast( self );
+	// overridden by the __init__ method
+	TypedList* list = reinterpret_cast<TypedList*>( self );
 	PyObject* object = pyobject_cast( &PyBaseObject_Type );
 	list->m_value_type = cppy::incref( object );
 	return self;
@@ -101,8 +96,8 @@ int TypedList_init( TypedList* self, PyObject* args, PyObject* kwargs )
 	cppy::replace( &self->m_value_type, value_type );
 	if( sequence )
 	{
-		cppy::ptr res( TypedList_extend( self, sequence ) );
-		if( !res )
+		cppy::ptr ignored( TypedList_extend( self, sequence ) );
+		if( !ignored )
 		{
 			return -1;
 		}
@@ -140,7 +135,7 @@ PyObject* TypedList_get_value_type( TypedList* self, void* context )
 
 PyObject* TypedList_append( TypedList* self, PyObject* value )
 {
-	if( !validate( self, value ) )
+	if( !validate_value( self, value ) )
 	{
 		return 0;
 	}
@@ -154,8 +149,12 @@ PyObject* TypedList_append( TypedList* self, PyObject* value )
 
 PyObject* TypedList_extend( TypedList* self, PyObject* value )
 {
-	cppy::ptr list( validate_sequence( self, value ) );
-	if( !list )
+	cppy::ptr list( value, true );
+	if( !PyList_Check( value ) && !( list = PySequence_List( value ) ) )
+	{
+		return 0;
+	}
+	if( !validate_list( self, list.get() ) )
 	{
 		return 0;
 	}
@@ -171,7 +170,7 @@ PyObject* TypedList_insert( TypedList* self, PyObject* args )
 	{
 		return 0;
 	}
-	if( !validate( self, value ) )
+	if( !validate_value( self, value ) )
 	{
 		return 0;
 	}
@@ -185,7 +184,7 @@ PyObject* TypedList_insert( TypedList* self, PyObject* args )
 
 int TypedList_ass_item( TypedList* self, Py_ssize_t index, PyObject* value )
 {
-	if( value && !validate( self, value ) )
+	if( value && !validate_value( self, value ) )
 	{
 		return -1;
 	}
@@ -196,9 +195,16 @@ int TypedList_ass_item( TypedList* self, Py_ssize_t index, PyObject* value )
 int TypedList_ass_slice( TypedList* self, Py_ssize_t low, Py_ssize_t high, PyObject* value )
 {
 	cppy::ptr list( value, true );
-	if( list && !( list = validate_sequence( self, list.get() ) ) )
+	if( value )
 	{
-		return -1;
+		if( !PyList_Check( value ) && !( list = PySequence_List( value ) ) )
+		{
+			return -1;
+		}
+		if( !validate_list( self, list.get() ) )
+		{
+			return -1;
+		}
 	}
 	return PyList_Type.tp_as_sequence->sq_ass_slice( pyobject_cast( self ), low, high, list.get() );
 }
@@ -222,14 +228,18 @@ int TypedList_ass_subscript( TypedList* self, PyObject* key, PyObject* value )
 	{
 		if( PyIndex_Check( key ) )
 		{
-			if( !validate( self, value ) )
+			if( !validate_value( self, value ) )
 			{
 				return -1;
 			}
 		}
 		else if( PySlice_Check( key ) )
 		{
-			if( !( item = validate_sequence( self, value ) ) )
+			if( !PyList_Check( value ) && !( item = PySequence_List( value ) ) )
+			{
+				return -1;
+			}
+			if( !validate_list( self, item.get() ) )
 			{
 				return -1;
 			}
@@ -274,7 +284,7 @@ PySequenceMethods TypedList_as_sequence = {
     (ssizessizeobjargproc)TypedList_ass_slice,  /* sq_ass_slice */
     (objobjproc)0,                              /* sq_contains */
     (binaryfunc)TypedList_inplace_concat,       /* sq_inplace_concat */
-    (ssizeargfunc)0,                            /* sq_inplace_repeat */
+    (ssizeargfunc)0                             /* sq_inplace_repeat */
 };
 
 
@@ -349,8 +359,19 @@ bool TypedList::Ready()
 
 PyObject* TypedList::Create( PyObject* value_type, PyObject* values )
 {
- 	return cppy::incref( Py_None );
+	PyObject* pyo = PyType_GenericNew( &TypedList::TypeObject, 0, 0 );
+	if( !pyo )
+	{
+		return 0;
+	}
+	TypedList* list = reinterpret_cast<TypedList*>( pyo );
+	list->m_value_type = cppy::incref( value_type );
+	cppy::ptr ignored( TypedList_extend( list, values ) );
+	if( !ignored )
+	{
+		return 0;
+	}
+	return pyo;
 }
-
 
 } // namespace atom

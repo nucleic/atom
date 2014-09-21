@@ -23,6 +23,7 @@ ext_modules = [
             'atom/src/member.cpp',
             'atom/src/methodwrapper.cpp',
             'atom/src/signal.cpp',
+            'atom/src/typedlist.cpp',
         ],
         include_dirs=[cppy.get_include(), 'atom/src'],
         language='c++',
