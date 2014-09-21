@@ -722,7 +722,7 @@ class List(Value):
     __slots__ = ()
 
     def __init__(self, kind=object, default=[], factory=None, **metadata):
-        """ Initialize a Value member.
+        """ Initialize a List member.
 
         Parameters
         ----------
