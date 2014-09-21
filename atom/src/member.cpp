@@ -825,18 +825,18 @@ PyGetSetDef Member_getset[] = {
 	{ "metadata",
 	  ( getter )Member_get_metadata,
 	  ( setter )Member_set_metadata,
-	  "metadata for the member (if defined)" },
+	  "metadata for the member (if defined)", 0 },
 	{ "default_mode",
 	  ( getter )Member_get_default_mode,
 	  ( setter )Member_set_default_mode,
-	  "the default value mode for the member" },
+	  "the default value mode for the member", 0 },
 	{ "validate_mode",
 	  ( getter )Member_get_validate_mode,
 	  ( setter )Member_set_validate_mode,
-	  "the validate mode for the member" },
+	  "the validate mode for the member", 0 },
 	{ "_index",
 	  ( getter )Member_get_index, 0,
-	  "*private* the read-only value index for the member" },
+	  "*private* the read-only value index for the member", 0 },
 	{ 0 } // sentinel
 };
 
