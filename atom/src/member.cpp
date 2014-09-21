@@ -31,17 +31,6 @@ PyObject* empty_tuple;
 
 PyObject* validation_error( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
-	if( PyErr_Occurred() )
-	{
-		if( PyErr_ExceptionMatches( Errors::ValidationError ) )
-		{
-			PyErr_Clear();
-		}
-		else
-		{
-			return 0;
-		}
-	}
 	cppy::ptr method( PyObject_GetAttrString( pyobject_cast( member ), "validation_error" ) );
 	if( !method )
 	{
