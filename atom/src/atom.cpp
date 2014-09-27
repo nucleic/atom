@@ -12,6 +12,7 @@
 #include "utils.h"
 
 #include <algorithm>
+#include <cstddef>
 
 #ifdef _WIN32
 #define NOMINMAX
