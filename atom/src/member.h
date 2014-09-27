@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#include "stdint.h"
+#include "atomstdint.h"
 
 #include <Python.h>
 
