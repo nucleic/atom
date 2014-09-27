@@ -236,6 +236,10 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 	Member* member = member_cast( PyDict_GetItem( self->m_members, name ) );
 	if( member )
 	{
+		if( member->index() >= Py_SIZE( self ) )
+		{
+			return cppy::system_error( "invalid member index" );
+		}
 		cppy::ptr valptr( self->m_values[ member->index() ], true );
 		if( valptr )
 		{
@@ -265,6 +269,11 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 	Member* member = member_cast( PyDict_GetItem( self->m_members, name ) );
 	if( member )
 	{
+		if( member->index() >= Py_SIZE( self ) )
+		{
+			cppy::system_error( "invalid member index" );
+			return -1;
+		}
 		if( self->m_values[ member->index() ] == value )
 		{
 			return 0;
