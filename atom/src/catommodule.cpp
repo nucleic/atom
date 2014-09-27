@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include "atom.h"
 #include "atommeta.h"
+#include "errors.h"
 #include "member.h"
 #include "methodwrapper.h"
 #include "signal.h"
@@ -47,6 +48,10 @@ PyMODINIT_FUNC initcatom( void )
 	{
 		return;
 	}
+	if( !Errors::Ready() )
+	{
+		return;
+	}
 	if( !Signal::Ready() )
 	{
 		return;
@@ -75,6 +80,8 @@ PyMODINIT_FUNC initcatom( void )
 	{
 		return;
 	}
+	PyModule_AddObject( mod, "ValidationError",
+		cppy::incref( Errors::ValidationError ) );
 	PyModule_AddObject( mod, "Signal",
 		cppy::incref( pyobject_cast( &Signal::TypeObject ) ) );
 	PyModule_AddObject( mod, "BoundSignal",
