@@ -6,6 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "typedlist.h"
+#include "errors.h"
 #include "utils.h"
 
 #include <cppy/cppy.h>
@@ -260,6 +261,37 @@ int TypedList_ass_subscript( TypedList* self, PyObject* key, PyObject* value )
 }
 
 
+PyObject* TypedList_validation_error( TypedList* self, PyObject* value )
+{
+	static PyObject* tlv_message = 0;
+	if( !tlv_message )
+	{
+		cppy::ptr mod( PyImport_ImportModule( "atom._cpphelpers" ) );
+		if( !mod )
+		{
+			return 0;
+		}
+		tlv_message = mod.getattr( "typed_list_validation_message" );
+		if( !tlv_message )
+		{
+			return 0;
+		}
+	}
+	cppy::ptr args( PyTuple_Pack( 2, pyobject_cast( self ), value ) );
+	if( !args )
+	{
+		return 0;
+	}
+	cppy::ptr msg( PyObject_Call( tlv_message, args.get(), 0 ) );
+	if( !msg )
+	{
+		return 0;
+	}
+	PyErr_SetObject( Errors::ValidationError, msg.get() );
+	return 0;
+};
+
+
 PyGetSetDef TypedList_getset[] = {
 	{ "value_type",
 	  ( getter )TypedList_get_value_type, ( setter )0,
@@ -281,6 +313,10 @@ PyMethodDef TypedList_methods[] = {
 	  ( PyCFunction )TypedList_extend,
 	  METH_O,
 	  "L.extend(iterable) -- extend list by appending elements from the iterable" },
+	{ "validation_error",
+    ( PyCFunction )TypedList_validation_error,
+    METH_O,
+    "L.validation_error(object) raise a ValidationError for the given value" },
 	{ 0 }  /* sentinel */
 };
 

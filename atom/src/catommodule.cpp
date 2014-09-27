@@ -90,6 +90,6 @@ PyMODINIT_FUNC initcatom( void )
 		cppy::incref( pyobject_cast( &Member::TypeObject ) ) );
 	PyModule_AddObject( mod, "CAtom",
 		cppy::incref( pyobject_cast( &Atom::TypeObject ) ) );
-	PyModule_AddObject( mod, "CTypedList",
+	PyModule_AddObject( mod, "TypedList",
 		cppy::incref( pyobject_cast( &TypedList::TypeObject ) ) );
 }

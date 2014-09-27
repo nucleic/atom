@@ -6,8 +6,12 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from .atom import Atom, AtomMeta
-from .catom import BoundSignal, Signal
-from .errors import ValidationError
+from .catom import (
+    BoundSignal,
+    Signal,
+    TypedList,
+    ValidationError,
+)
 from .members import (
     Bool,
     Bytes,
@@ -26,4 +30,3 @@ from .members import (
     Unicode,
     Value,
 )
-from .typedlist import TypedList

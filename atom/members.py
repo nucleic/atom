@@ -5,10 +5,8 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import CMember
-from .errors import ValidationError
+from .catom import CMember, TypedList, ValidationError
 from .formatting import add_article, kind_repr
-from .typedlist import TypedList
 
 
 class Member(CMember):
