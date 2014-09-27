@@ -232,7 +232,7 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 	// the user to dig into it and add a non-member. My stance is that
 	// if they do that, they deserve the segfault. I don't want to pay
 	// the extra type checking cost just to protect against a motivated
-	// attacker. You can always crash the interpreted with ctypes anyway.
+	// attacker. You can always crash the interpreter with ctypes anyway.
 	Member* member = member_cast( PyDict_GetItem( self->m_members, name ) );
 	if( member )
 	{
@@ -261,7 +261,7 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 	// the user to dig into it and add a non-member. My stance is that
 	// if they do that, they deserve the segfault. I don't want to pay
 	// the extra type checking cost just to protect against a motivated
-	// attacker. You can always crash the interpreted with ctypes anyway.
+	// attacker. You can always crash the interpreter with ctypes anyway.
 	Member* member = member_cast( PyDict_GetItem( self->m_members, name ) );
 	if( member )
 	{
