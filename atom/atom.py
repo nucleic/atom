@@ -5,6 +5,8 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+import six
+
 from .catom import CAtom, _atom_meta_create_class
 
 
@@ -30,6 +32,7 @@ class AtomMeta(type):
     __new__ = _atom_meta_create_class
 
 
+@six.add_metaclass(AtomMeta)
 class Atom(CAtom):
     """ The base class for defining atom objects.
 
@@ -44,8 +47,6 @@ class Atom(CAtom):
     normal objects, and are 10% - 20%  faster on attribute access.
 
     """
-    __metaclass__ = AtomMeta
-
     def __reduce_ex__(self, proto):
         """ An implementation of the reduce protocol.
 
