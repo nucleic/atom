@@ -887,8 +887,7 @@ bool add_member_mode( const char* name, MODE mode )
 
 
 PyTypeObject Member::TypeObject = {
-	PyObject_HEAD_INIT( &PyType_Type )
-	0,                                     /* ob_size */
+	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
 	"atom.catom.CMember",                  /* tp_name */
 	sizeof( Member ),                      /* tp_basicsize */
 	0,                                     /* tp_itemsize */
@@ -896,7 +895,11 @@ PyTypeObject Member::TypeObject = {
 	( printfunc )0,                        /* tp_print */
 	( getattrfunc )0,                      /* tp_getattr */
 	( setattrfunc )0,                      /* tp_setattr */
+#ifdef IS_PY3K
+	( void* )0,                            /* tp_reserved */
+#else
 	( cmpfunc )0,                          /* tp_compare */
+#endif
 	( reprfunc )0,                         /* tp_repr */
 	( PyNumberMethods* )0,                 /* tp_as_number */
 	( PySequenceMethods* )0,               /* tp_as_sequence */
@@ -946,7 +949,7 @@ bool Member::Ready()
 	{
 		return false;
 	}
-	if( !( clone_str = PyString_FromString( "clone" ) ) )
+	if( !( clone_str = Py23Str_FromString( "clone" ) ) )
 	{
 		return false;
 	}
