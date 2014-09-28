@@ -39,7 +39,7 @@ int MethodWrapper_traverse( MethodWrapper* self, visitproc visit, void* arg )
 void MethodWrapper_dealloc( MethodWrapper* self )
 {
 	MethodWrapper_clear( self );
-	self->ob_type->tp_free( pyobject_cast( self ) );
+	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
 

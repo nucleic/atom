@@ -715,7 +715,7 @@ void Member_dealloc( Member* self )
 {
 	PyObject_GC_UnTrack( self );
 	Member_clear( self );
-	self->ob_type->tp_free( pyobject_cast( self ) );
+	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -774,7 +774,7 @@ PyObject* Member_get_index( Member* self, void* context )
 
 PyObject* Member_clone( Member* self, PyObject* args )
 {
-	cppy::ptr pyo( PyType_GenericNew( self->ob_type, 0, 0 ) );
+	cppy::ptr pyo( PyType_GenericNew( Py_TYPE( self ), 0, 0 ) );
 	if( !pyo )
 	{
 		return 0;

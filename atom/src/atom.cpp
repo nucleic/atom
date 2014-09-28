@@ -221,7 +221,7 @@ void Atom_dealloc( Atom* self )
 	}
 	Atom_clear( self );
 	delete self->m_cbsets;
-	self->ob_type->tp_free( pyobject_cast( self ) );
+	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -410,7 +410,7 @@ PyObject* Atom_sender( PyObject* mod, PyObject* args )
 
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
-	Py_ssize_t basic = self->ob_type->tp_basicsize;
+	Py_ssize_t basic = Py_TYPE( self )->tp_basicsize;
 	Py_ssize_t items = Py_SIZE( self ) * sizeof( PyObject* );
 	Py_ssize_t cbsets = self->m_cbsets ? getsizeof( self->m_cbsets ) : 0;
 	if( cbsets < 0 && PyErr_Occurred() )

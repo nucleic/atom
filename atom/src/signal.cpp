@@ -31,7 +31,7 @@ BoundSignal* freelist[ FREELIST_MAX ];
 
 void Signal_dealloc( Signal* self )
 {
-	self->ob_type->tp_free( pyobject_cast( self ) );
+	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -106,7 +106,7 @@ void BoundSignal_dealloc( BoundSignal* self )
 	}
 	else
 	{
-		self->ob_type->tp_free( pyobject_cast( self ) );
+		Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 	}
 }
 
