@@ -133,10 +133,10 @@ bool add_objects( PyObject* mod )
 } // namespace
 
 
-PyMODINIT_FUNC initcatom( void )
-{
 #ifdef IS_PY3K
 
+PyMODINIT_FUNC PyInit_catom( void )
+{
 	PyObject* mod = PyModule_Create( &catom_module );
 	if( !mod )
 	{
@@ -151,9 +151,12 @@ PyMODINIT_FUNC initcatom( void )
 		return 0;
 	}
 	return mod;
+}
 
 #else
 
+PyMODINIT_FUNC initcatom( void )
+{
 	PyObject* mod = Py_InitModule3( "catom", catom_methods, "catom extension module" );
 	if( !mod )
 	{
@@ -167,6 +170,6 @@ PyMODINIT_FUNC initcatom( void )
 	{
 		return;
 	}
+}
 
 #endif
-}
