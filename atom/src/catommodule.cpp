@@ -37,59 +37,136 @@ PyMethodDef catom_methods[] = {
 	{ 0 } // sentinel
 };
 
+
+#ifdef IS_PY3K
+
+PyModuleDef catom_module = {
+	PyModuleDef_HEAD_INIT,
+	"catom",                   /* m_name */
+	"catom extension module",  /* m_doc */
+	-1,                        /* m_size */
+	catom_methods,             /* m_methods */
+	0,                         /* m_reload */
+	0,                         /* m_traverse */
+	0,                         /* m_clear */
+	0,                         /* m_free */
+};
+
+#endif
+
+
+bool ready_types()
+{
+	using namespace atom;
+	if( !Errors::Ready() )
+	{
+		return false;
+	}
+	if( !Signal::Ready() )
+	{
+		return false;
+	}
+	if( !BoundSignal::Ready() )
+	{
+		return false;
+	}
+	if( !Member::Ready() )
+	{
+		return false;
+	}
+	if( !Atom::Ready() )
+	{
+		return false;
+	}
+	if( !AtomMeta::Ready() )
+	{
+		return false;
+	}
+	if( !MethodWrapper::Ready() )
+	{
+		return false;
+	}
+	if( !TypedList::Ready() )
+	{
+		return false;
+	}
+	return true;
+}
+
+
+bool add_objects( PyObject* mod )
+{
+	using namespace atom;
+	PyObject* ValidationError = cppy::incref( Errors::ValidationError );
+	PyObject* Signal = cppy::incref( pyobject_cast( &Signal::TypeObject ) );
+	PyObject* BoundSignal = cppy::incref( pyobject_cast( &BoundSignal::TypeObject ) );
+	PyObject* Member = cppy::incref( pyobject_cast( &Member::TypeObject ) );
+	PyObject* Atom = cppy::incref( pyobject_cast( &Atom::TypeObject ) );
+	PyObject* TypedList = cppy::incref( pyobject_cast( &TypedList::TypeObject ) );
+	if( PyModule_AddObject( mod, "ValidationError", ValidationError ) < 0 )
+	{
+		return false;
+	}
+	if( PyModule_AddObject( mod, "Signal", Signal ) < 0 )
+	{
+		return false;
+	}
+	if( PyModule_AddObject( mod, "BoundSignal", BoundSignal ) < 0 )
+	{
+		return false;
+	}
+	if( PyModule_AddObject( mod, "CMember", Member ) < 0 )
+	{
+		return false;
+	}
+	if( PyModule_AddObject( mod, "CAtom", Atom ) < 0 )
+	{
+		return false;
+	}
+	if( PyModule_AddObject( mod, "TypedList", TypedList ) < 0 )
+	{
+		return false;
+	}
+	return true;
+}
+
 } // namespace
 
 
 PyMODINIT_FUNC initcatom( void )
 {
-	using namespace atom;
-	PyObject* mod = Py_InitModule( "catom", catom_methods );
+#ifdef IS_PY3K
+
+	PyObject* mod = PyModule_Create( &catom_module );
+	if( !mod )
+	{
+		return 0;
+	}
+	if( !ready_types() )
+	{
+		return 0;
+	}
+	if( !add_objects( mod ) )
+	{
+		return 0;
+	}
+	return mod;
+
+#else
+
+	PyObject* mod = Py_InitModule3( "catom", catom_methods, "catom extension module" );
 	if( !mod )
 	{
 		return;
 	}
-	if( !Errors::Ready() )
+	if( !ready_types() )
 	{
 		return;
 	}
-	if( !Signal::Ready() )
+	if( !add_objects( mod ) )
 	{
 		return;
 	}
-	if( !BoundSignal::Ready() )
-	{
-		return;
-	}
-	if( !Member::Ready() )
-	{
-		return;
-	}
-	if( !Atom::Ready() )
-	{
-		return;
-	}
-	if( !AtomMeta::Ready() )
-	{
-		return;
-	}
-	if( !MethodWrapper::Ready() )
-	{
-		return;
-	}
-	if( !TypedList::Ready() )
-	{
-		return;
-	}
-	PyModule_AddObject( mod, "ValidationError",
-		cppy::incref( Errors::ValidationError ) );
-	PyModule_AddObject( mod, "Signal",
-		cppy::incref( pyobject_cast( &Signal::TypeObject ) ) );
-	PyModule_AddObject( mod, "BoundSignal",
-		cppy::incref( pyobject_cast( &BoundSignal::TypeObject ) ) );
-	PyModule_AddObject( mod, "CMember",
-		cppy::incref( pyobject_cast( &Member::TypeObject ) ) );
-	PyModule_AddObject( mod, "CAtom",
-		cppy::incref( pyobject_cast( &Atom::TypeObject ) ) );
-	PyModule_AddObject( mod, "TypedList",
-		cppy::incref( pyobject_cast( &TypedList::TypeObject ) ) );
+
+#endif
 }
