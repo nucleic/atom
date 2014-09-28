@@ -187,8 +187,7 @@ PyMethodDef BoundSignal_methods[] = {
 
 
 PyTypeObject Signal::TypeObject = {
-	PyObject_HEAD_INIT( 0 )
-	0,                                      /* ob_size */
+	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
 	"atom.catom.Signal",                    /* tp_name */
 	sizeof( Signal ),                       /* tp_basicsize */
 	0,                                      /* tp_itemsize */
@@ -196,7 +195,11 @@ PyTypeObject Signal::TypeObject = {
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
-	(cmpfunc)0,                             /* tp_compare */
+#ifdef IS_PY3K
+	( void* )0,                             /* tp_reserved */
+#else
+	( cmpfunc )0,                           /* tp_compare */
+#endif
 	(reprfunc)0,                            /* tp_repr */
 	(PyNumberMethods*)0,                    /* tp_as_number */
 	(PySequenceMethods*)0,                  /* tp_as_sequence */
@@ -238,8 +241,7 @@ PyTypeObject Signal::TypeObject = {
 
 
 PyTypeObject BoundSignal::TypeObject = {
-	PyObject_HEAD_INIT( 0 )
-	0,                                      /* ob_size */
+	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
 	"atom.catom.BoundSignal",               /* tp_name */
 	sizeof( BoundSignal ),                  /* tp_basicsize */
 	0,                                      /* tp_itemsize */
@@ -247,7 +249,11 @@ PyTypeObject BoundSignal::TypeObject = {
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
-	(cmpfunc)0,                             /* tp_compare */
+#ifdef IS_PY3K
+	( void* )0,                             /* tp_reserved */
+#else
+	( cmpfunc )0,                           /* tp_compare */
+#endif
 	(reprfunc)0,                            /* tp_repr */
 	(PyNumberMethods*)0,                    /* tp_as_number */
 	(PySequenceMethods*)0,                  /* tp_as_sequence */
