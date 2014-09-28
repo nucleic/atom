@@ -103,7 +103,9 @@ PyNumberMethods MethodWrapper_as_number = {
 	 ( binaryfunc )0,                       /* nb_add */
 	 ( binaryfunc )0,                       /* nb_subtract */
 	 ( binaryfunc )0,                       /* nb_multiply */
+#ifndef IS_PY3K
 	 ( binaryfunc )0,                       /* nb_divide */
+#endif
 	 ( binaryfunc )0,                       /* nb_remainder */
 	 ( binaryfunc )0,                       /* nb_divmod */
 	 ( ternaryfunc )0,                      /* nb_power */
@@ -117,8 +119,7 @@ PyNumberMethods MethodWrapper_as_number = {
 
 
 PyTypeObject MethodWrapper::TypeObject = {
-	PyObject_HEAD_INIT( &PyType_Type )
-	0,                                      /* ob_size */
+	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
 	"atom.catom.MethodWrapper",             /* tp_name */
 	sizeof( MethodWrapper ),                /* tp_basicsize */
 	0,                                      /* tp_itemsize */
@@ -126,7 +127,11 @@ PyTypeObject MethodWrapper::TypeObject = {
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
-	(cmpfunc)0,                             /* tp_compare */
+#ifdef IS_PY3K
+	( void* )0,                             /* tp_reserved */
+#else
+	( cmpfunc )0,                           /* tp_compare */
+#endif
 	(reprfunc)0,                            /* tp_repr */
 	(PyNumberMethods*)&MethodWrapper_as_number, /* tp_as_number */
 	(PySequenceMethods*)0,                  /* tp_as_sequence */
