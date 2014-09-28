@@ -275,7 +275,7 @@ PyObject* AtomMeta::CreateClass( PyObject* args )
 
 bool AtomMeta::Ready()
 {
-	if( !( slots_str = PyString_FromString( "__slots__" ) ) )
+	if( !( slots_str = Py23Str_FromString( "__slots__" ) ) )
 	{
 		return false;
 	}

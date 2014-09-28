@@ -13,6 +13,7 @@
 
 #define Py23Str_Check PyUnicode_Check
 #define Py23Str_AS_STRING PyUnicode_AsUTF8
+#define Py23Str_FromString PyUnicode_FromString
 #define Py23Bytes_Check PyBytes_Check
 #define Py23Bytes_AS_STRING PyBytes_AS_STRING
 #define Py23Int_Check PyLong_Check
@@ -26,6 +27,7 @@
 
 #define Py23Str_Check PyString_Check
 #define Py23Str_AS_STRING PyString_AS_STRING
+#define Py23Str_FromString PyString_FromString
 #define Py23Bytes_Check PyString_Check
 #define Py23Bytes_AS_STRING PyString_AS_STRING
 #define Py23Int_Check( ob ) ( PyInt_Check( ob ) || PyLong_Check( ob ) )
