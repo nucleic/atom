@@ -7,7 +7,7 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#include "stdint.h"
+#include "platstdint.h"
 
 #include <Python.h>
 
