@@ -204,6 +204,8 @@ int TypedList_ass_item( TypedList* self, Py_ssize_t index, PyObject* value )
 }
 
 
+#ifndef IS_PY3K
+
 int TypedList_ass_slice( TypedList* self, Py_ssize_t low, Py_ssize_t high, PyObject* value )
 {
 	cppy::ptr list( value, true );
@@ -220,6 +222,8 @@ int TypedList_ass_slice( TypedList* self, Py_ssize_t low, Py_ssize_t high, PyObj
 	}
 	return PyList_Type.tp_as_sequence->sq_ass_slice( pyobject_cast( self ), low, high, list.get() );
 }
+
+#endif
 
 
 PyObject* TypedList_inplace_concat( TypedList* self, PyObject* value )
@@ -322,31 +326,38 @@ PyMethodDef TypedList_methods[] = {
 
 
 PySequenceMethods TypedList_as_sequence = {
-    (lenfunc)0,                                 /* sq_length */
-    (binaryfunc)0,                              /* sq_concat */
-    (ssizeargfunc)0,                            /* sq_repeat */
-    (ssizeargfunc)0,                            /* sq_item */
-    (ssizessizeargfunc)0,                       /* sq_slice */
-    (ssizeobjargproc)TypedList_ass_item,        /* sq_ass_item */
-    (ssizessizeobjargproc)TypedList_ass_slice,  /* sq_ass_slice */
-    (objobjproc)0,                              /* sq_contains */
-    (binaryfunc)TypedList_inplace_concat,       /* sq_inplace_concat */
-    (ssizeargfunc)0                             /* sq_inplace_repeat */
+	( lenfunc )0,                                 /* sq_length */
+	( binaryfunc )0,                              /* sq_concat */
+	( ssizeargfunc )0,                            /* sq_repeat */
+	( ssizeargfunc )0,                            /* sq_item */
+#ifdef IS_PY3K
+	( void* )0,                                   /* was_sq_slice */
+#else
+	( ssizessizeargfunc )0,                       /* sq_slice */
+#endif
+	( ssizeobjargproc )TypedList_ass_item,        /* sq_ass_item */
+#ifdef IS_PY3K
+	( void* )0,                                   /* was_sq_ass_slice */
+#else
+	( ssizessizeobjargproc )TypedList_ass_slice,  /* sq_ass_slice */
+#endif
+	( objobjproc )0,                              /* sq_contains */
+	( binaryfunc )TypedList_inplace_concat,       /* sq_inplace_concat */
+	( ssizeargfunc )0                             /* sq_inplace_repeat */
 };
 
 
 PyMappingMethods TypedList_as_mapping = {
-    (lenfunc)0,                             /* mp_length */
-    (binaryfunc)0,                          /* mp_subscript */
-    (objobjargproc)TypedList_ass_subscript  /* mp_ass_subscript */
+	( lenfunc )0,                             /* mp_length */
+	( binaryfunc )0,                          /* mp_subscript */
+	( objobjargproc )TypedList_ass_subscript  /* mp_ass_subscript */
 };
 
 } // namespace
 
 
 PyTypeObject TypedList::TypeObject = {
-	PyObject_HEAD_INIT( &PyType_Type )
-	0,                                      /* ob_size */
+	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
 	"atom.catom.TypedList",        			    /* tp_name */
 	sizeof( TypedList ),                    /* tp_basicsize */
 	0,                                      /* tp_itemsize */
@@ -354,7 +365,11 @@ PyTypeObject TypedList::TypeObject = {
 	(printfunc)0,                           /* tp_print */
 	(getattrfunc)0,                         /* tp_getattr */
 	(setattrfunc)0,                         /* tp_setattr */
-	(cmpfunc)0,                             /* tp_compare */
+#ifdef IS_PY3K
+	( void* )0,                             /* tp_reserved */
+#else
+	( cmpfunc )0,                           /* tp_compare */
+#endif
 	(reprfunc)0,                            /* tp_repr */
 	(PyNumberMethods*)0,                    /* tp_as_number */
 	(PySequenceMethods*)&TypedList_as_sequence, /* tp_as_sequence */
