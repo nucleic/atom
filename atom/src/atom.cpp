@@ -465,7 +465,11 @@ PyTypeObject Atom::TypeObject = {
 	( printfunc )0,                      /* tp_print */
 	( getattrfunc )0,                    /* tp_getattr */
 	( setattrfunc )0,                    /* tp_setattr */
+#ifdef IS_PY3K
+	( void* )0,                          /* tp_reserved */
+#else
 	( cmpfunc )0,                        /* tp_compare */
+#endif
 	( reprfunc )0,                       /* tp_repr */
 	( PyNumberMethods* )0,               /* tp_as_number */
 	( PySequenceMethods* )0,             /* tp_as_sequence */
