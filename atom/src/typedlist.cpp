@@ -321,7 +321,7 @@ PyMethodDef TypedList_methods[] = {
 		( PyCFunction )TypedList_validation_error,
 		METH_O,
 		"L.validation_error(object) raise a ValidationError for the given value" },
-	{ 0 }  /* sentinel */
+	{ 0 } // sentinel
 };
 
 
