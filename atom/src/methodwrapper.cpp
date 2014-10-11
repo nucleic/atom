@@ -100,19 +100,19 @@ int MethodWrapper_nonzero( MethodWrapper* self )
 
 
 PyNumberMethods MethodWrapper_as_number = {
-	 ( binaryfunc )0,                       /* nb_add */
-	 ( binaryfunc )0,                       /* nb_subtract */
-	 ( binaryfunc )0,                       /* nb_multiply */
+	( binaryfunc )0,                       /* nb_add */
+	( binaryfunc )0,                       /* nb_subtract */
+	( binaryfunc )0,                       /* nb_multiply */
 #ifndef IS_PY3K
-	 ( binaryfunc )0,                       /* nb_divide */
+	( binaryfunc )0,                       /* nb_divide */
 #endif
-	 ( binaryfunc )0,                       /* nb_remainder */
-	 ( binaryfunc )0,                       /* nb_divmod */
-	 ( ternaryfunc )0,                      /* nb_power */
-	 ( unaryfunc )0,                        /* nb_negative */
-	 ( unaryfunc )0,                        /* nb_positive */
-	 ( unaryfunc )0,                        /* nb_absolute */
-	 ( inquiry )MethodWrapper_nonzero       /* nb_nonzero */
+	( binaryfunc )0,                       /* nb_remainder */
+	( binaryfunc )0,                       /* nb_divmod */
+	( ternaryfunc )0,                      /* nb_power */
+	( unaryfunc )0,                        /* nb_negative */
+	( unaryfunc )0,                        /* nb_positive */
+	( unaryfunc )0,                        /* nb_absolute */
+	( inquiry )MethodWrapper_nonzero       /* nb_nonzero */
 };
 
 } // namespace
@@ -120,55 +120,55 @@ PyNumberMethods MethodWrapper_as_number = {
 
 PyTypeObject MethodWrapper::TypeObject = {
 	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-	"atom.catom.MethodWrapper",             /* tp_name */
-	sizeof( MethodWrapper ),                /* tp_basicsize */
-	0,                                      /* tp_itemsize */
-	(destructor)MethodWrapper_dealloc,      /* tp_dealloc */
-	(printfunc)0,                           /* tp_print */
-	(getattrfunc)0,                         /* tp_getattr */
-	(setattrfunc)0,                         /* tp_setattr */
+	"atom.catom.MethodWrapper",                   /* tp_name */
+	sizeof( MethodWrapper ),                      /* tp_basicsize */
+	0,                                            /* tp_itemsize */
+	( destructor )MethodWrapper_dealloc,          /* tp_dealloc */
+	( printfunc )0,                               /* tp_print */
+	( getattrfunc )0,                             /* tp_getattr */
+	( setattrfunc )0,                             /* tp_setattr */
 #ifdef IS_PY3K
-	( void* )0,                             /* tp_reserved */
+	( void* )0,                                   /* tp_reserved */
 #else
-	( cmpfunc )0,                           /* tp_compare */
+	( cmpfunc )0,                                 /* tp_compare */
 #endif
-	(reprfunc)0,                            /* tp_repr */
-	(PyNumberMethods*)&MethodWrapper_as_number, /* tp_as_number */
-	(PySequenceMethods*)0,                  /* tp_as_sequence */
-	(PyMappingMethods*)0,                   /* tp_as_mapping */
-	(hashfunc)0,                            /* tp_hash */
-	(ternaryfunc)MethodWrapper_call,        /* tp_call */
-	(reprfunc)0,                            /* tp_str */
-	(getattrofunc)0,                        /* tp_getattro */
-	(setattrofunc)0,                        /* tp_setattro */
-	(PyBufferProcs*)0,                      /* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* tp_flags */
-	0,                                      /* Documentation string */
-	(traverseproc)MethodWrapper_traverse,   /* tp_traverse */
-	(inquiry)MethodWrapper_clear,           /* tp_clear */
-	(richcmpfunc)MethodWrapper_richcompare, /* tp_richcompare */
-	0,                                      /* tp_weaklistoffset */
-	(getiterfunc)0,                         /* tp_iter */
-	(iternextfunc)0,                        /* tp_iternext */
-	(struct PyMethodDef*)0,                 /* tp_methods */
-	(struct PyMemberDef*)0,                 /* tp_members */
-	0,                                      /* tp_getset */
-	0,                                      /* tp_base */
-	0,                                      /* tp_dict */
-	(descrgetfunc)0,                        /* tp_descr_get */
-	(descrsetfunc)0,                        /* tp_descr_set */
-	0,                                      /* tp_dictoffset */
-	(initproc)0,                            /* tp_init */
-	(allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-	(newfunc)0,                             /* tp_new */
-	(freefunc)PyObject_GC_Del,              /* tp_free */
-	(inquiry)0,                             /* tp_is_gc */
-	0,                                      /* tp_bases */
-	0,                                      /* tp_mro */
-	0,                                      /* tp_cache */
-	0,                                      /* tp_subclasses */
-	0,                                      /* tp_weaklist */
-	(destructor)0                           /* tp_del */
+	( reprfunc )0,                                /* tp_repr */
+	( PyNumberMethods* )&MethodWrapper_as_number, /* tp_as_number */
+	( PySequenceMethods* )0,                      /* tp_as_sequence */
+	( PyMappingMethods* )0,                       /* tp_as_mapping */
+	( hashfunc )0,                                /* tp_hash */
+	( ternaryfunc )MethodWrapper_call,            /* tp_call */
+	( reprfunc )0,                                /* tp_str */
+	( getattrofunc )0,                            /* tp_getattro */
+	( setattrofunc )0,                            /* tp_setattro */
+	( PyBufferProcs* )0,                          /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,      /* tp_flags */
+	0,                                            /* Documentation string */
+	( traverseproc )MethodWrapper_traverse,       /* tp_traverse */
+	( inquiry )MethodWrapper_clear,               /* tp_clear */
+	( richcmpfunc )MethodWrapper_richcompare,     /* tp_richcompare */
+	0,                                            /* tp_weaklistoffset */
+	( getiterfunc )0,                             /* tp_iter */
+	( iternextfunc )0,                            /* tp_iternext */
+	( struct PyMethodDef* )0,                     /* tp_methods */
+	( struct PyMemberDef* )0,                     /* tp_members */
+	0,                                            /* tp_getset */
+	0,                                            /* tp_base */
+	0,                                            /* tp_dict */
+	( descrgetfunc )0,                            /* tp_descr_get */
+	( descrsetfunc )0,                            /* tp_descr_set */
+	0,                                            /* tp_dictoffset */
+	( initproc )0,                                /* tp_init */
+	( allocfunc )PyType_GenericAlloc,             /* tp_alloc */
+	( newfunc )0,                                 /* tp_new */
+	( freefunc )PyObject_GC_Del,                  /* tp_free */
+	( inquiry )0,                                 /* tp_is_gc */
+	0,                                            /* tp_bases */
+	0,                                            /* tp_mro */
+	0,                                            /* tp_cache */
+	0,                                            /* tp_subclasses */
+	0,                                            /* tp_weaklist */
+	( destructor )0                               /* tp_del */
 };
 
 

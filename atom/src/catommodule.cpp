@@ -31,9 +31,9 @@ PyObject* atom_meta_create_class( PyObject* mod, PyObject* args )
 
 PyMethodDef catom_methods[] = {
 	{ "_atom_meta_create_class",
-	  ( PyCFunction )atom_meta_create_class,
-	  METH_VARARGS,
-	  "*private* create a new Atom subclass" },
+		( PyCFunction )atom_meta_create_class,
+		METH_VARARGS,
+		"*private* create a new Atom subclass" },
 	{ 0 } // sentinel
 };
 

@@ -154,50 +154,50 @@ bool add_new_class_members( PyObject* members, PyObject* class_dict )
 bool fixup_memory_layout( PyObject* members )
 {
 	// Members with indices which conflict with other members are
-  // collected into this vector, then cloned and given a new index.
-  typedef std::pair<cppy::ptr, cppy::ptr> pair_t;
-  std::vector<pair_t> conflicts;
+	// collected into this vector, then cloned and given a new index.
+	typedef std::pair<cppy::ptr, cppy::ptr> pair_t;
+	std::vector<pair_t> conflicts;
 
-  // The set of all valid indices for this collection of members.
-  // Indices are added to this set as they are claimed by a member.
+	// The set of all valid indices for this collection of members.
+	// Indices are added to this set as they are claimed by a member.
 	Py_ssize_t count = PyDict_Size( members );
 	std::vector<bool> indices( count, false );
 
 	// Pass over the members and claim the used indices. Any member
-  // which conflicts with another is added to the conflicts vector.
-  PyObject* key;
-  PyObject* value;
-  Py_ssize_t pos = 0;
-  while( PyDict_Next( members, &pos, &key, &value ) )
-  {
-  	Py_ssize_t index = member_cast( value )->index();
-  	if( index >= count || indices[ index ] )
-  	{
+	// which conflicts with another is added to the conflicts vector.
+	PyObject* key;
+	PyObject* value;
+	Py_ssize_t pos = 0;
+	while( PyDict_Next( members, &pos, &key, &value ) )
+	{
+		Py_ssize_t index = member_cast( value )->index();
+		if( index >= count || indices[ index ] )
+		{
 			pair_t pair( cppy::incref( key ), cppy::incref( value ) );
-  		conflicts.push_back( pair );
-  	}
-  	else
-  	{
-  		indices[ index ] = true;
-  	}
-  }
+			conflicts.push_back( pair );
+		}
+		else
+		{
+			indices[ index ] = true;
+		}
+	}
 
-  // For common cases (single-inheritance) there will be no conflicts.
-  if( conflicts.size() == 0 )
-  {
-  	return true;
-  }
+	// For common cases (single-inheritance) there will be no conflicts.
+	if( conflicts.size() == 0 )
+	{
+		return true;
+	}
 
-  // The unused indices are distributed among the conflicts. The
-  // conflicting member is cloned as its index may be valid if it
-  // belongs to a base class in a multiple inheritance hierarchy.
-  Py_ssize_t conflict_index = 0;
-  for( Py_ssize_t index = 0; index < count; ++index )
-  {
-  	if( indices[ index ] )
-  	{
-  		continue;
-  	}
+	// The unused indices are distributed among the conflicts. The
+	// conflicting member is cloned as its index may be valid if it
+	// belongs to a base class in a multiple inheritance hierarchy.
+	Py_ssize_t conflict_index = 0;
+	for( Py_ssize_t index = 0; index < count; ++index )
+	{
+		if( indices[ index ] )
+		{
+			continue;
+		}
 		pair_t& pair( conflicts[ conflict_index++ ] );
 		cppy::ptr clone( Member::Clone( pair.second.get() ) );
 		if( !clone )
@@ -209,9 +209,9 @@ bool fixup_memory_layout( PyObject* members )
 		{
 			return false;
 		}
-  }
+	}
 
-  return true;
+	return true;
 }
 
 } // namespace
@@ -286,4 +286,4 @@ bool AtomMeta::Ready()
 	return true;
 }
 
-}  // namespace atom
+} // namespace atom

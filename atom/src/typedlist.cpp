@@ -298,8 +298,8 @@ PyObject* TypedList_validation_error( TypedList* self, PyObject* value )
 
 PyGetSetDef TypedList_getset[] = {
 	{ "value_type",
-	  ( getter )TypedList_get_value_type, ( setter )0,
-	  "the value type for the list", 0 },
+		( getter )TypedList_get_value_type, ( setter )0,
+		"the value type for the list", 0 },
 	{ 0 } // sentinel
 };
 
@@ -314,13 +314,13 @@ PyMethodDef TypedList_methods[] = {
 		METH_VARARGS,
 		"L.insert(index, object) -- insert object before index" },
 	{ "extend",
-	  ( PyCFunction )TypedList_extend,
-	  METH_O,
-	  "L.extend(iterable) -- extend list by appending elements from the iterable" },
+		( PyCFunction )TypedList_extend,
+		METH_O,
+		"L.extend(iterable) -- extend list by appending elements from the iterable" },
 	{ "validation_error",
-    ( PyCFunction )TypedList_validation_error,
-    METH_O,
-    "L.validation_error(object) raise a ValidationError for the given value" },
+		( PyCFunction )TypedList_validation_error,
+		METH_O,
+		"L.validation_error(object) raise a ValidationError for the given value" },
 	{ 0 }  /* sentinel */
 };
 
@@ -358,58 +358,58 @@ PyMappingMethods TypedList_as_mapping = {
 
 PyTypeObject TypedList::TypeObject = {
 	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-	"atom.catom.TypedList",        			    /* tp_name */
-	sizeof( TypedList ),                    /* tp_basicsize */
-	0,                                      /* tp_itemsize */
-	(destructor)TypedList_dealloc,          /* tp_dealloc */
-	(printfunc)0,                           /* tp_print */
-	(getattrfunc)0,                         /* tp_getattr */
-	(setattrfunc)0,                         /* tp_setattr */
+	"atom.catom.TypedList",                       /* tp_name */
+	sizeof( TypedList ),                          /* tp_basicsize */
+	0,                                            /* tp_itemsize */
+	( destructor )TypedList_dealloc,              /* tp_dealloc */
+	( printfunc )0,                               /* tp_print */
+	( getattrfunc )0,                             /* tp_getattr */
+	( setattrfunc )0,                             /* tp_setattr */
 #ifdef IS_PY3K
-	( void* )0,                             /* tp_reserved */
+	( void* )0,                                   /* tp_reserved */
 #else
-	( cmpfunc )0,                           /* tp_compare */
+	( cmpfunc )0,                                 /* tp_compare */
 #endif
-	(reprfunc)0,                            /* tp_repr */
-	(PyNumberMethods*)0,                    /* tp_as_number */
-	(PySequenceMethods*)&TypedList_as_sequence, /* tp_as_sequence */
-	(PyMappingMethods*)&TypedList_as_mapping,   /* tp_as_mapping */
-	(hashfunc)0,                            /* tp_hash */
-	(ternaryfunc)0,                         /* tp_call */
-	(reprfunc)0,                            /* tp_str */
-	(getattrofunc)0,                        /* tp_getattro */
-	(setattrofunc)0,                        /* tp_setattro */
-	(PyBufferProcs*)0,                      /* tp_as_buffer */
+	( reprfunc )0,                                /* tp_repr */
+	( PyNumberMethods* )0,                        /* tp_as_number */
+	( PySequenceMethods* )&TypedList_as_sequence, /* tp_as_sequence */
+	( PyMappingMethods* )&TypedList_as_mapping,   /* tp_as_mapping */
+	( hashfunc )0,                                /* tp_hash */
+	( ternaryfunc )0,                             /* tp_call */
+	( reprfunc )0,                                /* tp_str */
+	( getattrofunc )0,                            /* tp_getattro */
+	( setattrofunc )0,                            /* tp_setattro */
+	( PyBufferProcs* )0,                          /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT
 	| Py_TPFLAGS_BASETYPE
 	| Py_TPFLAGS_HAVE_GC
-	| Py_TPFLAGS_HAVE_VERSION_TAG,          /* tp_flags */
-	0,                                      /* Documentation string */
-	(traverseproc)TypedList_traverse,       /* tp_traverse */
-	(inquiry)TypedList_clear,               /* tp_clear */
-	(richcmpfunc)0,                         /* tp_richcompare */
-	0,                                      /* tp_weaklistoffset */
-	(getiterfunc)0,                         /* tp_iter */
-	(iternextfunc)0,                        /* tp_iternext */
-	(struct PyMethodDef*)TypedList_methods, /* tp_methods */
-	(struct PyMemberDef*)0,                 /* tp_members */
-	TypedList_getset,                       /* tp_getset */
-	&PyList_Type,                           /* tp_base */
-	0,                                      /* tp_dict */
-	(descrgetfunc)0,                        /* tp_descr_get */
-	(descrsetfunc)0,                        /* tp_descr_set */
-	0,                                      /* tp_dictoffset */
-	(initproc)TypedList_init,               /* tp_init */
-	(allocfunc)0,						                /* tp_alloc */
-	(newfunc)TypedList_new,			   				  /* tp_new */
-	(freefunc)0,                            /* tp_free */
-	(inquiry)0,                             /* tp_is_gc */
-	0,                                      /* tp_bases */
-	0,                                      /* tp_mro */
-	0,                                      /* tp_cache */
-	0,                                      /* tp_subclasses */
-	0,                                      /* tp_weaklist */
-	(destructor)0                           /* tp_del */
+	| Py_TPFLAGS_HAVE_VERSION_TAG,                /* tp_flags */
+	0,                                            /* Documentation string */
+	( traverseproc )TypedList_traverse,           /* tp_traverse */
+	( inquiry )TypedList_clear,                   /* tp_clear */
+	( richcmpfunc )0,                             /* tp_richcompare */
+	0,                                            /* tp_weaklistoffset */
+	( getiterfunc )0,                             /* tp_iter */
+	( iternextfunc )0,                            /* tp_iternext */
+	( struct PyMethodDef* )TypedList_methods,     /* tp_methods */
+	( struct PyMemberDef* )0,                     /* tp_members */
+	TypedList_getset,                             /* tp_getset */
+	&PyList_Type,                                 /* tp_base */
+	0,                                            /* tp_dict */
+	( descrgetfunc )0,                            /* tp_descr_get */
+	( descrsetfunc )0,                            /* tp_descr_set */
+	0,                                            /* tp_dictoffset */
+	( initproc )TypedList_init,                   /* tp_init */
+	( allocfunc )0,                               /* tp_alloc */
+	( newfunc )TypedList_new,                     /* tp_new */
+	( freefunc )0,                                /* tp_free */
+	( inquiry )0,                                 /* tp_is_gc */
+	0,                                            /* tp_bases */
+	0,                                            /* tp_mro */
+	0,                                            /* tp_cache */
+	0,                                            /* tp_subclasses */
+	0,                                            /* tp_weaklist */
+	( destructor )0                               /* tp_del */
 };
 
 

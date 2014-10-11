@@ -20,4 +20,4 @@ struct AtomMeta
 	static PyObject* CreateClass( PyObject* args );
 };
 
-}  // namespace atom
+} // namespace atom

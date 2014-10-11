@@ -173,13 +173,13 @@ PyObject* BoundSignal_disconnect( BoundSignal* self, PyObject* args )
 
 PyMethodDef BoundSignal_methods[] = {
 	{ "connect",
-	  ( PyCFunction )BoundSignal_connect,
-	  METH_O,
-	  "connect(callback) connect a callback to the signal" },
+		( PyCFunction )BoundSignal_connect,
+		METH_O,
+		"connect(callback) connect a callback to the signal" },
 	{ "disconnect",
-	  ( PyCFunction )BoundSignal_disconnect,
-	  METH_VARARGS,
-	  "disconnect([callback]) disconnect a callback from the signal" },
+		( PyCFunction )BoundSignal_disconnect,
+		METH_VARARGS,
+		"disconnect([callback]) disconnect a callback from the signal" },
 	{ 0 } // sentinel
 };
 
@@ -188,111 +188,111 @@ PyMethodDef BoundSignal_methods[] = {
 
 PyTypeObject Signal::TypeObject = {
 	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-	"atom.catom.Signal",                    /* tp_name */
-	sizeof( Signal ),                       /* tp_basicsize */
-	0,                                      /* tp_itemsize */
-	(destructor)Signal_dealloc,             /* tp_dealloc */
-	(printfunc)0,                           /* tp_print */
-	(getattrfunc)0,                         /* tp_getattr */
-	(setattrfunc)0,                         /* tp_setattr */
+	"atom.catom.Signal",                      /* tp_name */
+	sizeof( Signal ),                         /* tp_basicsize */
+	0,                                        /* tp_itemsize */
+	( destructor )Signal_dealloc,             /* tp_dealloc */
+	( printfunc )0,                           /* tp_print */
+	( getattrfunc )0,                         /* tp_getattr */
+	( setattrfunc )0,                         /* tp_setattr */
 #ifdef IS_PY3K
-	( void* )0,                             /* tp_reserved */
+	( void* )0,                               /* tp_reserved */
 #else
-	( cmpfunc )0,                           /* tp_compare */
+	( cmpfunc )0,                             /* tp_compare */
 #endif
-	(reprfunc)0,                            /* tp_repr */
-	(PyNumberMethods*)0,                    /* tp_as_number */
-	(PySequenceMethods*)0,                  /* tp_as_sequence */
-	(PyMappingMethods*)0,                   /* tp_as_mapping */
-	(hashfunc)0,                            /* tp_hash */
-	(ternaryfunc)0,                         /* tp_call */
-	(reprfunc)0,                            /* tp_str */
-	(getattrofunc)0,                        /* tp_getattro */
-	(setattrofunc)0,                        /* tp_setattro */
-	(PyBufferProcs*)0,                      /* tp_as_buffer */
+	( reprfunc )0,                            /* tp_repr */
+	( PyNumberMethods* )0,                    /* tp_as_number */
+	( PySequenceMethods* )0,                  /* tp_as_sequence */
+	( PyMappingMethods* )0,                   /* tp_as_mapping */
+	( hashfunc )0,                            /* tp_hash */
+	( ternaryfunc )0,                         /* tp_call */
+	( reprfunc )0,                            /* tp_str */
+	( getattrofunc )0,                        /* tp_getattro */
+	( setattrofunc )0,                        /* tp_setattro */
+	( PyBufferProcs* )0,                      /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	0,                                      /* Documentation string */
-	(traverseproc)0,     										/* tp_traverse */
-	(inquiry)0,            								  /* tp_clear */
-	(richcmpfunc)0,											    /* tp_richcompare */
-	0,                                      /* tp_weaklistoffset */
-	(getiterfunc)0,                         /* tp_iter */
-	(iternextfunc)0,                        /* tp_iternext */
-	(struct PyMethodDef*)0,								  /* tp_methods */
-	(struct PyMemberDef*)0,                 /* tp_members */
-	0,                                      /* tp_getset */
-	0,                                      /* tp_base */
-	0,                                      /* tp_dict */
-	(descrgetfunc)Signal_descr_get,         /* tp_descr_get */
-	(descrsetfunc)Signal_descr_set,         /* tp_descr_set */
-	0,                                      /* tp_dictoffset */
-	(initproc)0,                            /* tp_init */
-	(allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-	(newfunc)PyType_GenericNew,             /* tp_new */
-	(freefunc)PyObject_Del,                 /* tp_free */
-	(inquiry)0,                             /* tp_is_gc */
-	0,                                      /* tp_bases */
-	0,                                      /* tp_mro */
-	0,                                      /* tp_cache */
-	0,                                      /* tp_subclasses */
-	0,                                      /* tp_weaklist */
-	(destructor)0                           /* tp_del */
+	0,                                        /* Documentation string */
+	( traverseproc )0,                        /* tp_traverse */
+	( inquiry )0,                             /* tp_clear */
+	( richcmpfunc )0,                         /* tp_richcompare */
+	0,                                        /* tp_weaklistoffset */
+	( getiterfunc )0,                         /* tp_iter */
+	( iternextfunc )0,                        /* tp_iternext */
+	( struct PyMethodDef* )0,                 /* tp_methods */
+	( struct PyMemberDef* )0,                 /* tp_members */
+	0,                                        /* tp_getset */
+	0,                                        /* tp_base */
+	0,                                        /* tp_dict */
+	( descrgetfunc )Signal_descr_get,         /* tp_descr_get */
+	( descrsetfunc )Signal_descr_set,         /* tp_descr_set */
+	0,                                        /* tp_dictoffset */
+	( initproc )0,                            /* tp_init */
+	( allocfunc )PyType_GenericAlloc,         /* tp_alloc */
+	( newfunc )PyType_GenericNew,             /* tp_new */
+	( freefunc )PyObject_Del,                 /* tp_free */
+	( inquiry )0,                             /* tp_is_gc */
+	0,                                        /* tp_bases */
+	0,                                        /* tp_mro */
+	0,                                        /* tp_cache */
+	0,                                        /* tp_subclasses */
+	0,                                        /* tp_weaklist */
+	( destructor )0                           /* tp_del */
 };
 
 
 PyTypeObject BoundSignal::TypeObject = {
 	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-	"atom.catom.BoundSignal",               /* tp_name */
-	sizeof( BoundSignal ),                  /* tp_basicsize */
-	0,                                      /* tp_itemsize */
-	(destructor)BoundSignal_dealloc,        /* tp_dealloc */
-	(printfunc)0,                           /* tp_print */
-	(getattrfunc)0,                         /* tp_getattr */
-	(setattrfunc)0,                         /* tp_setattr */
+	"atom.catom.BoundSignal",                   /* tp_name */
+	sizeof( BoundSignal ),                      /* tp_basicsize */
+	0,                                          /* tp_itemsize */
+	( destructor )BoundSignal_dealloc,          /* tp_dealloc */
+	( printfunc )0,                             /* tp_print */
+	( getattrfunc )0,                           /* tp_getattr */
+	( setattrfunc )0,                           /* tp_setattr */
 #ifdef IS_PY3K
-	( void* )0,                             /* tp_reserved */
+	( void* )0,                                 /* tp_reserved */
 #else
-	( cmpfunc )0,                           /* tp_compare */
+	( cmpfunc )0,                               /* tp_compare */
 #endif
-	(reprfunc)0,                            /* tp_repr */
-	(PyNumberMethods*)0,                    /* tp_as_number */
-	(PySequenceMethods*)0,                  /* tp_as_sequence */
-	(PyMappingMethods*)0,                   /* tp_as_mapping */
-	(hashfunc)0,                            /* tp_hash */
-	(ternaryfunc)BoundSignal_call,          /* tp_call */
-	(reprfunc)0,                            /* tp_str */
-	(getattrofunc)0,                        /* tp_getattro */
-	(setattrofunc)0,                        /* tp_setattro */
-	(PyBufferProcs*)0,                      /* tp_as_buffer */
+	( reprfunc )0,                              /* tp_repr */
+	( PyNumberMethods* )0,                      /* tp_as_number */
+	( PySequenceMethods* )0,                    /* tp_as_sequence */
+	( PyMappingMethods* )0,                     /* tp_as_mapping */
+	( hashfunc )0,                              /* tp_hash */
+	( ternaryfunc )BoundSignal_call,            /* tp_call */
+	( reprfunc )0,                              /* tp_str */
+	( getattrofunc )0,                          /* tp_getattro */
+	( setattrofunc )0,                          /* tp_setattro */
+	( PyBufferProcs* )0,                        /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT
 	| Py_TPFLAGS_HAVE_GC
-	| Py_TPFLAGS_HAVE_VERSION_TAG,  			  /* tp_flags */
-	0,                                      /* Documentation string */
-	(traverseproc)BoundSignal_traverse,     /* tp_traverse */
-	(inquiry)BoundSignal_clear,             /* tp_clear */
-	(richcmpfunc)BoundSignal_richcompare,   /* tp_richcompare */
-	0,                                      /* tp_weaklistoffset */
-	(getiterfunc)0,                         /* tp_iter */
-	(iternextfunc)0,                        /* tp_iternext */
-	(struct PyMethodDef*)BoundSignal_methods, /* tp_methods */
-	(struct PyMemberDef*)0,                 /* tp_members */
-	0,                                      /* tp_getset */
-	0,                                      /* tp_base */
-	0,                                      /* tp_dict */
-	(descrgetfunc)0,                        /* tp_descr_get */
-	(descrsetfunc)0,                        /* tp_descr_set */
-	0,                                      /* tp_dictoffset */
-	(initproc)0,                            /* tp_init */
-	(allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-	(newfunc)BoundSignal_new,               /* tp_new */
-	(freefunc)PyObject_GC_Del,              /* tp_free */
-	(inquiry)0,                             /* tp_is_gc */
-	0,                                      /* tp_bases */
-	0,                                      /* tp_mro */
-	0,                                      /* tp_cache */
-	0,                                      /* tp_subclasses */
-	0,                                      /* tp_weaklist */
-	(destructor)0                           /* tp_del */
+	| Py_TPFLAGS_HAVE_VERSION_TAG,              /* tp_flags */
+	0,                                          /* Documentation string */
+	( traverseproc )BoundSignal_traverse,       /* tp_traverse */
+	( inquiry )BoundSignal_clear,               /* tp_clear */
+	( richcmpfunc )BoundSignal_richcompare,     /* tp_richcompare */
+	0,                                          /* tp_weaklistoffset */
+	( getiterfunc )0,                           /* tp_iter */
+	( iternextfunc )0,                          /* tp_iternext */
+	( struct PyMethodDef* )BoundSignal_methods, /* tp_methods */
+	( struct PyMemberDef* )0,                   /* tp_members */
+	0,                                          /* tp_getset */
+	0,                                          /* tp_base */
+	0,                                          /* tp_dict */
+	( descrgetfunc )0,                          /* tp_descr_get */
+	( descrsetfunc )0,                          /* tp_descr_set */
+	0,                                          /* tp_dictoffset */
+	( initproc )0,                              /* tp_init */
+	( allocfunc )PyType_GenericAlloc,           /* tp_alloc */
+	( newfunc )BoundSignal_new,                 /* tp_new */
+	( freefunc )PyObject_GC_Del,                /* tp_free */
+	( inquiry )0,                               /* tp_is_gc */
+	0,                                          /* tp_bases */
+	0,                                          /* tp_mro */
+	0,                                          /* tp_cache */
+	0,                                          /* tp_subclasses */
+	0,                                          /* tp_weaklist */
+	( destructor )0                             /* tp_del */
 };
 
 

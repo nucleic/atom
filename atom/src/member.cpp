@@ -836,37 +836,37 @@ PyObject* Member_do_validate( Member* self, PyObject* args )
 
 PyGetSetDef Member_getset[] = {
 	{ "metadata",
-	  ( getter )Member_get_metadata,
-	  ( setter )Member_set_metadata,
-	  "metadata for the member (if defined)", 0 },
+		( getter )Member_get_metadata,
+		( setter )Member_set_metadata,
+		"metadata for the member (if defined)", 0 },
 	{ "default_mode",
-	  ( getter )Member_get_default_mode,
-	  ( setter )Member_set_default_mode,
-	  "the default value mode for the member", 0 },
+		( getter )Member_get_default_mode,
+		( setter )Member_set_default_mode,
+		"the default value mode for the member", 0 },
 	{ "validate_mode",
-	  ( getter )Member_get_validate_mode,
-	  ( setter )Member_set_validate_mode,
-	  "the validate mode for the member", 0 },
+		( getter )Member_get_validate_mode,
+		( setter )Member_set_validate_mode,
+		"the validate mode for the member", 0 },
 	{ "_index",
-	  ( getter )Member_get_index, 0,
-	  "*private* the read-only value index for the member", 0 },
+		( getter )Member_get_index, 0,
+		"*private* the read-only value index for the member", 0 },
 	{ 0 } // sentinel
 };
 
 
 PyMethodDef Member_methods[] = {
 	{ "clone",
-	  ( PyCFunction )Member_clone,
-	  METH_NOARGS,
-	  "Create a clone of the member." },
+		( PyCFunction )Member_clone,
+		METH_NOARGS,
+		"Create a clone of the member." },
 	{ "do_default",
-	  ( PyCFunction )Member_do_default,
-	  METH_VARARGS,
-	  "Run the default value handler for the member." },
+		( PyCFunction )Member_do_default,
+		METH_VARARGS,
+		"Run the default value handler for the member." },
 	{ "do_validate",
-	  ( PyCFunction )Member_do_validate,
-	  METH_VARARGS,
-	  "Run the validate value handler for the member." },
+		( PyCFunction )Member_do_validate,
+		METH_VARARGS,
+		"Run the validate value handler for the member." },
 	{ 0 } // sentinel
 };
 
