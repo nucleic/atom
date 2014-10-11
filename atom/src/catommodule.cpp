@@ -11,6 +11,7 @@
 #include "member.h"
 #include "methodwrapper.h"
 #include "signal.h"
+#include "typeddict.h"
 #include "typedlist.h"
 
 #include <cppy/cppy.h>
@@ -86,6 +87,10 @@ bool ready_types()
 	{
 		return false;
 	}
+	if( !TypedDict::Ready() )
+	{
+		return false;
+	}
 	if( !TypedList::Ready() )
 	{
 		return false;
@@ -102,6 +107,7 @@ bool add_objects( PyObject* mod )
 	PyObject* BoundSignal = cppy::incref( pyobject_cast( &BoundSignal::TypeObject ) );
 	PyObject* Member = cppy::incref( pyobject_cast( &Member::TypeObject ) );
 	PyObject* Atom = cppy::incref( pyobject_cast( &Atom::TypeObject ) );
+	PyObject* TypedDict = cppy::incref( pyobject_cast( &TypedDict::TypeObject ) );
 	PyObject* TypedList = cppy::incref( pyobject_cast( &TypedList::TypeObject ) );
 	if( PyModule_AddObject( mod, "ValidationError", ValidationError ) < 0 )
 	{
@@ -120,6 +126,10 @@ bool add_objects( PyObject* mod )
 		return false;
 	}
 	if( PyModule_AddObject( mod, "CAtom", Atom ) < 0 )
+	{
+		return false;
+	}
+	if( PyModule_AddObject( mod, "TypedDict", TypedDict ) < 0 )
 	{
 		return false;
 	}
