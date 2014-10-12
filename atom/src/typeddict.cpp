@@ -317,7 +317,7 @@ PyMappingMethods TypedDict_as_mapping = {
 
 PyTypeObject TypedDict::TypeObject = {
 	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-	"atom.catom.TypedDict",        			        /* tp_name */
+	"atom.catom.TypedDict",                     /* tp_name */
 	sizeof( TypedDict ),                        /* tp_basicsize */
 	0,                                          /* tp_itemsize */
 	( destructor )TypedDict_dealloc,            /* tp_dealloc */
@@ -359,8 +359,8 @@ PyTypeObject TypedDict::TypeObject = {
 	( descrsetfunc )0,                          /* tp_descr_set */
 	0,                                          /* tp_dictoffset */
 	( initproc )TypedDict_init,                 /* tp_init */
-	( allocfunc )0,						                  /* tp_alloc */
-	( newfunc )TypedDict_new,			   				    /* tp_new */
+	( allocfunc )0,                             /* tp_alloc */
+	( newfunc )TypedDict_new,                   /* tp_new */
 	( freefunc )0,                              /* tp_free */
 	( inquiry )0,                               /* tp_is_gc */
 	0,                                          /* tp_bases */
