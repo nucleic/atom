@@ -165,6 +165,33 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 			}
 			break;
 		}
+		case Member::ValidateDict:
+		{
+			if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 3 )
+			{
+				cppy::type_error( context, "3-tuple of (kind, kind, callable)" );
+				return false;
+			}
+			PyObject* key_type = PyTuple_GET_ITEM( context, 0 );
+			if( !utils::is_type_or_tuple_of_types( key_type ) )
+			{
+				cppy::type_error( key_type, "type or tuple of types" );
+				return false;
+			}
+			PyObject* value_type = PyTuple_GET_ITEM( context, 1 );
+			if( !utils::is_type_or_tuple_of_types( value_type ) )
+			{
+				cppy::type_error( value_type, "type or tuple of types" );
+				return false;
+			}
+			PyObject* callable = PyTuple_GET_ITEM( context, 2 );
+			if( !PyCallable_Check( callable ) )
+			{
+				cppy::type_error( callable, "callable" );
+				return false;
+			}
+			break;
+		}
 		case Member::ValidateCallObject:
 		{
 			if( !PyCallable_Check( context ) )
@@ -548,6 +575,29 @@ PyObject* validate_list( Member* member, PyObject* atom, PyObject* name, PyObjec
 }
 
 
+PyObject* validate_dict( Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+	if( !PyDict_Check( value ) )
+	{
+		return validation_error( member, atom, name, value );
+	}
+	PyObject* key_type = PyTuple_GET_ITEM( member->m_validate_context, 0 );
+	PyObject* value_type = PyTuple_GET_ITEM( member->m_validate_context, 1 );
+	PyObject* callable = PyTuple_GET_ITEM( member->m_validate_context, 2 );
+	cppy::ptr args( PyTuple_Pack( 3, key_type, value_type, value ) );
+	cppy::ptr result( PyObject_Call( callable, args.get(), 0 ) );
+	if( !result )
+	{
+		return 0;
+	}
+	if( !PyDict_Check( result.get() ) )
+	{
+		return validation_error( member, atom, name, result.get() );
+	}
+	return result.release();
+}
+
+
 PyObject* validate_call_object( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
 	cppy::ptr args( PyTuple_Pack( 3, atom, name, value ) );
@@ -606,6 +656,7 @@ ValidateHandler validate_handlers[] = {
 	validate_range,
 	validate_coerced,
 	validate_list,
+	validate_dict,
 	validate_call_object,
 	validate_member_method
 };
@@ -984,6 +1035,7 @@ bool Member::Ready()
 	ADD_MODE( ValidateRange )
 	ADD_MODE( ValidateCoerced )
 	ADD_MODE( ValidateList )
+	ADD_MODE( ValidateDict )
 	ADD_MODE( ValidateCallObject )
 	ADD_MODE( ValidateMemberMethod )
 

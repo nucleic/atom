@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import CMember, TypedList, ValidationError
+from .catom import CMember, TypedDict, TypedList, ValidationError
 from .formatting import add_article, kind_repr
 
 
@@ -719,12 +719,13 @@ class List(Value):
     """
     __slots__ = ()
 
-    def __init__(self, kind=object, default=[], factory=None, **metadata):
+    def __init__(self, value_type=object,
+                 default=[], factory=None, **metadata):
         """ Initialize a List member.
 
         Parameters
         ----------
-        kind : type or tuple of types
+        value_type : type or tuple of types
             The allowed type or types for the list elements.
 
         default : list, optional
@@ -740,12 +741,71 @@ class List(Value):
 
         """
         super(List, self).__init__(default, factory, **metadata)
-        self.validate_mode = (CMember.ValidateList, (kind, TypedList))
+        self.validate_mode = (CMember.ValidateList, (value_type, TypedList))
 
     @property
     def type_info(self):
         """ The type info for a List member.
 
         """
-        kind = self.validate_mode[1][0]
-        return 'a list of ' + kind_repr(kind)
+        value_type = self.validate_mode[1][0]
+        return 'a list of ' + kind_repr(value_type)
+
+
+class Dict(Value):
+    """ A member which accepts a dict of a given key and value type.
+
+    A Dict() member has copy-on-assignment semantics similar to C++
+    containers. This behavior is required to ensure that in-place
+    modifications to the dict can be type-checked.
+
+    If non-copying behavior (reference semantics) is required, use
+    a Typed(dict) member instead. Note that in-place modifications
+    to such a dict cannot be type-checked.
+
+    If reference semantics AND in-place type-checking is required,
+    use a Typed(TypedDict, (key_type, value_type)) member. Note that
+    direct assignment of a dict literal to such a member is not valid.
+    It is also possible to assign a TypedDict with a different type
+    specification to such a member.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, key_type=object, value_type=object,
+                 default={}, factory=None, **metadata):
+        """ Initialize a Dict member.
+
+        Parameters
+        ----------
+        key_type : type or tuple of types
+            The allowed type or types for the dict keys.
+
+        value_type : type or tuple of types
+            The allowed type or types for the dict values.
+
+        default : dict, optional
+            The default dict for the member.
+
+        factory : callable, optional
+            A callable object which is called with zero arguments and
+            returns a default dict for the member. This factory will
+            take precedence over any value given by `default`.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        super(Dict, self).__init__(default, factory, **metadata)
+        mode_data = (key_type, value_type, TypedDict)
+        self.validate_mode = (CMember.ValidateDict, mode_data)
+
+    @property
+    def type_info(self):
+        """ The type info for a Dict member.
+
+        """
+        mode_data = self.validate_mode[1]
+        key_repr = kind_repr(mode_data[0])
+        value_repr = kind_repr(mode_data[1])
+        return 'a dict of (%s, %s)' % (key_repr, value_repr)

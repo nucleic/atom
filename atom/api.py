@@ -9,6 +9,7 @@ from .atom import Atom, AtomMeta
 from .catom import (
     BoundSignal,
     Signal,
+    TypedDict,
     TypedList,
     ValidationError,
 )
@@ -17,6 +18,7 @@ from .members import (
     Bytes,
     Callable,
     Coerced,
+    Dict,
     Enum,
     Float,
     Instance,
