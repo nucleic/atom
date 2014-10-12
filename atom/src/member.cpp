@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include "member.h"
 #include "atom.h"
+#include "errors.h"
 #include "utils.h"
 #include "py23compat.h"
 
@@ -562,6 +563,37 @@ PyObject* validate_coerced( Member* member, PyObject* atom, PyObject* name, PyOb
 }
 
 
+PyObject* ttv_error( PyObject* value_type, PyObject* value )
+{
+	static PyObject* ttv_message = 0;
+	if( !ttv_message )
+	{
+		cppy::ptr mod( PyImport_ImportModule( "atom._cpphelpers" ) );
+		if( !mod )
+		{
+			return 0;
+		}
+		ttv_message = mod.getattr( "typed_tuple_validation_message" );
+		if( !ttv_message )
+		{
+			return 0;
+		}
+	}
+	cppy::ptr args( PyTuple_Pack( 2, value_type, value ) );
+	if( !args )
+	{
+		return 0;
+	}
+	cppy::ptr msg( PyObject_Call( ttv_message, args.get(), 0 ) );
+	if( !msg )
+	{
+		return 0;
+	}
+	PyErr_SetObject( Errors::ValidationError, msg.get() );
+	return 0;
+};
+
+
 PyObject* validate_tuple( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
 	if( !PyTuple_Check( value ) )
@@ -579,7 +611,7 @@ PyObject* validate_tuple( Member* member, PyObject* atom, PyObject* name, PyObje
 		int ok = PyObject_IsInstance( PyTuple_GET_ITEM( value, i ), value_type );
 		if( ok == 0 )
 		{
-			return validation_error( member, atom, name, value );
+			return ttv_error( value_type, PyTuple_GET_ITEM( value, i ) );
 		}
 		if( ok == -1 )
 		{

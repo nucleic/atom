@@ -13,6 +13,30 @@ This module must not import anything which imports catom.
 from .formatting import kind_repr
 
 
+def typed_tuple_validation_message(value_type, value):
+    """ Create a validation error message for a tuple object.
+
+    Parameters
+    ----------
+    value_type : type or tuple of types
+        The allowed type or types for the tuple elements.
+
+    value : object
+        The tuple element value which failed validation.
+
+    Returns
+    -------
+    result : str
+        The message to use with a ValidationError.
+
+    """
+    type_repr = kind_repr(value_type)
+    value_repr = '%r %r' % (value, type(value))
+    fmt = ("Each element of the tuple must be an instance of %s, "
+           "but a value of %s was specified.")
+    return fmt % (type_repr, value_repr)
+
+
 def typed_list_validation_message(typed_list, value):
     """ Create a validation error message for a TypedList object.
 
