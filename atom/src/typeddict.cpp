@@ -43,6 +43,13 @@ void validation_error( TypedDict* dict, PyObject* key, PyObject* value )
 }
 
 
+inline bool should_validate( TypedDict* dict )
+{
+	return dict->m_key_type != pyobject_cast( &PyBaseObject_Type ) ||
+				 dict->m_value_type != pyobject_cast( &PyBaseObject_Type );
+}
+
+
 inline bool validate_item( TypedDict* dict, PyObject* key, PyObject* value )
 {
 	int key_ok = PyObject_IsInstance( key, dict->m_key_type );
@@ -69,30 +76,25 @@ inline bool validate_item( TypedDict* dict, PyObject* key, PyObject* value )
 }
 
 
-PyObject* merge_items( PyObject* item, PyObject* kwargs )
+int merge_items( PyObject* dict, PyObject* item, PyObject* kwargs )
 {
-	cppy::ptr dict( PyDict_New() );
-	if( !dict )
-	{
-		return 0;
-	}
 	int ok = 0;
 	if( item )
 	{
 		if( PyObject_HasAttrString( item, "keys" ) )
 		{
-			ok = PyDict_Merge( dict.get(), item, 1 );
+			ok = PyDict_Merge( dict, item, 1 );
 		}
 		else
 		{
-			ok = PyDict_MergeFromSeq2( dict.get(), item, 1 );
+			ok = PyDict_MergeFromSeq2( dict, item, 1 );
 		}
 	}
 	if( ok == 0 && kwargs )
 	{
-		ok = PyDict_Merge( dict.get(), kwargs, 1 );
+		ok = PyDict_Merge( dict, kwargs, 1 );
 	}
-	return ok == 0 ? dict.release() : 0;
+	return ok;
 }
 
 
@@ -103,22 +105,30 @@ int TypedDict_update_common( TypedDict* dict, PyObject* args, PyObject* kwargs )
 	{
 		return -1;
 	}
-	cppy::ptr merged( merge_items( item, kwargs ) );
-	if( !merged )
+	if( !should_validate( dict ) )
+	{
+		return merge_items( pyobject_cast( dict ), item, kwargs );
+	}
+	cppy::ptr temp( PyDict_New() );
+	if( !temp )
+	{
+		return -1;
+	}
+	if( merge_items( temp.get(), item, kwargs ) < 0 )
 	{
 		return -1;
 	}
 	PyObject* key;
 	PyObject* value;
 	Py_ssize_t index = 0;
-	while( PyDict_Next( merged.get(), &index, &key, &value ) )
+	while( PyDict_Next( temp.get(), &index, &key, &value ) )
 	{
 		if( !validate_item( dict, key, value ) )
 		{
 			return -1;
 		}
 	}
-	return PyDict_Update( pyobject_cast( dict ), merged.get() );
+	return PyDict_Update( pyobject_cast( dict ), temp.get() );
 }
 
 
@@ -196,7 +206,7 @@ void TypedDict_dealloc( TypedDict* self )
 
 int TypedDict_ass_subscript( TypedDict* self, PyObject* key, PyObject* value )
 {
-	if( value && !validate_item( self, key, value ) )
+	if( value && should_validate( self ) && !validate_item( self, key, value ) )
 	{
 		return -1;
 	}
