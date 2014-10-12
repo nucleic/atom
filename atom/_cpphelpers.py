@@ -58,6 +58,6 @@ def typed_dict_validation_message(typed_dict, item):
     key_type_repr = kind_repr(typed_dict.key_type)
     value_type_repr = kind_repr(typed_dict.value_type)
     item_repr = '(%r %r, %r %r)' % (key, type(key), value, type(value))
-    fmt = ("Each item of the dict must have key type: %s, "
-           "and value type: %s, but the item %s was specified.")
+    fmt = ("Each item of the dict must have key type %s, "
+           "and value type %s, but the item %s was specified.")
     return fmt % (key_type_repr, value_type_repr, item_repr)
