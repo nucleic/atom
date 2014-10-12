@@ -28,6 +28,7 @@ from .members import (
     Range,
     Str,
     Subclass,
+    Tuple,
     Typed,
     Unicode,
     Value,

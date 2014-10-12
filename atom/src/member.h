@@ -54,6 +54,7 @@ struct Member
 		ValidateCallable,
 		ValidateRange,
 		ValidateCoerced,
+		ValidateTuple,
 		ValidateList,
 		ValidateDict,
 		ValidateCallObject,

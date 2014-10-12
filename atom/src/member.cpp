@@ -165,6 +165,15 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 			}
 			break;
 		}
+		case Member::ValidateTuple:
+		{
+			if( !utils::is_type_or_tuple_of_types( context ) )
+			{
+				cppy::type_error( context, "type or tuple of types" );
+				return false;
+			}
+			break;
+		}
 		case Member::ValidateDict:
 		{
 			if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 3 )
@@ -553,6 +562,34 @@ PyObject* validate_coerced( Member* member, PyObject* atom, PyObject* name, PyOb
 }
 
 
+PyObject* validate_tuple( Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+	if( !PyTuple_Check( value ) )
+	{
+		return validation_error( member, atom, name, value );
+	}
+	PyObject* value_type = member->m_validate_context;
+	if( value_type == pyobject_cast( &PyBaseObject_Type ) )
+	{
+		return cppy::incref( value );
+	}
+	Py_ssize_t count = PyTuple_GET_SIZE( value );
+	for( Py_ssize_t i = 0; i < count; ++i )
+	{
+		int ok = PyObject_IsInstance( PyTuple_GET_ITEM( value, i ), value_type );
+		if( ok == 0 )
+		{
+			return validation_error( member, atom, name, value );
+		}
+		if( ok == -1 )
+		{
+			return 0;
+		}
+	}
+	return cppy::incref( value );
+}
+
+
 PyObject* validate_list( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
 	if( !PyList_Check( value ) )
@@ -655,6 +692,7 @@ ValidateHandler validate_handlers[] = {
 	validate_callable,
 	validate_range,
 	validate_coerced,
+	validate_tuple,
 	validate_list,
 	validate_dict,
 	validate_call_object,
@@ -1034,6 +1072,7 @@ bool Member::Ready()
 	ADD_MODE( ValidateCallable )
 	ADD_MODE( ValidateRange )
 	ADD_MODE( ValidateCoerced )
+	ADD_MODE( ValidateTuple )
 	ADD_MODE( ValidateList )
 	ADD_MODE( ValidateDict )
 	ADD_MODE( ValidateCallObject )

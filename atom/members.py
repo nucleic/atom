@@ -699,6 +699,45 @@ class Coerced(Value):
         return 'coercible to ' + kind_repr(kind)
 
 
+class Tuple(Value):
+    """ A member which accepts a tuple of a given element type.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, value_type=object,
+                 default=(), factory=None, **metadata):
+        """ Initialize a Tuple member.
+
+        Parameters
+        ----------
+        value_type : type or tuple of types, optional
+            The allowed type or types for the tuple elements.
+
+        default : tuple, optional
+            The default tuple for the member.
+
+        factory : callable, optional
+            A callable object which is called with zero arguments and
+            returns a default tuple for the member. This factory will
+            take precedence over any value given by `default`.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        super(Tuple, self).__init__(default, factory, **metadata)
+        self.validate_mode = (CMember.ValidateTuple, value_type)
+
+    @property
+    def type_info(self):
+        """ The type info for a Tuple member.
+
+        """
+        value_type = self.validate_mode[1]
+        return 'a tuple of ' + kind_repr(value_type)
+
+
 class List(Value):
     """ A member which accepts a list of a given element type.
 
@@ -725,7 +764,7 @@ class List(Value):
 
         Parameters
         ----------
-        value_type : type or tuple of types
+        value_type : type or tuple of types, optional
             The allowed type or types for the list elements.
 
         default : list, optional
@@ -778,10 +817,10 @@ class Dict(Value):
 
         Parameters
         ----------
-        key_type : type or tuple of types
+        key_type : type or tuple of types, optional
             The allowed type or types for the dict keys.
 
-        value_type : type or tuple of types
+        value_type : type or tuple of types, optional
             The allowed type or types for the dict values.
 
         default : dict, optional
