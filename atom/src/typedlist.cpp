@@ -43,6 +43,12 @@ void validation_error( TypedList* list, PyObject* value )
 }
 
 
+inline bool should_validate( TypedList* list )
+{
+	return list->m_value_type != pyobject_cast( &PyBaseObject_Type );
+}
+
+
 inline bool validate_value( TypedList* list, PyObject* value )
 {
 	int ok = PyObject_IsInstance( value, list->m_value_type );
@@ -147,7 +153,7 @@ PyObject* TypedList_get_value_type( TypedList* self, void* context )
 
 PyObject* TypedList_append( TypedList* self, PyObject* value )
 {
-	if( !validate_value( self, value ) )
+	if( should_validate( self ) && !validate_value( self, value ) )
 	{
 		return 0;
 	}
@@ -161,6 +167,10 @@ PyObject* TypedList_append( TypedList* self, PyObject* value )
 
 PyObject* TypedList_extend( TypedList* self, PyObject* value )
 {
+	if( !should_validate( self ) )
+	{
+		return _PyList_Extend( &self->list, value );
+	}
 	cppy::ptr list( value, true );
 	if( !PyList_Check( value ) && !( list = PySequence_List( value ) ) )
 	{
@@ -182,7 +192,7 @@ PyObject* TypedList_insert( TypedList* self, PyObject* args )
 	{
 		return 0;
 	}
-	if( !validate_value( self, value ) )
+	if( should_validate( self ) && !validate_value( self, value ) )
 	{
 		return 0;
 	}
@@ -196,7 +206,7 @@ PyObject* TypedList_insert( TypedList* self, PyObject* args )
 
 int TypedList_ass_item( TypedList* self, Py_ssize_t index, PyObject* value )
 {
-	if( value && !validate_value( self, value ) )
+	if( value && should_validate( self ) && !validate_value( self, value ) )
 	{
 		return -1;
 	}
@@ -209,7 +219,7 @@ int TypedList_ass_item( TypedList* self, Py_ssize_t index, PyObject* value )
 int TypedList_ass_slice( TypedList* self, Py_ssize_t low, Py_ssize_t high, PyObject* value )
 {
 	cppy::ptr list( value, true );
-	if( value )
+	if( value && should_validate( self ) )
 	{
 		if( !PyList_Check( value ) && !( list = PySequence_List( value ) ) )
 		{
@@ -240,7 +250,7 @@ PyObject* TypedList_inplace_concat( TypedList* self, PyObject* value )
 int TypedList_ass_subscript( TypedList* self, PyObject* key, PyObject* value )
 {
 	cppy::ptr item( value, true );
-	if( value )
+	if( value && should_validate( self ) )
 	{
 		if( PyIndex_Check( key ) )
 		{
