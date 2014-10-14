@@ -109,7 +109,7 @@ int TypedList_init( TypedList* self, PyObject* args, PyObject* kwargs )
 	}
 	if( PyList_GET_SIZE( self ) > 0 )
 	{
-		Py_TYPE( self )->tp_clear( pyobject_cast( self ) );
+		PyList_Type.tp_clear( pyobject_cast( self ) );
 	}
 	cppy::replace( &self->m_value_type, value_type );
 	if( sequence )
