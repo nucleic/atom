@@ -13,6 +13,7 @@
 #include "signal.h"
 #include "typeddict.h"
 #include "typedlist.h"
+#include "typedset.h"
 
 #include <cppy/cppy.h>
 #include <Python.h>
@@ -95,6 +96,10 @@ bool ready_types()
 	{
 		return false;
 	}
+	if( !TypedSet::Ready() )
+	{
+		return false;
+	}
 	return true;
 }
 
@@ -109,6 +114,7 @@ bool add_objects( PyObject* mod )
 	PyObject* Atom = cppy::incref( pyobject_cast( &Atom::TypeObject ) );
 	PyObject* TypedDict = cppy::incref( pyobject_cast( &TypedDict::TypeObject ) );
 	PyObject* TypedList = cppy::incref( pyobject_cast( &TypedList::TypeObject ) );
+	PyObject* TypedSet = cppy::incref( pyobject_cast( &TypedSet::TypeObject ) );
 	if( PyModule_AddObject( mod, "ValidationError", ValidationError ) < 0 )
 	{
 		return false;
@@ -134,6 +140,10 @@ bool add_objects( PyObject* mod )
 		return false;
 	}
 	if( PyModule_AddObject( mod, "TypedList", TypedList ) < 0 )
+	{
+		return false;
+	}
+	if( PyModule_AddObject( mod, "TypedSet", TypedSet ) < 0 )
 	{
 		return false;
 	}

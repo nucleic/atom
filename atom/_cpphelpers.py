@@ -13,6 +13,19 @@ This module must not import anything which imports catom.
 from .formatting import kind_repr
 
 
+def _value_message_common(container, value_type, value):
+    """ Create a validation error message for value.
+
+    This is a common message function for tuple, list, and set.
+
+    """
+    type_repr = kind_repr(value_type)
+    value_repr = '%r %r' % (value, type(value))
+    fmt = ("Each element of the %s must be an instance of %s, "
+           "but a value of %s was specified.")
+    return fmt % (container, type_repr, value_repr)
+
+
 def typed_tuple_validation_message(value_type, value):
     """ Create a validation error message for a tuple object.
 
@@ -30,11 +43,7 @@ def typed_tuple_validation_message(value_type, value):
         The message to use with a ValidationError.
 
     """
-    type_repr = kind_repr(value_type)
-    value_repr = '%r %r' % (value, type(value))
-    fmt = ("Each element of the tuple must be an instance of %s, "
-           "but a value of %s was specified.")
-    return fmt % (type_repr, value_repr)
+    return _value_message_common('tuple', value_type, value)
 
 
 def typed_list_validation_message(typed_list, value):
@@ -54,11 +63,27 @@ def typed_list_validation_message(typed_list, value):
         The message to use with a ValidationError.
 
     """
-    type_repr = kind_repr(typed_list.value_type)
-    value_repr = '%r %r' % (value, type(value))
-    fmt = ("Each element of the list must be an instance of %s, "
-           "but a value of %s was specified.")
-    return fmt % (type_repr, value_repr)
+    return _value_message_common('list', typed_list.value_type, value)
+
+
+def typed_set_validation_message(typed_set, value):
+    """ Create a validation error message for a TypedSet object.
+
+    Parameters
+    ----------
+    typed_set : TypedSet
+        The typed set object of interest.
+
+    value : object
+        The set element value which failed validation.
+
+    Returns
+    -------
+    result : str
+        The message to use with a ValidationError.
+
+    """
+    return _value_message_common('set', typed_set.value_type, value)
 
 
 def typed_dict_validation_message(typed_dict, item):

@@ -25,6 +25,7 @@ ext_modules = [
             'atom/src/signal.cpp',
             'atom/src/typeddict.cpp',
             'atom/src/typedlist.cpp',
+            'atom/src/typedset.cpp',
         ],
         include_dirs=[cppy.get_include(), 'atom/src'],
         language='c++',
