@@ -942,7 +942,7 @@ PyObject* Member_do_default( Member* self, PyObject* args )
 {
 	PyObject* atom;
 	PyObject* name;
-	if( !PyArg_ParseTuple( args, "OO", &atom, &name ) )
+	if( !PyArg_UnpackTuple( args, "do_default", 2, 2, &atom, &name ) )
 	{
 		return 0;
 	}
@@ -963,7 +963,7 @@ PyObject* Member_do_validate( Member* self, PyObject* args )
 	PyObject* atom;
 	PyObject* name;
 	PyObject* value;
-	if( !PyArg_ParseTuple( args, "OOO", &atom, &name, &value ) )
+	if( !PyArg_UnpackTuple( args, "do_validate", 3, 3, &atom, &name, &value ) )
 	{
 		return 0;
 	}

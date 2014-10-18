@@ -64,7 +64,7 @@ PyObject* BoundSignal_new( PyTypeObject* type, PyObject* args, PyObject* kwargs 
 	}
 	PyObject* sig;
 	PyObject* atom;
-	if( !PyArg_ParseTuple( args, "OO", &sig, &atom ) )
+	if( !PyArg_UnpackTuple( args, "__new__", 2, 2, &sig, &atom ) )
 	{
 		return 0;
 	}
@@ -151,7 +151,7 @@ PyObject* BoundSignal_connect( BoundSignal* self, PyObject* callback )
 PyObject* BoundSignal_disconnect( BoundSignal* self, PyObject* args )
 {
 	PyObject* callback = 0;
-	if( !PyArg_ParseTuple( args, "|O", &callback ) )
+	if( !PyArg_UnpackTuple( args, "disconnect", 0, 1, &callback ) )
 	{
 		return 0;
 	}

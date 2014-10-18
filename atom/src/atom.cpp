@@ -318,7 +318,7 @@ PyObject* Atom_connect( PyObject* ignored, PyObject* args )
 	PyObject* pyo;
 	PyObject* sig;
 	PyObject* callback;
-	if( !PyArg_ParseTuple( args, "OOO", &pyo, &sig, &callback ) )
+	if( !PyArg_UnpackTuple( args, "connect", 3, 3, &pyo, &sig, &callback ) )
 	{
 		return 0;
 	}
@@ -343,7 +343,7 @@ PyObject* Atom_disconnect( PyObject* ignored, PyObject* args )
 	PyObject* pyo;
 	PyObject* sig = 0;
 	PyObject* callback = 0;
-	if( !PyArg_ParseTuple( args, "O|OO", &pyo, &sig, &callback ) )
+	if( !PyArg_UnpackTuple( args, "disconnect", 1, 3, &pyo, &sig, &callback ) )
 	{
 		return 0;
 	}

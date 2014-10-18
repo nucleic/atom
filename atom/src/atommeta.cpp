@@ -223,7 +223,7 @@ PyObject* AtomMeta::CreateClass( PyObject* args )
 	PyObject* name;
 	PyObject* bases;
 	PyObject* dict;
-	if( !PyArg_ParseTuple( args, "OOOO", &meta, &name, &bases, &dict ) )
+	if( !PyArg_UnpackTuple( args, "CreateClass", 4, 4, &meta, &name, &bases, &dict ) )
 	{
 		return 0;
 	}
