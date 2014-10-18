@@ -11,11 +11,6 @@
 
 #include <cppy/cppy.h>
 
-// Note: on Python 2, subclassing set is technically broken because the
-// set type bypasses tp_new when creating instances of a set subtype:
-// https://mail.python.org/pipermail/python-bugs-list/2007-May/038470.html
-// This is fixed in Python 3, but was never backported. Therefore, extra
-// checks must be done guard against a possible null m_value_type.
 
 #define pyobject_cast( o ) reinterpret_cast<PyObject*>( o )
 
@@ -25,9 +20,6 @@ namespace atom
 
 namespace
 {
-
-PyObject* intersection_str;
-
 
 void validation_error( TypedSet* set, PyObject* value )
 {
@@ -51,13 +43,17 @@ void validation_error( TypedSet* set, PyObject* value )
 }
 
 
+// Note: on Python 2, subclassing set is technically broken because the
+// set type bypasses tp_new when creating instances of a set subtype:
+// https://mail.python.org/pipermail/python-bugs-list/2007-May/038470.html
+// This is fixed in Python 3, but was never backported, so an extra check
+// must be done to guard against a possible null m_value_type.
 inline bool should_validate( TypedSet* set )
 {
 	return set->m_value_type && set->m_value_type != pyobject_cast( &PyBaseObject_Type );
 }
 
 
-// only called if should_validate(...) == true
 inline bool validate_value( TypedSet* set, PyObject* value )
 {
 	int ok = PyObject_IsInstance( value, set->m_value_type );
@@ -73,7 +69,6 @@ inline bool validate_value( TypedSet* set, PyObject* value )
 }
 
 
-// only called if should_validate(...) == true
 inline bool validate_set( TypedSet* set, PyObject* value )
 {
 	PyObject* key;
@@ -94,36 +89,14 @@ inline bool validate_set( TypedSet* set, PyObject* value )
 }
 
 
-int update_multi( PyObject* set, PyObject* args )
-{
-	Py_ssize_t count = PyTuple_GET_SIZE( args );
-	if( count == 0 )
-	{
-		return 0;
-	}
-	for( Py_ssize_t i = 0; i < count; ++i )
-	{
-		if( _PySet_Update( set, PyTuple_GET_ITEM( args, i ) ) < 0 )
-		{
-			return -1;
-		}
-	}
-	return 0;
-}
-
-
-int TypedSet_update_common( TypedSet* set, PyObject* args )
+int TypedSet_update_common( TypedSet* set, PyObject* value )
 {
 	if( !should_validate( set ) )
 	{
-		return update_multi( pyobject_cast( set ), args );
+		return _PySet_Update( pyobject_cast( set ), value );
 	}
-	cppy::ptr temp( PySet_New( 0 ) );
-	if( !temp )
-	{
-		return -1;
-	}
-	if( update_multi( temp.get(), args ) < 0 )
+	cppy::ptr temp( value, true );
+	if( !PyAnySet_Check( value ) && !( temp = PySet_New( value ) ) )
 	{
 		return -1;
 	}
@@ -131,48 +104,7 @@ int TypedSet_update_common( TypedSet* set, PyObject* args )
 	{
 		return -1;
 	}
-	if( _PySet_Update( pyobject_cast( set ), temp.get() ) < 0 )
-	{
-		return -1;
-	}
-	return 0;
-}
-
-
-int TypedSet_intersection_update_common( TypedSet* set, PyObject* args )
-{
-	// The C API for set does not expose an intersection update method. So
-	// the simplest way to do this is to intersect a copy and then clear
-	// and update the set in-place. It would be much nicer if the set API
-	// was as well designed as the rest of the Python builtins...
-	cppy::ptr setptr( pyobject_cast( set ), true );
-	cppy::ptr method( setptr.getattr( intersection_str ) );
-	if( !method )
-	{
-		return -1;
-	}
-	cppy::ptr temp( method.call( args ) );
-	if( !temp )
-	{
-		return -1;
-	}
-	if( !PyAnySet_Check( temp.get() ) && !( temp = PySet_New( temp.get() ) ) )
-	{
-		return -1;
-	}
-	if( should_validate( set ) && !validate_set( set, temp.get() ) )
-	{
-		return -1;
-	}
-	if( PySet_Clear( pyobject_cast( set ) ) < 0 )
-	{
-		return -1;
-	}
-	if( _PySet_Update( pyobject_cast( set ), temp.get() ) < 0 )
-	{
-		return -1;
-	}
-	return 0;
+	return _PySet_Update( pyobject_cast( set ), temp.get() );
 }
 
 
@@ -210,12 +142,7 @@ int TypedSet_init( TypedSet* self, PyObject* args, PyObject* kwargs )
 	cppy::replace( &self->m_value_type, value_type );
 	if( sequence )
 	{
-		cppy::ptr args( PyTuple_Pack( 1, sequence ) );
-		if( !args )
-		{
-			return -1;
-		}
-		return TypedSet_update_common( self, args.get() );
+		return TypedSet_update_common( self, sequence );
 	}
 	return 0;
 }
@@ -242,20 +169,23 @@ void TypedSet_dealloc( TypedSet* self )
 }
 
 
-// Set intersection keeps the elements from the second set, which makes
-// validation necessary because 1 == 1.0 according to the set. grrrr...
+PyObject* TypedSet_isub( TypedSet* self, PyObject* other )
+{
+	if( should_validate( self ) && PyAnySet_Check( other ) && !validate_set( self, other ) )
+	{
+		return 0;
+	}
+	return PySet_Type.tp_as_number->nb_inplace_subtract( pyobject_cast( self ), other );
+}
+
+
 PyObject* TypedSet_iand( TypedSet* self, PyObject* other )
 {
-	cppy::ptr args( PyTuple_Pack( 1, other ) );
-	if( !args )
+	if( should_validate( self ) && PyAnySet_Check( other ) && !validate_set( self, other ) )
 	{
 		return 0;
 	}
-	if( TypedSet_intersection_update_common( self, args.get() ) < 0 )
-	{
-		return 0;
-	}
-	return cppy::incref( pyobject_cast( self ) );
+	return PySet_Type.tp_as_number->nb_inplace_and( pyobject_cast( self ), other );
 }
 
 
@@ -299,9 +229,15 @@ PyObject* TypedSet_add( TypedSet* self, PyObject* value )
 }
 
 
-PyObject* TypedSet_update( TypedSet* self, PyObject* args )
+PyObject* TypedSet_difference_update( TypedSet* self, PyObject* value )
 {
-	if( TypedSet_update_common( self, args ) < 0 )
+	cppy::ptr temp( value, true );
+	if( !PyAnySet_Check( value ) && !( temp = PySet_New( value ) ) )
+	{
+		return 0;
+	}
+	cppy::ptr ignored( TypedSet_isub( self, temp.get() ) );
+	if( !ignored )
 	{
 		return 0;
 	}
@@ -309,11 +245,15 @@ PyObject* TypedSet_update( TypedSet* self, PyObject* args )
 }
 
 
-// Set intersection keeps the elements from the second set, which makes
-// validation necessary because 1 == 1.0 according to the set. grrrr...
-PyObject* TypedSet_intersection_update( TypedSet* self, PyObject* args )
+PyObject* TypedSet_intersection_update( TypedSet* self, PyObject* value )
 {
-	if( TypedSet_intersection_update_common( self, args ) < 0 )
+	cppy::ptr temp( value, true );
+	if( !PyAnySet_Check( value ) && !( temp = PySet_New( value ) ) )
+	{
+		return 0;
+	}
+	cppy::ptr ignored( TypedSet_iand( self, temp.get() ) );
+	if( !ignored )
 	{
 		return 0;
 	}
@@ -330,6 +270,16 @@ PyObject* TypedSet_symmetric_difference_update( TypedSet* self, PyObject* value 
 	}
 	cppy::ptr ignored( TypedSet_ixor( self, temp.get() ) );
 	if( !ignored )
+	{
+		return 0;
+	}
+	return cppy::incref( Py_None );
+}
+
+
+PyObject* TypedSet_update( TypedSet* self, PyObject* value )
+{
+	if( TypedSet_update_common( self, value ) < 0 )
 	{
 		return 0;
 	}
@@ -399,7 +349,7 @@ PyNumberMethods TypedSet_as_number = {
 	0,                                  /* nb_hex */
 #endif
 	0,                                  /* nb_inplace_add */
-	0,                                  /* nb_inplace_subtract */
+	(binaryfunc)TypedSet_isub,          /* nb_inplace_subtract */
 	0,                                  /* nb_inplace_multiply */
 #ifndef IS_PY3K
 	0,                                  /* nb_inplace_divide */
@@ -427,18 +377,22 @@ PyMethodDef TypedSet_methods[] = {
 	  ( PyCFunction )TypedSet_add,
 	  METH_O,
 	  "Add an element to a set." },
-	{ "update",
-	  ( PyCFunction )TypedSet_update,
-	  METH_VARARGS,
-	  "Update a set with the union of itself and others." },
+	{ "difference_update",
+	  ( PyCFunction )TypedSet_difference_update,
+	  METH_O,
+	  "Update a set with the difference of itself and another." },
 	{ "intersection_update",
 	  ( PyCFunction )TypedSet_intersection_update,
-	  METH_VARARGS,
+	  METH_O,
 	  "Update a set with the intersection of itself and another." },
 	{ "symmetric_difference_update",
 	  ( PyCFunction )TypedSet_symmetric_difference_update,
 	  METH_O,
 	  "Update a set with the symmetric difference of itself and another." },
+	{ "update",
+	  ( PyCFunction )TypedSet_update,
+	  METH_O,
+	  "Update a set with the union of itself and another." },
 	{ "validation_error",
 		( PyCFunction )TypedSet_validation_error,
 		METH_O,
@@ -508,10 +462,6 @@ PyTypeObject TypedSet::TypeObject = {
 
 bool TypedSet::Ready()
 {
-	if( !( intersection_str = Py23Str_FromString( "intersection" ) ) )
-	{
-		return false;
-	}
 	return PyType_Ready( &TypeObject ) == 0;
 }
 
