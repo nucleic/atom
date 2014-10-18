@@ -42,9 +42,8 @@ class Member(CMember):
         """
         metadata = self.metadata
         if metadata is None:
-            self.metadata = kwargs.copy()
-        else:
-            metadata.update(kwargs)
+            self.metadata = metadata = {}
+        metadata.update(kwargs)
         return self
 
 
