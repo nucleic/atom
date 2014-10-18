@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import CMember, TypedDict, TypedList, TypedSet, ValidationError
+from .catom import CMember, TypedDict, TypedList, TypedSet
 from .formatting import add_article, kind_repr
 
 
@@ -21,37 +21,6 @@ class Member(CMember):
     #: to generate a reasonable validation error message, and can be
     #: overridden as needed by subclasses.
     type_info = 'an object'
-
-    def validation_error(self, atom, name, value):
-        """ Raise a generic ValidationError for the given parameters.
-
-        This is called by the C++ layer when value validation fails.
-
-        This method may be reimplemented by subclasses if necessary
-        in order to raise a custom ValidationError.
-
-        Parameters
-        ----------
-        atom : Atom
-            The atom object which owns the value.
-
-        name : str
-            The name of the attribute being validated.
-
-        value : object
-            The value which failed validation.
-
-        Raises
-        ------
-        ValidationError
-
-        """
-        value_repr = '%r %r' % (value, type(value))
-        atom_name = add_article(type(atom).__name__)
-        args = (name, atom_name, self.type_info, value_repr)
-        msg = ("The '%s' member of %s instance must be %s, "
-               "but a value of %s was specified.") % args
-        raise ValidationError(msg)
 
     def tag(self, **kwargs):
         """ Add additional metadata to the member.

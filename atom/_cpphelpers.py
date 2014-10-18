@@ -10,7 +10,32 @@
 This module must not import anything which imports catom.
 
 """
-from .formatting import kind_repr
+from .formatting import kind_repr, add_article
+
+
+def member_validation_message(member, args):
+    """ Create a validation error message for a member.
+
+    Parameters
+    ----------
+    member : Member
+        The member for which validation failed.
+
+    args : tuple
+        A tuple of (atom, name, value) which failed validation.
+
+    Returns
+    -------
+    result : str
+        The message to use with a ValidationError.
+
+    """
+    atom, name, value = args
+    value_repr = '%r %r' % (value, type(value))
+    atom_name = add_article(type(atom).__name__)
+    fmt = ("The '%s' member of %s instance must be %s, "
+           "but a value of %s was specified.")
+    return fmt % (name, atom_name, member.type_info, value_repr)
 
 
 def _value_message_common(container, value_type, value):

@@ -979,6 +979,37 @@ PyObject* Member_do_validate( Member* self, PyObject* args )
 }
 
 
+PyObject* Member_validation_error( Member* self, PyObject* args )
+{
+	static PyObject* mv_message = 0;
+	if( !mv_message )
+	{
+		cppy::ptr mod( PyImport_ImportModule( "atom._cpphelpers" ) );
+		if( !mod )
+		{
+			return 0;
+		}
+		mv_message = mod.getattr( "member_validation_message" );
+		if( !mv_message )
+		{
+			return 0;
+		}
+	}
+	cppy::ptr callargs( PyTuple_Pack( 2, pyobject_cast( self ), args ) );
+	if( !callargs )
+	{
+		return 0;
+	}
+	cppy::ptr msg( PyObject_Call( mv_message, callargs.get(), 0 ) );
+	if( !msg )
+	{
+		return 0;
+	}
+	PyErr_SetObject( Errors::ValidationError, msg.get() );
+	return 0;
+};
+
+
 PyGetSetDef Member_getset[] = {
 	{ "metadata",
 		( getter )Member_get_metadata,
@@ -1012,6 +1043,10 @@ PyMethodDef Member_methods[] = {
 		( PyCFunction )Member_do_validate,
 		METH_VARARGS,
 		"Run the validate value handler for the member." },
+	{ "validation_error",
+		( PyCFunction )Member_validation_error,
+		METH_VARARGS,
+		"Raise a ValidationError for the member." },
 	{ 0 } // sentinel
 };
 
