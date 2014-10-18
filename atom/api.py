@@ -26,6 +26,7 @@ from .members import (
     List,
     Member,
     Range,
+    Set,
     Str,
     Subclass,
     Tuple,

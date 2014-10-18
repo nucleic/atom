@@ -146,6 +146,7 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 		}
 		case Member::ValidateCoerced:
 		case Member::ValidateList:
+		case Member::ValidateSet:
 		{
 			if( !PyTuple_Check( context ) || PyTuple_GET_SIZE( context ) != 2 )
 			{
@@ -667,6 +668,28 @@ PyObject* validate_dict( Member* member, PyObject* atom, PyObject* name, PyObjec
 }
 
 
+PyObject* validate_set( Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+	if( !PyAnySet_Check( value ) )
+	{
+		return validation_error( member, atom, name, value );
+	}
+	PyObject* kind = PyTuple_GET_ITEM( member->m_validate_context, 0 );
+	PyObject* callable = PyTuple_GET_ITEM( member->m_validate_context, 1 );
+	cppy::ptr args( PyTuple_Pack( 2, kind, value ) );
+	cppy::ptr result( PyObject_Call( callable, args.get(), 0 ) );
+	if( !result )
+	{
+		return 0;
+	}
+	if( !PySet_Check( result.get() ) )
+	{
+		return validation_error( member, atom, name, result.get() );
+	}
+	return result.release();
+}
+
+
 PyObject* validate_call_object( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
 	cppy::ptr args( PyTuple_Pack( 3, atom, name, value ) );
@@ -727,6 +750,7 @@ ValidateHandler validate_handlers[] = {
 	validate_tuple,
 	validate_list,
 	validate_dict,
+	validate_set,
 	validate_call_object,
 	validate_member_method
 };
@@ -1107,6 +1131,7 @@ bool Member::Ready()
 	ADD_MODE( ValidateTuple )
 	ADD_MODE( ValidateList )
 	ADD_MODE( ValidateDict )
+	ADD_MODE( ValidateSet )
 	ADD_MODE( ValidateCallObject )
 	ADD_MODE( ValidateMemberMethod )
 

@@ -57,6 +57,7 @@ struct Member
 		ValidateTuple,
 		ValidateList,
 		ValidateDict,
+		ValidateSet,
 		ValidateCallObject,
 		ValidateMemberMethod,
 		ValidateLast // sentinel

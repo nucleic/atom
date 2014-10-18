@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import CMember, TypedDict, TypedList, ValidationError
+from .catom import CMember, TypedDict, TypedList, TypedSet, ValidationError
 from .formatting import add_article, kind_repr
 
 
@@ -848,3 +848,56 @@ class Dict(Value):
         key_repr = kind_repr(mode_data[0])
         value_repr = kind_repr(mode_data[1])
         return 'a dict of (%s, %s)' % (key_repr, value_repr)
+
+
+class Set(Value):
+    """ A member which accepts a set of a given element type.
+
+    A Set() member has copy-on-assignment semantics similar to C++
+    containers. This behavior is required to ensure that in-place
+    modifications to the set can be type-checked.
+
+    If non-copying behavior (reference semantics) is required, use
+    a Typed(set) member instead. Note that in-place modifications
+    to such a set cannot be type-checked.
+
+    If reference semantics AND in-place type-checking is required,
+    use a Typed(TypedSet, (value_type,)) member. Note that direct
+    assignment of a set literal to such a member is not valid. It
+    is also possible to assign a TypedSet with a different value
+    type to such a member.
+
+    """
+    __slots__ = ()
+
+    def __init__(self, value_type=object,
+                 default=set(), factory=None, **metadata):
+        """ Initialize a Set member.
+
+        Parameters
+        ----------
+        value_type : type or tuple of types, optional
+            The allowed type or types for the set elements.
+
+        default : set, optional
+            The default set for the member.
+
+        factory : callable, optional
+            A callable object which is called with zero arguments and
+            returns a default set for the member. This factory will
+            take precedence over any value given by `default`.
+
+        **metadata
+            Additional metadata to apply to the member.
+
+        """
+        super(Set, self).__init__(default, factory, **metadata)
+        self.validate_mode = (CMember.ValidateSet, (value_type, TypedSet))
+
+    @property
+    def type_info(self):
+        """ The type info for a Set member.
+
+        """
+        value_type = self.validate_mode[1][0]
+        return 'a set of ' + kind_repr(value_type)
