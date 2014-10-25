@@ -1,9 +1,9 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2014, Nucleic Development Team.
+# Copyright (c) 2014, Nucleic
 #
-# Distributed under the terms of the Modified BSD License.
+# Distributed under the terms of the BSD 3-Clause License.
 #
-# The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
@@ -52,7 +52,7 @@ class BuildExt(build_ext):
 setup(
     name='atom',
     version='1.0.0-dev',
-    author='The Nucleic Development Team',
+    author='Nucleic',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/atom',
     description='Memory efficient Python objects',

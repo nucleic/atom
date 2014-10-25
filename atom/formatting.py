@@ -1,9 +1,9 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2014, Nucleic Development Team.
+# Copyright (c) 2014, Nucleic
 #
-# Distributed under the terms of the Modified BSD License.
+# Distributed under the terms of the BSD 3-Clause License.
 #
-# The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
 """ A collection of message formatting utility functions.
 
