@@ -275,13 +275,13 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 			cppy::system_error( "invalid member index" );
 			return -1;
 		}
-		if( self->m_values[ member->index() ] == value )
-		{
-			return 0;
-		}
 		if( !value )
 		{
-			cppy::clear( &self->m_values[ member->index() ] );
+			cppy::attribute_error( "can't delete attribute" );
+			return -1;
+		}
+		if( self->m_values[ member->index() ] == value )
+		{
 			return 0;
 		}
 		cppy::ptr valptr( member->validate( pyobject_cast( self ), name, value ) );
