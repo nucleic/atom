@@ -2,14 +2,10 @@ include *.txt
 include *.rst
 include *.md
 include Makefile
-recursive-include docs *.rst
-recursive-include docs *.png
-recursive-include docs *.py
+include LICENSE
 recursive-include examples *.py
-recursive-include licenses *.txt
-recursive-include atom/src *.cpp
-recursive-include atom/src *.h
+recursive-include src *.cpp *.h
 prune .git
-prune docs/build
 prune dist
 prune build
+prune atom.egg-info
