@@ -11,7 +11,7 @@
 #include <cppy/cppy.h>
 
 
-#define FREELIST_MAX 128
+#define FREELIST_MAX 64
 
 #define atom_cast( o ) reinterpret_cast<Atom*>( o )
 #define signal_cast( o ) reinterpret_cast<Signal*>( o )
