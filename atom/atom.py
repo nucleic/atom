@@ -19,6 +19,23 @@ def __newobj__(cls, *args):
     return cls.__new__(cls, *args)
 
 
+def _remove_members(dct):
+    """ Rempve the members from the given dict.
+
+    This function is not part of the public Atom api.
+
+    """
+    # This walks the dict and removes all CMember instances.
+    # The return value is a dict of the removed members.
+    members = {}
+    for key, value in six.iteritems(dct):
+        if isinstance(value, CMember):
+            members[key] = value
+    for key in members:
+        del dct[key]
+    return members
+
+
 def _add_base_class_members(members, cls):
     """ Collect the base class members for an Atom class.
 
@@ -33,25 +50,24 @@ def _add_base_class_members(members, cls):
             members.update(_fp_lookup_members(base))
 
 
-def _add_new_class_members(members, dct):
+def _add_new_class_members(members, cls_members):
     """ Add the new class members to a members dict.
 
     This function is not part of the public Atom api.
 
     """
-    # This walks the current class dict and adds the new members to
+    # This walks the class members dict and adds the new members to
     # the members dict. The index of the new members are a computed
     # at this time since they are easily determined. Conflicts due
     # to multiple inheritance will be resolved at a later time.
     next_index = len(members)
-    for key, value in six.iteritems(dct):
-        if isinstance(value, CMember):
-            if key in members:
-                value._fp_index = members[key]._fp_index
-            else:
-                value._fp_index = next_index
-                next_index += 1
-            members[key] = value
+    for key, value in six.iteritems(cls_members):
+        if key in members:
+            value._fp_index = members[key]._fp_index
+        else:
+            value._fp_index = next_index
+            next_index += 1
+        members[key] = value
 
 
 def _fixup_memory_layout(members):
@@ -123,10 +139,11 @@ class AtomMeta(type):
         """
         if '__slots__' in dct:
             raise TypeError('Atom classes cannot declare slots')
+        cls_members = _remove_members(dct)
         cls = type.__new__(meta, name, bases, dct)
         members = {}
         _add_base_class_members(members, cls)
-        _add_new_class_members(members, dct)
+        _add_new_class_members(members, cls_members)
         _fixup_memory_layout(members)
         _fp_register_members(cls, members)
         return cls
