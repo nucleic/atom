@@ -9,6 +9,7 @@
 #include "atommeta.h"
 #include "errors.h"
 #include "member.h"
+#include "memberchange.h"
 #include "methodwrapper.h"
 #include "signal.h"
 #include "typeddict.h"
@@ -73,6 +74,10 @@ bool ready_types()
 		return false;
 	}
 	if( !Member::Ready() )
+	{
+		return false;
+	}
+	if( !MemberChange::Ready() )
 	{
 		return false;
 	}

@@ -21,6 +21,7 @@ ext_modules = [
             'src/catommodule.cpp',
             'src/errors.cpp',
             'src/member.cpp',
+            'src/memberchange.cpp',
             'src/methodwrapper.cpp',
             'src/signal.cpp',
             'src/typeddict.cpp',
