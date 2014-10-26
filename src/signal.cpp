@@ -319,7 +319,7 @@ PyObject* BoundSignal::Create( Signal* sig, Atom* atom )
 	}
 	else
 	{
-		pyo = PyType_GenericAlloc( &BoundSignal::TypeObject, 0 );
+		pyo = PyType_GenericAlloc( &TypeObject, 0 );
 		if( !pyo )
 		{
 			return 0;

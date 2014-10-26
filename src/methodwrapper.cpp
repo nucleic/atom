@@ -174,7 +174,7 @@ PyTypeObject MethodWrapper::TypeObject = {
 
 bool MethodWrapper::Ready()
 {
-	return PyType_Ready( &MethodWrapper::TypeObject ) == 0;
+	return PyType_Ready( &TypeObject ) == 0;
 }
 
 
