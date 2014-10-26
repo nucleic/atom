@@ -40,9 +40,9 @@ struct Atom
 		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
 	}
 
-	static bool RegisterMembers( PyTypeObject* type, PyObject* members );
+	static bool RegisterMembers( PyObject* type, PyObject* members );
 
-	static PyObject* LookupMembers( PyTypeObject* type );
+	static PyObject* LookupMembers( PyObject* type );
 
 	static PyObject* Sender();
 

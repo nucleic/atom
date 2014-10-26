@@ -913,7 +913,25 @@ int Member_set_validate_mode( Member* self, PyObject* arg )
 
 PyObject* Member_get_index( Member* self, void* context )
 {
-	return Py23Int_FromSsize_t( self->index() );
+	return Py23Int_FromSsize_t( self->m_index );
+}
+
+
+int Member_set_index( Member* self, PyObject* value, void* context )
+{
+	if( !Py23Int_Check( value ) )
+	{
+		cppy::type_error( value, "int" );
+		return -1;
+	}
+	Py_ssize_t index = Py23Int_AsSsize_t( value );
+	if( index < 0 )
+	{
+		cppy::system_error( "invalid member index" );
+		return -1;
+	}
+	self->m_index = index;
+	return 0;
 }
 
 
@@ -1023,9 +1041,10 @@ PyGetSetDef Member_getset[] = {
 		( getter )Member_get_validate_mode,
 		( setter )Member_set_validate_mode,
 		"the validate mode for the member", 0 },
-	{ "_index",
-		( getter )Member_get_index, 0,
-		"*private* the read-only value index for the member", 0 },
+	{ "_fp_index",
+		( getter )Member_get_index,
+		( setter )Member_set_index,
+		"*framework private* the memory index for the member", 0 },
 	{ 0 } // sentinel
 };
 
@@ -1176,26 +1195,6 @@ bool Member::Ready()
 #undef STR_HELPER
 
 	return true;
-}
-
-
-PyObject* Member::Clone( PyObject* member )
-{
-	cppy::ptr method( PyObject_GetAttr( member, clone_str ) );
-	if( !method )
-	{
-		return 0;
-	}
-	cppy::ptr clone( method.call( empty_tuple ) );
-	if( !clone )
-	{
-		return 0;
-	}
-	if( !Member::TypeCheck( clone.get() ) )
-	{
-		return cppy::type_error( "member.clone() returned a non-Member type" );
-	}
-	return clone.release();
 }
 
 

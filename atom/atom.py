@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 import six
 
-from .catom import CAtom, _atom_meta_create_class
+from .catom import CAtom, CMember, _fp_lookup_members, _fp_register_members
 
 
 def __newobj__(cls, *args):
@@ -17,6 +17,77 @@ def __newobj__(cls, *args):
 
     """
     return cls.__new__(cls, *args)
+
+
+def _add_base_class_members(members, cls):
+    """ Collect the base class members for an Atom class.
+
+    This function is not part of the public Atom api.
+
+    """
+    # This walk the mro of the class, excluding itself, in reverse
+    # order collecting all of the members into the given dict. The
+    # reverse order preserves the mro of overridden members.
+    for base in reversed(cls.__mro__[1:-1]):
+        if base is not CAtom and issubclass(base, CAtom):
+            members.update(_fp_lookup_members(base))
+
+
+def _add_new_class_members(members, dct):
+    """ Add the new class members to a members dict.
+
+    This function is not part of the public Atom api.
+
+    """
+    # This walks the current class dict and adds the new members to
+    # the members dict. The index of the new members are a computed
+    # at this time since they are easily determined. Conflicts due
+    # to multiple inheritance will be resolved at a later time.
+    next_index = len(members)
+    for key, value in six.iteritems(dct):
+        if isinstance(value, CMember):
+            if key in members:
+                value._fp_index = members[key]._fp_index
+            else:
+                value._fp_index = next_index
+                next_index += 1
+            members[key] = value
+
+
+def _fixup_memory_layout(members):
+    """ Fixup the memory layout for the given members.
+
+    This function is not part of the public Atom api.
+
+    """
+    # Pass over the members and collect the used indices. Any member
+    # which conflicts or is out-of-bounds is add to the conflicts.
+    conflicts = []
+    count = len(members)
+    occupied = [False] * count
+    for key, value in six.iteritems(members):
+        index = value._fp_index
+        if (index >= count or occupied[index]):
+            conflicts.append((key, value))
+        else:
+            occupied[index] = True
+
+    # The common case of single inheritance will have no conflicts.
+    if not conflicts:
+        return
+
+    # The unused indices are distributed among the conflicts. The
+    # conflicting member is cloned since it could be valid if it
+    # belongs to base class in a multiple inheritance hierarchy.
+    conflict_index = 0
+    for index, flag in enumerate(occupied):
+        if flag:
+            continue
+        key, value = conflicts[conflict_index]
+        member = value.clone()
+        member._fp_index = index
+        members[key] = member
+        conflict_index += 1
 
 
 class AtomMeta(type):
@@ -29,7 +100,36 @@ class AtomMeta(type):
     All classes deriving from Atom are automatically slotted.
 
     """
-    __new__ = _atom_meta_create_class
+    #__new__ = _atom_meta_create_class
+    def __new__(meta, name, bases, dct):
+        """ Create a new Atom class.
+
+        Parameters
+        ----------
+        name : str
+            The name of the class.
+
+        bases : tuple
+            The tuple of base classes.
+
+        dct : dict
+            The class dict.
+
+        Returns
+        -------
+        result : type
+            The new Atom class.
+
+        """
+        if '__slots__' in dct:
+            raise TypeError('Atom classes cannot declare slots')
+        cls = type.__new__(meta, name, bases, dct)
+        members = {}
+        _add_base_class_members(members, cls)
+        _add_new_class_members(members, dct)
+        _fixup_memory_layout(members)
+        _fp_register_members(cls, members)
+        return cls
 
 
 @six.add_metaclass(AtomMeta)
@@ -88,5 +188,5 @@ class Atom(CAtom):
         behavior should reimplement this method.
 
         """
-        for key, value in state.iteritems():
+        for key, value in six.iteritems(state):
             setattr(self, key, value)

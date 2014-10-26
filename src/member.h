@@ -72,16 +72,9 @@ struct Member
 		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
 	}
 
-	static PyObject* Clone( PyObject* member );
-
 	Py_ssize_t index()
 	{
 		return m_index;
-	}
-
-	void setIndex( Py_ssize_t index )
-	{
-		m_index = index;
 	}
 
 	PyObject* defaultValue( PyObject* atom, PyObject* name );

@@ -133,7 +133,7 @@ Py_ssize_t getsizeof( CSVector* cbsets )
 
 PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-	cppy::ptr members( Atom::LookupMembers( type ) );
+	cppy::ptr members( Atom::LookupMembers( pyobject_cast( type ) ) );
 	if( !members )
 	{
 		return 0;
@@ -537,15 +537,15 @@ bool Atom::Ready()
 }
 
 
-bool Atom::RegisterMembers( PyTypeObject* type, PyObject* members )
+bool Atom::RegisterMembers( PyObject* type, PyObject* members )
 {
-	return PyDict_SetItem( registry, pyobject_cast( type ), members ) == 0;
+	return PyDict_SetItem( registry, type, members ) == 0;
 }
 
 
-PyObject* Atom::LookupMembers( PyTypeObject* type )
+PyObject* Atom::LookupMembers( PyObject* type )
 {
-	PyObject* members = PyDict_GetItem( registry, pyobject_cast( type ) );
+	PyObject* members = PyDict_GetItem( registry, type );
 	if( members )
 	{
 		return cppy::incref( members );

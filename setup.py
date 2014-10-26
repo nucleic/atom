@@ -16,7 +16,6 @@ ext_modules = [
         'atom.catom',
         [
             'src/atom.cpp',
-            'src/atommeta.cpp',
             'src/callbackset.cpp',
             'src/catommodule.cpp',
             'src/errors.cpp',

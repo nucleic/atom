@@ -6,7 +6,6 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "atom.h"
-#include "atommeta.h"
 #include "errors.h"
 #include "member.h"
 #include "memberchange.h"
@@ -26,17 +25,35 @@
 namespace
 {
 
-PyObject* atom_meta_create_class( PyObject* mod, PyObject* args )
+PyObject* lookup_members( PyObject* mod, PyObject* type )
 {
-	return atom::AtomMeta::CreateClass( args );
+	return atom::Atom::LookupMembers( type );
+}
+
+
+PyObject* register_members( PyObject* mod, PyObject* args )
+{
+	PyObject* type;
+	PyObject* members;
+	if( !PyArg_UnpackTuple( args, "_fp_register_members", 2, 2, &type, &members ) )
+	{
+		return 0;
+	}
+	if( !atom::Atom::RegisterMembers( type, members ) )
+	{
+		return 0;
+	}
+	return cppy::incref( Py_None );
 }
 
 
 PyMethodDef catom_methods[] = {
-	{ "_atom_meta_create_class",
-		( PyCFunction )atom_meta_create_class,
-		METH_VARARGS,
-		"*private* create a new Atom subclass" },
+	{ "_fp_lookup_members",
+		( PyCFunction )lookup_members, METH_O,
+		"*framework private* lookup the members for the given atom type." },
+	{ "_fp_register_members",
+		( PyCFunction )register_members, METH_VARARGS,
+		"*framework private* register members for the given atom type." },
 	{ 0 } // sentinel
 };
 
@@ -82,10 +99,6 @@ bool ready_types()
 		return false;
 	}
 	if( !Atom::Ready() )
-	{
-		return false;
-	}
-	if( !AtomMeta::Ready() )
 	{
 		return false;
 	}
