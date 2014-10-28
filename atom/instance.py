@@ -100,34 +100,27 @@ class ForwardInstance(Instance):
     def default(self, owner):
         """ Called to retrieve the default value.
 
-        This will resolve and instantiate the type. It will then update
-        the internal default and validate handlers to behave like a
-        normal instance member.
+        This is called the first time the default value is retrieved
+        for the member. It resolves the type and updates the internal
+        default handler to behave like a normal Instance member.
 
         """
         kind = self.resolve()
         args = self.args or ()
         kwargs = self.kwargs or {}
-        value = kind(*args, **kwargs)
         factory = lambda: kind(*args, **kwargs)
         self.set_default_value_mode(DefaultValue.CallObject, factory)
-        self.set_validate_mode(Validate.Instance, kind)
-        return value
+        return kind(*args, **kwargs)
 
     def validate(self, owner, old, new):
         """ Called to validate the value.
 
-        This will resolve the type and validate the new value. It will
-        then update the internal default and validate handlers to behave
-        like a normal instance member.
+        This is called the first time a value is validated for the
+        member. It resolves the type and updates the internal validate
+        handler to behave like a normal Instance member.
 
         """
         kind = self.resolve()
-        if self.default_value_mode[0] == DefaultValue.MemberMethod_Object:
-            args = self.args or ()
-            kwargs = self.kwargs or {}
-            factory = lambda: kind(*args, **kwargs)
-            self.set_default_value_mode(DefaultValue.CallObject, factory)
         self.set_validate_mode(Validate.Instance, kind)
         return self.do_validate(owner, old, new)
 

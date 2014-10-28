@@ -63,26 +63,24 @@ class ForwardSubclass(Subclass):
     def default(self, owner):
         """ Called to retrieve the default value.
 
-        This will resolve and return the type. It will then update the
-        internal default and validate handlers to behave like a normal
-        subclass member.
+        This is called the first time the default value is retrieved
+        for the member. It resolves the type and updates the internal
+        default handler to behave like a normal Subclass member.
 
         """
         kind = self.resolve()
         self.set_default_value_mode(DefaultValue.Static, kind)
-        self.set_validate_mode(Validate.Subclass, kind)
         return kind
 
     def validate(self, owner, old, new):
         """ Called to validate the value.
 
-        This will resolve the type and validate the new value. It will
-        then update the internal default and validate handlers to behave
-        like a normal subclass member.
+        This is called the first time a value is validated for the
+        member. It resolves the type and updates the internal validate
+        handler to behave like a normal Subclass member.
 
         """
         kind = self.resolve()
-        self.set_default_value_mode(DefaultValue.Static, kind)
         self.set_validate_mode(Validate.Subclass, kind)
         return self.do_validate(owner, old, new)
 
