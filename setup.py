@@ -62,7 +62,7 @@ class BuildExt(build_ext):
 
 setup(
     name='atom',
-    version='0.3.9',
+    version='0.3.10',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/atom',

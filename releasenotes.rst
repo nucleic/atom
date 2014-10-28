@@ -1,6 +1,12 @@
 Atom Release Notes
 ==================
 
+0.3.10 - 10/28/2014
+-------------------
+- Fix a bug in resolution of Forward* members. _92244cf1e75_
+
+.. _92244cf1e75: https://github.com/nucleic/atom/commit/92244cf1e75fb81cdfeb5cc498d0b89d0f7cea66
+
 0.3.9 - 04/28/2014
 ------------------
 - Move tests out of main source tree.
