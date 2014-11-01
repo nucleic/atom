@@ -919,6 +919,11 @@ PyObject* Member_get_index( Member* self, void* context )
 
 int Member_set_index( Member* self, PyObject* value, void* context )
 {
+	if( !value )
+	{
+		cppy::attribute_error( "can't delete attribute" );
+		return -1;
+	}
 	if( !Py23Int_Check( value ) )
 	{
 		cppy::type_error( value, "int" );
