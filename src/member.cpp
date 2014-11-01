@@ -25,7 +25,6 @@ namespace atom
 namespace
 {
 
-PyObject* clone_str;
 PyObject* empty_tuple;
 
 
@@ -244,12 +243,7 @@ PyObject* default_value( Member* member, PyObject* atom, PyObject* name )
 
 PyObject* default_factory( Member* member, PyObject* atom, PyObject* name )
 {
-	cppy::ptr args( PyTuple_New( 0 ) );
-	if( !args )
-	{
-		return 0;
-	}
-	return PyObject_Call( member->m_default_context, args.get(), 0 );
+	return PyObject_Call( member->m_default_context, empty_tuple, 0 );
 }
 
 
@@ -1152,10 +1146,6 @@ PyTypeObject Member::TypeObject = {
 bool Member::Ready()
 {
 	if( PyType_Ready( &TypeObject ) != 0 )
-	{
-		return false;
-	}
-	if( !( clone_str = Py23Str_FromString( "clone" ) ) )
 	{
 		return false;
 	}
