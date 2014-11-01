@@ -19,6 +19,7 @@
 #include <Python.h>
 
 
+#define atom_cast( o ) reinterpret_cast<Atom*>( o )
 #define pyobject_cast( o ) reinterpret_cast<PyObject*>( o )
 #define signal_cast( o ) reinterpret_cast<Signal*>( o )
 
