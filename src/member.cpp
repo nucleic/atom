@@ -963,11 +963,11 @@ PyObject* Member_clone( Member* self, PyObject* args, PyObject* kwargs )
 }
 
 
-PyObject* Member_do_default( Member* self, PyObject* args )
+PyObject* Member_default_value( Member* self, PyObject* args )
 {
 	PyObject* atom;
 	PyObject* name;
-	if( !PyArg_UnpackTuple( args, "do_default", 2, 2, &atom, &name ) )
+	if( !PyArg_UnpackTuple( args, "default_value", 2, 2, &atom, &name ) )
 	{
 		return 0;
 	}
@@ -983,12 +983,12 @@ PyObject* Member_do_default( Member* self, PyObject* args )
 }
 
 
-PyObject* Member_do_validate( Member* self, PyObject* args )
+PyObject* Member_validate_value( Member* self, PyObject* args )
 {
 	PyObject* atom;
 	PyObject* name;
 	PyObject* value;
-	if( !PyArg_UnpackTuple( args, "do_validate", 3, 3, &atom, &name, &value ) )
+	if( !PyArg_UnpackTuple( args, "validate_value", 3, 3, &atom, &name, &value ) )
 	{
 		return 0;
 	}
@@ -1061,12 +1061,12 @@ PyMethodDef Member_methods[] = {
 		( PyCFunction )Member_clone,
 		METH_NOARGS,
 		"Create a clone of the member." },
-	{ "do_default",
-		( PyCFunction )Member_do_default,
+	{ "default_value",
+		( PyCFunction )Member_default_value,
 		METH_VARARGS,
 		"Run the default value handler for the member." },
-	{ "do_validate",
-		( PyCFunction )Member_do_validate,
+	{ "validate_value",
+		( PyCFunction )Member_validate_value,
 		METH_VARARGS,
 		"Run the validate value handler for the member." },
 	{ "validation_error",
