@@ -1048,10 +1048,10 @@ PyGetSetDef Member_getset[] = {
 		( getter )Member_get_validate_mode,
 		( setter )Member_set_validate_mode,
 		"the validate mode for the member", 0 },
-	{ "_fp_index",
+	{ "index",
 		( getter )Member_get_index,
 		( setter )Member_set_index,
-		"*framework private* the memory index for the member", 0 },
+		"the memory index for the member", 0 },
 	{ 0 } // sentinel
 };
 
