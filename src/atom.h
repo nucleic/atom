@@ -39,8 +39,6 @@ struct Atom
 		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
 	}
 
-	static PyObject* Sender();
-
 	static bool Connect( Atom* atom, Signal* sig, PyObject* callback );
 
 	static void Disconnect( Atom* atom );
@@ -50,6 +48,8 @@ struct Atom
 	static void Disconnect( Atom* atom, Signal* sig, PyObject* callback );
 
 	static void Emit( Atom* atom, Signal* sig, PyObject* args, PyObject* kwargs = 0 );
+
+	static PyObject* Sender();
 };
 
 } // namespace atom
