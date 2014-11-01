@@ -938,7 +938,7 @@ int Member_set_index( Member* self, PyObject* value, void* context )
 
 PyObject* Member_clone( Member* self, PyObject* args, PyObject* kwargs )
 {
-	cppy::ptr pyo( Py_Type( self )->tp_new( Py_TYPE( self ), args, kwargs ) );
+	cppy::ptr pyo( Py_TYPE( self )->tp_new( Py_TYPE( self ), args, kwargs ) );
 	if( !pyo )
 	{
 		return 0;
@@ -1055,7 +1055,7 @@ PyGetSetDef Member_getset[] = {
 PyMethodDef Member_methods[] = {
 	{ "clone",
 		( PyCFunction )Member_clone,
-		METH_VARARGS | METH_KWARGS,
+		METH_VARARGS | METH_KEYWORDS,
 		"Create a clone of the member." },
 	{ "default_value",
 		( PyCFunction )Member_default_value,
