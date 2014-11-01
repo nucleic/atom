@@ -1059,7 +1059,7 @@ PyGetSetDef Member_getset[] = {
 PyMethodDef Member_methods[] = {
 	{ "clone",
 		( PyCFunction )Member_clone,
-		METH_NOARGS,
+		METH_VARARGS | METH_KWARGS,
 		"Create a clone of the member." },
 	{ "default_value",
 		( PyCFunction )Member_default_value,
