@@ -940,21 +940,23 @@ int Member_set_index( Member* self, PyObject* value, void* context )
 }
 
 
-PyObject* Member_clone( Member* self, PyObject* args )
+PyObject* Member_clone( Member* self, PyObject* args, PyObject* kwargs )
 {
-	cppy::ptr pyo( PyType_GenericNew( Py_TYPE( self ), 0, 0 ) );
+	cppy::ptr pyo( Py_Type( self )->tp_new( Py_TYPE( self ), args, kwargs ) );
 	if( !pyo )
 	{
 		return 0;
 	}
-	Member* clone = member_cast( pyo.get() );
-	if( self->m_metadata && !( clone->m_metadata = PyDict_Copy( self->m_metadata ) ) )
+	cppy::ptr metadata;
+	if( self->m_metadata && !( metadata = PyDict_Copy( self->m_metadata ) ) )
 	{
 		return 0;
 	}
+	Member* clone = member_cast( pyo.get() );
+	cppy::replace( &self->m_metadata, metadata.get() );
+	cppy::replace( &clone->m_default_context, self->m_default_context );
+	cppy::replace( &clone->m_validate_context, self->m_validate_context );
 	clone->m_index = self->m_index;
-	clone->m_default_context = cppy::xincref( self->m_default_context );
-	clone->m_validate_context = cppy::xincref( self->m_validate_context );
 	clone->m_default_mode = self->m_default_mode;
 	clone->m_validate_mode = self->m_validate_mode;
 	return pyo.release();
