@@ -408,12 +408,12 @@ PyObject* Atom::Sender()
 }
 
 
-PyObject* Atom::Connect( Atom* atom, Signal* sig, PyObject* callback )
+bool Atom::Connect( Atom* atom, Signal* sig, PyObject* callback )
 {
 	cppy::ptr wrapped( maybeWrapCallback( callback ) );
 	if( !wrapped )
 	{
-		return 0;
+		return false;
 	}
 	if( !atom->m_cbsets )
 	{
@@ -430,7 +430,7 @@ PyObject* Atom::Connect( Atom* atom, Signal* sig, PyObject* callback )
 	{
 		it->second.add( wrapped.get() );
 	}
-	return cppy::incref( Py_None );
+	return true;
 }
 
 

@@ -41,7 +41,7 @@ struct Atom
 
 	static PyObject* Sender();
 
-	static PyObject* Connect( Atom* atom, Signal* sig, PyObject* callback );
+	static bool Connect( Atom* atom, Signal* sig, PyObject* callback );
 
 	static void Disconnect( Atom* atom );
 

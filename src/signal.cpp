@@ -144,7 +144,11 @@ PyObject* BoundSignal_connect( BoundSignal* self, PyObject* callback )
 	{
 		return cppy::type_error( callback, "callable" );
 	}
-	return Atom::Connect( self->m_atom, self->m_signal, callback );
+	if( !Atom::Connect( self->m_atom, self->m_signal, callback ) )
+	{
+		return 0;
+	}
+	return cppy::incref( Py_None );
 }
 
 
