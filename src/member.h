@@ -72,10 +72,7 @@ struct Member
 		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
 	}
 
-	Py_ssize_t index()
-	{
-		return m_index;
-	}
+	Py_ssize_t index() { return m_index; }
 
 	PyObject* defaultValue( PyObject* atom, PyObject* name );
 
