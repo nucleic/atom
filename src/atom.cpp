@@ -22,10 +22,7 @@
 #include <pthread.h>
 #endif
 
-
-#define atom_cast( o ) reinterpret_cast<Atom*>( o )
 #define member_cast( o ) reinterpret_cast<Member*>( o )
-#define signal_cast( o ) reinterpret_cast<Signal*>( o )
 #define pymethod_cast( o ) reinterpret_cast<PyMethodObject*>( o )
 #define pyobject_cast( o ) reinterpret_cast<PyObject*>( o )
 
@@ -38,15 +35,23 @@ namespace
 
 typedef Atom::CSVector CSVector;
 
-
-PyObject* registry;
-
+PyObject* atom_members;
 
 #ifdef _WIN32
 DWORD tls_sender_key;
 #else
 pthread_key_t tls_sender_key;
 #endif
+
+
+inline PyObject* bad_attr_name( PyObject* name )
+{
+	PyErr_Format(
+		PyExc_TypeError,
+		"attribute name must be string, not '%.200s'",
+		Py_TYPE( name )->tp_name );
+	return 0;
+}
 
 
 struct CmpLess
@@ -133,20 +138,16 @@ Py_ssize_t getsizeof( CSVector* cbsets )
 
 PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-	cppy::ptr members( Atom::LookupMembers( pyobject_cast( type ) ) );
+	cppy::ptr members( PyObject_GetAttr( pyobject_cast( type ), atom_members ) );
 	if( !members )
 	{
 		return 0;
 	}
-	Py_ssize_t size = PyDict_Size( members.get() );
-	cppy::ptr self( type->tp_alloc( type, size ) );
-	if( !self )
+	if( !PyDict_Check( members.get() ) )
 	{
-		return 0;
+		return cppy::system_error( "invalid members dict" );
 	}
-	Atom* atom = atom_cast( self.get() );
-	atom->m_members = members.release();
-	return self.release();
+	return type->tp_alloc( type, PyDict_Size( members.get() ) );
 }
 
 
@@ -185,7 +186,6 @@ int Atom_clear( Atom* self )
 	{
 		Py_CLEAR( self->m_values[ i ] );
 	}
-	Py_CLEAR( self->m_members );
 	return 0;
 }
 
@@ -207,7 +207,6 @@ int Atom_traverse( Atom* self, visitproc visit, void* arg )
 	{
 		Py_VISIT( self->m_values[ i ] );
 	}
-	Py_VISIT( self->m_members );
 	return 0;
 }
 
@@ -227,184 +226,69 @@ void Atom_dealloc( Atom* self )
 
 PyObject* Atom_getattro( Atom* self, PyObject* name )
 {
-	// This is not *strictly* a known-safe cast. While effort is made
-	// ensure that the user does not have access to the member registry
-	// and hence cannot modify the dict, the GC module will still allow
-	// the user to dig into it and add a non-member. My stance is that
-	// if they do that, they deserve the segfault. I don't want to pay
-	// the extra type checking cost just to protect against a motivated
-	// attacker. You can always crash the interpreter with ctypes anyway.
-	Member* member = member_cast( PyDict_GetItem( self->m_members, name ) );
-	if( member )
+	if( !Py23Str_Check( name ) )
 	{
-		if( member->index() >= Py_SIZE( self ) )
-		{
-			return cppy::system_error( "invalid member index" );
-		}
-		cppy::ptr valptr( self->m_values[ member->index() ], true );
-		if( valptr )
-		{
-			return valptr.release();
-		}
-		valptr = member->defaultValue( pyobject_cast( self ), name );
-		if( !valptr )
-		{
-			return 0;
-		}
-		self->m_values[ member->index() ] = cppy::incref( valptr.get() );
-		return valptr.release();
+		return bad_attr_name( name );
 	}
-	return PyObject_GenericGetAttr( pyobject_cast( self ), name );
+	PyObject* pyo = _PyType_Lookup( Py_TYPE( self ), name );
+	if( !pyo || !Member::TypeCheck( pyo ) )
+	{
+		return PyObject_GenericGetAttr( pyobject_cast( self ), name );
+	}
+	Member* member = member_cast( pyo );
+	if( member->index() >= Py_SIZE( self ) )
+	{
+		return cppy::system_error( "invalid member index" );
+	}
+	PyObject* value = self->m_values[ member->index() ];
+	if( value )
+	{
+		return cppy::incref( value );
+	}
+	value = member->defaultValue( pyobject_cast( self ), name );
+	if( !value )
+	{
+		return 0;
+	}
+	self->m_values[ member->index() ] = value;
+	return cppy::incref( value );
 }
 
 
 int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 {
-	// This is not *strictly* a known-safe cast. While effort is made
-	// ensure that the user does not have access to the member registry
-	// and hence cannot modify the dict, the GC module will still allow
-	// the user to dig into it and add a non-member. My stance is that
-	// if they do that, they deserve the segfault. I don't want to pay
-	// the extra type checking cost just to protect against a motivated
-	// attacker. You can always crash the interpreter with ctypes anyway.
-	Member* member = member_cast( PyDict_GetItem( self->m_members, name ) );
-	if( member )
-	{
-		if( member->index() >= Py_SIZE( self ) )
-		{
-			cppy::system_error( "invalid member index" );
-			return -1;
-		}
-		if( !value )
-		{
-			cppy::attribute_error( "can't delete attribute" );
-			return -1;
-		}
-		if( self->m_values[ member->index() ] == value )
-		{
-			return 0;
-		}
-		cppy::ptr valptr( member->validate( pyobject_cast( self ), name, value ) );
-		if( !valptr )
-		{
-			return -1;
-		}
-		cppy::replace( &self->m_values[ member->index() ], valptr.get() );
-		return 0;
-	}
-	return PyObject_GenericSetAttr( pyobject_cast( self ), name, value );
-}
-
-
-PyObject* Atom_get_member( Atom* self, PyObject* name )
-{
 	if( !Py23Str_Check( name ) )
 	{
-		return cppy::type_error( name, "str" );
+		bad_attr_name( name );
+		return -1;
 	}
-	PyObject* pyo = PyDict_GetItem( self->m_members, name );
-	return cppy::incref( pyo ? pyo : Py_None );
-}
-
-
-PyObject* Atom_get_members( Atom* self, PyObject* args )
-{
-	return PyDict_Copy( self->m_members );
-}
-
-
-PyObject* Atom_connect( PyObject* ignored, PyObject* args )
-{
-	PyObject* pyo;
-	PyObject* sig;
-	PyObject* callback;
-	if( !PyArg_UnpackTuple( args, "connect", 3, 3, &pyo, &sig, &callback ) )
+	PyObject* pyo = _PyType_Lookup( Py_TYPE( self ), name );
+	if( !pyo || !Member::TypeCheck( pyo ) )
+	{
+		return PyObject_GenericSetAttr( pyobject_cast( self ), name, value );
+	}
+	Member* member = member_cast( pyo );
+	if( member->index() >= Py_SIZE( self ) )
+	{
+		cppy::system_error( "invalid member index" );
+		return -1;
+	}
+	if( !value )
+	{
+		cppy::attribute_error( "can't delete attribute" );
+		return -1;
+	}
+	if( self->m_values[ member->index() ] == value )
 	{
 		return 0;
 	}
-	if( !Atom::TypeCheck( pyo ) )
+	cppy::ptr valptr( member->validate( pyobject_cast( self ), name, value ) );
+	if( !valptr )
 	{
-		return cppy::type_error( pyo, "Atom" );
+		return -1;
 	}
-	if( !Signal::TypeCheck( sig ) )
-	{
-		return cppy::type_error( sig, "Signal" );
-	}
-	if( !PyCallable_Check( callback ) )
-	{
-		return cppy::type_error( callback, "callable" );
-	}
-	return Atom::Connect( atom_cast( pyo ), signal_cast( sig ), callback );
-}
-
-
-PyObject* Atom_disconnect( PyObject* ignored, PyObject* args )
-{
-	PyObject* pyo;
-	PyObject* sig = 0;
-	PyObject* callback = 0;
-	if( !PyArg_UnpackTuple( args, "disconnect", 1, 3, &pyo, &sig, &callback ) )
-	{
-		return 0;
-	}
-	if( !Atom::TypeCheck( pyo ) )
-	{
-		return cppy::type_error( pyo, "Atom" );
-	}
-	if( sig && !Signal::TypeCheck( sig ) )
-	{
-		return cppy::type_error( sig, "Signal" );
-	}
-	if( callback && !PyCallable_Check( callback ) )
-	{
-		return cppy::type_error( callback, "callable" );
-	}
-	if( !sig )
-	{
-		Atom::Disconnect( atom_cast( pyo ) );
-	}
-	else if( !callback )
-	{
-		Atom::Disconnect( atom_cast( pyo ), signal_cast( sig ) );
-	}
-	else
-	{
-		Atom::Disconnect( atom_cast( pyo ), signal_cast( sig ), callback );
-	}
-	return cppy::incref( Py_None );
-}
-
-
-PyObject* Atom_emit( PyObject* ignored, PyObject* args, PyObject* kwargs )
-{
-	Py_ssize_t count = PyTuple_GET_SIZE( args );
-	if( count < 2 )
-	{
-		return cppy::type_error( "Atom.emit() takes at least 2 arguments" );
-	}
-	PyObject* pyo = PyTuple_GET_ITEM( args, 0 );
-	PyObject* sig = PyTuple_GET_ITEM( args, 1 );
-	if( !Atom::TypeCheck( pyo ) )
-	{
-		return cppy::type_error( pyo, "Atom" );
-	}
-	if( !Signal::TypeCheck( sig ) )
-	{
-		return cppy::type_error( sig, "Signal" );
-	}
-	cppy::ptr rest( PyTuple_GetSlice( args, 2, count ) );
-	if( !rest )
-	{
-		return 0;
-	}
-	Atom::Emit( atom_cast( pyo ), signal_cast( sig ), rest.get(), kwargs );
-	return cppy::incref( Py_None );
-}
-
-
-PyObject* Atom_sender( PyObject* mod, PyObject* args )
-{
-	return Atom::Sender();
+	cppy::replace( &self->m_values[ member->index() ], valptr.get() );
+	return 0;
 }
 
 
@@ -422,30 +306,6 @@ PyObject* Atom_sizeof( Atom* self, PyObject* args )
 
 
 PyMethodDef Atom_methods[] = {
-	{ "get_member",
-		( PyCFunction )Atom_get_member,
-		METH_O,
-		"get_member(name) get the named member for the object or None" },
-	{ "get_members",
-		( PyCFunction )Atom_get_members,
-		METH_NOARGS,
-		"get_members() get all of the members for the object as a dict" },
-	{ "connect",
-		( PyCFunction )Atom_connect,
-		METH_VARARGS | METH_STATIC,
-		"Atom.connect(atom, signal, callback) connect a signal to a callback" },
-	{ "disconnect",
-		( PyCFunction )Atom_disconnect,
-		METH_VARARGS | METH_STATIC,
-		"Atom.disconnect(atom[, signal[, callback]) disconnect a signal from a callback" },
-	{ "emit",
-		( PyCFunction )Atom_emit,
-		METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-		"Atom.emit(atom, signal, *args, **kwargs) emit a signal with the given arguments" },
-	{ "sender",
-		( PyCFunction )Atom_sender,
-		METH_NOARGS | METH_STATIC,
-		"Atom.sender() get the object emitting the current signal" },
 	{ "__sizeof__",
 		( PyCFunction )Atom_sizeof,
 		METH_NOARGS,
@@ -515,7 +375,7 @@ PyTypeObject Atom::TypeObject = {
 
 bool Atom::Ready()
 {
-	if( !( registry = PyDict_New() ) )
+	if( !( atom_members = Py23Str_FromString( "__atom_members__" ) ) )
 	{
 		return false;
 	}
@@ -534,23 +394,6 @@ bool Atom::Ready()
 	}
 #endif
 	return PyType_Ready( &TypeObject ) == 0;
-}
-
-
-bool Atom::RegisterMembers( PyObject* type, PyObject* members )
-{
-	return PyDict_SetItem( registry, type, members ) == 0;
-}
-
-
-PyObject* Atom::LookupMembers( PyObject* type )
-{
-	PyObject* members = PyDict_GetItem( registry, type );
-	if( members )
-	{
-		return cppy::incref( members );
-	}
-	return cppy::type_error( "type has no registered members" );
 }
 
 

@@ -26,9 +26,8 @@ struct Atom
 	typedef std::vector<CSPair> CSVector;
 
 	PyObject_VAR_HEAD
-	PyObject* m_weaklist;
 	CSVector* m_cbsets;
-	PyObject* m_members;    // members are shared by all instances
+	PyObject* m_weaklist;
 	PyObject* m_values[1];  // values are inlined in the struct
 
 	static PyTypeObject TypeObject;
@@ -39,10 +38,6 @@ struct Atom
 	{
 		return PyObject_TypeCheck( ob, &TypeObject ) != 0;
 	}
-
-	static bool RegisterMembers( PyObject* type, PyObject* members );
-
-	static PyObject* LookupMembers( PyObject* type );
 
 	static PyObject* Sender();
 
