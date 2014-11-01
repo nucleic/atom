@@ -25,9 +25,6 @@ namespace atom
 namespace
 {
 
-PyObject* empty_tuple;
-
-
 PyObject* validation_error( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
 	cppy::ptr memberptr( pyobject_cast( member ), true );
@@ -243,7 +240,12 @@ PyObject* default_value( Member* member, PyObject* atom, PyObject* name )
 
 PyObject* default_factory( Member* member, PyObject* atom, PyObject* name )
 {
-	return PyObject_Call( member->m_default_context, empty_tuple, 0 );
+	cppy::ptr args( PyTuple_New( 0 ) );
+	if( !args )
+	{
+		return 0;
+	}
+	return PyObject_Call( member->m_default_context, args.get(), 0 );
 }
 
 
@@ -1146,10 +1148,6 @@ PyTypeObject Member::TypeObject = {
 bool Member::Ready()
 {
 	if( PyType_Ready( &TypeObject ) != 0 )
-	{
-		return false;
-	}
-	if( !( empty_tuple = PyTuple_New( 0 ) ) )
 	{
 		return false;
 	}
