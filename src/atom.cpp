@@ -240,12 +240,12 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 	{
 		return cppy::system_error( "invalid member index" );
 	}
-	cppy::ptr valptr( self->m_values[ member->index() ], true );
-	if( valptr )
+	PyObject* value = self->m_values[ member->index() ];
+	if( value )
 	{
-		return valptr.release();
+		return cppy::incref( value );
 	}
-	valptr = member->defaultValue( pyobject_cast( self ), name );
+	cppy::ptr valptr( member->defaultValue( pyobject_cast( self ), name ) );
 	if( !valptr )
 	{
 		return 0;
