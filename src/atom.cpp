@@ -255,6 +255,11 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 	{
 		return 0;
 	}
+	valptr = member->postValidateValue( pyobject_cast( self ), name, valptr.get() );
+	if( !valptr )
+	{
+		return 0;
+	}
 	self->m_values[ member->index() ] = cppy::incref( valptr.get() );
 	return valptr.release();
 }
@@ -288,6 +293,11 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 		return 0;
 	}
 	cppy::ptr valptr( member->validateValue( pyobject_cast( self ), name, value ) );
+	if( !valptr )
+	{
+		return -1;
+	}
+	valptr = member->postValidateValue( pyobject_cast( self ), name, valptr.get() );
 	if( !valptr )
 	{
 		return -1;

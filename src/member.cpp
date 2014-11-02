@@ -228,6 +228,38 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 }
 
 
+bool check_context( Member::PostValidateMode mode, PyObject* context )
+{
+	switch( mode )
+	{
+		case Member::PostValidateCallObject:
+		{
+			if( !PyCallable_Check( context ) )
+			{
+				cppy::type_error( context, "callable" );
+				return false;
+			}
+			break;
+		}
+		case Member::PostValidateAtomMethod:
+		case Member::PostValidateMemberMethod:
+		{
+			if( !Py23Str_Check( context ) )
+			{
+				cppy::type_error( context, "str" );
+				return false;
+			}
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	return true;
+}
+
+
 PyObject* default_noop( Member* member, PyObject* atom, PyObject* name )
 {
 	return cppy::incref( Py_None );
@@ -747,10 +779,62 @@ PyObject* validate_member_method( Member* member, PyObject* atom, PyObject* name
 }
 
 
+PyObject* post_validate_noop( Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+	return cppy::incref( value );
+}
+
+
+PyObject* post_validate_call_object( Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+	cppy::ptr args( PyTuple_Pack( 3, atom, name, value ) );
+	if( !args )
+	{
+		return 0;
+	}
+	return PyObject_Call( member->m_post_validate_context, args.get(), 0 );
+}
+
+
+PyObject* post_validate_atom_method( Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+	cppy::ptr method( PyObject_GetAttr( pyobject_cast( atom ), member->m_post_validate_context ) );
+	if( !method )
+	{
+		return 0;
+	}
+	cppy::ptr args( PyTuple_Pack( 1, value ) );
+	if( !args )
+	{
+		return 0;
+	}
+	return method.call( args );
+}
+
+
+PyObject* post_validate_member_method( Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+	cppy::ptr method( PyObject_GetAttr( pyobject_cast( member ), member->m_post_validate_context ) );
+	if( !method )
+	{
+		return 0;
+	}
+	cppy::ptr args( PyTuple_Pack( 3, atom, name, value ) );
+	if( !args )
+	{
+		return 0;
+	}
+	return method.call( args );
+}
+
+
 typedef PyObject* ( *DefaultHandler )( Member* member, PyObject* atom, PyObject* name );
 
 
 typedef PyObject* ( *ValidateHandler )(	Member* member, PyObject* atom, PyObject* name, PyObject* value );
+
+
+typedef PyObject* ( *PostValidateHandler )(	Member* member, PyObject* atom, PyObject* name, PyObject* value );
 
 
 DefaultHandler default_handlers[] = {
@@ -788,6 +872,14 @@ ValidateHandler validate_handlers[] = {
 };
 
 
+PostValidateHandler post_validate_handlers[] = {
+	post_validate_noop,
+	post_validate_call_object,
+	post_validate_atom_method,
+	post_validate_member_method
+};
+
+
 template <typename MODE>
 struct ModeTraits;
 
@@ -803,6 +895,13 @@ template <>
 struct ModeTraits<Member::ValidateMode>
 {
 	static const Member::ValidateMode Last = Member::ValidateLast;
+};
+
+
+template <>
+struct ModeTraits<Member::PostValidateMode>
+{
+	static const Member::PostValidateMode Last = Member::PostValidateLast;
 };
 
 
@@ -943,6 +1042,18 @@ int Member_set_validate_mode( Member* self, PyObject* arg )
 }
 
 
+PyObject* Member_get_post_validate_mode( Member* self, void* context )
+{
+	return packMode( self->m_post_validate_mode, self->m_post_validate_context );
+}
+
+
+int Member_set_post_validate_mode( Member* self, PyObject* arg )
+{
+	return ParseMode<Member::PostValidateMode>()( arg, &self->m_post_validate_mode, &self->m_post_validate_context );
+}
+
+
 PyObject* Member_get_index( Member* self, void* context )
 {
 	return Py23Int_FromSsize_t( self->m_index );
@@ -1036,6 +1147,27 @@ PyObject* Member_validate_value( Member* self, PyObject* args )
 }
 
 
+PyObject* Member_post_validate_value( Member* self, PyObject* args )
+{
+	PyObject* atom;
+	PyObject* name;
+	PyObject* value;
+	if( !PyArg_UnpackTuple( args, "post_validate_value", 3, 3, &atom, &name, &value ) )
+	{
+		return 0;
+	}
+	if( !Atom::TypeCheck( atom ) )
+	{
+		return cppy::type_error( atom, "Atom" );
+	}
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
+	return self->postValidateValue( atom, name, value );
+}
+
+
 PyObject* Member_validation_error( Member* self, PyObject* args )
 {
 	static PyObject* mv_message = 0;
@@ -1080,6 +1212,10 @@ PyGetSetDef Member_getset[] = {
 		( getter )Member_get_validate_mode,
 		( setter )Member_set_validate_mode,
 		"the validate mode for the member", 0 },
+	{ "post_validate_mode",
+		( getter )Member_get_post_validate_mode,
+		( setter )Member_set_post_validate_mode,
+		"the post validate mode for the member", 0 },
 	{ "index",
 		( getter )Member_get_index,
 		( setter )Member_set_index,
@@ -1101,6 +1237,10 @@ PyMethodDef Member_methods[] = {
 		( PyCFunction )Member_validate_value,
 		METH_VARARGS,
 		"Run the validate value handler for the member." },
+	{ "post_validate_value",
+		( PyCFunction )Member_post_validate_value,
+		METH_VARARGS,
+		"Run the post validate value handler for the member." },
 	{ "validation_error",
 		( PyCFunction )Member_validation_error,
 		METH_VARARGS,
@@ -1222,6 +1362,11 @@ bool Member::Ready()
 	ADD_MODE( ValidateAtomMethod )
 	ADD_MODE( ValidateMemberMethod )
 
+	ADD_MODE( NoPostValidate )
+	ADD_MODE( PostValidateCallObject )
+	ADD_MODE( PostValidateAtomMethod )
+	ADD_MODE( PostValidateMemberMethod )
+
 #undef ADD_MODE
 #undef ADD_HELPER
 #undef STR
@@ -1240,6 +1385,12 @@ PyObject* Member::defaultValue( PyObject* atom, PyObject* name )
 PyObject* Member::validateValue( PyObject* atom, PyObject* name, PyObject* value )
 {
 	return validate_handlers[ m_validate_mode ]( this, atom, name, value );
+}
+
+
+PyObject* Member::postValidateValue( PyObject* atom, PyObject* name, PyObject* value )
+{
+	return post_validate_handlers[ m_post_validate_mode ]( this, atom, name, value );
 }
 
 } // namespace atom

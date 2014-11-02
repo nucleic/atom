@@ -23,9 +23,10 @@ struct Member
 	PyObject* m_metadata;
 	PyObject* m_default_context;
 	PyObject* m_validate_context;
+	PyObject* m_post_validate_context;
 	uint8_t m_default_mode;
 	uint8_t m_validate_mode;
-	uint8_t m_unused_1;
+	uint8_t m_post_validate_mode;
 	uint8_t m_unused_2;
 
 	enum DefaultMode
@@ -65,6 +66,15 @@ struct Member
 		ValidateLast // sentinel
 	};
 
+	enum PostValidateMode
+	{
+		NoPostValidate,
+		PostValidateCallObject,
+		PostValidateAtomMethod,
+		PostValidateMemberMethod,
+		PostValidateLast // sentinel
+	};
+
 	static PyTypeObject TypeObject;
 
 	static bool Ready();
@@ -79,6 +89,8 @@ struct Member
 	PyObject* defaultValue( PyObject* atom, PyObject* name );
 
 	PyObject* validateValue( PyObject* atom, PyObject* name, PyObject* value );
+
+	PyObject* postValidateValue( PyObject* atom, PyObject* name, PyObject* value );
 };
 
 } // namespace atom
