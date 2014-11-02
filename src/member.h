@@ -60,6 +60,7 @@ struct Member
 		ValidateDict,
 		ValidateSet,
 		ValidateCallObject,
+		ValidateAtomMethod,
 		ValidateMemberMethod,
 		ValidateLast // sentinel
 	};

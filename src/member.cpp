@@ -209,6 +209,7 @@ bool check_context( Member::ValidateMode mode, PyObject* context )
 			}
 			break;
 		}
+		case Member::ValidateAtomMethod:
 		case Member::ValidateMemberMethod:
 		{
 			if( !Py23Str_Check( context ) )
@@ -714,6 +715,22 @@ PyObject* validate_call_object( Member* member, PyObject* atom, PyObject* name, 
 }
 
 
+PyObject* validate_atom_method( Member* member, PyObject* atom, PyObject* name, PyObject* value )
+{
+	cppy::ptr method( PyObject_GetAttr( pyobject_cast( atom ), member->m_validate_context ) );
+	if( !method )
+	{
+		return 0;
+	}
+	cppy::ptr args( PyTuple_Pack( 1, value ) );
+	if( !args )
+	{
+		return 0;
+	}
+	return method.call( args );
+}
+
+
 PyObject* validate_member_method( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
 	cppy::ptr method( PyObject_GetAttr( pyobject_cast( member ), member->m_validate_context ) );
@@ -766,6 +783,7 @@ ValidateHandler validate_handlers[] = {
 	validate_dict,
 	validate_set,
 	validate_call_object,
+	validate_atom_method,
 	validate_member_method
 };
 
@@ -1201,6 +1219,7 @@ bool Member::Ready()
 	ADD_MODE( ValidateDict )
 	ADD_MODE( ValidateSet )
 	ADD_MODE( ValidateCallObject )
+	ADD_MODE( ValidateAtomMethod )
 	ADD_MODE( ValidateMemberMethod )
 
 #undef ADD_MODE
