@@ -35,23 +35,13 @@ namespace
 
 typedef Atom::CSVector CSVector;
 
-PyObject* atom_members;
+PyObject* members_str;
 
 #ifdef _WIN32
 DWORD tls_sender_key;
 #else
 pthread_key_t tls_sender_key;
 #endif
-
-
-inline PyObject* bad_attr_name( PyObject* name )
-{
-	PyErr_Format(
-		PyExc_TypeError,
-		"attribute name must be string, not '%.200s'",
-		Py_TYPE( name )->tp_name );
-	return 0;
-}
 
 
 struct CmpLess
@@ -113,6 +103,16 @@ inline PyObject* maybeWrapCallback( PyObject* callback )
 }
 
 
+inline PyObject* bad_attr_name( PyObject* name )
+{
+	PyErr_Format(
+		PyExc_TypeError,
+		"attribute name must be string, not '%.200s'",
+		Py_TYPE( name )->tp_name );
+	return 0;
+}
+
+
 Py_ssize_t getsizeof( CSVector* cbsets )
 {
 	Py_ssize_t extras = 0;
@@ -138,16 +138,16 @@ Py_ssize_t getsizeof( CSVector* cbsets )
 
 PyObject* Atom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-	cppy::ptr members( PyObject_GetAttr( pyobject_cast( type ), atom_members ) );
+	cppy::ptr members( PyObject_GetAttr( pyobject_cast( type ), members_str ) );
 	if( !members )
 	{
 		return 0;
 	}
-	if( !PyDict_Check( members.get() ) )
+	if( !PyTuple_Check( members.get() ) )
 	{
-		return cppy::system_error( "invalid members dict" );
+		return cppy::system_error( "invalid members tuple" );
 	}
-	return type->tp_alloc( type, PyDict_Size( members.get() ) );
+	return type->tp_alloc( type, PyTuple_GET_SIZE( members.get() ) );
 }
 
 
@@ -222,6 +222,9 @@ void Atom_dealloc( Atom* self )
 	delete self->m_cbsets;
 	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
+
+
+
 
 
 PyObject* Atom_getattro( Atom* self, PyObject* name )
@@ -375,7 +378,7 @@ PyTypeObject Atom::TypeObject = {
 
 bool Atom::Ready()
 {
-	if( !( atom_members = Py23Str_FromString( "__atom_members__" ) ) )
+	if( !( members_str = Py23Str_FromString( "__members__" ) ) )
 	{
 		return false;
 	}
