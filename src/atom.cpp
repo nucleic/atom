@@ -282,7 +282,7 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 	{
 		return 0;
 	}
-	cppy::ptr valptr( member->validate( pyobject_cast( self ), name, value ) );
+	cppy::ptr valptr( member->validateValue( pyobject_cast( self ), name, value ) );
 	if( !valptr )
 	{
 		return -1;

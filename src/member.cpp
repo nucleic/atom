@@ -996,7 +996,7 @@ PyObject* Member_validate_value( Member* self, PyObject* args )
 	{
 		return cppy::type_error( name, "str" );
 	}
-	return self->validate( atom, name, value );
+	return self->validateValue( atom, name, value );
 }
 
 
@@ -1200,7 +1200,7 @@ PyObject* Member::defaultValue( PyObject* atom, PyObject* name )
 }
 
 
-PyObject* Member::validate( PyObject* atom, PyObject* name, PyObject* value )
+PyObject* Member::validateValue( PyObject* atom, PyObject* name, PyObject* value )
 {
 	return validate_handlers[ m_validate_mode ]( this, atom, name, value );
 }

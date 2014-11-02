@@ -76,7 +76,7 @@ struct Member
 
 	PyObject* defaultValue( PyObject* atom, PyObject* name );
 
-	PyObject* validate( PyObject* atom, PyObject* name, PyObject* value );
+	PyObject* validateValue( PyObject* atom, PyObject* name, PyObject* value );
 };
 
 } // namespace atom
