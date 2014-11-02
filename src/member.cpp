@@ -1233,8 +1233,7 @@ bool Member::Ready()
 
 PyObject* Member::defaultValue( PyObject* atom, PyObject* name )
 {
-	cppy::ptr value( default_handlers[ m_default_mode ]( this, atom, name ) );
-	return value ? validateValue( atom, name, value.get() ) : 0;
+	return default_handlers[ m_default_mode ]( this, atom, name );
 }
 
 
