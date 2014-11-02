@@ -61,6 +61,7 @@ bool check_context( Member::DefaultMode mode, PyObject* context )
 			}
 			break;
 		}
+		case Member::DefaultAtomMethod:
 		case Member::DefaultMemberMethod:
 		{
 			if( !Py23Str_Check( context ) )
@@ -257,6 +258,22 @@ PyObject* default_call_object( Member* member, PyObject* atom, PyObject* name )
 		return 0;
 	}
 	return PyObject_Call( member->m_default_context, args.get(), 0 );
+}
+
+
+PyObject* default_atom_method( Member* member, PyObject* atom, PyObject* name )
+{
+	cppy::ptr method( PyObject_GetAttr( pyobject_cast( atom ), member->m_default_context ) );
+	if( !method )
+	{
+		return 0;
+	}
+	cppy::ptr args( PyTuple_New( 0 ) );
+	if( !args )
+	{
+		return 0;
+	}
+	return method.call( args );
 }
 
 
@@ -724,6 +741,7 @@ DefaultHandler default_handlers[] = {
 	default_value,
 	default_factory,
 	default_call_object,
+	default_atom_method,
 	default_member_method
 };
 
@@ -1161,6 +1179,7 @@ bool Member::Ready()
 	ADD_MODE( DefaultValue )
 	ADD_MODE( DefaultFactory )
 	ADD_MODE( DefaultCallObject )
+	ADD_MODE( DefaultAtomMethod )
 	ADD_MODE( DefaultMemberMethod )
 
 	ADD_MODE( NoValidate )

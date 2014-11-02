@@ -34,6 +34,7 @@ struct Member
 		DefaultValue,
 		DefaultFactory,
 		DefaultCallObject,
+		DefaultAtomMethod,
 		DefaultMemberMethod,
 		DefaultLast // sentinel
 	};
