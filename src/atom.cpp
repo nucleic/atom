@@ -224,9 +224,6 @@ void Atom_dealloc( Atom* self )
 }
 
 
-
-
-
 PyObject* Atom_getattro( Atom* self, PyObject* name )
 {
 	if( !Py23Str_Check( name ) )
