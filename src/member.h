@@ -100,9 +100,9 @@ struct Member
 
 	PyObject* validate( PyObject* atom, PyObject* name, PyObject* value );
 
-	PyObject* postValidate( PyObject* atom, PyObject* name, PyObject* value );
+	PyObject* post_validate( PyObject* atom, PyObject* name, PyObject* value );
 
-	int postSetattr( PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue );
+	int post_setattr( PyObject* atom, PyObject* name, PyObject* old_value, PyObject* new_value );
 };
 
 } // namespace atom

@@ -860,15 +860,15 @@ PyObject* post_validate_member_method( Member* member, PyObject* atom, PyObject*
 }
 
 
-int post_setattr_noop( Member* member, PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue )
+int post_setattr_noop( Member* member, PyObject* atom, PyObject* name, PyObject* old_value, PyObject* new_value )
 {
 	return 0;
 }
 
 
-int post_setattr_call_object( Member* member, PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue )
+int post_setattr_call_object( Member* member, PyObject* atom, PyObject* name, PyObject* old_value, PyObject* new_value )
 {
-	cppy::ptr args( PyTuple_Pack( 4, atom, name, oldValue, newValue ) );
+	cppy::ptr args( PyTuple_Pack( 4, atom, name, old_value, new_value ) );
 	if( !args )
 	{
 		return -1;
@@ -882,14 +882,14 @@ int post_setattr_call_object( Member* member, PyObject* atom, PyObject* name, Py
 }
 
 
-int post_setattr_atom_method( Member* member, PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue )
+int post_setattr_atom_method( Member* member, PyObject* atom, PyObject* name, PyObject* old_value, PyObject* new_value )
 {
 	cppy::ptr method( PyObject_GetAttr( pyobject_cast( atom ), member->m_post_setattr_context ) );
 	if( !method )
 	{
 		return -1;
 	}
-	cppy::ptr args( PyTuple_Pack( 2, oldValue, newValue ) );
+	cppy::ptr args( PyTuple_Pack( 2, old_value, new_value ) );
 	if( !args )
 	{
 		return -1;
@@ -903,14 +903,14 @@ int post_setattr_atom_method( Member* member, PyObject* atom, PyObject* name, Py
 }
 
 
-int post_setattr_member_method( Member* member, PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue )
+int post_setattr_member_method( Member* member, PyObject* atom, PyObject* name, PyObject* old_value, PyObject* new_value )
 {
 	cppy::ptr method( PyObject_GetAttr( pyobject_cast( member ), member->m_post_setattr_context ) );
 	if( !method )
 	{
 		return -1;
 	}
-	cppy::ptr args( PyTuple_Pack( 4, atom, name, oldValue, newValue ) );
+	cppy::ptr args( PyTuple_Pack( 4, atom, name, old_value, new_value ) );
 	if( !args )
 	{
 		return -1;
@@ -933,7 +933,7 @@ typedef PyObject* ( *ValidateHandler )(	Member* member, PyObject* atom, PyObject
 typedef PyObject* ( *PostValidateHandler )(	Member* member, PyObject* atom, PyObject* name, PyObject* value );
 
 
-typedef int ( *PostSetattrHandler )( Member* member, PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue );
+typedef int ( *PostSetattrHandler )( Member* member, PyObject* atom, PyObject* name, PyObject* old_value, PyObject* new_value );
 
 
 DefaultHandler default_handlers[] = {
@@ -1294,7 +1294,7 @@ PyObject* Member_do_post_validate( Member* self, PyObject* args )
 	{
 		return cppy::type_error( name, "str" );
 	}
-	return self->postValidate( atom, name, value );
+	return self->post_validate( atom, name, value );
 }
 
 
@@ -1302,9 +1302,9 @@ PyObject* Member_do_post_setattr( Member* self, PyObject* args )
 {
 	PyObject* atom;
 	PyObject* name;
-	PyObject* oldValue;
-	PyObject* newValue;
-	if( !PyArg_UnpackTuple( args, "do_post_setattr", 4, 4, &atom, &name, &oldValue, &newValue ) )
+	PyObject* old_value;
+	PyObject* new_value;
+	if( !PyArg_UnpackTuple( args, "do_post_setattr", 4, 4, &atom, &name, &old_value, &new_value ) )
 	{
 		return 0;
 	}
@@ -1316,7 +1316,7 @@ PyObject* Member_do_post_setattr( Member* self, PyObject* args )
 	{
 		return cppy::type_error( name, "str" );
 	}
-	if( self->postSetattr( atom, name, oldValue, newValue ) < 0 )
+	if( self->post_setattr( atom, name, old_value, new_value ) < 0 )
 	{
 		return 0;
 	}
@@ -1557,15 +1557,15 @@ PyObject* Member::validate( PyObject* atom, PyObject* name, PyObject* value )
 }
 
 
-PyObject* Member::postValidate( PyObject* atom, PyObject* name, PyObject* value )
+PyObject* Member::post_validate( PyObject* atom, PyObject* name, PyObject* value )
 {
 	return post_validate_handlers[ m_post_validate_mode ]( this, atom, name, value );
 }
 
 
-int Member::postSetattr( PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue )
+int Member::post_setattr( PyObject* atom, PyObject* name, PyObject* old_value, PyObject* new_value )
 {
-	return post_setattr_handlers[ m_post_setattr_mode ]( this, atom, name, oldValue, newValue );
+	return post_setattr_handlers[ m_post_setattr_mode ]( this, atom, name, old_value, new_value );
 }
 
 } // namespace atom
