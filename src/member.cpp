@@ -1164,7 +1164,7 @@ PyObject* Member_do_post_validate( Member* self, PyObject* args )
 	{
 		return cppy::type_error( name, "str" );
 	}
-	return self->postValidateValue( atom, name, value );
+	return self->postValidate( atom, name, value );
 }
 
 
