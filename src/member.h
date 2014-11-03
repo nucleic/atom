@@ -88,9 +88,9 @@ struct Member
 
 	PyObject* defaultValue( PyObject* atom, PyObject* name );
 
-	PyObject* validateValue( PyObject* atom, PyObject* name, PyObject* value );
+	PyObject* validate( PyObject* atom, PyObject* name, PyObject* value );
 
-	PyObject* postValidateValue( PyObject* atom, PyObject* name, PyObject* value );
+	PyObject* postValidate( PyObject* atom, PyObject* name, PyObject* value );
 };
 
 } // namespace atom

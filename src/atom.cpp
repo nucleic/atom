@@ -250,12 +250,12 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 	{
 		return 0;
 	}
-	valptr = member->validateValue( pyobject_cast( self ), name, valptr.get() );
+	valptr = member->validate( pyobject_cast( self ), name, valptr.get() );
 	if( !valptr )
 	{
 		return 0;
 	}
-	valptr = member->postValidateValue( pyobject_cast( self ), name, valptr.get() );
+	valptr = member->postValidate( pyobject_cast( self ), name, valptr.get() );
 	if( !valptr )
 	{
 		return 0;
@@ -292,12 +292,12 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 	{
 		return 0;
 	}
-	cppy::ptr valptr( member->validateValue( pyobject_cast( self ), name, value ) );
+	cppy::ptr valptr( member->validate( pyobject_cast( self ), name, value ) );
 	if( !valptr )
 	{
 		return -1;
 	}
-	valptr = member->postValidateValue( pyobject_cast( self ), name, valptr.get() );
+	valptr = member->postValidate( pyobject_cast( self ), name, valptr.get() );
 	if( !valptr )
 	{
 		return -1;
