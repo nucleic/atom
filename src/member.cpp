@@ -995,6 +995,35 @@ void Member_dealloc( Member* self )
 }
 
 
+PyObject* Member_get_index( Member* self, void* context )
+{
+	return Py23Int_FromSsize_t( self->m_index );
+}
+
+
+int Member_set_index( Member* self, PyObject* value, void* context )
+{
+	if( !value )
+	{
+		cppy::attribute_error( "can't delete attribute" );
+		return -1;
+	}
+	if( !Py23Int_Check( value ) )
+	{
+		cppy::type_error( value, "int" );
+		return -1;
+	}
+	Py_ssize_t index = Py23Int_AsSsize_t( value );
+	if( index < 0 )
+	{
+		cppy::system_error( "invalid member index" );
+		return -1;
+	}
+	self->m_index = index;
+	return 0;
+}
+
+
 PyObject* Member_get_metadata( Member* self, void* context )
 {
 	return cppy::incref( self->m_metadata ? self->m_metadata : Py_None );
@@ -1051,35 +1080,6 @@ PyObject* Member_get_post_validate_mode( Member* self, void* context )
 int Member_set_post_validate_mode( Member* self, PyObject* arg )
 {
 	return ParseMode<Member::PostValidateMode>()( arg, &self->m_post_validate_mode, &self->m_post_validate_context );
-}
-
-
-PyObject* Member_get_index( Member* self, void* context )
-{
-	return Py23Int_FromSsize_t( self->m_index );
-}
-
-
-int Member_set_index( Member* self, PyObject* value, void* context )
-{
-	if( !value )
-	{
-		cppy::attribute_error( "can't delete attribute" );
-		return -1;
-	}
-	if( !Py23Int_Check( value ) )
-	{
-		cppy::type_error( value, "int" );
-		return -1;
-	}
-	Py_ssize_t index = Py23Int_AsSsize_t( value );
-	if( index < 0 )
-	{
-		cppy::system_error( "invalid member index" );
-		return -1;
-	}
-	self->m_index = index;
-	return 0;
 }
 
 
@@ -1200,6 +1200,10 @@ PyObject* Member_validation_error( Member* self, PyObject* args )
 
 
 PyGetSetDef Member_getset[] = {
+	{ "index",
+		( getter )Member_get_index,
+		( setter )Member_set_index,
+		"the memory index for the member", 0 },
 	{ "metadata",
 		( getter )Member_get_metadata,
 		( setter )Member_set_metadata,
@@ -1216,10 +1220,6 @@ PyGetSetDef Member_getset[] = {
 		( getter )Member_get_post_validate_mode,
 		( setter )Member_set_post_validate_mode,
 		"the post validate mode for the member", 0 },
-	{ "index",
-		( getter )Member_get_index,
-		( setter )Member_set_index,
-		"the memory index for the member", 0 },
 	{ 0 } // sentinel
 };
 
