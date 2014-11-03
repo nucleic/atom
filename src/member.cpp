@@ -260,6 +260,38 @@ bool check_context( Member::PostValidateMode mode, PyObject* context )
 }
 
 
+bool check_context( Member::PostSetattrMode mode, PyObject* context )
+{
+	switch( mode )
+	{
+		case Member::PostSetattrCallObject:
+		{
+			if( !PyCallable_Check( context ) )
+			{
+				cppy::type_error( context, "callable" );
+				return false;
+			}
+			break;
+		}
+		case Member::PostSetattrAtomMethod:
+		case Member::PostSetattrMemberMethod:
+		{
+			if( !Py23Str_Check( context ) )
+			{
+				cppy::type_error( context, "str" );
+				return false;
+			}
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	return true;
+}
+
+
 PyObject* default_noop( Member* member, PyObject* atom, PyObject* name )
 {
 	return cppy::incref( Py_None );
@@ -828,6 +860,70 @@ PyObject* post_validate_member_method( Member* member, PyObject* atom, PyObject*
 }
 
 
+int post_setattr_noop( Member* member, PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue )
+{
+	return 0;
+}
+
+
+int post_setattr_call_object( Member* member, PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue )
+{
+	cppy::ptr args( PyTuple_Pack( 4, atom, name, oldValue, newValue ) );
+	if( !args )
+	{
+		return -1;
+	}
+	cppy::ptr ignored( PyObject_Call( member->m_post_setattr_context, args.get(), 0 ) );
+	if( !ignored )
+	{
+		return -1;
+	}
+	return 0;
+}
+
+
+int post_setattr_atom_method( Member* member, PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue )
+{
+	cppy::ptr method( PyObject_GetAttr( pyobject_cast( atom ), member->m_post_setattr_context ) );
+	if( !method )
+	{
+		return -1;
+	}
+	cppy::ptr args( PyTuple_Pack( 2, oldValue, newValue ) );
+	if( !args )
+	{
+		return -1;
+	}
+	cppy::ptr ignored( method.call( args ) );
+	if( !ignored )
+	{
+		return -1;
+	}
+	return 0;
+}
+
+
+int post_setattr_member_method( Member* member, PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue )
+{
+	cppy::ptr method( PyObject_GetAttr( pyobject_cast( member ), member->m_post_setattr_context ) );
+	if( !method )
+	{
+		return -1;
+	}
+	cppy::ptr args( PyTuple_Pack( 4, atom, name, oldValue, newValue ) );
+	if( !args )
+	{
+		return -1;
+	}
+	cppy::ptr ignored( method.call( args ) );
+	if( !ignored )
+	{
+		return -1;
+	}
+	return 0;
+}
+
+
 typedef PyObject* ( *DefaultHandler )( Member* member, PyObject* atom, PyObject* name );
 
 
@@ -835,6 +931,9 @@ typedef PyObject* ( *ValidateHandler )(	Member* member, PyObject* atom, PyObject
 
 
 typedef PyObject* ( *PostValidateHandler )(	Member* member, PyObject* atom, PyObject* name, PyObject* value );
+
+
+typedef int ( *PostSetattrHandler )( Member* member, PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue );
 
 
 DefaultHandler default_handlers[] = {
@@ -880,6 +979,14 @@ PostValidateHandler post_validate_handlers[] = {
 };
 
 
+PostSetattrHandler post_setattr_handlers[] = {
+	post_setattr_noop,
+	post_setattr_call_object,
+	post_setattr_atom_method,
+	post_setattr_member_method
+};
+
+
 template <typename MODE>
 struct ModeTraits;
 
@@ -902,6 +1009,13 @@ template <>
 struct ModeTraits<Member::PostValidateMode>
 {
 	static const Member::PostValidateMode Last = Member::PostValidateLast;
+};
+
+
+template <>
+struct ModeTraits<Member::PostSetattrMode>
+{
+	static const Member::PostSetattrMode Last = Member::PostSetattrLast;
 };
 
 
@@ -1083,6 +1197,18 @@ int Member_set_post_validate_mode( Member* self, PyObject* arg )
 }
 
 
+PyObject* Member_get_post_setattr_mode( Member* self, void* context )
+{
+	return packMode( self->m_post_setattr_mode, self->m_post_setattr_context );
+}
+
+
+int Member_set_post_setattr_mode( Member* self, PyObject* arg )
+{
+	return ParseMode<Member::PostSetattrMode>()( arg, &self->m_post_setattr_mode, &self->m_post_setattr_context );
+}
+
+
 PyObject* Member_clone( Member* self, PyObject* args, PyObject* kwargs )
 {
 	cppy::ptr pyo( Py_TYPE( self )->tp_new( Py_TYPE( self ), args, kwargs ) );
@@ -1100,10 +1226,12 @@ PyObject* Member_clone( Member* self, PyObject* args, PyObject* kwargs )
 	cppy::replace( &clone->m_default_context, self->m_default_context );
 	cppy::replace( &clone->m_validate_context, self->m_validate_context );
 	cppy::replace( &clone->m_post_validate_context, self->m_post_validate_context );
+	cppy::replace( &clone->m_post_setattr_context, self->m_post_setattr_context );
 	clone->m_index = self->m_index;
 	clone->m_default_mode = self->m_default_mode;
 	clone->m_validate_mode = self->m_validate_mode;
 	clone->m_post_validate_mode = self->m_post_validate_mode;
+	clone->m_post_setattr_mode = self->m_post_setattr_mode;
 	return pyo.release();
 }
 
@@ -1170,6 +1298,32 @@ PyObject* Member_do_post_validate( Member* self, PyObject* args )
 }
 
 
+PyObject* Member_do_post_setattr( Member* self, PyObject* args )
+{
+	PyObject* atom;
+	PyObject* name;
+	PyObject* oldValue;
+	PyObject* newValue;
+	if( !PyArg_UnpackTuple( args, "do_post_setattr", 4, 4, &atom, &name, &oldValue, &newValue ) )
+	{
+		return 0;
+	}
+	if( !Atom::TypeCheck( atom ) )
+	{
+		return cppy::type_error( atom, "Atom" );
+	}
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
+	if( self->postSetattr( atom, name, oldValue, newValue ) < 0 )
+	{
+		return 0;
+	}
+	return cppy::incref( Py_None );
+}
+
+
 PyObject* Member_validation_error( Member* self, PyObject* args )
 {
 	static PyObject* mv_message = 0;
@@ -1222,6 +1376,10 @@ PyGetSetDef Member_getset[] = {
 		( getter )Member_get_post_validate_mode,
 		( setter )Member_set_post_validate_mode,
 		"the post validate mode for the member", 0 },
+	{ "post_setattr_mode",
+		( getter )Member_get_post_setattr_mode,
+		( setter )Member_set_post_setattr_mode,
+		"the post setattr mode for the member", 0 },
 	{ 0 } // sentinel
 };
 
@@ -1373,6 +1531,11 @@ bool Member::Ready()
 	ADD_MODE( PostValidateAtomMethod )
 	ADD_MODE( PostValidateMemberMethod )
 
+	ADD_MODE( NoPostSetattr )
+	ADD_MODE( PostSetattrCallObject )
+	ADD_MODE( PostSetattrAtomMethod )
+	ADD_MODE( PostSetattrMemberMethod )
+
 #undef ADD_MODE
 #undef ADD_HELPER
 #undef STR
@@ -1397,6 +1560,12 @@ PyObject* Member::validate( PyObject* atom, PyObject* name, PyObject* value )
 PyObject* Member::postValidate( PyObject* atom, PyObject* name, PyObject* value )
 {
 	return post_validate_handlers[ m_post_validate_mode ]( this, atom, name, value );
+}
+
+
+int Member::postSetattr( PyObject* atom, PyObject* name, PyObject* oldValue, PyObject* newValue )
+{
+	return post_setattr_handlers[ m_post_setattr_mode ]( this, atom, name, oldValue, newValue );
 }
 
 } // namespace atom
