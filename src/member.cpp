@@ -1236,11 +1236,11 @@ PyObject* Member_clone( Member* self, PyObject* args, PyObject* kwargs )
 }
 
 
-PyObject* Member_do_default_value( Member* self, PyObject* args )
+PyObject* Member_do_default( Member* self, PyObject* args )
 {
 	PyObject* atom;
 	PyObject* name;
-	if( !PyArg_UnpackTuple( args, "do_default_value", 2, 2, &atom, &name ) )
+	if( !PyArg_UnpackTuple( args, "do_default", 2, 2, &atom, &name ) )
 	{
 		return 0;
 	}
@@ -1252,7 +1252,7 @@ PyObject* Member_do_default_value( Member* self, PyObject* args )
 	{
 		return cppy::type_error( name, "str" );
 	}
-	return self->defaultValue( atom, name );
+	return self->defaultv( atom, name );
 }
 
 
@@ -1389,10 +1389,10 @@ PyMethodDef Member_methods[] = {
 		( PyCFunction )Member_clone,
 		METH_VARARGS | METH_KEYWORDS,
 		"clone(*args, **kwargs) create a clone of the member" },
-	{ "do_default_value",
-		( PyCFunction )Member_do_default_value,
+	{ "do_default",
+		( PyCFunction )Member_do_default,
 		METH_VARARGS,
-		"do_default_value(atom, name) run the default value handler for the member" },
+		"do_default(atom, name) run the default handler for the member" },
 	{ "do_validate",
 		( PyCFunction )Member_do_validate,
 		METH_VARARGS,
@@ -1545,7 +1545,7 @@ bool Member::Ready()
 }
 
 
-PyObject* Member::defaultValue( PyObject* atom, PyObject* name )
+PyObject* Member::defaultv( PyObject* atom, PyObject* name )
 {
 	return default_handlers[ m_default_mode ]( this, atom, name );
 }

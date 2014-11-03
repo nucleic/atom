@@ -96,7 +96,7 @@ struct Member
 
 	Py_ssize_t index() { return m_index; }
 
-	PyObject* defaultValue( PyObject* atom, PyObject* name );
+	PyObject* defaultv( PyObject* atom, PyObject* name );
 
 	PyObject* validate( PyObject* atom, PyObject* name, PyObject* value );
 

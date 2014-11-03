@@ -245,7 +245,7 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 	{
 		return cppy::incref( value );
 	}
-	cppy::ptr valptr( member->defaultValue( pyobject_cast( self ), name ) );
+	cppy::ptr valptr( member->defaultv( pyobject_cast( self ), name ) );
 	if( !valptr )
 	{
 		return 0;
