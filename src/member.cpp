@@ -1099,9 +1099,11 @@ PyObject* Member_clone( Member* self, PyObject* args, PyObject* kwargs )
 	cppy::replace( &self->m_metadata, metadata.get() );
 	cppy::replace( &clone->m_default_context, self->m_default_context );
 	cppy::replace( &clone->m_validate_context, self->m_validate_context );
+	cppy::replace( &clone->m_post_validate_context, self->m_post_validate_context );
 	clone->m_index = self->m_index;
 	clone->m_default_mode = self->m_default_mode;
 	clone->m_validate_mode = self->m_validate_mode;
+	clone->m_post_validate_mode = self->m_post_validate_mode;
 	return pyo.release();
 }
 
