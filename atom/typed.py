@@ -62,6 +62,9 @@ class ForwardTyped(Typed):
     be resolved and the forward typed will behave identically to a
     normal typed.
 
+    For example, to forward type the class "MyClass", use:
+    my_obj = ForwardTyped(lambda: MyClass)
+
     """
     __slots__ = ('resolve', 'args', 'kwargs')
 

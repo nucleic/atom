@@ -360,6 +360,7 @@ class AtomMeta(type):
                 member.add_static_observer(mangled)
 
         # @observe decorated methods
+        cls._sub_handlers = []
         for handler in decorated:
             for name, attr in handler.pairs:
                 if name in members:
@@ -368,6 +369,10 @@ class AtomMeta(type):
                     if attr is not None:
                         observer = ExtendedObserver(observer, attr)
                     member.add_static_observer(observer)
+                else:
+                    obj = getattr(cls, name, None)
+                    if isinstance(obj, CAtom):
+                        cls._sub_handlers.append((obj, attr, handler.funcname))
 
         # Put a reference to the members dict on the class. This is used
         # by CAtom to query for the members and member count as needed.
@@ -400,6 +405,54 @@ class Atom(CAtom):
 
     """
     __metaclass__ = AtomMeta
+
+    def __init__(self, *args, **kwargs):
+        super(Atom, self).__init__(*args, **kwargs)
+        # attach handlers to child Atoms
+        for (obj, attr, func_name) in self.__class__._sub_handlers:
+            obj.observe(attr, getattr(self, func_name))
+        # set up DelegatesTo members
+        for member in self.members().values():
+            if isinstance(member, DelegatesTo):
+                self.sync_value(member.name, member.other, alias=member.alias)
+
+    def sync_value(self, attr, obj, alias=None, mutual=True, remove=False):
+        """ Synchronize an attribute between to Atoms
+
+        Parameters
+        ----------
+        attr : str
+            The name of the parameter to synchronize.
+        obj : Atom
+            The other object to sync the value with.
+        alias : str, optional
+            The name of the parameter in the other object, if different.
+        mutual : bool, optional (True)
+            Whether to synchronize in both directions.
+        remove: bool, optional (False)
+            If True, remove the synchroniziation.
+        """
+        if alias is None:
+           alias = attr
+        if remove:
+            self.unobserve(attr)
+            obj.unobserve(alias)
+            return
+        def inner1(change):
+            value = getattr(self, attr, None)
+            if not value is None:
+                setattr(obj, alias, getattr(self, attr))
+        def inner2(change):
+            value = getattr(obj, alias, None)
+            if not value is None:
+                setattr(self, attr, getattr(obj, alias))
+        if getattr(self, attr, None):
+            inner1(None)
+        self.observe(attr, inner1)
+        if mutual:
+            obj.observe(alias, inner2)
+            if getattr(obj, alias, None):
+                inner2(None)
 
     @classmethod
     def members(cls):
@@ -481,3 +534,31 @@ class Atom(CAtom):
         """
         for key, value in state.iteritems():
             setattr(self, key, value)
+
+
+class DelegatesTo(Member):
+    """ A Member whose value is Delegated to another Atom
+
+    The value is synced during initialization, making changes to one object
+    reflect in the other.  An optional alias can be used if
+    the other object uses a different name for the attribute.
+
+    """
+    def __init__(self, obj, alias=None):
+        """ Initialize a DelegatesTo.
+
+        Parameters
+        ----------
+        obj : Atom
+            The other object to sync the value with.
+
+        alias : str, optional
+            The attribute name on the target object which should be
+            synced, if different.
+
+        """
+        super(DelegatesTo, self).__init__()
+        if 'atom.typed.ForwardTyped' in str(obj):
+            raise ValueError('Cannot Delegate to a ForwardTyped object')
+        self.other = obj
+        self.alias = alias
