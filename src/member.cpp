@@ -292,12 +292,6 @@ bool check_context( Member::PostSetattrMode mode, PyObject* context )
 }
 
 
-PyObject* default_noop( Member* member, PyObject* atom, PyObject* name )
-{
-	return cppy::incref( Py_None );
-}
-
-
 PyObject* default_value( Member* member, PyObject* atom, PyObject* name )
 {
 	return cppy::incref( member->m_default_context );
@@ -355,12 +349,6 @@ PyObject* default_member_method( Member* member, PyObject* atom, PyObject* name 
 		return 0;
 	}
 	return method.call( args );
-}
-
-
-PyObject* validate_noop( Member* member, PyObject* atom, PyObject* name, PyObject* value )
-{
-	return cppy::incref( value );
 }
 
 
@@ -811,12 +799,6 @@ PyObject* validate_member_method( Member* member, PyObject* atom, PyObject* name
 }
 
 
-PyObject* post_validate_noop( Member* member, PyObject* atom, PyObject* name, PyObject* value )
-{
-	return cppy::incref( value );
-}
-
-
 PyObject* post_validate_call_object( Member* member, PyObject* atom, PyObject* name, PyObject* value )
 {
 	cppy::ptr args( PyTuple_Pack( 3, atom, name, value ) );
@@ -857,12 +839,6 @@ PyObject* post_validate_member_method( Member* member, PyObject* atom, PyObject*
 		return 0;
 	}
 	return method.call( args );
-}
-
-
-int post_setattr_noop( Member* member, PyObject* atom, PyObject* name, PyObject* old_value, PyObject* new_value )
-{
-	return 0;
 }
 
 
@@ -937,7 +913,7 @@ typedef int ( *PostSetattrHandler )( Member* member, PyObject* atom, PyObject* n
 
 
 DefaultHandler default_handlers[] = {
-	default_noop,
+	0,  // noop is handled inline
 	default_value,
 	default_factory,
 	default_call_object,
@@ -947,7 +923,7 @@ DefaultHandler default_handlers[] = {
 
 
 ValidateHandler validate_handlers[] = {
-	validate_noop,
+	0,  // noop is handled inline
 	validate_bool,
 	validate_int,
 	validate_float,
@@ -972,7 +948,7 @@ ValidateHandler validate_handlers[] = {
 
 
 PostValidateHandler post_validate_handlers[] = {
-	post_validate_noop,
+	0,  // noop is handled inline
 	post_validate_call_object,
 	post_validate_atom_method,
 	post_validate_member_method
@@ -980,7 +956,7 @@ PostValidateHandler post_validate_handlers[] = {
 
 
 PostSetattrHandler post_setattr_handlers[] = {
-	post_setattr_noop,
+	0,  // noop is handled inline
 	post_setattr_call_object,
 	post_setattr_atom_method,
 	post_setattr_member_method
@@ -1547,24 +1523,40 @@ bool Member::Ready()
 
 PyObject* Member::defaultv( PyObject* atom, PyObject* name )
 {
+	if( m_default_mode == NoDefault )
+	{
+		return cppy::incref( Py_None );
+	}
 	return default_handlers[ m_default_mode ]( this, atom, name );
 }
 
 
 PyObject* Member::validate( PyObject* atom, PyObject* name, PyObject* value )
 {
+	if( m_validate_mode == NoValidate )
+	{
+		return cppy::incref( value );
+	}
 	return validate_handlers[ m_validate_mode ]( this, atom, name, value );
 }
 
 
 PyObject* Member::post_validate( PyObject* atom, PyObject* name, PyObject* value )
 {
+	if( m_post_validate_mode == NoPostValidate )
+	{
+		return cppy::incref( value );
+	}
 	return post_validate_handlers[ m_post_validate_mode ]( this, atom, name, value );
 }
 
 
 int Member::post_setattr( PyObject* atom, PyObject* name, PyObject* old_value, PyObject* new_value )
 {
+	if( m_post_setattr_mode == NoPostSetattr )
+	{
+		return 0;
+	}
 	return post_setattr_handlers[ m_post_setattr_mode ]( this, atom, name, old_value, new_value );
 }
 
