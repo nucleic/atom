@@ -245,22 +245,23 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 	{
 		return cppy::incref( value );
 	}
-	cppy::ptr valptr( member->defaultv( pyobject_cast( self ), name ) );
+	PyObject* atom = pyobject_cast( self );
+	cppy::ptr valptr( member->defaultv( atom, name ) );
 	if( !valptr )
 	{
 		return 0;
 	}
-	valptr = member->validate( pyobject_cast( self ), name, valptr.get() );
+	valptr = member->validate( atom, name, valptr.get() );
 	if( !valptr )
 	{
 		return 0;
 	}
-	valptr = member->post_validate( pyobject_cast( self ), name, valptr.get() );
+	valptr = member->post_validate( atom, name, valptr.get() );
 	if( !valptr )
 	{
 		return 0;
 	}
-	self->m_values[ member->index() ] = cppy::incref( valptr.get() );
+	cppy::replace( &self->m_values[ member->index() ], valptr.get() );
 	return valptr.release();
 }
 
