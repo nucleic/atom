@@ -1192,6 +1192,10 @@ PyObject* Member_clone( Member* self, PyObject* args, PyObject* kwargs )
 	{
 		return 0;
 	}
+	if( !Member::TypeCheck( pyo.get() ) )
+	{
+		return pyo.release();
+	}
 	cppy::ptr metadata;
 	if( self->m_metadata && !( metadata = PyDict_Copy( self->m_metadata ) ) )
 	{
