@@ -131,7 +131,7 @@ PyObject* BoundSignal_richcompare( BoundSignal* self, PyObject* rhs, int op )
 }
 
 
-PyObject* BoundSignal_call( BoundSignal* self, PyObject* args, PyObject* kwargs )
+PyObject* BoundSignal_emit( BoundSignal* self, PyObject* args, PyObject* kwargs )
 {
 	Atom::Emit( self->m_atom, self->m_signal, args, kwargs );
 	return cppy::incref( Py_None );
@@ -184,6 +184,10 @@ PyMethodDef BoundSignal_methods[] = {
 		( PyCFunction )BoundSignal_disconnect,
 		METH_VARARGS,
 		"disconnect([callback]) disconnect a callback from the signal" },
+	{ "emit",
+		( PyCFunction )BoundSignal_emit,
+		METH_VARARGS | METH_KEYWORDS,
+		"emit(*args, **kwargs) emit the signal with args and keywords" },
 	{ 0 } // sentinel
 };
 
@@ -263,7 +267,7 @@ PyTypeObject BoundSignal::TypeObject = {
 	( PySequenceMethods* )0,                    /* tp_as_sequence */
 	( PyMappingMethods* )0,                     /* tp_as_mapping */
 	( hashfunc )0,                              /* tp_hash */
-	( ternaryfunc )BoundSignal_call,            /* tp_call */
+	( ternaryfunc )0,                           /* tp_call */
 	( reprfunc )0,                              /* tp_str */
 	( getattrofunc )0,                          /* tp_getattro */
 	( setattrofunc )0,                          /* tp_setattro */
