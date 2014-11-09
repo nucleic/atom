@@ -7,6 +7,10 @@
 #------------------------------------------------------------------------------
 from .atom import Atom, AtomMeta
 from .catom import (
+    connect,
+    disconnect,
+    emit,
+    sender,
     BoundSignal,
     Signal,
     TypedDict,
