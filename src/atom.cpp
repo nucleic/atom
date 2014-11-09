@@ -289,21 +289,31 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 		cppy::attribute_error( "can't delete attribute" );
 		return -1;
 	}
-	if( self->m_values[ member->index() ] == value )
+	cppy::ptr oldptr( self->m_values[ member->index() ], true );
+	if( oldptr == value )
 	{
 		return 0;
 	}
-	cppy::ptr valptr( member->validate( pyobject_cast( self ), name, value ) );
+	PyObject* atom = pyobject_cast( self );
+	cppy::ptr valptr( member->validate( atom, name, value ) );
 	if( !valptr )
 	{
 		return -1;
 	}
-	valptr = member->post_validate( pyobject_cast( self ), name, valptr.get() );
+	valptr = member->post_validate( atom, name, valptr.get() );
 	if( !valptr )
 	{
 		return -1;
 	}
 	cppy::replace( &self->m_values[ member->index() ], valptr.get() );
+	if( !oldptr )
+	{
+		oldptr = cppy::incref( Py_None );
+	}
+	if( member->post_setattr( atom, name, oldptr.get(), valptr.get() ) < 0 )
+	{
+		return -1;
+	}
 	return 0;
 }
 
