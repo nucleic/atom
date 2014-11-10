@@ -359,12 +359,12 @@ PyObject* Atom_getattro( Atom* self, PyObject* name )
 	{
 		return bad_attr_name( name );
 	}
-	PyObject* pyo = _PyType_Lookup( Py_TYPE( self ), name );
-	if( !pyo || !Member::TypeCheck( pyo ) )
+	cppy::ptr pyo( _PyType_Lookup( Py_TYPE( self ), name ), true );
+	if( !pyo || !Member::TypeCheck( pyo.get() ) )
 	{
 		return PyObject_GenericGetAttr( pyobject_cast( self ), name );
 	}
-	Member* member = member_cast( pyo );
+	Member* member = member_cast( pyo.get() );
 	if( member->index() >= Py_SIZE( self ) )
 	{
 		return cppy::system_error( "invalid member index" );
@@ -402,12 +402,12 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 		bad_attr_name( name );
 		return -1;
 	}
-	PyObject* pyo = _PyType_Lookup( Py_TYPE( self ), name );
-	if( !pyo || !Member::TypeCheck( pyo ) )
+	cppy::ptr pyo( _PyType_Lookup( Py_TYPE( self ), name ), true );
+	if( !pyo || !Member::TypeCheck( pyo.get() ) )
 	{
 		return PyObject_GenericSetAttr( pyobject_cast( self ), name, value );
 	}
-	Member* member = member_cast( pyo );
+	Member* member = member_cast( pyo.get() );
 	if( member->index() >= Py_SIZE( self ) )
 	{
 		cppy::system_error( "invalid member index" );
