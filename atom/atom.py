@@ -112,10 +112,6 @@ class Atom(CAtom):
     objects declared in the class body. Memory is reserved for these
     members with no over-allocation.
 
-    This restriction makes atom objects slightly less flexible than
-    regular Python objects, but they are 3x - 10x more memory efficient
-    than normal objects, and are 10% - 20%  faster on attribute access.
-
     All classes deriving from Atom will be automatically slotted, which
     will prevent the creation of an instance dictionary. If an instance
     dict is required, then the subclass should define a __dict__ slot.
