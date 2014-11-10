@@ -9,9 +9,8 @@
 #include "member.h"
 #include "methodwrapper.h"
 #include "py23compat.h"
-#include "utils.h"
 
-#include <algorithm>
+#include <cppy/cppy.h>
 #include <cstddef>
 
 #ifdef _WIN32
@@ -33,8 +32,6 @@ namespace atom
 namespace
 {
 
-typedef Atom::CSVector CSVector;
-
 PyObject* members_str;
 
 #ifdef _WIN32
@@ -42,65 +39,6 @@ DWORD tls_sender_key;
 #else
 pthread_key_t tls_sender_key;
 #endif
-
-
-struct CmpLess
-{
-	template <typename T>
-	bool operator()( T& lhs, Signal* rhs )
-	{
-		return lhs.first < pyobject_cast( rhs );
-	}
-
-	template <typename T>
-	bool operator()( Signal* lhs, T& rhs )
-	{
-		return pyobject_cast( lhs ) < rhs.first;
-	}
-};
-
-
-struct CmpEqual
-{
-	template <typename T>
-	bool operator()( T& lhs, Signal* rhs )
-	{
-		return lhs.first == pyobject_cast( rhs );
-	}
-
-	template <typename T>
-	bool operator()( Signal* lhs, T& rhs )
-	{
-		return pyobject_cast( lhs ) == rhs.first;
-	}
-};
-
-
-inline CSVector::iterator lowerBound( CSVector* cbsets, Signal* sig )
-{
-	return std::lower_bound( cbsets->begin(), cbsets->end(), sig, CmpLess() );
-}
-
-
-inline CSVector::iterator binaryFind( CSVector* cbsets, Signal* sig )
-{
-	CSVector::iterator it = lowerBound( cbsets, sig );
-	if( it != cbsets->end() && CmpEqual()( *it, sig ) )
-	{
-		return it;
-	}
-	return cbsets->end();
-}
-
-
-inline PyObject* maybeWrapCallback( PyObject* callback )
-{
-	if( PyMethod_Check( callback ) && PyMethod_GET_SELF( callback ) )
-	{
-		return MethodWrapper::Create( pymethod_cast( callback ) );
-	}
-	return cppy::incref( callback );
-}
 
 
 inline PyObject* bad_attr_name( PyObject* name )
@@ -113,26 +51,232 @@ inline PyObject* bad_attr_name( PyObject* name )
 }
 
 
-Py_ssize_t getsizeof( CSVector* cbsets )
+inline PyObject* maybe_wrap_callback( PyObject* callback )
 {
-	Py_ssize_t extras = 0;
-	typedef CSVector::iterator iter_t;
-	for( iter_t it = cbsets->begin(), end = cbsets->end(); it != end; ++it )
+	if( PyMethod_Check( callback ) && PyMethod_GET_SELF( callback ) )
 	{
-		if( it->second.extras() )
+		return MethodWrapper::Create( pymethod_cast( callback ) );
+	}
+	return cppy::incref( callback );
+}
+
+
+inline Py_ssize_t list_index( PyObject* list, PyObject* value )
+{
+	for( Py_ssize_t i = 0; i < PyList_GET_SIZE( list ); ++i )
+	{
+		int ok = PyObject_RichCompareBool( PyList_GET_ITEM( list, i ), value, Py_EQ );
+		if( ok == -1 )
 		{
-			Py_ssize_t size = utils::sys_getsizeof( it->second.extras() );
-			if( size < 0 && PyErr_Occurred() )
-			{
-				return -1;
-			}
-			extras += size;
+			return -1;
+		}
+		if( ok == 1 )
+		{
+			return i;
 		}
 	}
-	Py_ssize_t vec = static_cast<Py_ssize_t>( sizeof( CSVector ) );
-	Py_ssize_t cap = static_cast<Py_ssize_t>( cbsets->capacity() );
-	Py_ssize_t val = static_cast<Py_ssize_t>( sizeof( CSVector::value_type ) );
-	return vec + cap * val + extras;
+	return -1;
+}
+
+
+inline bool list_add( PyObject* list, PyObject* value )
+{
+	Py_ssize_t index = list_index( list, value );
+	if( index != -1 )
+	{
+		return true;
+	}
+	if( PyErr_Occurred() )
+	{
+		return false;
+	}
+	return PyList_Append( list, value ) == 0;
+}
+
+
+inline bool list_discard( PyObject* list, PyObject* value )
+{
+	Py_ssize_t index = list_index( list, value );
+	if( index != -1 )
+	{
+		return PyList_SetSlice( list, index, index + 1, 0 ) == 0;
+	}
+	return !PyErr_Occurred();
+}
+
+
+inline void safe_list_discard( PyObject* list, PyObject* value )
+{
+	if( !list_discard( list, value ) && PyErr_Occurred() )
+	{
+		PyErr_Print();
+	}
+}
+
+
+inline bool safe_is_truthy( PyObject* ob )
+{
+	int ok = PyObject_IsTrue( ob );
+	if( ok == 1 )
+	{
+		return true;
+	}
+	if( ok == 0 )
+	{
+		return false;
+	}
+	PyErr_Print();
+	return false;
+}
+
+
+inline void safe_call_object( PyObject* ob, PyObject* args, PyObject* kwargs )
+{
+	cppy::ptr ok( PyObject_Call( ob, args, kwargs ) );
+	if( !ok )
+	{
+		PyErr_Print();
+	}
+}
+
+
+bool connect( Atom* atom, PyObject* name, PyObject* callback )
+{
+	cppy::ptr cb( maybe_wrap_callback( callback ) );
+	if( !cb )
+	{
+		return false;
+	}
+	if( !atom->m_callbacks && !( atom->m_callbacks = PyDict_New() ) )
+	{
+		return false;
+	}
+	PyObject* current = PyDict_GetItem( atom->m_callbacks, name );
+	if( !current )
+	{
+		return PyDict_SetItem( atom->m_callbacks, name, cb.get() ) == 0;
+	}
+	if( PyList_Check( current ) )
+	{
+		return list_add( current, cb.get() );
+	}
+	int ok = PyObject_RichCompareBool( current, cb.get(), Py_EQ );
+	if( ok == -1 )
+	{
+		return false;
+	}
+	if( ok == 1 )
+	{
+		return true;
+	}
+	cppy::ptr list( PyList_New( 2 ) );
+	if( !list )
+	{
+		return false;
+	}
+	PyList_SET_ITEM( list.get(), 0, cppy::incref( current ) );
+	PyList_SET_ITEM( list.get(), 1, cb.release() );
+	return PyDict_SetItem( atom->m_callbacks, name, list.get() ) == 0;
+}
+
+
+bool disconnect( Atom* atom, PyObject* name = 0, PyObject* callback = 0 )
+{
+	if( !atom->m_callbacks )
+	{
+		return true;
+	}
+	if( !name )
+	{
+		cppy::clear( &atom->m_callbacks );
+		return true;
+	}
+	PyObject* current = PyDict_GetItem( atom->m_callbacks, name );
+	if( !current )
+	{
+		return true;
+	}
+	if( !callback )
+	{
+		return PyDict_DelItem( atom->m_callbacks, name ) == 0;
+	}
+	if( PyList_Check( current ) )
+	{
+		return list_discard( current, callback );
+	}
+	int ok = PyObject_RichCompareBool( current, callback, Py_EQ );
+	if( ok == -1 )
+	{
+		return false;
+	}
+	if( ok == 0 )
+	{
+		return true;
+	}
+	return PyDict_DelItem( atom->m_callbacks, name ) == 0;
+}
+
+
+void dispatch( PyObject* cbs, PyObject* args, PyObject* kwargs )
+{
+	if( !PyList_Check( cbs ) )
+	{
+		safe_call_object( cbs, args, kwargs );
+		return;
+	}
+	cppy::ptr list( PyList_GetSlice( cbs, 0, PyList_GET_SIZE( cbs ) ) );
+	if( !list )
+	{
+		PyErr_Print();
+		return;
+	}
+	for( Py_ssize_t i = 0, n = PyList_GET_SIZE( list.get() ); i < n; ++i )
+	{
+		PyObject* cb = PyList_GET_ITEM( list.get(), i );
+		if( safe_is_truthy( cb ) )
+		{
+			safe_call_object( cb, args, kwargs );
+		}
+		else
+		{
+			safe_list_discard( cbs, cb );
+		}
+	}
+}
+
+
+bool emit( Atom* atom, PyObject* name, PyObject* args, PyObject* kwargs )
+{
+	if( !atom->m_callbacks )
+	{
+		return true;
+	}
+	PyObject* cbs = PyDict_GetItem( atom->m_callbacks, name );
+	if( !cbs )
+	{
+		return true;
+	}
+	int ok = PyObject_IsTrue( cbs );
+	if( ok == -1 )
+	{
+		return false;
+	}
+	if( ok == 0 )
+	{
+		return PyDict_DelItem( atom->m_callbacks, name ) == 0;
+	}
+#ifdef _WIN32
+	void* prev = TlsGetValue( tls_sender_key );
+	TlsSetValue( tls_sender_key, atom );
+	dispatch( cbs, args, kwargs );
+	TlsSetValue( tls_sender_key, prev );
+#else
+	void* prev = pthread_getspecific( tls_sender_key );
+	pthread_setspecific( tls_sender_key, atom );
+	dispatch( cbs, args, kwargs );
+	pthread_setspecific( tls_sender_key, prev );
+#endif
+	return true;
 }
 
 
@@ -177,11 +321,7 @@ int Atom_init( PyObject* self, PyObject* args, PyObject* kwargs )
 
 int Atom_clear( Atom* self )
 {
-	if( self->m_cbsets )
-	{
-		CSVector temp; // safe clear
-		self->m_cbsets->swap( temp );
-	}
+	Py_CLEAR( self->m_callbacks );
 	for( Py_ssize_t i = 0, n = Py_SIZE( self ); i < n; ++i )
 	{
 		Py_CLEAR( self->m_values[ i ] );
@@ -192,17 +332,7 @@ int Atom_clear( Atom* self )
 
 int Atom_traverse( Atom* self, visitproc visit, void* arg )
 {
-	if( self->m_cbsets )
-	{
-		typedef CSVector::iterator iter_t;
-		iter_t end = self->m_cbsets->end();
-		for( iter_t it = self->m_cbsets->begin(); it != end; ++it )
-		{
-			Py_VISIT( it->first.get() );
-			Py_VISIT( it->second.single() );
-			Py_VISIT( it->second.extras() );
-		}
-	}
+	Py_VISIT( self->m_callbacks );
 	for( Py_ssize_t i = 0, n = Py_SIZE( self ); i < n; ++i )
 	{
 		Py_VISIT( self->m_values[ i ] );
@@ -219,7 +349,6 @@ void Atom_dealloc( Atom* self )
 		PyObject_ClearWeakRefs( pyobject_cast( self ) );
 	}
 	Atom_clear( self );
-	delete self->m_cbsets;
 	Py_TYPE( self )->tp_free( pyobject_cast( self ) );
 }
 
@@ -318,20 +447,115 @@ int Atom_setattro( Atom* self, PyObject* name, PyObject* value )
 }
 
 
+PyObject* Atom_sender( PyObject* ig1, PyObject* ig2 )
+{
+#ifdef _WIN32
+	void* curr = TlsGetValue( tls_sender_key );
+#else
+	void* curr = pthread_getspecific( tls_sender_key );
+#endif
+	return cppy::incref( curr ? pyobject_cast( curr ) : Py_None );
+}
+
+
+PyObject* Atom_connect( Atom* self, PyObject* args )
+{
+	PyObject* name;
+	PyObject* callback;
+	if( !PyArg_UnpackTuple( args, "connect", 2, 2, &name, &callback ) )
+	{
+		return 0;
+	}
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
+	if( !PyCallable_Check( callback ) )
+	{
+		return cppy::type_error( callback, "callable" );
+	}
+	if( !connect( self, name, callback ) )
+	{
+		return 0;
+	}
+	return cppy::incref( Py_None );
+}
+
+
+PyObject* Atom_disconnect( Atom* self, PyObject* args )
+{
+	PyObject* name = 0;
+	PyObject* callback = 0;
+	if( !PyArg_UnpackTuple( args, "disconnect", 0, 2, &name, &callback ) )
+	{
+		return 0;
+	}
+	if( name && !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
+	if( callback && !PyCallable_Check( callback ) )
+	{
+		return cppy::type_error( callback, "callable" );
+	}
+	if( !disconnect( self, name, callback ) )
+	{
+		return 0;
+	}
+	return cppy::incref( Py_None );
+}
+
+
+PyObject* Atom_emit( Atom* self, PyObject* args, PyObject* kwargs )
+{
+	Py_ssize_t count = PyTuple_GET_SIZE( args );
+	if( count == 0 )
+	{
+		return cppy::type_error( "emit() takes at least 1 argument (0 given)" );
+	}
+	PyObject* name = PyTuple_GET_ITEM( args, 0 );
+	if( !Py23Str_Check( name ) )
+	{
+		return cppy::type_error( name, "str" );
+	}
+	cppy::ptr rest( count == 1 ? PyTuple_New( 0 ) : PyTuple_GetSlice( args, 1, count ) );
+	if( !rest )
+	{
+		return 0;
+	}
+	if( !emit( self, name, rest.get(), kwargs ) )
+	{
+		return 0;
+	}
+	return cppy::incref( Py_None );
+}
+
+
 PyObject* Atom_sizeof( Atom* self, PyObject* args )
 {
 	Py_ssize_t basic = Py_TYPE( self )->tp_basicsize;
 	Py_ssize_t items = Py_SIZE( self ) * sizeof( PyObject* );
-	Py_ssize_t cbsets = self->m_cbsets ? getsizeof( self->m_cbsets ) : 0;
-	if( cbsets < 0 && PyErr_Occurred() )
-	{
-		return 0;
-	}
-	return Py23Int_FromSsize_t( basic + items + cbsets );
+	return Py23Int_FromSsize_t( basic + items );
 }
 
 
 PyMethodDef Atom_methods[] = {
+	{ "sender",
+		( PyCFunction )Atom_sender,
+		METH_NOARGS | METH_STATIC,
+		"sender() [staticmethod] get the current signal emitter" },
+	{ "connect",
+		( PyCFunction )Atom_connect,
+		METH_VARARGS,
+		"connect(name, callback) connect a signal to a callback" },
+	{ "disconnect",
+		( PyCFunction )Atom_disconnect,
+		METH_VARARGS,
+		"disconnect([name[, callback]) disconnect a signal from a callback" },
+	{ "emit",
+		( PyCFunction )Atom_emit,
+		METH_VARARGS | METH_KEYWORDS,
+		"emit(name, *args, **kwargs) emit a signal with the given arguments" },
 	{ "__sizeof__",
 		( PyCFunction )Atom_sizeof,
 		METH_NOARGS,
@@ -420,102 +644,6 @@ bool Atom::Ready()
 	}
 #endif
 	return PyType_Ready( &TypeObject ) == 0;
-}
-
-
-PyObject* Atom::Sender()
-{
-#ifdef _WIN32
-	void* curr = TlsGetValue( tls_sender_key );
-#else
-	void* curr = pthread_getspecific( tls_sender_key );
-#endif
-	return cppy::incref( curr ? pyobject_cast( curr ) : Py_None );
-}
-
-
-bool Atom::Connect( Atom* atom, Signal* sig, PyObject* callback )
-{
-	cppy::ptr wrapped( maybeWrapCallback( callback ) );
-	if( !wrapped )
-	{
-		return false;
-	}
-	if( !atom->m_cbsets )
-	{
-		atom->m_cbsets = new CSVector();
-	}
-	cppy::ptr pyptr( pyobject_cast( sig ), true );
-	CSVector::iterator it = lowerBound( atom->m_cbsets, sig );
-	if( it == atom->m_cbsets->end() || it->first != pyptr )
-	{
-		CallbackSet cbset( wrapped.get() );
-		atom->m_cbsets->insert( it, CSPair( pyptr, cbset ) );
-	}
-	else
-	{
-		it->second.add( wrapped.get() );
-	}
-	return true;
-}
-
-
-void Atom::Disconnect( Atom* atom )
-{
-	if( atom->m_cbsets )
-	{
-		CSVector temp;  // safe clear
-		atom->m_cbsets->swap( temp );
-	}
-}
-
-
-void Atom::Disconnect( Atom* atom, Signal* sig )
-{
-	if( atom->m_cbsets )
-	{
-		CSVector::iterator it = binaryFind( atom->m_cbsets, sig );
-		if( it != atom->m_cbsets->end() )
-		{
-			atom->m_cbsets->erase( it );
-		}
-	}
-}
-
-
-void Atom::Disconnect( Atom* atom, Signal* sig, PyObject* callback )
-{
-	if( atom->m_cbsets )
-	{
-		CSVector::iterator it = binaryFind( atom->m_cbsets, sig );
-		if( it != atom->m_cbsets->end() )
-		{
-			it->second.remove( callback );
-		}
-	}
-}
-
-
-void Atom::Emit( Atom* atom, Signal* sig, PyObject* args, PyObject* kwargs )
-{
-	if( atom->m_cbsets )
-	{
-		CSVector::iterator it = binaryFind( atom->m_cbsets, sig );
-		if( it != atom->m_cbsets->end() )
-		{
-#ifdef _WIN32
-			void* prev = TlsGetValue( tls_sender_key );
-			TlsSetValue( tls_sender_key, atom );
-			it->second.dispatch( args, kwargs );
-			TlsSetValue( tls_sender_key, prev );
-#else
-			void* prev = pthread_getspecific( tls_sender_key );
-			pthread_setspecific( tls_sender_key, atom );
-			it->second.dispatch( args, kwargs );
-			pthread_setspecific( tls_sender_key, prev );
-#endif
-		}
-	}
 }
 
 } // namespace atom
