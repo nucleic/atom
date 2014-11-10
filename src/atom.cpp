@@ -151,16 +151,16 @@ bool connect( Atom* atom, PyObject* name, PyObject* callback )
 	{
 		return false;
 	}
-	PyObject* current = PyDict_GetItem( atom->m_callbacks, name );
-	if( !current )
+	cppy::ptr curr( PyDict_GetItem( atom->m_callbacks, name ), true );
+	if( !curr )
 	{
 		return PyDict_SetItem( atom->m_callbacks, name, cb.get() ) == 0;
 	}
-	if( PyList_Check( current ) )
+	if( PyList_Check( curr.get() ) )
 	{
-		return list_add( current, cb.get() );
+		return list_add( curr.get(), cb.get() );
 	}
-	int ok = PyObject_RichCompareBool( current, cb.get(), Py_EQ );
+	int ok = PyObject_RichCompareBool( curr.get(), cb.get(), Py_EQ );
 	if( ok == -1 )
 	{
 		return false;
@@ -174,7 +174,7 @@ bool connect( Atom* atom, PyObject* name, PyObject* callback )
 	{
 		return false;
 	}
-	PyList_SET_ITEM( list.get(), 0, cppy::incref( current ) );
+	PyList_SET_ITEM( list.get(), 0, curr.release() );
 	PyList_SET_ITEM( list.get(), 1, cb.release() );
 	return PyDict_SetItem( atom->m_callbacks, name, list.get() ) == 0;
 }
@@ -188,11 +188,11 @@ bool disconnect( Atom* atom, PyObject* name = 0, PyObject* callback = 0 )
 	}
 	if( !name )
 	{
-		cppy::clear( &atom->m_callbacks );
+		PyDict_Clear( atom->m_callbacks );
 		return true;
 	}
-	PyObject* current = PyDict_GetItem( atom->m_callbacks, name );
-	if( !current )
+	cppy::ptr curr( PyDict_GetItem( atom->m_callbacks, name ), true );
+	if( !curr )
 	{
 		return true;
 	}
@@ -200,11 +200,11 @@ bool disconnect( Atom* atom, PyObject* name = 0, PyObject* callback = 0 )
 	{
 		return PyDict_DelItem( atom->m_callbacks, name ) == 0;
 	}
-	if( PyList_Check( current ) )
+	if( PyList_Check( curr.get() ) )
 	{
-		return list_discard( current, callback );
+		return list_discard( curr.get(), callback );
 	}
-	int ok = PyObject_RichCompareBool( current, callback, Py_EQ );
+	int ok = PyObject_RichCompareBool( curr.get(), callback, Py_EQ );
 	if( ok == -1 )
 	{
 		return false;
@@ -251,12 +251,12 @@ bool emit( Atom* atom, PyObject* name, PyObject* args, PyObject* kwargs )
 	{
 		return true;
 	}
-	PyObject* cbs = PyDict_GetItem( atom->m_callbacks, name );
-	if( !cbs )
+	cppy::ptr curr( PyDict_GetItem( atom->m_callbacks, name ), true );
+	if( !curr )
 	{
 		return true;
 	}
-	int ok = PyObject_IsTrue( cbs );
+	int ok = PyObject_IsTrue( curr.get() );
 	if( ok == -1 )
 	{
 		return false;
@@ -268,12 +268,12 @@ bool emit( Atom* atom, PyObject* name, PyObject* args, PyObject* kwargs )
 #ifdef _WIN32
 	void* prev = TlsGetValue( tls_sender_key );
 	TlsSetValue( tls_sender_key, atom );
-	dispatch( cbs, args, kwargs );
+	dispatch( curr.get(), args, kwargs );
 	TlsSetValue( tls_sender_key, prev );
 #else
 	void* prev = pthread_getspecific( tls_sender_key );
 	pthread_setspecific( tls_sender_key, atom );
-	dispatch( cbs, args, kwargs );
+	dispatch( curr.get(), args, kwargs );
 	pthread_setspecific( tls_sender_key, prev );
 #endif
 	return true;
