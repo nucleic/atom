@@ -5,6 +5,12 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+""" Hello World Tutorial.
+
+This tutorial shows a simple Hello World application using Atom objects.
+
+<< autodoc-me >>
+"""
 from __future__ import print_function
 
 from atom.api import Atom, Unicode

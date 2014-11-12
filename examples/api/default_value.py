@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-""" Demonstrate all the ways to initialize a value
+""" Demonstrate all the ways to initialize a value of an Atom object.
 
 1. Pass the value directly
 2. Assign the default value explicitly
@@ -13,6 +13,7 @@
 4. Provide factory callable that returns a value
 5. Use a _default_* static method
 
+<< autodoc-me >>
 """
 from __future__ import print_function
 import sys

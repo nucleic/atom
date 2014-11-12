@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-""" Demonstrate the use of Compostion of Atom objects.
+""" Demonstrate the use of Composition of Atom objects.
 
 1. If the class has not been declared, use a ForwardTyped
    - Note the use of lambda, because "Person" is not yet defined
@@ -15,6 +15,7 @@
    - Provide a _default_* static constructor
    - Provide a pre-created object in the constructor
 
+<< autodoc-me >>
 """
 from __future__ import print_function
 

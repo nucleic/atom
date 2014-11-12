@@ -5,6 +5,10 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+""" Demonstrate the numeric Atom members: Int, Long, Float, and Bool.
+
+<< autodoc-me >>
+"""
 from __future__ import print_function
 import sys
 

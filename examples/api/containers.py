@@ -5,6 +5,10 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+""" Demonstrate the use of List, ContainerList, Tuple and Dict Atom Members.
+
+<< autodoc-me >>
+"""
 from __future__ import print_function
 
 from atom.api import Atom, List, ContainerList, Tuple, Dict
