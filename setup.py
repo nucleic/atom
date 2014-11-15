@@ -16,11 +16,11 @@ ext_modules = [
         'atom.catom',
         [
             'src/atom.cpp',
-            'src/catommodule.cpp',
             'src/errors.cpp',
             'src/member.cpp',
             'src/memberchange.cpp',
             'src/methodwrapper.cpp',
+            'src/module.cpp',
             'src/typeddict.cpp',
             'src/typedlist.cpp',
             'src/typedset.cpp',
