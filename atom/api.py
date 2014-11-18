@@ -8,7 +8,8 @@
 from .atom import AtomMeta, Atom, observe, set_default
 from .catom import (
     CAtom, Member, GetAttr, SetAttr, PostGetAttr, PostSetAttr,
-    DefaultValue, Validate, PostValidate, atomref, atomlist, atomclist
+    DefaultValue, Validate, PostValidate, atomref, atomlist, atomclist,
+    atomdict
 )
 from .coerced import Coerced
 from .containerlist import ContainerList
