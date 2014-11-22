@@ -10,6 +10,7 @@ from .catom import (
     CAtom, Member, GetAttr, SetAttr, PostGetAttr, PostSetAttr,
     DefaultValue, Validate, PostValidate, atomref, atomlist, atomclist
 )
+from .alias import Alias
 from .coerced import Coerced
 from .containerlist import ContainerList
 from .delegator import Delegator
