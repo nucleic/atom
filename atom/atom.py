@@ -7,6 +7,7 @@
 #------------------------------------------------------------------------------
 import copy_reg
 from contextlib import contextmanager
+from functools import wraps
 from types import FunctionType
 
 from .catom import (
@@ -51,6 +52,56 @@ def observe(*names):
         else:
             pairs.append((name, None))
     return ObserveHandler(pairs)
+
+
+def filter_on(types=None, validators=None):
+    """ A decorator which can be used to filter updates from observed
+        members marked by the `@observe(..)` decorator.
+
+    Parameters
+    ----------
+    types=None
+        The str types of changes (created, updated, deleted, etc) that
+        are required to continue to the underlying function.
+
+    validators=None
+        Functions that take a single parameter of the updated `value` in
+        the changed attributes object. They must all evaluate to `True` for
+        `filter_on` to call the underlying function.
+
+    """
+    def wrapped(fn):
+        @wraps(fn)
+        def inner_wrapped(_self, change):
+            if types and change.get('type') not in types:
+                return
+
+            if validators and \
+                    not all(fn(change.get('value', None)) for fn in validators):
+                return
+
+            return fn(_self, change)
+
+        if types is validators is None:
+            return fn
+
+        return inner_wrapped
+
+    # convert all of our included `types` to an iterable of strings
+    if types is not None:
+        if not isinstance(types, (tuple, list)):
+            types = (types,)
+        types = tuple(map(str, types))
+
+    # ensure our validators are in an interable of functions
+    if validators is not None:
+        if not isinstance(validators, (tuple, list)):
+            validators = (validators,)
+
+        for fn in validators:
+            assert isinstance(fn, FunctionType), "validators must be functions"
+
+    return wrapped
 
 
 class ObserveHandler(object):
