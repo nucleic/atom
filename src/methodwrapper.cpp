@@ -128,7 +128,11 @@ PyTypeObject MethodWrapper::TypeObject = {
 	( getattrfunc )0,                             /* tp_getattr */
 	( setattrfunc )0,                             /* tp_setattr */
 #ifdef IS_PY3K
-	( void* )0,                                   /* tp_reserved */
+#if PY_MINOR_VERSION > 4
+	( PyAsyncMethods* )0,                         /* tp_as_async */
+#else
+	( void* ) 0,                                  /* tp_reserved */
+#endif
 #else
 	( cmpfunc )0,                                 /* tp_compare */
 #endif
