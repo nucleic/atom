@@ -203,6 +203,7 @@ int import_enumtypes()
             return -1;
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Bool ) );
+        add_long( dict_ptr, expand_enum( BoolPromote ) );
         add_long( dict_ptr, expand_enum( Int ) );
         add_long( dict_ptr, expand_enum( IntPromote ) );
         add_long( dict_ptr, expand_enum( Long ) );
