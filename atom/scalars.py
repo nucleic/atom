@@ -19,7 +19,8 @@ class Value(Member):
     """
     __slots__ = ()
 
-    def __init__(self, default=None, factory=None):
+    def __init__(self, default=None, factory=None, args=None, kwargs=None,
+                 strict=True):
         """ Initialize a Value.
 
         Parameters
@@ -39,6 +40,54 @@ class Value(Member):
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         else:
             self.set_default_value_mode(DefaultValue.Static, default)
+
+    def _set_coerced(self, kind, default=None, args=None, kwargs=None,
+                     factory=None, coercer=None):
+        """ Define the coercion behavior for this class
+
+        Parameters
+        ----------
+        kind : type or tuple of types
+            The allowable types for the value.
+
+        default : object, optional
+            The default value for the member. If this is provided, it
+            should be an immutable value. The value will will not be
+            copied between owner instances.
+
+        args : tuple, optional
+            If 'factory' is None, then 'kind' is a callable type and
+            these arguments will be passed to the constructor to create
+            the default value.
+
+        kwargs : dict, optional
+            If 'factory' is None, then 'kind' is a callable type and
+            these keywords will be passed to the constructor to create
+            the default value.
+
+        factory : callable, optional
+            An optional callable which takes no arguments and returns
+            the default value for the member. If this is not provided
+            then 'args' and 'kwargs' should be provided, as 'kind' will
+            be used to generate the default value.
+
+        coercer : callable, optional
+            An optional callable which takes the value and returns the
+            coerced value. If this is not given, then 'kind' must be a
+            callable type which will be called with the value to coerce
+            the value to the appropriate type.
+
+        """
+        if default and factory is None:
+            args = [default] + list(args or [])
+        if factory is not None:
+            self.set_default_value_mode(DefaultValue.CallObject, factory)
+        else:
+            args = args or ()
+            kwargs = kwargs or {}
+            factory = lambda: (coercer or kind)(*args, **kwargs)
+            self.set_default_value_mode(DefaultValue.CallObject, factory)
+        self.set_validate_mode(Validate.Coerced, (kind, coercer or kind))
 
 
 class ReadOnly(Value):
@@ -77,12 +126,16 @@ class Callable(Value):
 class Bool(Value):
     """ A value of type `bool`.
 
+    Pass strict=False to constructor to enable coercion.
     """
     __slots__ = ()
 
-    def __init__(self, default=False, factory=None):
+    def __init__(self, default=False, factory=None, strict=True):
         super(Bool, self).__init__(default, factory)
-        self.set_validate_mode(Validate.Bool, None)
+        if strict:
+            self.set_validate_mode(Validate.Bool, None)
+        else:
+            self._set_coerced(bool, factory=factory, default=default)
 
 
 class Int(Value):
