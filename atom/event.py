@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, Validate, GetAttr, SetAttr
+from .catom import Member, Validate, GetAttr, SetAttr, DelAttr
 
 
 class Event(Member):
@@ -28,6 +28,7 @@ class Event(Member):
         """
         self.set_getattr_mode(GetAttr.Event, None)
         self.set_setattr_mode(SetAttr.Event, None)
+        self.set_delattr_mode(DelAttr.Event, None)
         if kind is not None:
             if isinstance(kind, Member):
                 self.set_validate_mode(Validate.Delegate, kind)
