@@ -49,3 +49,8 @@ def test_get_behaviors():
     assert pvt.mi == 0
     pvt.mi = 3
     assert pvt.mi == 1
+
+    pvt.mi = 2
+    assert mi.do_getattr(pvt) == 0
+    pvt.mi = 3
+    assert mi.do_getattr(pvt) == 1

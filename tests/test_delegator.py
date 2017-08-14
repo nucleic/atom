@@ -22,7 +22,7 @@ from atom.api import (Atom, Int, Delegator, GetAttr, PostGetAttr, SetAttr,
                       PostSetAttr, PostValidate, DefaultValue)
 from atom.catom import DelAttr
 
-
+# XXX write tests
 class TrackedInt(Int):
     """Member used to check that a Delegate does forward all calls.
 

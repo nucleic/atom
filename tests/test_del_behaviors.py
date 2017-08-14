@@ -39,6 +39,8 @@ def test_undeletable(member, mode):
     u = Undeletable()
     with pytest.raises(TypeError):
         del u.m
+    with pytest.raises(TypeError):
+        Undeletable.m.do_delattr(u)
 
 
 def test_del_slot():

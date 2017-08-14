@@ -160,3 +160,4 @@ def test_member_method_object_handler():
     assert (MemberTest.m.default_value_mode[0] ==
             DefaultValue.MemberMethod_Object)
     assert MemberTest().m is SENTINEL
+    assert MemberTest.m.do_default_value(MemberTest()) is SENTINEL

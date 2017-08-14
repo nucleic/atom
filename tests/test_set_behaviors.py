@@ -23,7 +23,7 @@
 
 """
 import pytest
-from atom.api import (Atom, Int, Constant, Signal, ReadOnly, Event, SetAttr)
+from atom.api import (Atom, Int, Constant, Signal, ReadOnly, SetAttr)
 
 
 @pytest.mark.parametrize("member", [(Signal(),), (Constant(1),)])
@@ -79,4 +79,9 @@ def test_member_set_behaviors():
     pvt.mi = 2
     assert pvt.mi == 0
     pvt.mi = 3
+    assert pvt.mi == 1
+
+    mi.do_setattr(pvt, 2)
+    assert pvt.mi == 0
+    mi.do_setattr(pvt, 3)
     assert pvt.mi == 1

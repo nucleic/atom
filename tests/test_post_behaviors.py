@@ -15,7 +15,6 @@ All of them have the following handlers:
     member_method_object_old_new_handler: Method defined on a Member subclass
 
 """
-
 from atom.api import (Atom, Int, PostValidate, PostGetAttr, PostSetAttr)
 
 
@@ -42,6 +41,7 @@ def test_post_validate():
         def _post_validate_manual_mi(self, old, new):
             return new % 2
 
+    # Test subclassed member
     pvt = PostValidateTest()
     mi = pvt.get_member('mi')
     assert mi.post_validate_mode[0] == PostValidate.MemberMethod_ObjectOldNew
@@ -50,12 +50,21 @@ def test_post_validate():
     pvt.mi = 3
     assert pvt.mi == 1
 
+    # Test do_post_validate
+    assert mi.do_post_validate(pvt, pvt.mi, 2) == 0
+    assert mi.do_post_validate(pvt, pvt.mi, 3) == 1
+
+    # Test class defined custom post_validator
     mmi = pvt.get_member('manual_mi')
     assert mmi.post_validate_mode[0] == PostValidate.ObjectMethod_OldNew
     pvt.manual_mi = 2
     assert pvt.manual_mi == 0
     pvt.manual_mi = 3
     assert pvt.manual_mi == 1
+
+    # Test do_full_validate
+    assert mmi.do_post_validate(pvt, pvt.manual_mi, 2) == 0
+    assert mmi.do_post_validate(pvt, pvt.manual_mi, 3) == 1
 
 
 def test_post_getattr():
@@ -81,6 +90,7 @@ def test_post_getattr():
         def _post_getattr_manual_mi(self, value):
             return value % 2
 
+    # Test subclassed member
     pvt = PostGetattrTest()
     mi = pvt.get_member('mi')
     assert mi.post_getattr_mode[0] == PostGetAttr.MemberMethod_ObjectValue
@@ -89,12 +99,17 @@ def test_post_getattr():
     pvt.mi = 3
     assert pvt.mi == 1
 
+    # Test class defined custom post_getattr
     mmi = pvt.get_member('manual_mi')
     assert mmi.post_getattr_mode[0] == PostGetAttr.ObjectMethod_Value
     pvt.manual_mi = 2
     assert pvt.manual_mi == 0
     pvt.manual_mi = 3
     assert pvt.manual_mi == 1
+
+    # Test do_post_getattr
+    assert mi.do_post_getattr(pvt, 2) == 0
+    assert mi.do_post_getattr(pvt, 3) == 1
 
 
 def test_post_setattr():
@@ -122,6 +137,7 @@ def test_post_setattr():
         def _post_setattr_manual_mi(self, old, new):
             self.counter += 1
 
+    # Test subclassed member
     pvt = PostSetattrTest()
     mi = pvt.get_member('mi')
     assert mi.post_setattr_mode[0] == PostSetAttr.MemberMethod_ObjectOldNew
@@ -130,9 +146,16 @@ def test_post_setattr():
     pvt.mi = 3
     assert pvt.counter == 2
 
+    # Test class defined custom post_setattr
     mmi = pvt.get_member('manual_mi')
     assert mmi.post_setattr_mode[0] == PostSetAttr.ObjectMethod_OldNew
     pvt.manual_mi = 2
     assert pvt.counter == 3
     pvt.manual_mi = 3
     assert pvt.counter == 4
+
+    # Test do_post_setattr
+    assert mmi.do_post_setattr(pvt, pvt.manual_mi, 2)
+    assert pvt.counter == 5
+    assert mmi.do_post_setattr(pvt, pvt.manual_mi, 3)
+    assert pvt.counter == 6

@@ -44,7 +44,7 @@ from future.builtins import int
 from atom.api import (CAtom, Atom, Value, Bool, Int, Long, Range, Float,
                       FloatRange, Str, Unicode, Enum, Callable, Coerced, Tuple,
                       List, ContainerList, Dict, Instance, ForwardInstance,
-                      Typed, ForwardTyped, Subclass, ForwardSubclass)
+                      Typed, ForwardTyped, Subclass, ForwardSubclass, Event)
 
 
 @pytest.mark.parametrize("member, set_values, values, raising_values",
@@ -129,11 +129,24 @@ def test_event_validation():
     """Test validating the payload of an Event.
 
     """
-    pass
+    class EventValidationTest(Atom):
+
+        ev_member = Event(Int())
+
+        ev_type = Event(int)
+
+    evt = EventValidationTest()
+
+    evt.ev_member = 1
+    evt.ev_type = 1
+    with pytest.raises(TypeError):
+        evt.ev_member = 1.0
+    with pytest.raises(TypeError):
+        evt.ev_type = 1.0
 
 
 def test_custom_validate():
-    """Test specifying a specific validator in the Atom.
+    """Test specifying a specific validator in the Atom and using do_validate.
 
     """
     class ValidatorTest(Atom):
@@ -156,3 +169,10 @@ def test_custom_validate():
     assert v.v == 1
     with pytest.raises(ValueError):
         v.v = 4
+
+    v_member = ValidatorTest.v
+    with pytest.raises(TypeError):
+        v_member.do_validate(v, 1, None)
+    assert v.v == 1
+    with pytest.raises(ValueError):
+        v_member.do_full_validate(v, 1, 4)
