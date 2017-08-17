@@ -155,7 +155,7 @@ def test_post_setattr():
     assert pvt.counter == 4
 
     # Test do_post_setattr
-    assert mmi.do_post_setattr(pvt, pvt.manual_mi, 2)
+    mmi.do_post_setattr(pvt, pvt.manual_mi, 2)
     assert pvt.counter == 5
-    assert mmi.do_post_setattr(pvt, pvt.manual_mi, 3)
+    mmi.do_post_setattr(pvt, pvt.manual_mi, 3)
     assert pvt.counter == 6

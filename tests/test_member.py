@@ -40,10 +40,14 @@ Methods:
 """
 # XXX write tests
 import pytest
-from atom.api import (Atom, Value, ForwardInstance, List, ForwardSubclass,
-                      ForwardTyped)
+from atom.api import (Atom, Value, Int, List, Dict, Event, Instance,
+                      ForwardInstance, ForwardSubclass, ForwardTyped,
+                      GetAttr, SetAttr, DefaultValue, Validate, PostGetAttr,
+                      PostSetAttr, PostValidate, observe)
+from atom.catom import DelAttr
 
 
+# XXX why does tuple do not work in the same way
 def test_name_managing_name():
     """Test getting/setting the name of a Member.
 
@@ -52,9 +56,26 @@ def test_name_managing_name():
 
         v = Value()
 
+        l = List(Int())
+
+        d = Dict(Int(), Int())
+
+        e = Event(Int())
+
     assert NameTest.v.name == 'v'
     NameTest.v.set_name('v2')
     assert NameTest.v.name == 'v2'
+
+    assert NameTest.l.name == 'l'
+    assert NameTest.l.item.name == 'l|item'
+
+    assert NameTest.d.name == 'd'
+    key, value = NameTest.d.validate_mode[1]
+    assert key.name == 'd|key'
+    assert value.name == 'd|value'
+
+    assert NameTest.e.name == 'e'
+    assert NameTest.e.validate_mode[1].name == 'e'
 
 
 def test_managing_slot_index():
@@ -66,6 +87,12 @@ def test_managing_slot_index():
         v1 = Value()
         v2 = Value()
 
+        l = List(Int())
+
+        d = Dict(Int(), Int())
+
+        e = Event(Int())
+
     it = IndexTest()
     it.v1 = 1
     it.v2 = 2
@@ -75,6 +102,14 @@ def test_managing_slot_index():
     IndexTest.v2.set_index(id1)
     assert it.v1 == 2
     assert it.v2 == 1
+
+    assert IndexTest.l.item.index == IndexTest.l.index
+
+    key, value = IndexTest.d.validate_mode[1]
+    assert key.index == IndexTest.d.index
+    assert value.index == IndexTest.d.index
+
+    assert IndexTest.e.validate_mode[1].index == IndexTest.e.index
 
 
 def test_metadata_handling():
@@ -113,7 +148,7 @@ def test_direct_slot_access():
     with pytest.raises(TypeError):
         SlotTest.v.set_slot(None, 1)
     with pytest.raises(TypeError):
-        SlotTest.v.det_slot(None)
+        SlotTest.v.del_slot(None)
 
     # Test index validation
     SlotTest.v.set_index(SlotTest.v.index + 1)
@@ -122,15 +157,79 @@ def test_direct_slot_access():
     with pytest.raises(AttributeError):
         SlotTest.v.set_slot(st, 1)
     with pytest.raises(AttributeError):
-        SlotTest.v.det_slot(st)
+        SlotTest.v.del_slot(st)
 
 
 def test_member_cloning():
     """Test cloning members.
 
     """
-    # Need to copy all modes, contexts (imply set all modes), index, metadata,
-    # and static observers
-    # Forward : resolve, args, kwargs
-    # List : clone internal member
-    pass
+    class Spy(object):
+
+        def __call__(self, *args):
+            pass
+
+    spy = Spy()
+
+    class CloneTest(Atom):
+        v = Value()
+
+        @observe('v')
+        def react(self, change):
+            pass
+
+    assert CloneTest.v.static_observers()
+    CloneTest.v.set_getattr_mode(GetAttr.CallObject_Object, spy)
+    CloneTest.v.set_setattr_mode(SetAttr.CallObject_ObjectValue, spy)
+    CloneTest.v.set_delattr_mode(DelAttr.Signal, None)
+    CloneTest.v.set_default_value_mode(DefaultValue.CallObject_Object, spy)
+    CloneTest.v.set_validate_mode(Validate.Int, None)
+    CloneTest.v.set_post_getattr_mode(PostGetAttr.ObjectMethod_NameValue, 'a')
+    CloneTest.v.set_post_setattr_mode(PostSetAttr.ObjectMethod_NameOldNew, 'b')
+    CloneTest.v.set_post_validate_mode(PostValidate.ObjectMethod_NameOldNew,
+                                       'c')
+    cv = CloneTest.v.clone()
+    for attr in ('name', 'index',
+                 'getattr_mode', 'setattr_mode', 'delattr_mode',
+                 'default_value_mode', 'validate_mode',
+                 'post_getattr_mode', 'post_setattr_mode',
+                 'post_validate_mode'):
+        assert getattr(cv, attr) == getattr(CloneTest.v, attr)
+
+    assert cv.static_observers() == CloneTest.v.static_observers()
+
+
+# XXX why is only List cloning the item and not Tuple and Dict ?
+def test_cloning_list():
+    """Check that cloning a list does cllone the validation item is present.
+
+    """
+    l1 = List()
+    assert l1.clone().item is None
+
+    v = Instance(int)
+    l2 = List(v)
+    l2.set_index(5)
+    cl2 = l2.clone()
+    assert cl2.index == l2.index
+    assert cl2.item is not v
+    assert isinstance(cl2.item, type(v))
+    assert cl2.item.validate_mode[1] == l2.item.validate_mode[1]
+
+
+# XXX should the kwargs be copied rather than simply re-assigned
+@pytest.mark.parametrize("member, cloned_attributes",
+                         [(ForwardSubclass(lambda: object), ['resolve']),
+                          (ForwardTyped(lambda: object, (1,), {'a': 1}),
+                           ['resolve', 'args', 'kwargs']),
+                          (ForwardInstance(lambda: object, (1,), {'a': 1}),
+                           ['resolve', 'args', 'kwargs'])])
+def test_cloning_forward(member, cloned_attributes):
+    """Test that subclasses of Member are properly cloned.
+
+    """
+    member.set_index(5)
+    clone = member.clone()
+    assert clone.index == member.index
+    for attr in cloned_attributes:
+        assert getattr(clone, attr) is getattr(member, attr)
