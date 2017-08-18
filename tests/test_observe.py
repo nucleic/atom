@@ -9,7 +9,7 @@
 
 """
 import pytest
-from atom.api import Atom, Int, List, Value, observe
+from atom.api import Atom, Int, List, Value, Event, Signal, observe
 
 
 def test_static_observers():
@@ -131,6 +131,39 @@ def test_dynamic_observers():
     assert not dt2.has_observer('val', ob2.react)
 
 
+def test_binding_event_signals():
+    """Test directly binding events and signals.
+
+    """
+    class EventSignalTest(Atom):
+
+        e = Event()
+
+        s = Signal()
+
+        counter = Int()
+
+    def event_handler(change):
+        change['object'].counter += 1
+
+    def signal_handler(obj):
+        obj.counter += 2
+
+    est = EventSignalTest()
+    est.e.bind(event_handler)
+    est.s.connect(signal_handler)
+
+    est.e = 1
+    est.s(est)
+    assert est.counter == 3
+    est.e(1)
+    est.s.emit(est)
+    assert est.counter == 6
+
+    est.e.unbind(event_handler)
+    est.s.disconnect(signal_handler)
+
+
 def test_manually_notifying():
     """Test manual notifications
 
@@ -197,5 +230,5 @@ def test_observe_decorators():
     with pytest.raises(TypeError):
         observe(['a.b.c'])
 
-# xxx test connecting from the value return by __get__ of Signal/Event
 # XXX add a test catching the SystemError of Python 3
+# For the time being I known how to write one only using enaml

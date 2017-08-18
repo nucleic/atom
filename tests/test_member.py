@@ -38,7 +38,6 @@ Methods:
 
 
 """
-# XXX write tests
 import pytest
 from atom.api import (Atom, Value, Int, List, Dict, Event, Instance,
                       ForwardInstance, ForwardSubclass, ForwardTyped,
