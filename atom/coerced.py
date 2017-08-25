@@ -1,12 +1,10 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2013-2017, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from __future__ import (division, print_function, absolute_import)
-
 from .catom import Member, DefaultValue, Validate
 
 
@@ -19,7 +17,8 @@ class Coerced(Member):
     """
     __slots__ = ()
 
-    def __init__(self, kind, args=None, kwargs=None, factory=None, coercer=None):
+    def __init__(self, kind, args=None, kwargs=None, factory=None,
+                 coercer=None):
         """ Initialize a Coerced.
 
         Parameters

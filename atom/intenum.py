@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2013-2017, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -7,13 +7,11 @@
 #------------------------------------------------------------------------------
 # Note: This module is imported by 'atom.catom' module from code defined in
 # the 'enumtypes.cpp' file. This module must therefore not import atom.
-from __future__ import (division, print_function, absolute_import)
-
 import sys
 if sys.version_info >= (3,):
-    import copyreg as copy_reg
+    import copyreg
 else:
-    import copy_reg
+    import copy_reg as copyreg
 
 from future.utils import with_metaclass
 from past.builtins import basestring
@@ -26,9 +24,11 @@ IntEnum = None
 def _invalid_op(op):
     msg = " is an invalid operation for {}"
     msg = ("'%s'" % op) + msg
+
     def closure(self, *args):
         # Use format as otherwise fail for mod operator
         raise TypeError(msg.format(self))
+
     return closure
 
 
@@ -125,7 +125,7 @@ class _IntEnumMeta(type):
         enums = {}
         reved = {}
         cls = type.__new__(meta, name, bases, dct)
-        for key, value in list(cls.__dict__.items()):
+        for key, value in cls.__dict__.items():
             if isinstance(value, int):
                 enum = int.__new__(cls, value)
                 enum.__enum_name__ = key
@@ -161,7 +161,7 @@ class _IntEnumMeta(type):
         return len(cls.__enums__)
 
     def __iter__(cls):
-        return iter(list(cls.__enums__.values()))
+        return iter(cls.__enums__.values())
 
     def __setattr__(cls, name, value):
         if name in cls.__enums__:
@@ -176,7 +176,7 @@ class _IntEnumMeta(type):
         flags_class = type(name, (cls.IntEnumFlags,), {})
         flags_class.__enum_class__ = cls
         cls.__flags_class__ = flags_class
-        copy_reg.pickle(flags_class, _int_enum_flags_pickler)
+        copyreg.pickle(flags_class, _int_enum_flags_pickler)
         return flags_class
 
 

@@ -1,21 +1,20 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2013-2017, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from __future__ import (division, print_function, absolute_import)
-
 import sys
 if sys.version_info >= (3,):
-    import copyreg as copy_reg
+    import copyreg
 else:
-    import copy_reg
+    import copy_reg as copyreg
 from contextlib import contextmanager
 
 from types import FunctionType
 from future.utils import with_metaclass
+from past.builtins import basestring
 
 from .catom import (
     CAtom, Member, DefaultValue, PostGetAttr, PostSetAttr, Validate,
@@ -46,7 +45,7 @@ def observe(*names):
         names = names[0]
     pairs = []
     for name in names:
-        if type(name) is not str:
+        if not isinstance(name, basestring):
             msg = "observe attribute name must be a string, got '%s' instead"
             raise TypeError(msg % type(name).__name__)
         ndots = name.count('.')
@@ -473,7 +472,7 @@ class Atom(with_metaclass(AtomMeta, CAtom)):
         """
         state = {}
         state.update(getattr(self, '__dict__', {}))
-        slots = copy_reg._slotnames(type(self))
+        slots = copyreg._slotnames(type(self))
         if slots:
             for name in slots:
                 state[name] = getattr(self, name)

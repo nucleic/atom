@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2013-2017, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -8,8 +8,6 @@
 """ The version information for this release of Atom.
 
 """
-from __future__ import (division, print_function, absolute_import)
-
 from collections import namedtuple
 
 # The major release number. Differences in the major number indicate
@@ -20,11 +18,11 @@ MAJOR = 0
 # possibly small differences in the API, but these changes will come
 # backwards compatibility support when possible. Minor releases are
 # typically used for large feature additions.
-MINOR = 3
+MINOR = 4
 
 # The micro release number. The micro release number is incremented
 # for bug fix releases and small feature additions.
-MICRO = 11
+MICRO = 0
 
 # The version info for the current release.
 version_info = namedtuple('version_info', 'major minor micro')
