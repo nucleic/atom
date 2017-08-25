@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .atom import AtomMeta, Atom, observe, set_default
+from .atom import AtomMeta, Atom, observe, set_default, filter_on
 from .catom import (
     CAtom, Member, GetAttr, SetAttr, PostGetAttr, PostSetAttr,
     DefaultValue, Validate, PostValidate, atomref, atomlist, atomclist
