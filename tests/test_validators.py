@@ -42,9 +42,10 @@ import pytest
 from future.builtins import int
 
 from atom.api import (CAtom, Atom, Value, Bool, Int, Long, Range, Float,
-                      FloatRange, Str, Unicode, Enum, Callable, Coerced, Tuple,
-                      List, ContainerList, Dict, Instance, ForwardInstance,
-                      Typed, ForwardTyped, Subclass, ForwardSubclass, Event)
+                      FloatRange, Bytes, Str, Unicode, Enum, Callable, Coerced,
+                      Tuple, List, ContainerList, Dict, Instance,
+                      ForwardInstance, Typed, ForwardTyped, Subclass,
+                      ForwardSubclass, Event)
 
 
 @pytest.mark.parametrize("member, set_values, values, raising_values",
@@ -70,6 +71,8 @@ from atom.api import (CAtom, Atom, Value, Bool, Int, Long, Range, Float,
                           (FloatRange(0.0), [0.0, 0.6], [0.0, 0.6], [-0.1]),
                           (FloatRange(high=0.5), [-0.3, 0.5], [-0.3, 0.5],
                            [0.6]),
+                          (Bytes(), [b'a', u'a'], [b'a']*2, [1]),
+                          (Bytes(strict=True), [b'a'], [b'a'], [u'a']),
                           (Str(), [b'a', u'a'], ['a']*2, [1]),
                           (Str(strict=True),
                            [b'a'] if sys.version_info < (3,) else [u'a'],
