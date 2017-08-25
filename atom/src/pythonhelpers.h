@@ -25,10 +25,6 @@
 #define pyobject_cast( o ) ( reinterpret_cast<PyObject*>( o ) )
 #define pytype_cast( o ) ( reinterpret_cast<PyTypeObject*>( o ) )
 
-struct module_state {
-    PyObject *error;
-};
-
 namespace PythonHelpers
 {
 
@@ -293,8 +289,23 @@ public:
             return true;
         if( r == 0 )
             return false;
-        if( clear_err && PyErr_Occurred() )
-            PyErr_Clear();
+
+        if ( PyErr_Occurred() )
+        {
+            if( clear_err )
+                PyErr_Clear();
+
+            // FIXME: compare pointers in case of comparison problems
+            switch (opid)
+            {
+            case Py_LT: return m_pyobj < other;
+            case Py_LE: return m_pyobj <= other;
+            case Py_EQ: return m_pyobj == other;
+            case Py_NE: return m_pyobj != other;
+            case Py_GT: return m_pyobj > other;
+            case Py_GE: return m_pyobj >= other;
+            }
+        }
         return false;
     }
 
@@ -732,7 +743,7 @@ public:
 
     PyObjectPtr get_class() const
     {
-        return PyObjectPtr( PythonHelpers::xnewref( PyMethod_GET_CLASS( m_pyobj ) ) );
+        return PyObjectPtr( PythonHelpers::xnewref( (PyObject *)Py_TYPE( PyMethod_GET_SELF( m_pyobj ) ) ) );
     }
 
 };

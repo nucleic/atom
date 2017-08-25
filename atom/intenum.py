@@ -7,10 +7,16 @@
 #------------------------------------------------------------------------------
 # Note: This module is imported by 'atom.catom' module from code defined in
 # the 'enumtypes.cpp' file. This module must therefore not import atom.
-try:
-    import copy_reg
-except ImportError:
+from __future__ import (division, print_function, absolute_import)
+
+import sys
+if sys.version_info >= (3,):
     import copyreg as copy_reg
+else:
+    import copy_reg
+
+from future.utils import with_metaclass
+from past.builtins import basestring
 
 
 # IntEnum is not defined until the metaclass creates it.
@@ -119,7 +125,7 @@ class _IntEnumMeta(type):
         enums = {}
         reved = {}
         cls = type.__new__(meta, name, bases, dct)
-        for key, value in cls.__dict__.iteritems():
+        for key, value in list(cls.__dict__.items()):
             if isinstance(value, int):
                 enum = int.__new__(cls, value)
                 enum.__enum_name__ = key
@@ -155,7 +161,7 @@ class _IntEnumMeta(type):
         return len(cls.__enums__)
 
     def __iter__(cls):
-        return iter(cls.__enums__.values())
+        return iter(list(cls.__enums__.values()))
 
     def __setattr__(cls, name, value):
         if name in cls.__enums__:
@@ -174,11 +180,10 @@ class _IntEnumMeta(type):
         return flags_class
 
 
-class IntEnum(int):
+class IntEnum(with_metaclass(_IntEnumMeta, int)):
     """ An integer subclass for declaring enum types.
 
     """
-    __metaclass__ = _IntEnumMeta
 
     # Set by the metaclass in the Flags property.
     __flags_class__ = None

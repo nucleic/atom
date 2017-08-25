@@ -13,7 +13,15 @@
 #include "catompointer.h"
 #include "globalstatic.h"
 #include "packagenaming.h"
+#include "py23compat.h"
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
+#endif
+
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif
 
 #define atomref_cast( o ) ( reinterpret_cast<AtomRef*>( o ) )
 
@@ -106,10 +114,10 @@ AtomRef_repr( AtomRef* self )
         PyObjectPtr repr( PyObject_Repr( obj ) );
         if( !repr )
             return 0;
-        ostr << _PyUnicode_AsString( repr.get() );
+        ostr << Py23Str_AS_STRING( repr.get() );
     }
     ostr << ")";
-    return PyUnicode_FromString( ostr.str().c_str() );
+    return Py23Str_FromString( ostr.str().c_str() );
 }
 
 
@@ -118,7 +126,7 @@ AtomRef_sizeof( AtomRef* self, PyObject* args )
 {
     Py_ssize_t size = Py_TYPE(self)->tp_basicsize;
     size += sizeof( CAtomPointer );
-    return PyLong_FromSsize_t( size );
+    return Py23Int_FromSsize_t( size );
 }
 
 
@@ -133,9 +141,9 @@ PyNumberMethods AtomRef_as_number = {
      ( binaryfunc )0,                       /* nb_add */
      ( binaryfunc )0,                       /* nb_subtract */
      ( binaryfunc )0,                       /* nb_multiply */
-    #if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
      ( binaryfunc )0,                       /* nb_divide */
-    #endif
+#endif
      ( binaryfunc )0,                       /* nb_remainder */
      ( binaryfunc )0,                       /* nb_divmod */
      ( ternaryfunc )0,                      /* nb_power */
@@ -156,7 +164,6 @@ AtomRef_methods[] = {
 
 PyTypeObject AtomRef_Type = {
     PyVarObject_HEAD_INIT( NULL, 0 )
-    //0,                                      /* ob_size */
     PACKAGE_TYPENAME( "atomref" ),          /* tp_name */
     sizeof( AtomRef ),                      /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -164,7 +171,15 @@ PyTypeObject AtomRef_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-    (cmpfunc)0,                             /* tp_compare */
+#if PY_MAJOR_VERSION >= 3
+#if PY_MINOR_VERSION > 4
+    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#else
+    ( void* ) 0,                           /* tp_reserved */
+#endif
+#else
+    ( cmpfunc )0,                          /* tp_compare */
+#endif
     (reprfunc)AtomRef_repr,                 /* tp_repr */
     (PyNumberMethods*)&AtomRef_as_number,   /* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */

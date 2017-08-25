@@ -5,13 +5,17 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+from __future__ import (division, print_function, absolute_import)
+
 import sys
 if sys.version_info >= (3,):
     import copyreg as copy_reg
 else:
     import copy_reg
 from contextlib import contextmanager
+
 from types import FunctionType
+from future.utils import with_metaclass
 
 from .catom import (
     CAtom, Member, DefaultValue, PostGetAttr, PostSetAttr, Validate,
@@ -198,7 +202,7 @@ class AtomMeta(type):
         post_validates = []         # Post validate methods: _post_validate_*
         seen_sentinels = set()      # The set of seen sentinels
         seen_decorated = set()      # The set of seen @observe decorators
-        for key, value in dct.iteritems():
+        for key, value in dct.items():
             if isinstance(value, set_default):
                 if value in seen_sentinels:
                     value = value.clone()
@@ -256,7 +260,7 @@ class AtomMeta(type):
         # conflict must be cloned in order to occupy a unique index.
         conflicts = []
         occupied = set()
-        for member in members.itervalues():
+        for member in members.values():
             if member.index in occupied:
                 conflicts.append(member)
             else:
@@ -278,7 +282,7 @@ class AtomMeta(type):
         # assigns the name and the index to the member. If a member is
         # overriding an existing member, the memory index of the old
         # member is reused and any static observers are copied over.
-        for key, value in dct.iteritems():
+        for key, value in dct.items():
             if isinstance(value, Member):
                 if value in owned_members:  # foo = bar = Baz()
                     value = value.clone()
@@ -321,7 +325,8 @@ class AtomMeta(type):
             target = mangled[n:]
             if target in members:
                 member = clone_if_needed(members[target])
-                member.set_default_value_mode(DefaultValue.ObjectMethod, mangled)
+                member.set_default_value_mode(DefaultValue.ObjectMethod,
+                                              mangled)
 
         # _validate_* methods
         n = len(VALIDATE_PREFIX)
@@ -337,7 +342,8 @@ class AtomMeta(type):
             target = mangled[n:]
             if target in members:
                 member = clone_if_needed(members[target])
-                member.set_post_validate_mode(PostValidate.ObjectMethod_OldNew, mangled)
+                member.set_post_validate_mode(PostValidate.ObjectMethod_OldNew,
+                                              mangled)
 
         # _post_getattr_* methods
         n = len(POST_GETATTR_PREFIX)
@@ -345,7 +351,8 @@ class AtomMeta(type):
             target = mangled[n:]
             if target in members:
                 member = clone_if_needed(members[target])
-                member.set_post_getattr_mode(PostGetAttr.ObjectMethod_Value, mangled)
+                member.set_post_getattr_mode(PostGetAttr.ObjectMethod_Value,
+                                             mangled)
 
         # _post_setattr_* methods
         n = len(POST_SETATTR_PREFIX)
@@ -353,7 +360,8 @@ class AtomMeta(type):
             target = mangled[n:]
             if target in members:
                 member = clone_if_needed(members[target])
-                member.set_post_setattr_mode(PostSetAttr.ObjectMethod_OldNew, mangled)
+                member.set_post_setattr_mode(PostSetAttr.ObjectMethod_OldNew,
+                                             mangled)
 
         # _observe_* methods
         n = len(OBSERVE_PREFIX)
@@ -389,7 +397,7 @@ def __newobj__(cls, *args):
     return cls.__new__(cls, *args)
 
 
-class Atom(CAtom):
+class Atom(with_metaclass(AtomMeta, CAtom)):
     """ The base class for defining atom objects.
 
     `Atom` objects are special Python objects which never allocate an
@@ -403,7 +411,6 @@ class Atom(CAtom):
     than normal objects depending on the number of attributes.
 
     """
-    __metaclass__ = AtomMeta
 
     @classmethod
     def members(cls):
@@ -483,5 +490,5 @@ class Atom(CAtom):
         behavior should reimplement this method.
 
         """
-        for key, value in state.iteritems():
+        for key, value in state.items():
             setattr(self, key, value)

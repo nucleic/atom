@@ -6,6 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "member.h"
+#include "py23compat.h"
 
 
 using namespace PythonHelpers;
@@ -26,7 +27,7 @@ Member::check_context( PostValidate::Mode mode, PyObject* context )
         case PostValidate::ObjectMethod_OldNew:
         case PostValidate::ObjectMethod_NameOldNew:
         case PostValidate::MemberMethod_ObjectOldNew:
-            if( !PyBytes_Check( context ) )
+            if( !Py23Str_Check( context ) )
             {
                 py_expected_type_fail( context, "str" );
                 return false;

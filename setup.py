@@ -7,7 +7,6 @@
 #------------------------------------------------------------------------------
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
-import sys
 
 
 ext_modules = [
@@ -53,6 +52,10 @@ class BuildExt(build_ext):
         'msvc': ['/EHsc']
     }
 
+    def initialize_options(self):
+        super().initialize_options()
+        self.debug = False
+
     def build_extensions(self):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
@@ -61,16 +64,15 @@ class BuildExt(build_ext):
         build_ext.build_extensions(self)
 
 
-
 setup(
     name='atom',
-    version='0.3.10',
+    version='0.3.11',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/atom',
     description='Memory efficient Python objects',
     long_description=open('README.rst').read(),
-    install_requires=['distribute'],
+    install_requires=['future'],
     packages=find_packages(exclude=['tests', 'tests.*']),
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},

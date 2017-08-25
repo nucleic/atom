@@ -178,25 +178,38 @@ class Float(Value):
             self.set_validate_mode(Validate.FloatPromote, None)
 
 
-class Str(Value):
-    """ A value of type `str`.
-
-    By default, unicode strings will be promoted to plain strings. Pass
-    strict=True to the constructor to enable strict string checking.
-
+class Bytes(Value):
+    """ A value of type `bytes`.
     """
     __slots__ = ()
 
+    def __init__(self, default=b'', factory=None, strict=False):
+        super(Bytes, self).__init__(default, factory)
+        if strict:
+            self.set_validate_mode(Validate.Bytes, None)
+        else:
+            self.set_validate_mode(Validate.BytesPromote, None)
+
+
+class Str(Value):
+    """A value of type `str`.
+
+    Under Python 2 this is a byte string, under Python 3 a unicode one.
+
+    The use of this member is discouraged as Bytes and Unicode provide a more
+    homogeneous behavior.
+
+    """
     def __init__(self, default='', factory=None, strict=False):
         super(Str, self).__init__(default, factory)
         if strict:
-            self.set_validate_mode(Validate.Str, None)
+            self.set_validate_mode(Validate.String, None)
         else:
-            self.set_validate_mode(Validate.StrPromote, None)
+            self.set_validate_mode(Validate.StringPromote, None)
 
 
 class Unicode(Value):
-    """ A value of type `unicode`.
+    """ A value of type `str`.
 
     By default, plain strings will be promoted to unicode strings. Pass
     strict=True to the constructor to enable strict unicode checking.
@@ -204,7 +217,7 @@ class Unicode(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=u'', factory=None, strict=False):
+    def __init__(self, default='', factory=None, strict=False):
         super(Unicode, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Unicode, None)

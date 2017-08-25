@@ -6,6 +6,7 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "eventbinder.h"
+#include "py23compat.h"
 
 
 using namespace PythonHelpers;
@@ -120,7 +121,6 @@ EventBinder_methods[] = {
 
 PyTypeObject EventBinder_Type = {
     PyVarObject_HEAD_INIT( NULL, 0 )
-    //0,                                      /* ob_size */
     "EventBinder",                          /* tp_name */
     sizeof( EventBinder ),                  /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -128,7 +128,15 @@ PyTypeObject EventBinder_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-    (cmpfunc)0,                             /* tp_compare */
+#if PY_MAJOR_VERSION >= 3
+#if PY_MINOR_VERSION > 4
+    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#else
+    ( void* ) 0,                           /* tp_reserved */
+#endif
+#else
+    ( cmpfunc )0,                          /* tp_compare */
+#endif
     (reprfunc)0,                            /* tp_repr */
     (PyNumberMethods*)0,                    /* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */

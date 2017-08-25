@@ -5,7 +5,11 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from cPickle import dumps, loads
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
+from sys import version_info
+from pickle import dumps, loads
 from functools import wraps
 
 import pytest
@@ -51,15 +55,15 @@ class ListTestBase(object):
 
     def test_untyped_convert_to_list(self):
         self.model.untyped = range(10)
-        assert list(self.model.untyped) == range(10)
+        assert list(self.model.untyped) == list(range(10))
 
     def test_untyped_iterate(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         data = [i for i in self.model.untyped]
-        assert data == range(10)
+        assert data == list(range(10))
 
     def test_untyped_copy_on_assign(self):
-        data = range(10)
+        data = list(range(10))
         self.model.untyped = data
         assert self.model.untyped == data
         assert self.model.untyped is not data
@@ -69,30 +73,30 @@ class ListTestBase(object):
         assert self.model.untyped == [1]
 
     def test_untyped_extend(self):
-        self.model.untyped.extend(range(10))
-        assert self.model.untyped == range(10)
+        self.model.untyped.extend(list(range(10)))
+        assert self.model.untyped == list(range(10))
 
     def test_untyped_insert(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         self.model.untyped.insert(0, 19)
-        assert self.model.untyped == [19] + range(10)
+        assert self.model.untyped == [19] +list(range(10))
 
     def test_untyped_remove(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         self.model.untyped.remove(5)
-        data = range(10)
+        data = list(range(10))
         data.remove(5)
         assert self.model.untyped == data
 
     def test_untyped_pop(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         self.model.untyped.pop()
-        assert self.model.untyped == range(9)
+        assert self.model.untyped == list(range(9))
         self.model.untyped.pop(0)
-        assert self.model.untyped == range(1, 9)
+        assert self.model.untyped == list(range(1, 9))
 
     def test_untyped_index(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         index = self.model.untyped.index(5)
         assert index == 5
 
@@ -102,7 +106,7 @@ class ListTestBase(object):
         assert count == 10
 
     def test_untyped_reverse(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         self.model.untyped.reverse()
         assert self.model.untyped == list(reversed(range(10)))
 
@@ -119,66 +123,66 @@ class ListTestBase(object):
 
     def test_untyped_get_slice(self):
         self.model.untyped = range(10)
-        assert self.model.untyped[3:8] == range(3, 8)
+        assert self.model.untyped[3:8] == list(range(3, 8))
 
     def test_untyped_get_slice_step(self):
         self.model.untyped = range(10)
-        assert self.model.untyped[3::2] == range(3, 10, 2)
+        assert self.model.untyped[3::2] == list(range(3, 10, 2))
 
     def test_untyped_set_item(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         self.model.untyped[5] = 42
         assert self.model.untyped[5] == 42
 
     def test_untyped_set_slice(self):
-        self.model.untyped = range(5)
+        self.model.untyped = list(range(5))
         self.model.untyped[3:5] = [42, 42]
         assert self.model.untyped == [0, 1, 2, 42, 42]
 
     def test_untyped_set_slice_step(self):
-        self.model.untyped = range(5)
+        self.model.untyped = list(range(5))
         self.model.untyped[::2] = [42, 42, 42]
         assert self.model.untyped == [42, 1, 42, 3, 42]
 
     def test_untyped_del_item(self):
-        self.model.untyped = range(5)
+        self.model.untyped = list(range(5))
         del self.model.untyped[3]
         assert self.model.untyped == [0, 1, 2, 4]
 
     def test_untyped_del_slice(self):
-        self.model.untyped = range(5)
+        self.model.untyped = list(range(5))
         del self.model.untyped[3:]
-        assert self.model.untyped == range(3)
+        assert self.model.untyped == list(range(3))
 
     def test_untyped_del_slice_step(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         del self.model.untyped[::2]
-        assert self.model.untyped == range(1, 10, 2)
+        assert self.model.untyped == list(range(1, 10, 2))
 
     def test_untyped_concat(self):
         self.model.untyped = range(10)
         self.model.untyped += range(5)
-        assert self.model.untyped == range(10) + range(5)
+        assert self.model.untyped == list(range(10)) + list(range(5))
 
     def test_untyped_repeat(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         self.model.untyped *= 3
-        assert self.model.untyped == range(10) * 3
+        assert self.model.untyped == list(range(10)) * 3
 
     #--------------------------------------------------------------------------
     # Typed Tests
     #--------------------------------------------------------------------------
     def test_typed_convert_to_list(self):
         self.model.typed = range(10)
-        assert list(self.model.typed) == range(10)
+        assert list(self.model.typed) == list(range(10))
 
     def test_typed_iterate(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         data = [i for i in self.model.typed]
-        assert data == range(10)
+        assert data == list(range(10))
 
     def test_typed_copy_on_assign(self):
-        data = range(10)
+        data = list(range(10))
         self.model.typed = data
         assert self.model.typed == data
         assert self.model.typed is not data
@@ -188,30 +192,30 @@ class ListTestBase(object):
         assert self.model.typed == [1]
 
     def test_typed_extend(self):
-        self.model.typed.extend(range(10))
-        assert self.model.typed == range(10)
+        self.model.typed.extend(list(range(10)))
+        assert self.model.typed == list(range(10))
 
     def test_typed_insert(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         self.model.typed.insert(0, 19)
-        assert self.model.typed == [19] + range(10)
+        assert self.model.typed == [19] + list(range(10))
 
     def test_typed_remove(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         self.model.typed.remove(5)
-        data = range(10)
+        data = list(range(10))
         data.remove(5)
         assert self.model.typed == data
 
     def test_typed_pop(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         self.model.typed.pop()
-        assert self.model.typed == range(9)
+        assert self.model.typed == list(range(9))
         self.model.typed.pop(0)
-        assert self.model.typed == range(1, 9)
+        assert self.model.typed == list(range(1, 9))
 
     def test_typed_index(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         index = self.model.typed.index(5)
         assert index == 5
 
@@ -221,7 +225,7 @@ class ListTestBase(object):
         assert count == 10
 
     def test_typed_reverse(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         self.model.typed.reverse()
         assert self.model.typed == list(reversed(range(10)))
 
@@ -238,51 +242,51 @@ class ListTestBase(object):
 
     def test_typed_get_slice(self):
         self.model.typed = range(10)
-        assert self.model.typed[3:8] == range(3, 8)
+        assert self.model.typed[3:8] == list(range(3, 8))
 
     def test_typed_get_slice_step(self):
         self.model.typed = range(10)
-        assert self.model.typed[3::2] == range(3, 10, 2)
+        assert self.model.typed[3::2] == list(range(3, 10, 2))
 
     def test_typed_set_item(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         self.model.typed[5] = 42
         assert self.model.typed[5] == 42
 
     def test_typed_set_slice(self):
-        self.model.typed = range(5)
+        self.model.typed = list(range(5))
         self.model.typed[3:5] = [42, 42]
         assert self.model.typed == [0, 1, 2, 42, 42]
 
     def test_typed_set_slice_step(self):
-        self.model.typed = range(5)
+        self.model.typed = list(range(5))
         self.model.typed[::2] = [42, 42, 42]
         assert self.model.typed == [42, 1, 42, 3, 42]
 
     def test_typed_del_item(self):
-        self.model.typed = range(5)
+        self.model.typed = list(range(5))
         del self.model.typed[3]
         assert self.model.typed == [0, 1, 2, 4]
 
     def test_typed_del_slice(self):
-        self.model.typed = range(5)
+        self.model.typed = list(range(5))
         del self.model.typed[3:]
-        assert self.model.typed == range(3)
+        assert self.model.typed == list(range(3))
 
     def test_typed_del_slice_step(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         del self.model.typed[::2]
         assert self.model.typed == range(1, 10, 2)
 
     def test_typed_concat(self):
         self.model.typed = range(10)
         self.model.typed += range(5)
-        assert self.model.typed == range(10) + range(5)
+        assert self.model.typed == list(range(10)) + list(range(5))
 
     def test_typed_repeat(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         self.model.typed *= 3
-        assert self.model.typed == range(10) * 3
+        assert self.model.typed == list(range(10)) * 3
 
 
 class TestStandardList(ListTestBase):
@@ -300,7 +304,7 @@ class TestStandardList(ListTestBase):
         assert type(self.model.typed) == atomlist
 
     def test_pickle(self):
-        data = range(10)
+        data = list(range(10))
         self.model.untyped = data
         self.model.typed = data
         assert data == loads(dumps(self.model.untyped, 0))
@@ -380,8 +384,8 @@ class TestContainerNotify(object):
 
     def setup_method(self):
         self.model = ContainerModel()
-        self.model.untyped = range(10)
-        self.model.typed = range(10)
+        self.model.untyped = list(range(10))
+        self.model.typed = list(range(10))
         self.model.observe('untyped', self._changed)
         self.model.observe('typed', self._changed)
 
@@ -465,7 +469,8 @@ class TestContainerNotify(object):
     def container_sort(self, mlist):
         mlist.sort()
         assert self.change['operation'] == 'sort'
-        assert self.change['cmp'] is None
+        if version_info.major < 3:
+            assert self.change['cmp'] is None
         assert self.change['key'] is None
         assert self.change['reverse'] is False
 
@@ -474,7 +479,8 @@ class TestContainerNotify(object):
         key = lambda i: i
         mlist.sort(key=key, reverse=True)
         assert self.change['operation'] == 'sort'
-        assert self.change['cmp'] is None
+        if version_info.major < 3:
+            assert self.change['cmp'] is None
         assert self.change['key'] == key
         assert self.change['reverse'] is True
 
@@ -492,8 +498,9 @@ class TestContainerNotify(object):
         yield (self.container_sort, 'typed')
         yield (self.container_key_sort, 'untyped')
         yield (self.container_key_sort, 'typed')
-        yield (self.container_cmp_sort, 'untyped')
-        yield (self.container_cmp_sort, 'typed')
+        if version_info.major < 3:
+            yield (self.container_cmp_sort, 'untyped')
+            yield (self.container_cmp_sort, 'typed')
 
     @containertest
     def container_set_item(self, mlist):

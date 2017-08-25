@@ -10,20 +10,9 @@
 #include <iostream>
 #include <sstream>
 #include "pythonhelpers.h"
-
+#include "py23compat.h"
 
 using namespace PythonHelpers;
-
-#if PY_MAJOR_VERSION >= 3
-
-#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
-
-#else
-
-#define GETSTATE(m) (&_state)
-static struct module_state _state;
-
-#endif
 
 class MapItem
 {
@@ -306,7 +295,6 @@ SortedMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         // destructors run for the old items.
         SortedMap::Items empty;
         self->m_items->swap( empty );
-        //Py_CLEAR(GETSTATE(self)->error);
     }
 #endif
 
@@ -485,8 +473,8 @@ SortedMap_repr( SortedMap* self )
         PyObjectPtr valstr( PyObject_Str( it->value() ) );
         if( !valstr )
             return 0;
-        ostr << _PyUnicode_AsString( keystr.get() ) << ": ";
-        ostr << _PyUnicode_AsString( valstr.get() ) << ", ";
+        ostr << Py23Str_AS_STRING( keystr.get() ) << ": ";
+        ostr << Py23Str_AS_STRING( valstr.get() ) << ", ";
     }
     if( self->m_items->size() > 0 )
         ostr.seekp( -2, std::ios_base::cur );
@@ -507,10 +495,10 @@ SortedMap_contains_bool( SortedMap* self, PyObject* key )
 static PyObject*
 SortedMap_sizeof( SortedMap* self, PyObject* args )
 {
-    Py_ssize_t size = Py_TYPE( self )->tp_basicsize;
+    Py_ssize_t size = Py_TYPE(self)->tp_basicsize;
     size += sizeof( SortedMap::Items );
     size += sizeof( MapItem ) * self->m_items->capacity();
-    return PyLong_FromSsize_t( size );
+    return Py23Int_FromSsize_t( size );
 }
 
 
@@ -542,7 +530,6 @@ SortedMap_methods[] = {
 
 PyTypeObject SortedMap_Type = {
     PyVarObject_HEAD_INIT( NULL, 0 )
-    //0,                                      /* ob_size */
     "sortedmap.sortedmap",                  /* tp_name */
     sizeof( SortedMap ),                    /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -550,7 +537,15 @@ PyTypeObject SortedMap_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-    (cmpfunc)0,                             /* tp_compare */
+#if PY_MAJOR_VERSION >= 3
+#if PY_MINOR_VERSION > 4
+    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#else
+    ( void* ) 0,                           /* tp_reserved */
+#endif
+#else
+    ( cmpfunc )0,                          /* tp_compare */
+#endif
     (reprfunc)SortedMap_repr,               /* tp_repr */
     (PyNumberMethods*)0,                    /* tp_as_number */
     (PySequenceMethods*)&SortedMap_as_sequence, /* tp_as_sequence */
@@ -597,48 +592,44 @@ sortedmap_methods[] = {
 };
 
 #if PY_MAJOR_VERSION >= 3
-static struct PyModuleDef sortedmap_moduledef = {
-    PyModuleDef_HEAD_INIT,
-    "sortedmap",
-    NULL, 
-    sizeof(struct module_state),
-    sortedmap_methods,
-    NULL,
-    SortedMap_traverse,
-    SortedMap_clear,
-    NULL
+
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "sortedmap",
+        "sortedmap extension module",
+        -1,
+        sortedmap_methods,
+        NULL,
+        NULL,
+        NULL,
+        NULL
 };
 
 #define INITERROR return NULL
-
-PyMODINIT_FUNC //PyObject*
-PyInit_sortedmap( void )
+#define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
 
 #else
 
 #define INITERROR return
-
-PyMODINIT_FUNC
-initsortedmap( void )
+#define MOD_INIT(name) PyMODINIT_FUNC init##name(void)
 
 #endif
+
+MOD_INIT( sortedmap )
 {
-    #if PY_MAJOR_VERSION >= 3
-        PyObject *mod = PyModule_Create( &sortedmap_moduledef );
-    #else
-        PyObject* mod = Py_InitModule( "sortedmap", sortedmap_methods );
-    #endif
-
-    if (!mod)
+#if PY_MAJOR_VERSION >= 3
+    PyObject *mod = PyModule_Create(&moduledef);
+#else
+    PyObject* mod = Py_InitModule( "sortedmap", sortedmap_methods );
+#endif
+    if( !mod )
         INITERROR;
-    if ( PyType_Ready( &SortedMap_Type ) )
-        return mod;
+    if( PyType_Ready( &SortedMap_Type ) )
+        INITERROR;
+    Py_INCREF( ( PyObject* )( &SortedMap_Type ) );
+    PyModule_AddObject( mod, "sortedmap", ( PyObject* )( &SortedMap_Type ) );
 
-    Py_INCREF( ( PyObject* )&SortedMap_Type );
-    PyModule_AddObject( mod, "sortedmap", ( PyObject* )&SortedMap_Type );
-    //PyModule_AddObject( mod, "sortedmap", PyLong_FromLong(2) );
-
-    #if PY_MAJOR_VERSION >= 3
-        return mod;
-    #endif
+#if PY_MAJOR_VERSION >= 3
+    return mod;
+#endif
 }
