@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2013-2017, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -53,7 +53,7 @@ class BuildExt(build_ext):
     }
 
     def initialize_options(self):
-        super().initialize_options()
+        build_ext.initialize_options(self)
         self.debug = False
 
     def build_extensions(self):
@@ -66,13 +66,14 @@ class BuildExt(build_ext):
 
 setup(
     name='atom',
-    version='0.3.11',
+    version='0.4.0',
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/atom',
     description='Memory efficient Python objects',
     long_description=open('README.rst').read(),
-    install_requires=['future'],
+    requires=['future'],
+    install_requires=['future', 'setuptools'],
     packages=find_packages(exclude=['tests', 'tests.*']),
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
