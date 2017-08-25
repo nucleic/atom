@@ -163,7 +163,7 @@ public:
         PyTuplePtr nargs( PyTuple_New( 2 ) );
         if( !nargs )
             return 0;
-        nargs.initialize( 0, PyInt_FromSsize_t( index ) );
+        nargs.initialize( 0, PyLong_FromSsize_t( index ) );
         nargs.initialize( 1, valptr.release() );
         return ListMethods::insert( m_list.get(), nargs.get() );
     }
@@ -199,14 +199,33 @@ public:
 
     int setitem( Py_ssize_t low, Py_ssize_t high, PyObject* value )
     {
-        if( !value )
+        #if PY_MAJOR_VERSION >= 3
+            //if ( !value )
+            //    return PyList_Type.tp_as_mapping->mp_
+            // TODO - !value check here
+            int i, size = PySequence_Size( value );
+            if (size < 0)
+                return -1;
+            for ( i=0; i<size; i++ )
+            {
+                int loc = i + (int)low;
+                PyObject * obj = PySequence_GetItem( value, i );
+                PyObjectPtr item( validate_single( obj ) );
+                PyList_Type.tp_as_sequence->sq_ass_item(
+                    m_list.get(), loc, item.get());
+                Py_DECREF( obj );
+            }
+            return 1;
+        #else
+            if( !value )
+                return PyList_Type.tp_as_sequence->sq_ass_slice(
+                    m_list.get(), low, high, value );
+            PyObjectPtr item( validate_sequence( value ) );
+            if( !item )
+                return -1;
             return PyList_Type.tp_as_sequence->sq_ass_slice(
-                m_list.get(), low, high, value );
-        PyObjectPtr item( validate_sequence( value ) );
-        if( !item )
-            return -1;
-        return PyList_Type.tp_as_sequence->sq_ass_slice(
-            m_list.get(), low, high, item.get() );
+                m_list.get(), low, high, item.get() );
+        #endif
     }
 
     int setitem( PyObject* key, PyObject* value )
@@ -368,13 +387,11 @@ AtomList_ass_item( AtomList* self, Py_ssize_t index, PyObject* value )
     return AtomListHandler( self ).setitem( index, value );
 }
 
-
 static int
 AtomList_ass_slice( AtomList* self, Py_ssize_t low, Py_ssize_t high, PyObject* value )
 {
     return AtomListHandler( self ).setitem( low, high, value );
 }
-
 
 static PyObject*
 AtomList_inplace_concat( AtomList* self, PyObject* value )
@@ -416,9 +433,17 @@ AtomList_as_sequence = {
     (binaryfunc)0,                              /* sq_concat */
     (ssizeargfunc)0,                            /* sq_repeat */
     (ssizeargfunc)0,                            /* sq_item */
-    (ssizessizeargfunc)0,                       /* sq_slice */
+    #if PY_MAJOR_VERSION >= 3
+        (void*)0,                                   /* sq_slice */
+    #else
+        (ssizessizeargfunc)0,                       /* sq_slice */
+    #endif
     (ssizeobjargproc)AtomList_ass_item,         /* sq_ass_item */
-    (ssizessizeobjargproc)AtomList_ass_slice,   /* sq_ass_slice */
+    #if PY_MAJOR_VERSION >= 3
+        (void*)0,                                   /* sq_ass_slice */
+    #else
+        (ssizessizeobjargproc)AtomList_ass_slice,   /* sq_ass_slice */
+    #endif
     (objobjproc)0,                              /* sq_contains */
     (binaryfunc)AtomList_inplace_concat,        /* sq_inplace_concat */
     (ssizeargfunc)0,                            /* sq_inplace_repeat */
@@ -434,8 +459,8 @@ AtomList_as_mapping = {
 
 
 PyTypeObject AtomList_Type = {
-    PyObject_HEAD_INIT( &PyType_Type )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
+    //0,                                      /* ob_size */
     PACKAGE_TYPENAME( "atomlist" ),         /* tp_name */
     sizeof( AtomList ),                     /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -497,7 +522,7 @@ public:
 
     PyStringMaker( const char* string ) : m_pystring( 0 )
     {
-        m_pystring = PyString_FromString( string );
+        m_pystring = PyUnicode_FromString( string );
     }
 
     PyObject* operator()()
@@ -607,9 +632,9 @@ public:
             if( !c.set_item( PySStr::operation(), PySStr::insert() ) )
                 return 0;
             // if the superclass call succeeds, then this is safe.
-            Py_ssize_t where = PyInt_AsSsize_t( PyTuple_GET_ITEM( args, 0 ) );
+            Py_ssize_t where = PyLong_AsSsize_t( PyTuple_GET_ITEM( args, 0 ) );
             clip_index( where, size );
-            PyObjectPtr index( PyInt_FromSsize_t( where ) );
+            PyObjectPtr index( PyLong_FromSsize_t( where ) );
             if( !c.set_item( PySStr::index(), index ) )
                 return 0;
             if( !c.set_item( PySStr::item(), m_validated ) )
@@ -656,10 +681,10 @@ public:
             // if the superclass call succeeds, then this is safe.
             Py_ssize_t i = -1;
             if( PyTuple_GET_SIZE( args ) == 1 )
-                i = PyInt_AsSsize_t( PyTuple_GET_ITEM( args, 0 ) );
+                i = PyLong_AsSsize_t( PyTuple_GET_ITEM( args, 0 ) );
             if( i < 0 )
                 i += size;
-            PyObjectPtr index( PyInt_FromSsize_t( i ) );
+            PyObjectPtr index( PyLong_FromSsize_t( i ) );
             if( !c.set_item( PySStr::index(), index ) )
                 return 0;
             if( !c.set_item( PySStr::item(), res ) )
@@ -772,7 +797,7 @@ public:
                 return 0;
             if( !c.set_item( PySStr::operation(), PySStr::__imul__() ) )
                 return 0;
-            PyObjectPtr pycount( PyInt_FromSsize_t( count ) );
+            PyObjectPtr pycount( PyLong_FromSsize_t( count ) );
             if( !pycount )
                 return 0;
             if( !c.set_item( PySStr::count(), pycount ) )
@@ -798,7 +823,7 @@ public:
             return res;
         if( obs )
         {
-            PyObjectPtr pyindex( PyInt_FromSsize_t( index ) );
+            PyObjectPtr pyindex( PyLong_FromSsize_t( index ) );
             if( !pyindex )
                 return -1;
             res = post_setitem_change( pyindex, olditem, m_validated );
@@ -1082,9 +1107,17 @@ AtomCList_as_sequence = {
     (binaryfunc)0,                              /* sq_concat */
     (ssizeargfunc)0,                            /* sq_repeat */
     (ssizeargfunc)0,                            /* sq_item */
-    (ssizessizeargfunc)0,                       /* sq_slice */
+    #if PY_MAJOR_VERSION >= 3
+        (void*)0,
+    #else
+        (ssizessizeargfunc)0,                       /* sq_slice */
+    #endif
     (ssizeobjargproc)AtomCList_ass_item,        /* sq_ass_item */
-    (ssizessizeobjargproc)AtomCList_ass_slice,  /* sq_ass_slice */
+    #if PY_MAJOR_VERSION >= 3
+        (void*)0,                               /* sq_ass_slice (python3) */
+    #else
+        (ssizessizeobjargproc)AtomCList_ass_slice,  /* sq_ass_slice */
+    #endif
     (objobjproc)0,                              /* sq_contains */
     (binaryfunc)AtomCList_inplace_concat,       /* sq_inplace_concat */
     (ssizeargfunc)AtomCList_inplace_repeat,     /* sq_inplace_repeat */
@@ -1100,8 +1133,8 @@ AtomCList_as_mapping = {
 
 
 PyTypeObject AtomCList_Type = {
-    PyObject_HEAD_INIT( &PyType_Type )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
+    //0,                                     /* ob_size */
     PACKAGE_TYPENAME( "atomclist" ),        /* tp_name */
     sizeof( AtomCList ),                    /* tp_basicsize */
     0,                                      /* tp_itemsize */

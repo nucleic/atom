@@ -42,7 +42,7 @@ Member::check_context( SetAttr::Mode mode, PyObject* context )
         case SetAttr::ObjectMethod_Value:
         case SetAttr::ObjectMethod_NameValue:
         case SetAttr::MemberMethod_ObjectValue:
-            if( !PyString_Check( context ) )
+            if( !PyBytes_Check( context ) )
             {
                 py_expected_type_fail( context, "str" );
                 return false;
@@ -95,7 +95,7 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
 {
     if( member->index >= atom->get_slot_count() )
     {
-        py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
+        py_no_attr_fail( pyobject_cast( atom ), _PyUnicode_AsString( member->name ) );
         return -1;
     }
     if( atom->is_frozen() )
@@ -169,7 +169,7 @@ read_only_handler( Member* member, CAtom* atom, PyObject* value )
 {
     if( member->index >= atom->get_slot_count() )
     {
-        py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
+        py_no_attr_fail( pyobject_cast( atom ), _PyUnicode_AsString( member->name ) );
         return -1;
     }
     PyObjectPtr slot( atom->get_slot( member->index ) );

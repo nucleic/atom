@@ -118,7 +118,7 @@ CAtom_dealloc( CAtom* self )
         PyObject_FREE( self->slots );
     delete self->observers;
     self->observers = 0;
-    self->ob_type->tp_free( pyobject_cast( self ) );
+    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -143,9 +143,9 @@ CAtom_set_notifications_enabled( CAtom* self, PyObject* arg )
 static PyObject*
 CAtom_get_member( PyObject* self, PyObject* name )
 {
-    if( !PyString_Check( name ) )
+    if( !PyUnicode_Check( name ) )
         return py_expected_type_fail( name, "str" );
-    PyDictPtr membersptr( PyObject_GetAttr( pyobject_cast( self->ob_type ), atom_members ) );
+    PyDictPtr membersptr( PyObject_GetAttr( pyobject_cast( Py_TYPE(self) ), atom_members ) );
     if( !membersptr )
         return 0;
     if( !membersptr.check_exact() )
@@ -323,11 +323,11 @@ CAtom_freeze( CAtom* self )
 static PyObject*
 CAtom_sizeof( CAtom* self, PyObject* args )
 {
-    Py_ssize_t size = self->ob_type->tp_basicsize;
+    Py_ssize_t size = Py_TYPE(self)->tp_basicsize;
     size += sizeof( PyObject* ) * self->get_slot_count();
     if( self->observers )
         size += self->observers->py_sizeof();
-    return PyInt_FromSsize_t( size );
+    return PyLong_FromSsize_t( size );
 }
 
 
@@ -358,8 +358,8 @@ CAtom_methods[] = {
 
 
 PyTypeObject CAtom_Type = {
-    PyObject_HEAD_INIT( &PyType_Type )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
+    // 0,                                      /* ob_size */
     PACKAGE_TYPENAME( "CAtom" ),            /* tp_name */
     sizeof( CAtom ),                        /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -415,7 +415,7 @@ import_catom()
         return -1;
     if( PyType_Ready( &CAtom_Type ) < 0 )
         return -1;
-    atom_members = PyString_FromString( "__atom_members__" );
+    atom_members = PyUnicode_FromString( "__atom_members__" );
     if( !atom_members )
         return -1;
     return 0;

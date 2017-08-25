@@ -128,34 +128,34 @@ import_memberchange()
     static bool alloced = false;
     if( alloced )
         return 0;
-    MemberChange::createstr = PyString_InternFromString( "create" );
+    MemberChange::createstr = PyUnicode_InternFromString( "create" );
     if( !MemberChange::createstr )
         return -1;
-    MemberChange::updatestr = PyString_InternFromString( "update" );
+    MemberChange::updatestr = PyUnicode_InternFromString( "update" );
     if( !MemberChange::updatestr )
         return -1;
-    MemberChange::deletestr = PyString_InternFromString( "delete" );
+    MemberChange::deletestr = PyUnicode_InternFromString( "delete" );
     if( !MemberChange::deletestr )
         return -1;
-    MemberChange::eventstr = PyString_InternFromString( "event" );
+    MemberChange::eventstr = PyUnicode_InternFromString( "event" );
     if( !MemberChange::eventstr )
         return -1;
-    MemberChange::propertystr = PyString_InternFromString( "property" );
+    MemberChange::propertystr = PyUnicode_InternFromString( "property" );
     if( !MemberChange::propertystr )
         return -1;
-    MemberChange::typestr = PyString_InternFromString( "type" );
+    MemberChange::typestr = PyUnicode_InternFromString( "type" );
     if( !MemberChange::typestr )
         return -1;
-    MemberChange::objectstr = PyString_InternFromString( "object" );
+    MemberChange::objectstr = PyUnicode_InternFromString( "object" );
     if( !MemberChange::objectstr )
         return -1;
-    MemberChange::namestr = PyString_InternFromString( "name" );
+    MemberChange::namestr = PyUnicode_InternFromString( "name" );
     if( !MemberChange::namestr )
         return -1;
-    MemberChange::valuestr = PyString_InternFromString( "value" );
+    MemberChange::valuestr = PyUnicode_InternFromString( "value" );
     if( !MemberChange::valuestr )
         return -1;
-    MemberChange::oldvaluestr = PyString_InternFromString( "oldvalue" );
+    MemberChange::oldvaluestr = PyUnicode_InternFromString( "oldvalue" );
     if( !MemberChange::oldvaluestr )
         return -1;
     alloced = true;

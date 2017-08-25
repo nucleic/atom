@@ -26,7 +26,7 @@ Member::check_context( PostSetAttr::Mode mode, PyObject* context )
         case PostSetAttr::ObjectMethod_OldNew:
         case PostSetAttr::ObjectMethod_NameOldNew:
         case PostSetAttr::MemberMethod_ObjectOldNew:
-            if( !PyString_Check( context ) )
+            if( !PyBytes_Check( context ) )
             {
                 py_expected_type_fail( context, "str" );
                 return false;

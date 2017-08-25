@@ -26,7 +26,7 @@ Member::check_context( PostGetAttr::Mode mode, PyObject* context )
         case PostGetAttr::ObjectMethod_Value:
         case PostGetAttr::ObjectMethod_NameValue:
         case PostGetAttr::MemberMethod_ObjectValue:
-            if( !PyString_Check( context ) )
+            if( !PyBytes_Check( context ) )
             {
                 py_expected_type_fail( context, "str" );
                 return false;

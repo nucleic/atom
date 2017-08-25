@@ -5,7 +5,11 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-import copy_reg
+import sys
+if sys.version_info >= (3,):
+    import copyreg as copy_reg
+else:
+    import copy_reg
 from contextlib import contextmanager
 from types import FunctionType
 

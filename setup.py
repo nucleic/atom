@@ -7,6 +7,7 @@
 #------------------------------------------------------------------------------
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
+import sys
 
 
 ext_modules = [
@@ -58,6 +59,7 @@ class BuildExt(build_ext):
         for ext in self.extensions:
             ext.extra_compile_args = opts
         build_ext.build_extensions(self)
+
 
 
 setup(

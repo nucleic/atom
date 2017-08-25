@@ -39,7 +39,7 @@ MethodWrapper_dealloc( MethodWrapper* self )
 {
     Py_CLEAR( self->im_selfref );
     Py_CLEAR( self->im_func );
-    self->ob_type->tp_free( pyobject_cast( self ) );
+    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -49,8 +49,12 @@ MethodWrapper__call__( MethodWrapper* self, PyObject* args, PyObject* kwargs )
     PyObject* im_self = PyWeakref_GET_OBJECT( self->im_selfref );
     if( im_self != Py_None )
     {
-        PyObject* type = pyobject_cast( im_self->ob_type );
-        PyObjectPtr method( PyMethod_New( self->im_func, im_self, type ) );
+        #if PY_MAJOR_VERSION < 3
+            PyObject* type = pyobject_cast( im_self->ob_type );
+            PyObjectPtr method( PyMethod_New( self->im_func, im_self, type ) );
+        #else
+            PyObjectPtr method( PyMethod_New( self->im_func, im_self ) );
+        #endif
         if( !method )
             return 0;
         return PyObject_Call( method.get(), args, kwargs );
@@ -99,7 +103,9 @@ PyNumberMethods MethodWrapper_as_number = {
      ( binaryfunc )0,                       /* nb_add */
      ( binaryfunc )0,                       /* nb_subtract */
      ( binaryfunc )0,                       /* nb_multiply */
+    #if PY_MAJOR_VERSION < 3
      ( binaryfunc )0,                       /* nb_divide */
+    #endif
      ( binaryfunc )0,                       /* nb_remainder */
      ( binaryfunc )0,                       /* nb_divmod */
      ( ternaryfunc )0,                      /* nb_power */
@@ -111,8 +117,8 @@ PyNumberMethods MethodWrapper_as_number = {
 
 
 PyTypeObject MethodWrapper_Type = {
-    PyObject_HEAD_INIT( &PyType_Type )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
+    //0,                                      /* ob_size */
     "MethodWrapper",                        /* tp_name */
     sizeof( MethodWrapper ),                /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -181,7 +187,7 @@ AtomMethodWrapper_dealloc( AtomMethodWrapper* self )
     Py_CLEAR( self->im_func );
     // manual destructor since Python malloc'd and zero'd the struct
     self->pointer.~CAtomPointer();
-    self->ob_type->tp_free( pyobject_cast( self ) );
+    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -191,8 +197,12 @@ AtomMethodWrapper__call__( AtomMethodWrapper* self, PyObject* args, PyObject* kw
     if( self->pointer.data() )
     {
         PyObject* im_self = pyobject_cast( self->pointer.data() );
-        PyObject* type = pyobject_cast( im_self->ob_type );
-        PyObjectPtr method( PyMethod_New( self->im_func, im_self, type ) );
+        #if PY_MAJOR_VERSION < 3
+            PyObject* type = pyobject_cast( im_self->ob_type );
+            PyObjectPtr method( PyMethod_New( self->im_func, im_self, type ) );
+        #else
+            PyObjectPtr method( PyMethod_New( self->im_func, im_self ) );
+        #endif
         if( !method )
             return 0;
         return PyObject_Call( method.get(), args, kwargs );
@@ -241,7 +251,9 @@ PyNumberMethods AtomMethodWrapper_as_number = {
      ( binaryfunc )0,                       /* nb_add */
      ( binaryfunc )0,                       /* nb_subtract */
      ( binaryfunc )0,                       /* nb_multiply */
+    #if PY_MAJOR_VERSION < 3
      ( binaryfunc )0,                       /* nb_divide */
+    #endif
      ( binaryfunc )0,                       /* nb_remainder */
      ( binaryfunc )0,                       /* nb_divmod */
      ( ternaryfunc )0,                      /* nb_power */
@@ -253,8 +265,8 @@ PyNumberMethods AtomMethodWrapper_as_number = {
 
 
 PyTypeObject AtomMethodWrapper_Type = {
-    PyObject_HEAD_INIT( &PyType_Type )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
+    //0,                                      /* ob_size */
     "AtomMethodWrapper",                    /* tp_name */
     sizeof( AtomMethodWrapper ),            /* tp_basicsize */
     0,                                      /* tp_itemsize */

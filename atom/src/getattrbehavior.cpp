@@ -45,7 +45,7 @@ Member::check_context( GetAttr::Mode mode, PyObject* context )
         case GetAttr::ObjectMethod:
         case GetAttr::ObjectMethod_Name:
         case GetAttr::MemberMethod_Object:
-            if( !PyString_Check( context ) )
+            if( !PyBytes_Check( context ) )
             {
                 py_expected_type_fail( context, "str" );
                 return false;
@@ -83,7 +83,7 @@ static PyObject*
 slot_handler( Member* member, CAtom* atom )
 {
     if( member->index >= atom->get_slot_count() )
-        return py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
+        return py_no_attr_fail( pyobject_cast( atom ), PyBytes_AsString( member->name ) );
     PyObjectPtr value( atom->get_slot( member->index ) );
     if( value )
     {

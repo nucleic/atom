@@ -52,7 +52,7 @@ SignalConnector_dealloc( SignalConnector* self )
     if( numfree < FREELIST_MAX )
         freelist[ numfree++ ] = self;
     else
-        self->ob_type->tp_free( pyobject_cast( self ) );
+        Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -134,8 +134,8 @@ SignalConnector_methods[] = {
 
 
 PyTypeObject SignalConnector_Type = {
-    PyObject_HEAD_INIT( 0 )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( NULL, 0 )
+    //0,                                      /* ob_size */
     "SignalConnector",                      /* tp_name */
     sizeof( SignalConnector ),              /* tp_basicsize */
     0,                                      /* tp_itemsize */
