@@ -5,7 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, GetAttr, SetAttr
+from .catom import Member, GetAttr, SetAttr, DelAttr
 
 
 class Signal(Member):
@@ -20,3 +20,4 @@ class Signal(Member):
         """
         self.set_getattr_mode(GetAttr.Signal, None)
         self.set_setattr_mode(SetAttr.Signal, None)
+        self.set_delattr_mode(DelAttr.Signal, None)

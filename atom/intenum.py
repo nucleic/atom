@@ -15,10 +15,11 @@ IntEnum = None
 
 
 def _invalid_op(op):
-    msg = " is an invalid operation for %s"
+    msg = " is an invalid operation for {}"
     msg = ("'%s'" % op) + msg
     def closure(self, *args):
-        raise TypeError(msg % self)
+        # Use format as otherwise fail for mod operator
+        raise TypeError(msg.format(self))
     return closure
 
 

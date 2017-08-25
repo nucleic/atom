@@ -69,7 +69,7 @@ setup(
     description='Memory efficient Python objects',
     long_description=open('README.rst').read(),
     install_requires=['distribute'],
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests', 'tests.*']),
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
 )

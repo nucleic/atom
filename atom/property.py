@@ -46,7 +46,7 @@ class Property(Member):
         gm = GetAttr.CachedProperty if cached else GetAttr.Property
         self.set_getattr_mode(gm, fget)
         self.set_setattr_mode(SetAttr.Property, fset)
-        self.set_delattr_mode(DelAttr.Property, fset)
+        self.set_delattr_mode(DelAttr.Property, fdel)
 
     @property
     def fget(self):
@@ -73,7 +73,7 @@ class Property(Member):
         This will not find a specially named _del_* function.
 
         """
-        return self.delattr_model[1]
+        return self.delattr_mode[1]
 
     @property
     def cached(self):
