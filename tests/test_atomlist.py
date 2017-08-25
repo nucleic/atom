@@ -54,7 +54,7 @@ class ListTestBase(object):
         assert self.model.untyped == data
 
     def test_untyped_convert_to_list(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         assert list(self.model.untyped) == list(range(10))
 
     def test_untyped_iterate(self):
@@ -118,15 +118,15 @@ class ListTestBase(object):
         assert self.model.untyped == [9, 8, 5, 3, 2]
 
     def test_untyped_get_item(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         assert self.model.untyped[3] == 3
 
     def test_untyped_get_slice(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         assert self.model.untyped[3:8] == list(range(3, 8))
 
     def test_untyped_get_slice_step(self):
-        self.model.untyped = range(10)
+        self.model.untyped = list(range(10))
         assert self.model.untyped[3::2] == list(range(3, 10, 2))
 
     def test_untyped_set_item(self):
@@ -160,8 +160,8 @@ class ListTestBase(object):
         assert self.model.untyped == list(range(1, 10, 2))
 
     def test_untyped_concat(self):
-        self.model.untyped = range(10)
-        self.model.untyped += range(5)
+        self.model.untyped = list(range(10))
+        self.model.untyped += list(range(5))
         assert self.model.untyped == list(range(10)) + list(range(5))
 
     def test_untyped_repeat(self):
@@ -173,7 +173,7 @@ class ListTestBase(object):
     # Typed Tests
     #--------------------------------------------------------------------------
     def test_typed_convert_to_list(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         assert list(self.model.typed) == list(range(10))
 
     def test_typed_iterate(self):
@@ -237,15 +237,15 @@ class ListTestBase(object):
         assert self.model.typed == [9, 8, 5, 3, 2]
 
     def test_typed_get_item(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         assert self.model.typed[3] == 3
 
     def test_typed_get_slice(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         assert self.model.typed[3:8] == list(range(3, 8))
 
     def test_typed_get_slice_step(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         assert self.model.typed[3::2] == list(range(3, 10, 2))
 
     def test_typed_set_item(self):
@@ -276,11 +276,11 @@ class ListTestBase(object):
     def test_typed_del_slice_step(self):
         self.model.typed = list(range(10))
         del self.model.typed[::2]
-        assert self.model.typed == range(1, 10, 2)
+        assert self.model.typed == list(range(1, 10, 2))
 
     def test_typed_concat(self):
-        self.model.typed = range(10)
-        self.model.typed += range(5)
+        self.model.typed = list(range(10))
+        self.model.typed += list(range(5))
         assert self.model.typed == list(range(10)) + list(range(5))
 
     def test_typed_repeat(self):
@@ -323,27 +323,27 @@ class TestStandardList(ListTestBase):
             self.model.typed.extend([1, 2, 3, 'four'])
 
     def test_typed_bad_insert(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         with pytest.raises(TypeError):
             self.model.typed.insert(0, object())
 
     def test_typed_bad_set_item(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         with pytest.raises(TypeError):
             self.model.typed[5] = 42j
 
     def test_typed_bad_set_slice(self):
-        self.model.typed = range(5)
+        self.model.typed = list(range(5))
         with pytest.raises(TypeError):
             self.model.typed[3:5] = ['None', 'None']
 
     def test_typed_bad_set_slice_step(self):
-        self.model.typed = range(5)
+        self.model.typed = list(range(5))
         with pytest.raises(TypeError):
             self.model.typed[::2] = [56.7, 56.7, 56.7]
 
     def test_typed_bad_concat(self):
-        self.model.typed = range(10)
+        self.model.typed = list(range(10))
         with pytest.raises(TypeError):
             self.model.typed += [12, 14, 'bad']
 
@@ -427,9 +427,9 @@ class TestContainerNotify(object):
 
     @containertest
     def container_extend(self, mlist):
-        mlist.extend(range(3))
+        mlist.extend(list(range(3)))
         assert self.change['operation'] == 'extend'
-        assert self.change['items'] == range(3)
+        assert self.change['items'] == list(range(3))
 
     def test_container_extend(self):
         yield (self.container_extend, 'untyped')
@@ -554,7 +554,7 @@ class TestContainerNotify(object):
         del mlist[0:5]
         assert self.change['operation'] == '__delitem__'
         assert self.change['index'] == slice(0, 5, None)
-        assert self.change['item'] == range(5)
+        assert self.change['item'] == list(range(5))
 
     def test_container_del_slice(self):
         yield (self.container_del_slice, 'untyped')
@@ -565,7 +565,7 @@ class TestContainerNotify(object):
         del mlist[::2]
         assert self.change['operation'] == '__delitem__'
         assert self.change['index'] == slice(None, None, 2)
-        assert self.change['item'] == range(10)[::2]
+        assert self.change['item'] == list(range(10))[::2]
 
     def test_container_del_slice_step(self):
         yield (self.container_del_slice_step, 'untyped')

@@ -59,9 +59,12 @@ def test_multi_inheritance():
 
         i4 = Int()
 
-    # This ensures the conflict will occur
-    assert Multi1.i1.index == Multi2.i3.index
-    assert Multi1.i2.index == Multi2.i4.index
+    # This ensures the conflict will occur (dict lack of ordering can cause
+    # unexpected mismatch)
+    assert (Multi1.i1.index == Multi2.i3.index or
+            Multi1.i1.index == Multi2.i4.index)
+    assert (Multi1.i2.index == Multi2.i4.index or
+            Multi1.i2.index == Multi2.i4.index)
 
     class Multi(Multi1, Multi2):
 

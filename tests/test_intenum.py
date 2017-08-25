@@ -8,15 +8,22 @@
 """Tests the intenum implementation.
 
 """
+import sys
 from pickle import dumps, loads
-from operator import (xor, and_, or_, invert, add, sub, mul, div, truediv,
+from operator import (xor, and_, or_, invert, add, sub, mul, truediv,
                       floordiv, mod, lshift, rshift, neg, pos)
+if sys.version_info < (3,):
+    from operator import div
+
 import pytest
+from future.utils import with_metaclass
 from atom.intenum import IntEnum, _IntEnumMeta
 
 
-INVALID_BINARY_OPS = (add, sub, mul, div, truediv, floordiv, mod, divmod, pow,
+INVALID_BINARY_OPS = (add, sub, mul, truediv, floordiv, mod, divmod, pow,
                       lshift, rshift)
+if sys.version_info < (3,):
+    INVALID_BINARY_OPS = INVALID_BINARY_OPS + (div,)
 
 INVALID_UNARY_OP = (neg, pos, abs)
 
@@ -26,14 +33,12 @@ def test_metaclass_safeties():
 
     """
     with pytest.raises(TypeError):
-        class FalseIntEnum(object):
-
-            __metaclass__ = _IntEnumMeta
+        class FalseIntEnum(with_metaclass(_IntEnumMeta, object)):
+            pass
 
     with pytest.raises(TypeError):
-        class TwoManyBases(object, int):
-
-            __metaclass__ = _IntEnumMeta
+        class TwoManyBases(with_metaclass(_IntEnumMeta, int, object)):
+            pass
 
 
 class EnumTest(IntEnum):
