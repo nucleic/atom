@@ -63,7 +63,7 @@ def test_multi_inheritance():
     # unexpected mismatch)
     assert (Multi1.i1.index == Multi2.i3.index or
             Multi1.i1.index == Multi2.i4.index)
-    assert (Multi1.i2.index == Multi2.i4.index or
+    assert (Multi1.i2.index == Multi2.i3.index or
             Multi1.i2.index == Multi2.i4.index)
 
     class Multi(Multi1, Multi2):

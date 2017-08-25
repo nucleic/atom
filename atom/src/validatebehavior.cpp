@@ -223,7 +223,7 @@ int_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
         }
         return Py23Int_FromLong( static_cast<long>( value ) );
     }
-    if( PyInt_Check( newvalue ) ) {
+    if( PyLong_Check( newvalue ) ) {
         long value = PyInt_AsLong( newvalue );
         if( value == -1 && PyErr_Occurred() )
             return 0;
