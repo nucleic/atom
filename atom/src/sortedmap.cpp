@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -277,6 +277,10 @@ SortedMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     return self;
 }
 
+// Clearing the vector may cause arbitrary side effects on item
+// decref, including calls into methods which mutate the vector.
+// To avoid segfaults, first make the vector empty, then let the
+// destructors run for the old items.
 #if PY_MAJOR_VERSION >= 3
     static int
     SortedMap_clear( SortedMap* self )
@@ -289,10 +293,6 @@ SortedMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     static void
     SortedMap_clear( SortedMap* self )
     {
-        // Clearing the vector may cause arbitrary side effects on item
-        // decref, including calls into methods which mutate the vector.
-        // To avoid segfaults, first make the vector empty, then let the
-        // destructors run for the old items.
         SortedMap::Items empty;
         self->m_items->swap( empty );
     }
@@ -537,14 +537,12 @@ PyTypeObject SortedMap_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-#if PY_MAJOR_VERSION >= 3
-#if PY_MINOR_VERSION > 4
-    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
 #else
-    ( void* ) 0,                           /* tp_reserved */
-#endif
-#else
-    ( cmpfunc )0,                          /* tp_compare */
+	( cmpfunc )0,                           /* tp_compare */
 #endif
     (reprfunc)SortedMap_repr,               /* tp_repr */
     (PyNumberMethods*)0,                    /* tp_as_number */
@@ -604,14 +602,6 @@ static struct PyModuleDef moduledef = {
         NULL,
         NULL
 };
-
-#define INITERROR return NULL
-#define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
-
-#else
-
-#define INITERROR return
-#define MOD_INIT(name) PyMODINIT_FUNC init##name(void)
 
 #endif
 

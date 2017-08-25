@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -131,7 +131,7 @@ AtomRef_sizeof( AtomRef* self, PyObject* args )
 
 
 static int
-AtomRef__nonzero__( AtomRef* self )
+AtomRef__bool__( AtomRef* self )
 {
     return self->pointer.is_null() ? 0 : 1;
 }
@@ -150,7 +150,7 @@ PyNumberMethods AtomRef_as_number = {
      ( unaryfunc )0,                        /* nb_negative */
      ( unaryfunc )0,                        /* nb_positive */
      ( unaryfunc )0,                        /* nb_absolute */
-     ( inquiry )AtomRef__nonzero__          /* nb_nonzero, or nb_bool in python3 */
+     ( inquiry )AtomRef__bool__          /* nb_nonzero, or nb_bool in python3 */
 };
 
 
@@ -171,14 +171,12 @@ PyTypeObject AtomRef_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-#if PY_MAJOR_VERSION >= 3
-#if PY_MINOR_VERSION > 4
-    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
 #else
-    ( void* ) 0,                           /* tp_reserved */
-#endif
-#else
-    ( cmpfunc )0,                          /* tp_compare */
+	( cmpfunc )0,                           /* tp_compare */
 #endif
     (reprfunc)AtomRef_repr,                 /* tp_repr */
     (PyNumberMethods*)&AtomRef_as_number,   /* tp_as_number */

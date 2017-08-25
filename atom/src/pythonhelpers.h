@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -743,7 +743,7 @@ public:
 
     PyObjectPtr get_class() const
     {
-        return PyObjectPtr( PythonHelpers::xnewref( (PyObject *)Py_TYPE( PyMethod_GET_SELF( m_pyobj ) ) ) );
+        return PyObjectPtr( PythonHelpers::xnewref( PyMethod_GET_CLASS( m_pyobj ) ) );
     }
 
 };

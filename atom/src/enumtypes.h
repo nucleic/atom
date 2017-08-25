@@ -1,11 +1,12 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
+#include "py23compat.h"
 #include "pythonhelpers.h"
 #include "behaviors.h"
 
@@ -106,7 +107,7 @@ from_py_enum( PyObject* value, PostValidate::Mode& out )
 template<typename T> inline PyObject*
 _to_py_enum( T value, PyObject* py_enum_class )
 {
-    PythonHelpers::PyObjectPtr py_int( PyLong_FromLong( static_cast<long>( value ) ) );
+    PythonHelpers::PyObjectPtr py_int( Py23Int_FromLong( static_cast<long>( value ) ) );
     if( !py_int )
         return 0;
     PythonHelpers::PyTuplePtr py_args( PyTuple_New( 1 ) );

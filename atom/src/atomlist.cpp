@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -204,37 +204,20 @@ public:
         return PyList_Type.tp_as_sequence->sq_ass_item(
             m_list.get(), index, item.get() );
     }
-
+// This signature is used only in tp_ass_slice which exists only on Python 2
+#if PY_MAJOR_VERSION < 3
     int setitem( Py_ssize_t low, Py_ssize_t high, PyObject* value )
     {
-        #if PY_MAJOR_VERSION >= 3
-            //if ( !value )
-            //    return PyList_Type.tp_as_mapping->mp_
-            // TODO - !value check here
-            int i, size = PySequence_Size( value );
-            if (size < 0)
-                return -1;
-            for ( i=0; i<size; i++ )
-            {
-                int loc = i + (int)low;
-                PyObject * obj = PySequence_GetItem( value, i );
-                PyObjectPtr item( validate_single( obj ) );
-                PyList_Type.tp_as_sequence->sq_ass_item(
-                    m_list.get(), loc, item.get());
-                Py_DECREF( obj );
-            }
-            return 1;
-        #else
-            if( !value )
-                return PyList_Type.tp_as_sequence->sq_ass_slice(
-                    m_list.get(), low, high, value );
-            PyObjectPtr item( validate_sequence( value ) );
-            if( !item )
-                return -1;
+        if( !value )
             return PyList_Type.tp_as_sequence->sq_ass_slice(
-                m_list.get(), low, high, item.get() );
-        #endif
+                m_list.get(), low, high, value );
+        PyObjectPtr item( validate_sequence( value ) );
+        if( !item )
+            return -1;
+        return PyList_Type.tp_as_sequence->sq_ass_slice(
+            m_list.get(), low, high, item.get() );
     }
+#endif
 
     int setitem( PyObject* key, PyObject* value )
     {
@@ -476,14 +459,12 @@ PyTypeObject AtomList_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-#if PY_MAJOR_VERSION >= 3
-#if PY_MINOR_VERSION > 4
-    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
 #else
-    ( void* ) 0,                           /* tp_reserved */
-#endif
-#else
-    ( cmpfunc )0,                          /* tp_compare */
+	( cmpfunc )0,                           /* tp_compare */
 #endif
     (reprfunc)0,                            /* tp_repr */
     (PyNumberMethods*)0,                    /* tp_as_number */
@@ -569,7 +550,9 @@ _STATIC_STRING( operation )
 _STATIC_STRING( item )
 _STATIC_STRING( items )
 _STATIC_STRING( index )
+#if PY_MAJOR_VERSION < 3
 _STATIC_STRING( cmp )
+#endif
 _STATIC_STRING( key )
 _STATIC_STRING( reverse )
 _STATIC_STRING( container )
@@ -766,10 +749,10 @@ public:
                 return 0;
             if( !c.set_item( PySStr::operation(), PySStr::sort() ) )
                 return 0;
-            PyObject* cmp = Py_None;
             PyObject* key = Py_None;
             int rev = 0;
 #if PY_MAJOR_VERSION < 3
+            PyObject* cmp = Py_None;
             if( !PyArg_ParseTupleAndKeywords(
                 args, kwargs, "|OOi", kwlist, &cmp, &key, &rev ) )
                 return 0;
@@ -857,6 +840,8 @@ public:
         return res;
     }
 
+// This signature is used only in tp_ass_slice which exists only on Python 2
+#if PY_MAJOR_VERSION < 3
     int setitem( Py_ssize_t low, Py_ssize_t high, PyObject* value )
     {
         PyObjectPtr olditem;
@@ -879,6 +864,7 @@ public:
         }
         return res;
     }
+#endif
 
     int setitem( PyObject* key, PyObject* value )
     {
@@ -1169,14 +1155,12 @@ PyTypeObject AtomCList_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-#if PY_MAJOR_VERSION >= 3
-#if PY_MINOR_VERSION > 4
-    ( PyAsyncMethods* )0,                  /* tp_as_async */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
 #else
-    ( void* ) 0,                           /* tp_reserved */
-#endif
-#else
-    ( cmpfunc )0,                          /* tp_compare */
+	( cmpfunc )0,                           /* tp_compare */
 #endif
     (reprfunc)0,                            /* tp_repr */
     (PyNumberMethods*)0,                    /* tp_as_number */
