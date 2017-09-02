@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include "member.h"
 #include "memberchange.h"
+#include "py23compat.h"
 
 
 using namespace PythonHelpers;
@@ -42,7 +43,7 @@ Member::check_context( SetAttr::Mode mode, PyObject* context )
         case SetAttr::ObjectMethod_Value:
         case SetAttr::ObjectMethod_NameValue:
         case SetAttr::MemberMethod_ObjectValue:
-            if( !PyString_Check( context ) )
+            if( !Py23Str_Check( context ) )
             {
                 py_expected_type_fail( context, "str" );
                 return false;
@@ -95,7 +96,7 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
 {
     if( member->index >= atom->get_slot_count() )
     {
-        py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
+        py_no_attr_fail( pyobject_cast( atom ), (char *)Py23Str_AS_STRING( member->name ) );
         return -1;
     }
     if( atom->is_frozen() )
@@ -169,7 +170,7 @@ read_only_handler( Member* member, CAtom* atom, PyObject* value )
 {
     if( member->index >= atom->get_slot_count() )
     {
-        py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
+        py_no_attr_fail( pyobject_cast( atom ), (char *)Py23Str_AS_STRING( member->name ) );
         return -1;
     }
     PyObjectPtr slot( atom->get_slot( member->index ) );
@@ -248,8 +249,8 @@ delegate_handler( Member* member, CAtom* atom, PyObject* value )
 static int
 _mangled_property_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    char* suffix = PyString_AS_STRING( member->name );
-    PyObjectPtr name( PyString_FromFormat( "_set_%s", suffix ) );
+    char* suffix = (char *)Py23Str_AS_STRING( member->name );
+    PyObjectPtr name( Py23Str_FromFormat( "_set_%s", suffix ) );
     if( !name )
         return -1;
     PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), name.get() ) );

@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -16,6 +16,7 @@
 #include "member.h"
 #include "enumtypes.h"
 #include "packagenaming.h"
+#include "py23compat.h"
 
 using namespace PythonHelpers;
 
@@ -87,7 +88,7 @@ Member_dealloc( Member* self )
     Member_clear( self );
     delete self->static_observers;
     self->static_observers = 0;
-    self->ob_type->tp_free( pyobject_cast( self ) );
+    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -101,7 +102,7 @@ Member_has_observers( Member* self )
 static PyObject*
 Member_has_observer( Member* self, PyObject* observer )
 {
-    if( !PyString_CheckExact( observer ) && !PyCallable_Check( observer ) )
+    if( !Py23Str_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return py_expected_type_fail( observer, "str or callable" );
     return py_bool( self->has_observer( observer ) );
 }
@@ -149,7 +150,7 @@ Member_static_observers( Member* self )
 static PyObject*
 Member_add_static_observer( Member* self, PyObject* observer )
 {
-    if( !PyString_CheckExact( observer ) && !PyCallable_Check( observer ) )
+    if( !Py23Str_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return py_expected_type_fail( observer, "str or callable" );
     self->add_observer( observer );
     Py_RETURN_NONE;
@@ -159,7 +160,7 @@ Member_add_static_observer( Member* self, PyObject* observer )
 static PyObject*
 Member_remove_static_observer( Member* self, PyObject* observer )
 {
-    if( !PyString_CheckExact( observer ) && !PyCallable_Check( observer ) )
+    if( !Py23Str_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return py_expected_type_fail( observer, "str or callable" );
     self->remove_observer( observer );
     Py_RETURN_NONE;
@@ -173,7 +174,7 @@ Member_get_slot( Member* self, PyObject* object )
         return py_expected_type_fail( object, "CAtom" );
     CAtom* atom = catom_cast( object );
     if( self->index >= atom->get_slot_count() )
-        return py_no_attr_fail( object, PyString_AsString( self->name ) );
+        return py_no_attr_fail( object, (char *)Py23Str_AS_STRING( self->name ) );
     PyObjectPtr value( atom->get_slot( self->index ) );
     if( value )
         return value.release();
@@ -192,7 +193,7 @@ Member_set_slot( Member* self, PyObject* args )
         return py_expected_type_fail( object, "CAtom" );
     CAtom* atom = catom_cast( object );
     if( self->index >= atom->get_slot_count() )
-        return py_no_attr_fail( object, PyString_AsString( self->name ) );
+        return py_no_attr_fail( object, (char *)Py23Str_AS_STRING( self->name ) );
     atom->set_slot( self->index, value );
     Py_RETURN_NONE;
 }
@@ -205,7 +206,7 @@ Member_del_slot( Member* self, PyObject* object )
         return py_expected_type_fail( object, "CAtom" );
     CAtom* atom = catom_cast( object );
     if( self->index >= atom->get_slot_count() )
-        return py_no_attr_fail( object, PyString_AsString( self->name ) );
+        return py_no_attr_fail( object, (char *)Py23Str_AS_STRING( self->name ) );
     atom->set_slot( self->index, 0 );
     Py_RETURN_NONE;
 }
@@ -330,7 +331,7 @@ static PyObject*
 Member_clone( Member* self )
 {
     // reimplement in a subclass to clone additional Python state
-    PyObject* pyclone = PyType_GenericNew( self->ob_type, 0, 0 );
+    PyObject* pyclone = PyType_GenericNew( Py_TYPE(self), 0, 0 );
     if( !pyclone )
         return 0;
     Member* clone = member_cast( pyclone );
@@ -366,10 +367,10 @@ Member_get_name( Member* self, void* context )
 static PyObject*
 Member_set_name( Member* self, PyObject* value )
 {
-    if( !PyString_CheckExact( value ) )
-        return py_expected_type_fail( value, "string" );
+    if( !Py23Str_CheckExact( value ) )
+        return py_expected_type_fail( value, "str" );
     Py_INCREF( value ); // incref before interning or segfault!
-    PyString_InternInPlace( &value );
+    Py23Str_InternInPlace( &value );
     PyObject* old = self->name;
     self->name = value;
     Py_DECREF( old );
@@ -380,16 +381,16 @@ Member_set_name( Member* self, PyObject* value )
 static PyObject*
 Member_get_index( Member* self, void* context )
 {
-    return PyInt_FromSsize_t( static_cast<Py_ssize_t>( self->index ) );
+    return Py23Int_FromSsize_t( static_cast<Py_ssize_t>( self->index ) );
 }
 
 
 static PyObject*
 Member_set_index( Member* self, PyObject* value )
 {
-    if( !PyInt_Check( value ) )
+    if( !Py23Int_Check( value ) )
         return py_expected_type_fail( value, "int" );
-    Py_ssize_t index = PyInt_AsSsize_t( value );
+    Py_ssize_t index = Py23Int_AsSsize_t( value );
     if( index < 0 && PyErr_Occurred() )
         return 0;
     self->index = static_cast<uint32_t>( index < 0 ? 0 : index );
@@ -853,8 +854,7 @@ Member_methods[] = {
 
 
 PyTypeObject Member_Type = {
-    PyObject_HEAD_INIT( &PyType_Type )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
     PACKAGE_TYPENAME( "Member" ),           /* tp_name */
     sizeof( Member ),                       /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -862,7 +862,13 @@ PyTypeObject Member_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-    (cmpfunc)0,                             /* tp_compare */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
+#else
+	( cmpfunc )0,                           /* tp_compare */
+#endif
     (reprfunc)0,                            /* tp_repr */
     (PyNumberMethods*)0,                    /* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */
@@ -908,7 +914,7 @@ import_member()
 {
     if( PyType_Ready( &Member_Type ) < 0 )
         return -1;
-    undefined = PyString_FromString( "<undefined>" );
+    undefined = Py23Str_FromString( "<undefined>" );
     if( !undefined )
         return -1;
     return 0;
@@ -1060,7 +1066,7 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
         std::vector<PyObjectPtr>::iterator end = static_observers->end();
         for( it = static_observers->begin(); it != end; ++it )
         {
-            if( PyString_CheckExact( it->get() ) )
+            if( Py23Str_CheckExact( it->get() ) )
             {
                 callable = objectptr.getattr( *it );
                 if( !callable )

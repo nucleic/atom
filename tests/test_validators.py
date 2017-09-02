@@ -42,20 +42,22 @@ import pytest
 from future.builtins import int
 
 from atom.api import (CAtom, Atom, Value, Bool, Int, Long, Range, Float,
-                      FloatRange, Str, Unicode, Enum, Callable, Coerced, Tuple,
-                      List, ContainerList, Dict, Instance, ForwardInstance,
-                      Typed, ForwardTyped, Subclass, ForwardSubclass, Event)
+                      FloatRange, Bytes, Str, Unicode, Enum, Callable, Coerced,
+                      Tuple, List, ContainerList, Dict, Instance,
+                      ForwardInstance, Typed, ForwardTyped, Subclass,
+                      ForwardSubclass, Event)
 
 
 @pytest.mark.parametrize("member, set_values, values, raising_values",
                          [(Value(), ['a', 1, None], ['a', 1, None], []),
                           (Bool(), [True, False], [True, False], 'r'),
-                          (Int(), [1], [1], [1.0, int(1)]),
+                          (Int(), [1], [1],
+                           [1.0, int(1)] if sys.version_info < (3,) else [1.0]
+                           ),
                           (Int(strict=False), [1, 1.0, int(1)], 3*[1], ['a']),
                           (Long(strict=True), [int(1)], [int(1)],
                            [1.0, 1] if sys.version_info < (3,) else [0.1]),
-                          # XXX fails curently because flaot is not supported
-                          #(Long(strict=False), [1, 1.0, int(1)], 3*[1], ['a']),
+                          (Long(strict=False), [1, 1.0, int(1)], 3*[1], ['a']),
                           (Range(0, 2), [0, 2], [0, 2], [-1, 3]),
                           (Range(2, 0), [0, 2], [0, 2], [-1, 3]),
                           (Range(0), [0, 3], [0, 3], [-1]),
@@ -69,6 +71,8 @@ from atom.api import (CAtom, Atom, Value, Bool, Int, Long, Range, Float,
                           (FloatRange(0.0), [0.0, 0.6], [0.0, 0.6], [-0.1]),
                           (FloatRange(high=0.5), [-0.3, 0.5], [-0.3, 0.5],
                            [0.6]),
+                          (Bytes(), [b'a', u'a'], [b'a']*2, [1]),
+                          (Bytes(strict=True), [b'a'], [b'a'], [u'a']),
                           (Str(), [b'a', u'a'], ['a']*2, [1]),
                           (Str(strict=True),
                            [b'a'] if sys.version_info < (3,) else [u'a'],
@@ -106,7 +110,13 @@ from atom.api import (CAtom, Atom, Value, Bool, Int, Long, Range, Float,
                           (Subclass(CAtom), [Atom], [Atom], [int]),
                           (ForwardSubclass(lambda: CAtom),
                            [Atom], [Atom], [int]),
-                          ])
+                          ] +
+                         ([(Range(sys.maxsize, sys.maxsize + 2),
+                           [sys.maxsize, sys.maxsize + 2],
+                           [sys.maxsize, sys.maxsize + 2],
+                           [sys.maxsize - 1, sys.maxsize + 3])]
+                          if sys.version_info > (3,) else [])
+                         )
 def test_validation_modes(member, set_values, values, raising_values):
     """Test the validation modes.
 

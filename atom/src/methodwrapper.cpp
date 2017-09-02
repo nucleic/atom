@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -39,7 +39,7 @@ MethodWrapper_dealloc( MethodWrapper* self )
 {
     Py_CLEAR( self->im_selfref );
     Py_CLEAR( self->im_func );
-    self->ob_type->tp_free( pyobject_cast( self ) );
+    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -49,8 +49,12 @@ MethodWrapper__call__( MethodWrapper* self, PyObject* args, PyObject* kwargs )
     PyObject* im_self = PyWeakref_GET_OBJECT( self->im_selfref );
     if( im_self != Py_None )
     {
+#if PY_MAJOR_VERSION < 3
         PyObject* type = pyobject_cast( im_self->ob_type );
         PyObjectPtr method( PyMethod_New( self->im_func, im_self, type ) );
+#else
+        PyObjectPtr method( PyMethod_New( self->im_func, im_self ) );
+#endif
         if( !method )
             return 0;
         return PyObject_Call( method.get(), args, kwargs );
@@ -99,7 +103,9 @@ PyNumberMethods MethodWrapper_as_number = {
      ( binaryfunc )0,                       /* nb_add */
      ( binaryfunc )0,                       /* nb_subtract */
      ( binaryfunc )0,                       /* nb_multiply */
+#if PY_MAJOR_VERSION < 3
      ( binaryfunc )0,                       /* nb_divide */
+#endif
      ( binaryfunc )0,                       /* nb_remainder */
      ( binaryfunc )0,                       /* nb_divmod */
      ( ternaryfunc )0,                      /* nb_power */
@@ -111,8 +117,7 @@ PyNumberMethods MethodWrapper_as_number = {
 
 
 PyTypeObject MethodWrapper_Type = {
-    PyObject_HEAD_INIT( &PyType_Type )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
     "MethodWrapper",                        /* tp_name */
     sizeof( MethodWrapper ),                /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -120,7 +125,13 @@ PyTypeObject MethodWrapper_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-    (cmpfunc)0,                             /* tp_compare */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
+#else
+	( cmpfunc )0,                           /* tp_compare */
+#endif
     (reprfunc)0,                            /* tp_repr */
     (PyNumberMethods*)&MethodWrapper_as_number, /* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */
@@ -181,7 +192,7 @@ AtomMethodWrapper_dealloc( AtomMethodWrapper* self )
     Py_CLEAR( self->im_func );
     // manual destructor since Python malloc'd and zero'd the struct
     self->pointer.~CAtomPointer();
-    self->ob_type->tp_free( pyobject_cast( self ) );
+    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -191,8 +202,12 @@ AtomMethodWrapper__call__( AtomMethodWrapper* self, PyObject* args, PyObject* kw
     if( self->pointer.data() )
     {
         PyObject* im_self = pyobject_cast( self->pointer.data() );
+#if PY_MAJOR_VERSION < 3
         PyObject* type = pyobject_cast( im_self->ob_type );
         PyObjectPtr method( PyMethod_New( self->im_func, im_self, type ) );
+#else
+        PyObjectPtr method( PyMethod_New( self->im_func, im_self ) );
+#endif
         if( !method )
             return 0;
         return PyObject_Call( method.get(), args, kwargs );
@@ -241,7 +256,9 @@ PyNumberMethods AtomMethodWrapper_as_number = {
      ( binaryfunc )0,                       /* nb_add */
      ( binaryfunc )0,                       /* nb_subtract */
      ( binaryfunc )0,                       /* nb_multiply */
+#if PY_MAJOR_VERSION < 3
      ( binaryfunc )0,                       /* nb_divide */
+#endif
      ( binaryfunc )0,                       /* nb_remainder */
      ( binaryfunc )0,                       /* nb_divmod */
      ( ternaryfunc )0,                      /* nb_power */
@@ -253,8 +270,7 @@ PyNumberMethods AtomMethodWrapper_as_number = {
 
 
 PyTypeObject AtomMethodWrapper_Type = {
-    PyObject_HEAD_INIT( &PyType_Type )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
     "AtomMethodWrapper",                    /* tp_name */
     sizeof( AtomMethodWrapper ),            /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -262,7 +278,13 @@ PyTypeObject AtomMethodWrapper_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-    (cmpfunc)0,                             /* tp_compare */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
+#else
+	( cmpfunc )0,                           /* tp_compare */
+#endif
     (reprfunc)0,                            /* tp_repr */
     (PyNumberMethods*)&AtomMethodWrapper_as_number, /* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */

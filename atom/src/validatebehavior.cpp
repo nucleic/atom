@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -8,6 +8,7 @@
 #include <limits>
 #include "member.h"
 #include "atomlist.h"
+#include "py23compat.h"
 
 
 using namespace PythonHelpers;
@@ -109,12 +110,12 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             PyObject* start = PyTuple_GET_ITEM( context, 0 );
             PyObject* end = PyTuple_GET_ITEM( context, 1 );
-            if( start != Py_None && !PyInt_Check( start ) )
+            if( start != Py_None && !Py23Int_Check( start ) )
             {
                 py_expected_type_fail( context, "2-tuple of int or None" );
                 return false;
             }
-            if( end != Py_None && !PyInt_Check( end ) )
+            if( end != Py_None && !Py23Int_Check( end ) )
             {
                 py_expected_type_fail( context, "2-tuple of int or None" );
                 return false;
@@ -153,7 +154,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
         case Validate::ObjectMethod_OldNew:
         case Validate::ObjectMethod_NameOldNew:
         case Validate::MemberMethod_ObjectOldNew:
-            if( !PyString_Check( context ) )
+            if( !Py23Str_Check( context ) )
             {
                 py_expected_type_fail( context, "str" );
                 return false;
@@ -173,7 +174,7 @@ validate_type_fail( Member* member, CAtom* atom, PyObject* newvalue, const char*
         PyExc_TypeError,
         "The '%s' member on the '%s' object must be of type '%s'. "
         "Got object of type '%s' instead.",
-        PyString_AsString( member->name ),
+        Py23Str_AS_STRING( member->name ),
         pyobject_cast( atom )->ob_type->tp_name,
         type,
         newvalue->ob_type->tp_name
@@ -197,15 +198,15 @@ bool_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
     return validate_type_fail( member, atom, newvalue, "bool" );
 }
 
-
+// Python 3 has a single int type
+#if PY_MAJOR_VERSION < 3
 static PyObject*
 int_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( PyInt_Check( newvalue ) )
+    if( Py23Int_Check( newvalue ) )
         return newref( newvalue );
     return validate_type_fail( member, atom, newvalue, "int" );
 }
-
 
 static PyObject*
 int_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
@@ -220,24 +221,30 @@ int_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
             PyErr_SetString( PyExc_OverflowError, "Python float too large to convert to C long" );
             return 0;
         }
-        return PyInt_FromLong( static_cast<long>( value ) );
+        return Py23Int_FromLong( static_cast<long>( value ) );
     }
     if( PyLong_Check( newvalue ) ) {
-        long value = PyLong_AsLong( newvalue );
+        long value = PyInt_AsLong( newvalue );
         if( value == -1 && PyErr_Occurred() )
             return 0;
         return PyInt_FromLong( value );
     }
     return validate_type_fail( member, atom, newvalue, "int float or long" );
 }
+#endif
 
+#if PY_MAJOR_VERSION >= 3
+    #define LONG_NAME "int"
+#else
+    #define LONG_NAME "long"
+#endif
 
 static PyObject*
 long_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyLong_Check( newvalue ) )
         return newref( newvalue );
-    return validate_type_fail( member, atom, newvalue, "long" );
+    return validate_type_fail( member, atom, newvalue, LONG_NAME );
 }
 
 
@@ -246,9 +253,16 @@ long_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject*
 {
     if( PyLong_Check( newvalue ) )
         return newref( newvalue );
-    if( PyInt_Check( newvalue ) )
-        return PyLong_FromLong( PyInt_AS_LONG( newvalue ) );
-    return validate_type_fail( member, atom, newvalue, "long" );
+    // Under Python 3 there is a single kind of int (PyLong)
+    #if PY_MAJOR_VERSION < 3
+        if( PyInt_Check( newvalue ) )
+            return PyLong_FromLong( PyInt_AS_LONG( newvalue ) );
+    #endif
+    if( PyFloat_Check( newvalue ) ) {
+        double value = PyFloat_AS_DOUBLE( newvalue );
+        return PyLong_FromDouble( value );
+    }
+    return validate_type_fail( member, atom, newvalue, LONG_NAME );
 }
 
 
@@ -266,8 +280,10 @@ float_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject
 {
     if( PyFloat_Check( newvalue ) )
         return newref( newvalue );
+    #if PY_MAJOR_VERSION < 3
     if( PyInt_Check( newvalue ) )
         return PyFloat_FromDouble( static_cast<double>( PyInt_AS_LONG( newvalue ) ) );
+    #endif
     if( PyLong_Check( newvalue ) )
     {
         double value = PyLong_AsDouble( newvalue );
@@ -278,33 +294,67 @@ float_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject
     return validate_type_fail( member, atom, newvalue, "float" );
 }
 
+#if PY_MAJOR_VERSION >= 3
+    #define BYTES_STR "bytes"
+    #define UNICODE_STR "str"
+#else
+    #define BYTES_STR "str"
+    #define UNICODE_STR "unicode"
+#endif
+
 
 static PyObject*
-str_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+bytes_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( PyString_Check( newvalue ) )
+    if( Py23Bytes_Check( newvalue ) )
         return newref( newvalue );
-    return validate_type_fail( member, atom, newvalue, "str" );
+    return validate_type_fail( member, atom, newvalue, BYTES_STR );
 }
 
-
 static PyObject*
-str_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+bytes_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( PyString_Check( newvalue ) )
+    if( Py23Bytes_Check( newvalue ) )
         return newref( newvalue );
+
     if( PyUnicode_Check( newvalue ) )
         return PyUnicode_AsUTF8String( newvalue );
+
+    return validate_type_fail( member, atom, newvalue, BYTES_STR );
+}
+
+static PyObject*
+string_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( Py23Str_Check( newvalue ) )
+        return newref( newvalue );
     return validate_type_fail( member, atom, newvalue, "str" );
 }
 
+
+static PyObject*
+string_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( Py23Str_Check( newvalue ) )
+        return newref( newvalue );
+#if PY_MAJOR_VERSION >= 3
+    if( PyBytes_Check( newvalue ) )
+        return PyUnicode_FromString( PyBytes_AS_STRING( newvalue ) );
+
+#else
+    if( PyUnicode_Check( newvalue ) )
+        return PyUnicode_AsUTF8String( newvalue );
+
+#endif
+    return validate_type_fail( member, atom, newvalue, "str" );
+}
 
 static PyObject*
 unicode_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyUnicode_Check( newvalue ) )
         return newref( newvalue );
-    return validate_type_fail( member, atom, newvalue, "unicode" );
+    return validate_type_fail( member, atom, newvalue, UNICODE_STR );
 }
 
 
@@ -313,9 +363,11 @@ unicode_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObje
 {
     if( PyUnicode_Check( newvalue ) )
         return newref( newvalue );
-    if( PyString_Check( newvalue ) )
-        return PyUnicode_FromString( PyString_AS_STRING( newvalue ) );
-    return validate_type_fail( member, atom, newvalue, "unicode" );
+
+    if( Py23Bytes_Check( newvalue ) )
+        return PyUnicode_FromString( Py23Bytes_AS_STRING( newvalue ) );
+
+    return validate_type_fail( member, atom, newvalue, UNICODE_STR );
 }
 
 
@@ -583,19 +635,18 @@ float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
 static PyObject*
 range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( !PyInt_Check( newvalue ) )
+    if( !Py23Int_Check( newvalue ) )
         return validate_type_fail( member, atom, newvalue, "int" );
     PyObject* low = PyTuple_GET_ITEM( member->validate_context, 0 );
     PyObject* high = PyTuple_GET_ITEM( member->validate_context, 1 );
-    long value = PyInt_AS_LONG( newvalue );
     if( low != Py_None )
     {
-        if( PyInt_AS_LONG( low ) > value )
+        if( PyObject_RichCompareBool( low , newvalue, Py_GT ) )
             return py_type_fail( "range value too small" );
     }
     if( high != Py_None )
     {
-        if( PyInt_AS_LONG( high ) < value )
+        if( PyObject_RichCompareBool( high , newvalue, Py_LT ) )
             return py_type_fail( "range value too large" );
     }
     return newref( newvalue );
@@ -695,14 +746,22 @@ static handler
 handlers[] = {
     no_op_handler,
     bool_handler,
+    // Python 3 has a single int type hence we use twice the same validator
+    #if PY_MAJOR_VERSION >= 3
+    long_handler,
+    long_promote_handler,
+    #else
     int_handler,
     int_promote_handler,
+    #endif
     long_handler,
     long_promote_handler,
     float_handler,
     float_promote_handler,
-    str_handler,
-    str_promote_handler,
+    bytes_handler,
+    bytes_promote_handler,
+    string_handler,
+    string_promote_handler,
     unicode_handler,
     unicode_promote_handler,
     tuple_handler,

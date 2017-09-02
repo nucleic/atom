@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2013-2017, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -57,7 +57,8 @@ class ForwardSubclass(Subclass):
 
         """
         self.resolve = resolve
-        self.set_default_value_mode(DefaultValue.MemberMethod_Object, "default")
+        self.set_default_value_mode(DefaultValue.MemberMethod_Object,
+                                    "default")
         self.set_validate_mode(Validate.MemberMethod_ObjectOldNew, "validate")
 
     def default(self, owner):

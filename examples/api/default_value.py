@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2013-2017, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -14,7 +14,9 @@
 5. Use a _default_* static method
 
 """
-from __future__ import print_function
+from __future__ import (division, unicode_literals, print_function,
+                        absolute_import)
+
 import sys
 
 from atom.api import Atom, Unicode, Int

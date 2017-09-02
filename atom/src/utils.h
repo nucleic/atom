@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -11,13 +11,21 @@
 namespace utils
 {
 
+#if PY_MAJOR_VERSION >= 3
+    #define STR_TYPE PyUnicode_Type
+    #define STR_CHECK_EXACT( obj ) PyUnicode_CheckExact( obj )
+#else
+    #define STR_TYPE PyBaseString_Type
+    #define STR_CHECK_EXACT( obj ) PyString_CheckExact( obj ) || PyUnicode_CheckExact( obj )
+#endif
+
+
 inline bool
 basestring_check( PyObject* obj )
 {
     return (
-        PyString_CheckExact( obj ) ||
-        PyUnicode_CheckExact( obj ) ||
-        PyObject_TypeCheck( obj, &PyBaseString_Type )
+        STR_CHECK_EXACT( obj ) ||
+        PyObject_TypeCheck( obj, &STR_TYPE )
     );
 }
 

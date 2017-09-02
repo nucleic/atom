@@ -1,11 +1,15 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2013-2017, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from UserDict import DictMixin
+import sys
+if sys.version_info >= (3,):
+    from collections import MutableMapping
+else:
+    from UserDict import DictMixin as MutableMapping
 
 from .catom import Member, PostGetAttr, DefaultValue, Validate
 from .instance import Instance
@@ -90,7 +94,7 @@ class Dict(Member):
             value.set_index(index)
 
 
-class _DictProxy(object, DictMixin):
+class _DictProxy(MutableMapping):
     """ A private proxy object which validates dict modifications.
 
     Instances of this class should not be created by user code.
@@ -119,6 +123,9 @@ class _DictProxy(object, DictMixin):
 
     def __delitem__(self, key):
         del self._data[key]
+
+    def __len__(self):
+        return len(self._data)
 
     def __iter__(self):
         return iter(self._data)

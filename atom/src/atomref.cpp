@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -13,7 +13,15 @@
 #include "catompointer.h"
 #include "globalstatic.h"
 #include "packagenaming.h"
+#include "py23compat.h"
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
+#endif
+
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif
 
 #define atomref_cast( o ) ( reinterpret_cast<AtomRef*>( o ) )
 
@@ -78,7 +86,7 @@ AtomRef_dealloc( AtomRef* self )
 {
     // manual destructor since Python malloc'd and zero'd the struct
     self->pointer.~CAtomPointer();
-    self->ob_type->tp_free( pyobject_cast( self ) );
+    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
 
@@ -106,24 +114,24 @@ AtomRef_repr( AtomRef* self )
         PyObjectPtr repr( PyObject_Repr( obj ) );
         if( !repr )
             return 0;
-        ostr << PyString_AsString( repr.get() );
+        ostr << Py23Str_AS_STRING( repr.get() );
     }
     ostr << ")";
-    return PyString_FromString( ostr.str().c_str() );
+    return Py23Str_FromString( ostr.str().c_str() );
 }
 
 
 static PyObject*
 AtomRef_sizeof( AtomRef* self, PyObject* args )
 {
-    Py_ssize_t size = self->ob_type->tp_basicsize;
+    Py_ssize_t size = Py_TYPE(self)->tp_basicsize;
     size += sizeof( CAtomPointer );
-    return PyInt_FromSsize_t( size );
+    return Py23Int_FromSsize_t( size );
 }
 
 
 static int
-AtomRef__nonzero__( AtomRef* self )
+AtomRef__bool__( AtomRef* self )
 {
     return self->pointer.is_null() ? 0 : 1;
 }
@@ -133,14 +141,16 @@ PyNumberMethods AtomRef_as_number = {
      ( binaryfunc )0,                       /* nb_add */
      ( binaryfunc )0,                       /* nb_subtract */
      ( binaryfunc )0,                       /* nb_multiply */
+#if PY_MAJOR_VERSION < 3
      ( binaryfunc )0,                       /* nb_divide */
+#endif
      ( binaryfunc )0,                       /* nb_remainder */
      ( binaryfunc )0,                       /* nb_divmod */
      ( ternaryfunc )0,                      /* nb_power */
      ( unaryfunc )0,                        /* nb_negative */
      ( unaryfunc )0,                        /* nb_positive */
      ( unaryfunc )0,                        /* nb_absolute */
-     ( inquiry )AtomRef__nonzero__          /* nb_nonzero */
+     ( inquiry )AtomRef__bool__          /* nb_nonzero, or nb_bool in python3 */
 };
 
 
@@ -153,8 +163,7 @@ AtomRef_methods[] = {
 
 
 PyTypeObject AtomRef_Type = {
-    PyObject_HEAD_INIT( 0 )
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT( NULL, 0 )
     PACKAGE_TYPENAME( "atomref" ),          /* tp_name */
     sizeof( AtomRef ),                      /* tp_basicsize */
     0,                                      /* tp_itemsize */
@@ -162,7 +171,13 @@ PyTypeObject AtomRef_Type = {
     (printfunc)0,                           /* tp_print */
     (getattrfunc)0,                         /* tp_getattr */
     (setattrfunc)0,                         /* tp_setattr */
-    (cmpfunc)0,                             /* tp_compare */
+#if PY_VERSION_HEX >= 0x03050000
+	( PyAsyncMethods* )0,                   /* tp_as_async */
+#elif PY_VERSION_HEX >= 0x03000000
+	( void* ) 0,                            /* tp_reserved */
+#else
+	( cmpfunc )0,                           /* tp_compare */
+#endif
     (reprfunc)AtomRef_repr,                 /* tp_repr */
     (PyNumberMethods*)&AtomRef_as_number,   /* tp_as_number */
     (PySequenceMethods*)0,                  /* tp_as_sequence */

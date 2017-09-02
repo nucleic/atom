@@ -1,11 +1,13 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013, Nucleic Development Team.
+# Copyright (c) 2013-2017, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
 from .catom import Member, DefaultValue, Validate, SetAttr, DelAttr
+
+from future.builtins import int
 
 
 class Value(Member):
@@ -113,7 +115,7 @@ class Long(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=0L, factory=None, strict=False):
+    def __init__(self, default=int(0), factory=None, strict=False):
         super(Long, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Long, None)
@@ -178,21 +180,40 @@ class Float(Value):
             self.set_validate_mode(Validate.FloatPromote, None)
 
 
-class Str(Value):
-    """ A value of type `str`.
+class Bytes(Value):
+    """ A value of type `bytes`.
 
-    By default, unicode strings will be promoted to plain strings. Pass
-    strict=True to the constructor to enable strict string checking.
+    By default, unicode strings will be promoted to byte strings. Pass
+    strict=True to the constructor to enable strict byte sting checking.
 
     """
     __slots__ = ()
 
+    def __init__(self, default=b'', factory=None, strict=False):
+        super(Bytes, self).__init__(default, factory)
+        if strict:
+            self.set_validate_mode(Validate.Bytes, None)
+        else:
+            self.set_validate_mode(Validate.BytesPromote, None)
+
+
+class Str(Value):
+    """A value of type `str`.
+
+    Under Python 2 this is a byte string and behaves as Bytes with respect to
+    promotion, under Python 3 it is a unicode string and behaves as Unicode
+    with respect to promotion.
+
+    The use of this member is discouraged in Python 2/3 compatible codebase
+    as Bytes and Unicode provide a more homogeneous behavior.
+
+    """
     def __init__(self, default='', factory=None, strict=False):
         super(Str, self).__init__(default, factory)
         if strict:
-            self.set_validate_mode(Validate.Str, None)
+            self.set_validate_mode(Validate.String, None)
         else:
-            self.set_validate_mode(Validate.StrPromote, None)
+            self.set_validate_mode(Validate.StringPromote, None)
 
 
 class Unicode(Value):

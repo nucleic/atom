@@ -1,15 +1,20 @@
 Welcome to Atom
 ===============
 
-Atom is a framework for creating memory efficient Python objects with enhanced 
-features such as dynamic initialization, validation, and change notification for 
+.. image:: https://travis-ci.org/nucleic/atom.svg?branch=master
+    :target: https://travis-ci.org/nucleic/atom
+.. image:: https://codecov.io/gh/nucleic/atom/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/nucleic/atom
+
+Atom is a framework for creating memory efficient Python objects with enhanced
+features such as dynamic initialization, validation, and change notification for
 object attributes. It provides the default model binding behaviour for the
 `Enaml <http://nucleic.github.io/enaml/docs>`_ UI framework.
 
 Illustrative Example:
 
 .. code-block:: python
-   
+
     from atom.api import Atom, Unicode, Range, Bool, observe
 
 
@@ -36,7 +41,7 @@ Illustrative Example:
                     first=self.first_name, last=self.last_name, age=self.age,
                 )
                 print(s)
-                
+
         def _default_first_name(self):
             return 'John'
 
@@ -45,5 +50,5 @@ Illustrative Example:
     john.debug = True
     john.age = 43  # prints message
     john.age = 'forty three'   # raises TypeError
-    
+
 For version information, see `the Revision History <https://github.com/nucleic/atom/blob/master/releasenotes.rst>`_.

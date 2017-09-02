@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -14,9 +14,9 @@
 #include "signalconnector.h"
 #include "atomref.h"
 #include "atomlist.h"
-//#include "atomdict.h"
 #include "enumtypes.h"
 #include "propertyhelper.h"
+#include "py23compat.h"
 
 using namespace PythonHelpers;
 
@@ -28,31 +28,50 @@ catom_methods[] = {
     { 0 } // Sentinel
 };
 
+#if PY_MAJOR_VERSION >= 3
 
-PyMODINIT_FUNC
-initcatom( void )
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "catom",
+        "catom extension module",
+        -1,
+        catom_methods,
+        NULL,
+        NULL,
+        NULL,
+        NULL
+};
+
+#endif
+
+
+MOD_INIT(catom)
 {
+#if PY_MAJOR_VERSION >= 3
+    PyObject *mod = PyModule_Create(&moduledef);
+#else
     PyObject* mod = Py_InitModule( "catom", catom_methods );
+#endif
     if( !mod )
-        return;
+        INITERROR;
     if( import_member() < 0 )
-        return;
+        INITERROR;
     if( import_memberchange() < 0 )
-        return;
+        INITERROR;
     if( import_catom() < 0 )
-        return;
+        INITERROR;
     if( import_eventbinder() < 0 )
-        return;
+        INITERROR;
     if( import_signalconnector() < 0 )
-        return;
+        INITERROR;
     if( import_atomref() < 0 )
-        return;
+        INITERROR;
     if( import_atomlist() < 0 )
-        return;
+        INITERROR;
     //if( import_atomdict() < 0 )
-    //    return;
+    //    INITERROR;
     if( import_enumtypes() < 0 )
-        return;
+        INITERROR;
 
     Py_INCREF( &Member_Type );
     Py_INCREF( &CAtom_Type );
@@ -82,4 +101,8 @@ initcatom( void )
     PyModule_AddObject( mod, "DefaultValue", PyDefaultValue );
     PyModule_AddObject( mod, "Validate", PyValidate );
     PyModule_AddObject( mod, "PostValidate", PyPostValidate );
+
+#if PY_MAJOR_VERSION >= 3
+    return mod;
+#endif
 }

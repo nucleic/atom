@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013, Nucleic Development Team.
+| Copyright (c) 2013-2017, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include "member.h"
 #include "memberchange.h"
+#include "py23compat.h"
 
 
 using namespace PythonHelpers;
@@ -64,7 +65,7 @@ slot_handler( Member* member, CAtom* atom )
 {
     if( member->index >= atom->get_slot_count() )
     {
-        py_no_attr_fail( pyobject_cast( atom ), PyString_AsString( member->name ) );
+        py_no_attr_fail( pyobject_cast( atom ), (char const *)Py23Str_AS_STRING( member->name ) );
         return -1;
     }
     if( atom->is_frozen() )
@@ -146,8 +147,8 @@ delegate_handler( Member* member, CAtom* atom )
 static int
 _mangled_property_handler( Member* member, CAtom* atom )
 {
-    char* suffix = PyString_AS_STRING( member->name );
-    PyObjectPtr name( PyString_FromFormat( "_del_%s", suffix ) );
+    char* suffix = (char *)Py23Str_AS_STRING( member->name );
+    PyObjectPtr name( Py23Str_FromFormat( "_del_%s", suffix ) );
     if( !name )
         return -1;
     PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), name.get() ) );
