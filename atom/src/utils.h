@@ -19,7 +19,6 @@ namespace utils
     #define STR_CHECK_EXACT( obj ) PyString_CheckExact( obj ) || PyUnicode_CheckExact( obj )
 #endif
 
-
 inline bool
 basestring_check( PyObject* obj )
 {

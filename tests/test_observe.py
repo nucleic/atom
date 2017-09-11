@@ -12,7 +12,7 @@ import pytest
 from atom.api import Atom, Int, List, Value, Event, Signal, observe
 
 
-def test_static_observers():
+def test_static_observers(capsys):
     """Test using static observers.
 
     """
@@ -72,8 +72,9 @@ def test_static_observers():
     del ot.ext
     assert not ext2.has_observer('val', ot.react)
 
-    with pytest.raises(TypeError):
-        ot.ext = 12
+    assert not capsys.readouterr()[1]
+    ot.ext = 12
+    assert capsys.readouterr()[1]
 
 
 def test_dynamic_observers():
@@ -229,6 +230,67 @@ def test_observe_decorators():
         observe(12)
     with pytest.raises(TypeError):
         observe(['a.b.c'])
+
+
+def test_handling_of_exceptions_in_observers(capsys):
+    """Test that we properly print exception occuring in observers.
+
+    """
+    class Observer(object):
+
+        def __init__(self):
+            self.count = 0
+            self.exc_cls = ValueError
+
+        def react(self, change):
+            self.count += 1
+            raise self.exc_cls()
+
+    class NotifTest(Atom):
+
+        val = Int()
+
+        count = Int()
+
+        exc_cls = Value(ValueError)
+
+        def _observe_val(self, change):
+            self.count += 1
+            raise self.exc_cls()
+
+    ob = Observer()
+    nt = NotifTest()
+    nt.observe('val', ob.react)
+
+    assert not capsys.readouterr()[1]
+
+    # Check both static and dynamic notifiers are called even when raising
+    nt.val = 1
+    assert ob.count == 1
+    assert nt.count == 1
+
+    # Check we did print to stderr
+    assert capsys.readouterr()[1]
+
+    class MyException(Exception):
+
+        def __str__(self):
+            raise ValueError()
+
+    ob.exc_cls = MyException
+    nt.exc_cls = MyException
+
+    assert not capsys.readouterr()[1]
+
+    # Check both static and dynamic notifiers are called even when raising
+    nt.val += 1
+    assert ob.count == 2
+    assert nt.count == 2
+
+    # Check we did print to stderr
+    err = capsys.readouterr()[1]
+    print(err)
+    assert err
 
 # XXX add a test catching the SystemError of Python 3
 # For the time being I known how to write one only using enaml
