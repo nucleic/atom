@@ -221,10 +221,6 @@ ObserverPool::notify( PyObjectPtr& topic, PyObjectPtr& args, PyObjectPtr& kwargs
                     if( !obs_it->operator()( args, kwargs ) )
                     {
                         PyErr_Print();
-                        if( PyErr_Occurred() )
-                        {
-                            PyErr_Print();
-                        }
                     }
                 }
                 else
