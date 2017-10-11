@@ -1,6 +1,13 @@
 Atom Release Notes
 ==================
 
+0.4.0 - 11/10/2017
+------------------
+- Python 3 support. _c063e523dd9_
+
+.. _c063e523dd9: https://github.com/nucleic/atom/commit/c063e523dd90919b3d22eac5d49c7e4d7d595039
+
+
 0.3.10 - 10/28/2014
 -------------------
 - Fix a bug in resolution of Forward* members. _92244cf1e75_
