@@ -14,6 +14,32 @@
 
 using namespace PythonHelpers;
 
+bool compare_less( PyObject* first, PyObject* second )
+{
+    int r = PyObject_RichCompareBool( first, second, Py_LT );
+    if( r == 1 )
+        return true;
+    if( r == 0 )
+        return false;
+
+    if ( PyErr_Occurred() )
+    {
+        PyErr_Clear();
+        PyObjectPtr f_type_name( PyObject_GetAttrString ( pyobject_cast( first->ob_type ),  "__name__" ) );
+        PyObjectPtr s_type_name( PyObject_GetAttrString ( pyobject_cast( second->ob_type ),  "__name__" ) );
+        if( f_type_name.richcompare( s_type_name, Py_EQ ) )
+        {
+            return first < second;
+
+        }
+        else
+        {
+            return f_type_name.richcompare( s_type_name, Py_LT );
+        }
+    }
+    return false;
+}
+
 class MapItem
 {
 
@@ -58,22 +84,21 @@ public:
         {
             if( first.m_key == second.m_key )
                 return false;
-            return first.m_key.richcompare( second.m_key, Py_LT );
+            return compare_less( first.m_key.get(), second.m_key.get() );
         }
 
         bool operator()( MapItem& first, PyObject* second )
         {
             if( first.m_key == second )
                 return false;
-            return first.m_key.richcompare( second, Py_LT );
+            return compare_less( first.m_key.get(), second );
         }
 
         bool operator()( PyObject* first, MapItem& second )
         {
             if( first == second.m_key )
                 return false;
-            PyObjectPtr temp( newref( first ) );
-            return temp.richcompare( second.m_key, Py_LT );
+            return compare_less( first, second.m_key.get() );
         }
     };
 

@@ -295,15 +295,10 @@ public:
             if( clear_err )
                 PyErr_Clear();
 
-            // FIXME: compare pointers in case of comparison problems
             switch (opid)
             {
-            case Py_LT: return m_pyobj < other;
-            case Py_LE: return m_pyobj <= other;
             case Py_EQ: return m_pyobj == other;
             case Py_NE: return m_pyobj != other;
-            case Py_GT: return m_pyobj > other;
-            case Py_GE: return m_pyobj >= other;
             }
         }
         return false;
