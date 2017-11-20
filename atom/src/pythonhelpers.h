@@ -24,6 +24,7 @@
 
 #define pyobject_cast( o ) ( reinterpret_cast<PyObject*>( o ) )
 #define pytype_cast( o ) ( reinterpret_cast<PyTypeObject*>( o ) )
+#define pytype_name( o ) ( PyObject_GetAttrString( pyobject_cast( o->ob_type ), "__name__" ) )
 
 namespace PythonHelpers
 {
@@ -299,6 +300,46 @@ public:
             {
             case Py_EQ: return m_pyobj == other;
             case Py_NE: return m_pyobj != other;
+            }
+
+            // If we were not asked to clean the exception make sure we do
+            // not overwrite it with another one.
+            bool exception_set = false;
+            PyObject *type, *value, *traceback;
+            if( !clear_err )
+            {
+                PyErr_Fetch(&type, &value, &traceback);
+                exception_set = true;
+            }
+            PyObjectPtr f_type_name( pytype_name( m_pyobj ) );
+            PyObjectPtr s_type_name( pytype_name( other ) );
+            if( !f_type_name.get() )
+                f_type_name.set( PyUnicode_FromString( "" ) );
+            if( !s_type_name.get() )
+                s_type_name.set( PyUnicode_FromString( "" ) );
+            // Clear any error that may have occured while fetching class names
+            if ( PyErr_Occurred() )
+                PyErr_Clear();
+            if( f_type_name.richcompare( s_type_name, Py_EQ ) )
+            {
+                // Restore previous exception if one was set.
+                if( exception_set )
+                    PyErr_Restore(type, value, traceback);
+                switch (opid)
+                {
+                case Py_LT: return m_pyobj < other;
+                case Py_LE: return m_pyobj <= other;
+                case Py_GT: return m_pyobj > other;
+                case Py_GE: return m_pyobj >= other;
+                }
+            }
+            else
+            {
+                bool result( f_type_name.richcompare( s_type_name, opid ) );
+                // Restore previous exception if one was set.
+                if( exception_set )
+                    PyErr_Restore(type, value, traceback);
+                return result;
             }
         }
         return false;
