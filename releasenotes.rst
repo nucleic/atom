@@ -1,6 +1,10 @@
 Atom Release Notes
 ==================
 
+0.4.1 - unreleased
+------------------
+- add a fallback to pointer comparison on Python to fix sortedmap #77
+
 0.4.0 - 11/10/2017
 ------------------
 - Python 3 support. _c063e523dd9_
