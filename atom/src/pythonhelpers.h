@@ -295,15 +295,49 @@ public:
             if( clear_err )
                 PyErr_Clear();
 
-            // FIXME: compare pointers in case of comparison problems
             switch (opid)
             {
-            case Py_LT: return m_pyobj < other;
-            case Py_LE: return m_pyobj <= other;
             case Py_EQ: return m_pyobj == other;
             case Py_NE: return m_pyobj != other;
-            case Py_GT: return m_pyobj > other;
-            case Py_GE: return m_pyobj >= other;
+            }
+
+            // If we were not asked to clean the exception make sure we do
+            // not overwrite it with another one.
+            bool exception_set = false;
+            PyObject *type, *value, *traceback;
+            if( !clear_err )
+            {
+                PyErr_Fetch(&type, &value, &traceback);
+                exception_set = true;
+            }
+
+            int class_name_comp = strcmp(m_pyobj->ob_type->tp_name,
+                                         other->ob_type->tp_name);
+            if( class_name_comp == 0 )
+            {
+                // Restore previous exception if one was set.
+                if( exception_set )
+                    PyErr_Restore(type, value, traceback);
+                switch (opid)
+                {
+                case Py_LT: return m_pyobj < other;
+                case Py_LE: return m_pyobj <= other;
+                case Py_GT: return m_pyobj > other;
+                case Py_GE: return m_pyobj >= other;
+                }
+            }
+            else
+            {
+                // Restore previous exception if one was set.
+                if( exception_set )
+                    PyErr_Restore(type, value, traceback);
+                switch (opid)
+                {
+                case Py_LT: return class_name_comp < 0;
+                case Py_LE: return class_name_comp <= 0;
+                case Py_GT: return class_name_comp > 0;
+                case Py_GE: return class_name_comp >= 0;
+                }
             }
         }
         return false;
