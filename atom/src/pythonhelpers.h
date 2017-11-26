@@ -24,7 +24,6 @@
 
 #define pyobject_cast( o ) ( reinterpret_cast<PyObject*>( o ) )
 #define pytype_cast( o ) ( reinterpret_cast<PyTypeObject*>( o ) )
-#define pytype_name( o ) ( PyObject_GetAttrString( pyobject_cast( o->ob_type ), "__name__" ) )
 
 namespace PythonHelpers
 {
@@ -311,16 +310,10 @@ public:
                 PyErr_Fetch(&type, &value, &traceback);
                 exception_set = true;
             }
-            PyObjectPtr f_type_name( pytype_name( m_pyobj ) );
-            PyObjectPtr s_type_name( pytype_name( other ) );
-            if( !f_type_name.get() )
-                f_type_name.set( PyUnicode_FromString( "" ) );
-            if( !s_type_name.get() )
-                s_type_name.set( PyUnicode_FromString( "" ) );
-            // Clear any error that may have occured while fetching class names
-            if ( PyErr_Occurred() )
-                PyErr_Clear();
-            if( f_type_name.richcompare( s_type_name, Py_EQ ) )
+
+            int class_name_comp = strcmp(m_pyobj->ob_type->tp_name,
+                                         other->ob_type->tp_name);
+            if( class_name_comp == 0 )
             {
                 // Restore previous exception if one was set.
                 if( exception_set )
@@ -335,11 +328,16 @@ public:
             }
             else
             {
-                bool result( f_type_name.richcompare( s_type_name, opid ) );
                 // Restore previous exception if one was set.
                 if( exception_set )
                     PyErr_Restore(type, value, traceback);
-                return result;
+                switch (opid)
+                {
+                case Py_LT: return class_name_comp < 0;
+                case Py_LE: return class_name_comp <= 0;
+                case Py_GT: return class_name_comp > 0;
+                case Py_GE: return class_name_comp >= 0;
+                }
             }
         }
         return false;
