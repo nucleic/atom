@@ -134,6 +134,45 @@ lookup_method( PyTypeObject* type, const char* name )
     return 0;
 }
 
+    
+/**
+ * A fallback 3way comparison function for when PyObject_RichCompareBool
+ * fails to compare "unorderable types" on Python 3.
+ *
+ * This is based on Python 2's `default_3way_compare`.
+ *
+ * This function will not change the Python exception state.
+ */
+inline int
+fallback_3way_compare( PyObject* first, PyObject* second ) {
+    // Compare pointer values if the types are the same.
+    if( first->ob_type == second->ob_type ) {
+        Py_uintptr_t fp = static_cast<Py_uintptr_t>( first );
+        Py_uintptr_t sp = static_cast<Py_uintptr_t>( second );
+        return (fp < sp) ? -1 : (fp > sp) ? 1 : 0;
+    }
+
+    // None is smaller than anything.
+    if( first == Py_None )
+        return -1;
+    if( second == Py_None )
+        return 1;
+
+    // Compare based on type names, numbers are smaller.
+    const char* fn = PyNumber_Check( first ) ? "" : first->ob_type->tp_name;
+    const char* sn = PyNumber_Check( second ) ? "" : second->ob_type->tp_name;
+    int c = strcmp( fn, sn );
+    if( c < 0 )
+        return -1;
+    if( c > 0 )
+        return 1;
+
+    // Finally, fall back to comparing type pointers.
+    Py_uintptr_t ftp = static_cast<Py_uintptr_t>( first->ob_type );
+    Py_uintptr_t stp = static_cast<Py_uintptr_t>( second->ob_type );
+    return ftp < stp ? -1 : 1;
+}
+
 
 /*-----------------------------------------------------------------------------
 | Object Ptr
@@ -284,28 +323,33 @@ public:
 
     bool richcompare( PyObject* other, int opid, bool clear_err=true )
     {
+        // Start with Python's rich compare.
         int r = PyObject_RichCompareBool( m_pyobj, other, opid );
+
+        // Handle a successful comparison.
         if( r == 1 )
             return true;
         if( r == 0 )
             return false;
 
-        if ( PyErr_Occurred() )
-        {
-            if( clear_err )
-                PyErr_Clear();
+        // Clear the error if requested.
+        if( clear_err && PyErr_Occurred() )
+            PyErr_Clear();
 
-            // FIXME: compare pointers in case of comparison problems
-            switch (opid)
-            {
-            case Py_LT: return m_pyobj < other;
-            case Py_LE: return m_pyobj <= other;
-            case Py_EQ: return m_pyobj == other;
-            case Py_NE: return m_pyobj != other;
-            case Py_GT: return m_pyobj > other;
-            case Py_GE: return m_pyobj >= other;
-            }
+        // Fallback to the Python 2 default 3 way compare.
+        int c = fallback_3way_compare( m_pyobj, other );
+
+        // Convert the 3way comparison result based on the `opid`.
+        switch (opid) {
+        case Py_EQ: return c == 0;
+        case Py_NE: return c != 0;
+        case Py_LE: return c <= 0;
+        case Py_GE: return c >= 0;
+        case Py_LT: return c < 0;
+        case Py_GT: return c > 0;
         }
+
+        // Return `false` if the `opid` is not handled.
         return false;
     }
 
