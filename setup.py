@@ -5,9 +5,13 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+import os
+import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
 
+sys.path.insert(0, os.path.abspath('.'))
+from atom.version import __version__
 
 ext_modules = [
     Extension(
@@ -66,7 +70,7 @@ class BuildExt(build_ext):
 
 setup(
     name='atom',
-    version='0.4.0',
+    version=__version__,
     author='The Nucleic Development Team',
     author_email='sccolbert@gmail.com',
     url='https://github.com/nucleic/atom',

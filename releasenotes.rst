@@ -1,9 +1,10 @@
 Atom Release Notes
 ==================
 
-0.4.1 - unreleased
+0.4.1 - 28/01/2018
 ------------------
-- add a fallback to pointer comparison on Python to fix sortedmap #77
+- add a fall-back to type name/pointer comparison on Python 3. Otherwise
+  sortedmap can fail for non homogeneously typed keys. #77
 
 0.4.0 - 11/10/2017
 ------------------
