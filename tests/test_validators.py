@@ -39,7 +39,7 @@
 """
 import sys
 import pytest
-from future.builtins import int
+from atom.compat import long
 
 from atom.api import (CAtom, Atom, Value, Bool, Int, Long, Range, Float,
                       FloatRange, Bytes, Str, Unicode, Enum, Callable, Coerced,
@@ -52,10 +52,10 @@ from atom.api import (CAtom, Atom, Value, Bool, Int, Long, Range, Float,
                          [(Value(), ['a', 1, None], ['a', 1, None], []),
                           (Bool(), [True, False], [True, False], 'r'),
                           (Int(), [1], [1],
-                           [1.0, int(1)] if sys.version_info < (3,) else [1.0]
+                           [1.0, long(1)] if sys.version_info < (3,) else [1.0]
                            ),
                           (Int(strict=False), [1, 1.0, int(1)], 3*[1], ['a']),
-                          (Long(strict=True), [int(1)], [int(1)],
+                          (Long(strict=True), [long(1)], [long(1)],
                            [1.0, 1] if sys.version_info < (3,) else [0.1]),
                           (Long(strict=False), [1, 1.0, int(1)], 3*[1], ['a']),
                           (Range(0, 2), [0, 2], [0, 2], [-1, 3]),

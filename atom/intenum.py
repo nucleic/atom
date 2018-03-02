@@ -13,8 +13,7 @@ if sys.version_info >= (3,):
 else:
     import copy_reg as copyreg
 
-from future.utils import with_metaclass
-from past.builtins import basestring
+from .compat import with_metaclass, basestring
 
 
 # IntEnum is not defined until the metaclass creates it.

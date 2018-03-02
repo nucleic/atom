@@ -16,7 +16,7 @@ if sys.version_info < (3,):
     from operator import div
 
 import pytest
-from future.utils import with_metaclass
+from atom.compat import with_metaclass
 from atom.intenum import IntEnum, _IntEnumMeta
 
 

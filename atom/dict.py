@@ -5,8 +5,8 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-import sys
-if sys.version_info >= (3,):
+from .compat import IS_PY3
+if IS_PY3:
     from collections import MutableMapping
 else:
     from UserDict import DictMixin as MutableMapping
