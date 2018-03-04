@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 from .catom import Member, DefaultValue, Validate, SetAttr, DelAttr
 
-from future.builtins import int
+from .compat import long
 
 
 class Value(Member):
@@ -115,7 +115,7 @@ class Long(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=int(0), factory=None, strict=False):
+    def __init__(self, default=long(0), factory=None, strict=False):
         super(Long, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Long, None)

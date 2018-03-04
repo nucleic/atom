@@ -13,8 +13,7 @@ else:
 from contextlib import contextmanager
 
 from types import FunctionType
-from future.utils import with_metaclass
-from past.builtins import basestring
+from .compat import with_metaclass, basestring
 
 from .catom import (
     CAtom, Member, DefaultValue, PostGetAttr, PostSetAttr, Validate,
