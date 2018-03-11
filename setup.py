@@ -76,6 +76,7 @@ setup(
     url='https://github.com/nucleic/atom',
     description='Memory efficient Python objects',
     long_description=open('README.rst').read(),
+    license='BSD',
     install_requires=['setuptools'],
     packages=find_packages(exclude=['tests', 'tests.*']),
     ext_modules=ext_modules,
