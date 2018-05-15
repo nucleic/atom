@@ -89,7 +89,7 @@ ListSubtype_New( PyTypeObject* subtype, Py_ssize_t size )
 {
     if( size < 0 )
         return py_bad_internal_call( "negative list size" );
-    if( static_cast<size_t>( size ) > PY_SIZE_MAX / sizeof( PyObject* ) )
+    if( static_cast<size_t>( size ) > PY_SSIZE_T_MAX / sizeof( PyObject* ) )
         return PyErr_NoMemory();
     PyObjectPtr ptr( PyType_GenericNew( subtype, 0, 0 ) );
     if( !ptr )
