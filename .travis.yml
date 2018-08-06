@@ -3,7 +3,8 @@ language: python
 # newer python versions are available only on xenial
 # (while some older only on trusty) Ubuntu distribution
 dist: xenial
-sudo: false
+sudo: required
+cache: pip
 
 jobs:
   include:
