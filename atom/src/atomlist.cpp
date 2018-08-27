@@ -24,12 +24,24 @@ namespace ListMethods
 {
 
 static PyCFunction append = 0;
+#if PY_VERSION_HEX >= 0x03070000
+static _PyCFunctionFast insert = 0;
+#else
 static PyCFunction insert = 0;
+#endif
 static PyCFunction extend = 0;
+#if PY_VERSION_HEX >= 0x03070000
+static _PyCFunctionFast pop = 0;
+#else
 static PyCFunction pop = 0;
+#endif
 static PyCFunction remove = 0;
 static PyCFunction reverse = 0;
+#if PY_VERSION_HEX >= 0x03070000
+static _PyCFunctionFastWithKeywords sort = 0;
+#else
 static PyCFunctionWithKeywords sort = 0;
+#endif
 
 
 static bool
@@ -41,7 +53,12 @@ init_methods()
         py_bad_internal_call( "failed to load list 'append' method" );
         return false;
     }
+#if PY_VERSION_HEX >= 0x03070000
+    // typedef _PyCFunctionFast func_t;
+    insert = reinterpret_cast<_PyCFunctionFast>( lookup_method( &PyList_Type, "insert" ) );
+#else
     insert = lookup_method( &PyList_Type, "insert" );
+#endif
     if( !insert )
     {
         py_bad_internal_call( "failed to load list 'insert' method" );
@@ -53,7 +70,12 @@ init_methods()
         py_bad_internal_call( "failed to load list 'extend' method" );
         return false;
     }
+#if PY_VERSION_HEX >= 0x03070000
+    // typedef _PyCFunctionFast func_t;
+    pop = reinterpret_cast<_PyCFunctionFast>( lookup_method( &PyList_Type, "pop" ) );
+#else
     pop = lookup_method( &PyList_Type, "pop" );
+#endif
     if( !pop )
     {
         py_bad_internal_call( "failed to load list 'pop' method" );
@@ -71,8 +93,14 @@ init_methods()
         py_bad_internal_call( "failed to load list 'reverse' method" );
         return false;
     }
+#if PY_VERSION_HEX >= 0x03070000
+    // typedef _PyCFunctionFast func_t;
+    sort = reinterpret_cast<_PyCFunctionFastWithKeywords>( lookup_method( &PyList_Type, "sort" ) );
+#else
     typedef PyCFunctionWithKeywords func_t;
     sort = reinterpret_cast<func_t>( lookup_method( &PyList_Type, "sort" ) );
+#endif
+
     if( !sort )
     {
         py_bad_internal_call( "failed to load list 'sort' method" );
@@ -173,7 +201,13 @@ public:
             return 0;
         nargs.initialize( 0, Py23Int_FromSsize_t( index ) );
         nargs.initialize( 1, valptr.release() );
+#if PY_VERSION_HEX >= 0x03070000
+        int nnargs = (int)PyTuple_GET_SIZE(nargs.get());
+        PyObject **stack = &PyTuple_GET_ITEM(nargs.get(), 0);
+        return ListMethods::insert( m_list.get(), stack, nnargs );
+#else
         return ListMethods::insert( m_list.get(), nargs.get() );
+#endif
     }
 
     PyObject* extend( PyObject* value )
@@ -667,7 +701,13 @@ public:
     PyObject* pop( PyObject* args )
     {
         Py_ssize_t size = m_list.size();
+#if PY_VERSION_HEX >= 0x03070000
+        int nargs = (int)PyTuple_GET_SIZE( args);
+        PyObject **stack = &PyTuple_GET_ITEM(args, 0);
+        PyObjectPtr res( ListMethods::pop( m_list.get(), stack, nargs ) );
+#else
         PyObjectPtr res( ListMethods::pop( m_list.get(), args ) );
+#endif
         if( !res )
             return 0;
         if( observer_check() )
@@ -739,7 +779,24 @@ public:
 #else
         static char *kwlist[] = { "key", "reverse", 0 };
 #endif
+#if PY_VERSION_HEX >= 0x03070000
+        int nargs = (int)PyTuple_GET_SIZE( args );
+        PyObject **stack = &PyTuple_GET_ITEM( args, 0 );
+
+        PyObject *const *stackbis;
+        PyObject *kwnames;
+        if (_PyStack_UnpackDict(stack, nargs, kwargs, &stackbis, &kwnames) < 0) {
+            return NULL;
+        }
+
+        PyObjectPtr res( ListMethods::sort( m_list.get(), stackbis, nargs, kwnames ) );
+        if (stackbis != stack) {
+            PyMem_Free((PyObject **)stackbis);
+        }
+        Py_XDECREF(kwnames);
+#else
         PyObjectPtr res( ListMethods::sort( m_list.get(), args, kwargs ) );
+#endif
         if( !res )
             return 0;
         if( observer_check() )
