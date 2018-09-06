@@ -791,7 +791,7 @@ public:
 
         PyObjectPtr res( ListMethods::sort( m_list.get(), stackbis, nargs, kwnames ) );
         if (stackbis != stack) {
-            PyMem_Free((PyObject **)stackbis);
+            PyMem_Free((PyObject **)stack);
         }
         Py_XDECREF(kwnames);
 #else
