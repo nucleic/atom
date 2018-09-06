@@ -19,28 +19,34 @@
 
 using namespace PythonHelpers;
 
+typedef PyCFunction pycfunc;
+typedef PyCFunctionWithKeywords pycfunc_kw;
+#if PY_VERSION_HEX >= 0x03070000
+typedef _PyCFunctionFast pycfunc_f
+typedef _PyCFunctionFastWithKeywords pycfunc_fkwß
+#endif
 
 namespace ListMethods
 {
 
-static PyCFunction append = 0;
+static pycfunc append = 0;
 #if PY_VERSION_HEX >= 0x03070000
-static _PyCFunctionFast insert = 0;
+static pycfunc_f insert = 0;
 #else
-static PyCFunction insert = 0;
+static pycfunc insert = 0;
 #endif
-static PyCFunction extend = 0;
+static pycfunc extend = 0;
 #if PY_VERSION_HEX >= 0x03070000
-static _PyCFunctionFast pop = 0;
+static pycfunc_f pop = 0;
 #else
-static PyCFunction pop = 0;
+static pycfunc pop = 0;
 #endif
-static PyCFunction remove = 0;
-static PyCFunction reverse = 0;
+static pycfunc remove = 0;
+static pycfunc reverse = 0;
 #if PY_VERSION_HEX >= 0x03070000
-static _PyCFunctionFastWithKeywords sort = 0;
+static pycfunc_fkw sort = 0;
 #else
-static PyCFunctionWithKeywords sort = 0;
+static pycfunc_kw sort = 0;
 #endif
 
 
@@ -54,8 +60,7 @@ init_methods()
         return false;
     }
 #if PY_VERSION_HEX >= 0x03070000
-    // typedef _PyCFunctionFast func_t;
-    insert = reinterpret_cast<_PyCFunctionFast>( lookup_method( &PyList_Type, "insert" ) );
+    insert = reinterpret_cast<pycfunc_f>( lookup_method( &PyList_Type, "insert" ) );
 #else
     insert = lookup_method( &PyList_Type, "insert" );
 #endif
@@ -71,8 +76,7 @@ init_methods()
         return false;
     }
 #if PY_VERSION_HEX >= 0x03070000
-    // typedef _PyCFunctionFast func_t;
-    pop = reinterpret_cast<_PyCFunctionFast>( lookup_method( &PyList_Type, "pop" ) );
+    pop = reinterpret_cast<pycfunc_f>( lookup_method( &PyList_Type, "pop" ) );
 #else
     pop = lookup_method( &PyList_Type, "pop" );
 #endif
@@ -94,11 +98,9 @@ init_methods()
         return false;
     }
 #if PY_VERSION_HEX >= 0x03070000
-    // typedef _PyCFunctionFast func_t;
-    sort = reinterpret_cast<_PyCFunctionFastWithKeywords>( lookup_method( &PyList_Type, "sort" ) );
+    sort = reinterpret_cast<pycfunc_fkw>( lookup_method( &PyList_Type, "sort" ) );
 #else
-    typedef PyCFunctionWithKeywords func_t;
-    sort = reinterpret_cast<func_t>( lookup_method( &PyList_Type, "sort" ) );
+    sort = reinterpret_cast<pycfunc_kw>( lookup_method( &PyList_Type, "sort" ) );
 #endif
 
     if( !sort )
@@ -786,7 +788,7 @@ public:
         PyObject *const *stackbis;
         PyObject *kwnames;
         if (_PyStack_UnpackDict(stack, nargs, kwargs, &stackbis, &kwnames) < 0) {
-            return NULL;
+            return 0;
         }
 
         PyObjectPtr res( ListMethods::sort( m_list.get(), stackbis, nargs, kwnames ) );
