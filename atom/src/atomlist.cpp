@@ -22,8 +22,8 @@ using namespace PythonHelpers;
 typedef PyCFunction pycfunc;
 typedef PyCFunctionWithKeywords pycfunc_kw;
 #if PY_VERSION_HEX >= 0x03070000
-typedef _PyCFunctionFast pycfunc_f
-typedef _PyCFunctionFastWithKeywords pycfunc_fkwß
+typedef _PyCFunctionFast pycfunc_f;
+typedef _PyCFunctionFastWithKeywords pycfunc_fkw;
 #endif
 
 namespace ListMethods
