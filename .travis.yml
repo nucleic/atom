@@ -6,6 +6,12 @@ dist: xenial
 sudo: required
 cache: pip
 
+branches:
+  only:
+    - master
+
+env:
+  - CPPFLAGS=--coverage
 jobs:
   include:
   - name: "run test suite with python 2.7"
@@ -30,4 +36,4 @@ install:
 script:
   - py.test tests --cov atom
 after_success:
-  - codecov
+  - bash <(curl -s https://codecov.io/bash)
