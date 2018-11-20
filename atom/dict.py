@@ -93,6 +93,21 @@ class Dict(Member):
         if value is not None:
             value.set_index(index)
 
+    def clone(self):
+        """ Create a clone of the list.
+
+        This will clone the internal list item if one is in use.
+
+        """
+        clone = super(Dict, self).clone()
+        key, value = self.validate_mode[1]
+        if key is not None or value is not None:
+            key_clone = key.clone() if key is not None else None
+            value_clone = value.clone() if value is not None else None
+            mode, _ = self.validate_mode
+            clone.set_validate_mode(mode, (key_clone, value_clone))
+        return clone
+
 
 class _DictProxy(MutableMapping):
     """ A private proxy object which validates dict modifications.
