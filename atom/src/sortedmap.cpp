@@ -467,10 +467,10 @@ SortedMap_repr( SortedMap* self )
     SortedMap::Items::iterator end_it = self->m_items->end();
     for( it = self->m_items->begin(); it != end_it; ++it )
     {
-        PyObjectPtr keystr( PyObject_Str( it->key() ) );
+        PyObjectPtr keystr( PyObject_Repr( it->key() ) );
         if( !keystr )
             return 0;
-        PyObjectPtr valstr( PyObject_Str( it->value() ) );
+        PyObjectPtr valstr( PyObject_Repr( it->value() ) );
         if( !valstr )
             return 0;
         ostr << Py23Str_AS_STRING( keystr.get() ) << ": ";
