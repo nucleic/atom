@@ -18,8 +18,28 @@
 
 """
 import pytest
-from atom.api import (Atom, Int, Constant, Signal, ReadOnly, Event)
+from atom.api import (Atom, Int, Constant, Member, Signal, ReadOnly, Event)
 from atom.catom import DelAttr
+
+
+def test_del_noop():
+    """Test the noop handler.
+
+    """
+    member = Member()
+    member.set_delattr_mode(DelAttr.NoOp, None)
+
+    class A(Atom):
+
+        m = member
+
+    assert A.m.delattr_mode[0] == DelAttr.NoOp
+    a = A()
+    a.m = 1
+    del a.m
+    assert a.m == 1
+    assert A.m.do_delattr(a) is None
+    assert a.m == 1
 
 
 @pytest.mark.parametrize("member, mode",
@@ -53,6 +73,18 @@ def test_del_slot():
 
     a = DelSlot()
     assert a.i == 10
+
+    # Using del statement
     a.i = 0
     del a.i
     assert a.i == 10
+
+    # Using the member do_delattr
+    a.i = 0
+    DelSlot.i.do_delattr(a)
+    assert a.i == 10
+
+    # Test deleting an improperly indexed slot
+    DelSlot.i.set_index(DelSlot.i.index + 1)
+    with pytest.raises(AttributeError):
+        DelSlot.i.do_delattr(a)

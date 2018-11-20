@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2018, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -13,19 +13,30 @@
     dict_handler
     delegate_handler: not tested here
     call_object_handler: used for factory function or Typed/Instance with args
-    call_object_object_handler: unused as far as I can tell
-    call_object_object_name_handler: unused as far as I can tell
+    call_object_object_handler: advanced used case not used internally
+    call_object_object_name_handler: advanced used case not used internally
     object_method_handler
-    object_method_name_handler: unused as far as I can tell
+    object_method_name_handler: uadvanced used case not used internally
     member_method_object_handler
 
 """
 import pytest
+
+from atom.api import (Atom, Coerced, DefaultValue, Dict, FloatRange,
+                      ForwardInstance, ForwardSubclass, ForwardTyped, Instance,
+                      List, Member, Range, Subclass, Typed, Value)
 from atom.compat import int
 
-from atom.api import (Atom, Value, Range, FloatRange, List, Dict, Typed,
-                      ForwardTyped, Instance, ForwardInstance, Coerced,
-                      ForwardSubclass, DefaultValue)
+
+def test_no_op_handler():
+    """Test the NoOp handler.
+
+    """
+    class A(Atom):
+        v = Member()
+
+    assert A.v.default_value_mode[0] == DefaultValue.NoOp
+    assert A().v is None
 
 
 @pytest.mark.parametrize("member, expected",
@@ -36,6 +47,7 @@ from atom.api import (Atom, Value, Range, FloatRange, List, Dict, Typed,
                           (FloatRange(0.0), 0.0),
                           (FloatRange(high=0.0), 0.0),
                           (FloatRange(0.0, value=1.0), 1.0),
+                          (Subclass(float), float),
                           (ForwardSubclass(lambda: float), float)])
 def test_static_handler(member, expected):
     """Test a static handler.
@@ -109,7 +121,7 @@ def test_dict_handler():
                            DefaultValue.CallObject),
                           (Coerced(int, factory=lambda: 5), 5,
                            DefaultValue.CallObject)])
-def test_call_object_handler(member, expected, mode):
+def test_callobject_handler(member, expected, mode):
     """Test calling factory handler.
 
     """
@@ -120,6 +132,44 @@ def test_call_object_handler(member, expected, mode):
     assert CallTest.m.default_value_mode[0] == mode
     assert CallTest().m == expected
     assert CallTest.m.default_value_mode[0] == DefaultValue.CallObject
+
+
+def test_callobject_object_handler():
+    """Test the CallObject_Object mode.
+
+    """
+    mode = DefaultValue.CallObject_Object
+    member = Value()
+    member.set_default_value_mode(mode, lambda obj: id(obj))
+
+    class A(Atom):
+
+        m = member
+
+    a1 = A()
+    a2 = A()
+    assert id(a1) == a1.m
+    assert id(a2) == a2.m
+    assert a1.m != a2.m
+
+
+def test_callobject_object_name_handler():
+    """Test the CallObject_ObjectName mode.
+
+    """
+    mode = DefaultValue.CallObject_ObjectName
+    member = Value()
+    member.set_default_value_mode(mode, lambda obj, name: (id(obj), name))
+
+    class A(Atom):
+
+        m = member
+
+    a1 = A()
+    a2 = A()
+    assert id(a1), 'm' == a1.m
+    assert id(a2), 'm' == a2.m
+    assert a1.m != a2.m
 
 
 def test_object_method_member_handler():
@@ -161,3 +211,37 @@ def test_member_method_object_handler():
             DefaultValue.MemberMethod_Object)
     assert MemberTest().m is SENTINEL
     assert MemberTest.m.do_default_value(MemberTest()) is SENTINEL
+
+
+def test_object_method_name_handler():
+    """Test object
+    """
+    mode = DefaultValue.ObjectMethod_Name
+    member = Value()
+    member.set_default_value_mode(mode, 'custom_default')
+
+    class DefaultMethodTest(Atom):
+        v = member
+
+        def custom_default(self, name):
+            return 5, name
+
+    assert DefaultMethodTest().v == (5, 'v')
+
+
+@pytest.mark.parametrize('mode, default',
+                         [(DefaultValue.List, 1),
+                          (DefaultValue.Dict, 1),
+                          (DefaultValue.Delegate, 1),
+                          (DefaultValue.CallObject, 1),
+                          (DefaultValue.CallObject_Object, 1),
+                          (DefaultValue.CallObject_ObjectName, 1),
+                          (DefaultValue.ObjectMethod, 1),
+                          (DefaultValue.ObjectMethod_Name, 1),
+                          (DefaultValue.MemberMethod_Object, 1)])
+def test_validating_default_value(mode, default):
+    """Test that we validate the proposed default value when setting the mode.
+
+    """
+    with pytest.raises(TypeError):
+        Member().set_default_value_mode(mode, default)

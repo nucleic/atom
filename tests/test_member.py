@@ -39,14 +39,13 @@ Methods:
 
 """
 import pytest
-from atom.api import (Atom, Value, Int, List, Dict, Event, Instance,
+from atom.api import (Atom, Value, Int, List, Tuple, Dict, Event, Instance,
                       ForwardInstance, ForwardSubclass, ForwardTyped,
                       GetAttr, SetAttr, DefaultValue, Validate, PostGetAttr,
                       PostSetAttr, PostValidate, observe)
 from atom.catom import DelAttr
 
 
-# XXX why does tuple do not work in the same way
 def test_name_managing_name():
     """Test getting/setting the name of a Member.
 
@@ -54,6 +53,8 @@ def test_name_managing_name():
     class NameTest(Atom):
 
         v = Value()
+
+        t = Tuple(Int())
 
         l = List(Int())
 
@@ -64,6 +65,9 @@ def test_name_managing_name():
     assert NameTest.v.name == 'v'
     NameTest.v.set_name('v2')
     assert NameTest.v.name == 'v2'
+
+    assert NameTest.t.name == 't'
+    assert NameTest.t.item.name == 't|item'
 
     assert NameTest.l.name == 'l'
     assert NameTest.l.item.name == 'l|item'
@@ -76,6 +80,10 @@ def test_name_managing_name():
     assert NameTest.e.name == 'e'
     assert NameTest.e.validate_mode[1].name == 'e'
 
+    with pytest.raises(TypeError) as excinfo:
+        NameTest.v.set_name(1)
+    assert 'str' in excinfo.exconly()
+
 
 def test_managing_slot_index():
     """Test getting and setting the index of a Member.
@@ -85,6 +93,8 @@ def test_managing_slot_index():
 
         v1 = Value()
         v2 = Value()
+
+        t = Tuple(Int())
 
         l = List(Int())
 
@@ -102,19 +112,34 @@ def test_managing_slot_index():
     assert it.v1 == 2
     assert it.v2 == 1
 
+    assert IndexTest.t.item.index == IndexTest.t.index
+    IndexTest.t.set_index(99)
+    assert IndexTest.t.item.index == IndexTest.t.index
+
+    assert IndexTest.l.item.index == IndexTest.l.index
+    IndexTest.l.set_index(99)
     assert IndexTest.l.item.index == IndexTest.l.index
 
     key, value = IndexTest.d.validate_mode[1]
     assert key.index == IndexTest.d.index
     assert value.index == IndexTest.d.index
+    IndexTest.d.set_index(99)
+    assert key.index == IndexTest.d.index
+    assert value.index == IndexTest.d.index
 
     assert IndexTest.e.validate_mode[1].index == IndexTest.e.index
+
+    with pytest.raises(TypeError) as excinfo:
+        IndexTest.v1.set_index('')
+    assert 'int' in excinfo.exconly()
 
 
 def test_metadata_handling():
     """Test writing and accessing the metadata of a Member.
 
     """
+    assert Value().metadata is None
+
     class MetadataTest(Atom):
 
         m = Value().tag(pref=True)
@@ -124,6 +149,21 @@ def test_metadata_handling():
     assert m.metadata == {'pref': True}
     m.metadata = dict(a=1, b=2)
     assert m.metadata == dict(a=1, b=2)
+
+    m.metadata = None
+    assert m.metadata is None
+
+    with pytest.raises(TypeError) as excinfo:
+        m.metadata = 1
+    assert 'dict or None' in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        m.tag(1)
+    assert 'tag()' in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        m.tag()
+    assert 'tag()' in excinfo.exconly()
 
 
 def test_direct_slot_access():
@@ -142,12 +182,21 @@ def test_direct_slot_access():
     assert SlotTest.v.get_slot(st) is None
 
     # Test type validation
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError) as excinfo:
         SlotTest.v.get_slot(None)
-    with pytest.raises(TypeError):
+    assert 'CAtom' in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        SlotTest.v.set_slot()
+    assert '2 arguments' in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
         SlotTest.v.set_slot(None, 1)
-    with pytest.raises(TypeError):
+    assert 'CAtom' in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
         SlotTest.v.del_slot(None)
+    assert 'CAtom' in excinfo.exconly()
 
     # Test index validation
     SlotTest.v.set_index(SlotTest.v.index + 1)
@@ -157,6 +206,48 @@ def test_direct_slot_access():
         SlotTest.v.set_slot(st, 1)
     with pytest.raises(AttributeError):
         SlotTest.v.del_slot(st)
+
+
+def test_class_validation():
+    """Test validating the type of class in the descriptor.
+
+    """
+    class FalseAtom(object):
+        v = Value()
+
+    fa = FalseAtom()
+
+    with pytest.raises(TypeError) as excinfo:
+        fa.v
+    assert 'CAtom' in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        fa.v = 1
+    assert 'CAtom' in excinfo.exconly()
+
+
+@pytest.mark.parametrize('method, arg_number',
+                         [('do_getattr', 1),
+                          ('do_setattr', 2),
+                          ('do_delattr', 1),
+                          ('do_post_getattr', 2),
+                          ('do_post_setattr', 3),
+                          ('do_default_value', 1),
+                          ('do_validate', 3),
+                          ('do_post_validate', 3),
+                          ('do_full_validate', 3)])
+def test_handling_arg_issue_in_do_methods(method, arg_number):
+    """Test handling bad args in do methods.
+
+    """
+    m = Value()
+    if arg_number > 1:
+        with pytest.raises(TypeError)as excinfo:
+            getattr(m, method)()
+        assert str(arg_number) in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        getattr(m, method)(*([None]*arg_number))
 
 
 def test_member_cloning():
@@ -171,7 +262,7 @@ def test_member_cloning():
     spy = Spy()
 
     class CloneTest(Atom):
-        v = Value()
+        v = Value().tag(test=True)
 
         @observe('v')
         def react(self, change):
@@ -188,7 +279,7 @@ def test_member_cloning():
     CloneTest.v.set_post_validate_mode(PostValidate.ObjectMethod_NameOldNew,
                                        'c')
     cv = CloneTest.v.clone()
-    for attr in ('name', 'index',
+    for attr in ('name', 'index', 'metadata',
                  'getattr_mode', 'setattr_mode', 'delattr_mode',
                  'default_value_mode', 'validate_mode',
                  'post_getattr_mode', 'post_setattr_mode',
@@ -198,22 +289,27 @@ def test_member_cloning():
     assert cv.static_observers() == CloneTest.v.static_observers()
 
 
-# XXX why is only List cloning the item and not Tuple and Dict ?
-def test_cloning_list():
-    """Check that cloning a list does cllone the validation item is present.
+@pytest.mark.parametrize('untyped, typed',
+                         [(List(), List(int)),
+                          (Tuple(), Tuple(int)),
+                          (Dict(), Dict(int, int))])
+def test_cloning_containers_member(untyped, typed):
+    """Check that cloning a list does clone the validation item is present.
 
     """
-    l1 = List()
-    assert l1.clone().item is None
+    if not isinstance(untyped, Dict):
+        assert untyped.clone().item is None
 
-    v = Instance(int)
-    l2 = List(v)
-    l2.set_index(5)
-    cl2 = l2.clone()
-    assert cl2.index == l2.index
-    assert cl2.item is not v
-    assert isinstance(cl2.item, type(v))
-    assert cl2.item.validate_mode[1] == l2.item.validate_mode[1]
+    typed.set_index(5)
+    cl2 = typed.clone()
+    assert cl2.index == typed.index
+    validators = ([typed.item] if hasattr(typed, 'item') else
+                  typed.validate_mode[1])
+    c_validators = ([cl2.item] if hasattr(typed, 'item') else
+                     cl2.validate_mode[1])
+    for v, cv in zip(validators, c_validators):
+        assert cv is not v
+        assert isinstance(cv, type(v))
 
 
 # XXX should the kwargs be copied rather than simply re-assigned

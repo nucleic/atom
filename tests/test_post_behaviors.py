@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2018, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -8,154 +8,188 @@
 """Test post_validate/get/set behaviors
 
 All of them have the following handlers:
-    no_op_handler
+    no_op_handler: Do nothing
     delegate_handler: not tested here (see test_delegate.py)
     object_method_old_new_handler: method defined on the Atom object
-    object_method_name_old_new_handler: not used as far as I can tell
+    object_method_name_old_new_handler: method defined on the Atom object
+                                        taking the member name as first arg
     member_method_object_old_new_handler: Method defined on a Member subclass
 
 """
+import pytest
+
 from atom.api import (Atom, Int, PostValidate, PostGetAttr, PostSetAttr)
 
 
-def test_post_validate():
-    """Test the post_validate behaviors.
+GET_MEMBER_METHOD_SRC = """
+class TrackedInt(Int):
+
+    def __init__(self):
+        super(TrackedInt, self).__init__()
+        mode = PostGetAttr.{mode}
+        self.set_post_getattr_mode(mode, 'post_getattr')
+
+    def post_getattr(self, obj, value):
+        obj.counter += 1
+
+class PostAtom(Atom):
+
+    mi = TrackedInt()
+
+    counter = Int()
+
+"""
+
+GET_OBJECT_METHOD_SRC = """
+class PostAtom(Atom):
+
+    mi = Int()
+
+    counter = Int()
+
+    def _post_getattr_mi(self, value):
+        self.counter += 1
+"""
+
+GET_OBJECT_METHOD_NAME_SRC = """
+class PostAtom(Atom):
+
+    mi = Int()
+    mi.set_post_getattr_mode(getattr(PostGetAttr, 'ObjectMethod_NameValue'),
+                                     'post_getattr_mi')
+
+    counter = Int()
+
+    def post_getattr_mi(self, name, value):
+        self.counter += 1
+"""
+
+@pytest.mark.parametrize('mode', ('NoOp',
+                                  'ObjectMethod_Value',
+                                  'ObjectMethod_NameValue',
+                                  'MemberMethod_ObjectValue'))
+def test_post_getattr(mode):
+    """ Test the post_getattr_behaviors.
 
     """
-    class ModuloInt(Int):
+    namespace = {}
+    namespace.update(globals())
+    src = (GET_MEMBER_METHOD_SRC if mode in ('MemberMethod_ObjectValue', 'NoOp')
+           else GET_OBJECT_METHOD_SRC if mode == 'ObjectMethod_Value'
+           else GET_OBJECT_METHOD_NAME_SRC)
+    src = src.format(mode=mode)
+    print(src)
+    exec(src, namespace)
 
-        def __init__(self):
-            super(ModuloInt, self).__init__()
-            mode = PostValidate.MemberMethod_ObjectOldNew
-            self.set_post_validate_mode(mode, 'post_validate')
-
-        def post_validate(self, obj, old, new):
-            return new % 2
-
-    class PostValidateTest(Atom):
-
-        mi = ModuloInt()
-
-        manual_mi = Int()
-
-        def _post_validate_manual_mi(self, old, new):
-            return new % 2
+    PostAtom = namespace['PostAtom']
 
     # Test subclassed member
-    pvt = PostValidateTest()
-    mi = pvt.get_member('mi')
-    assert mi.post_validate_mode[0] == PostValidate.MemberMethod_ObjectOldNew
-    pvt.mi = 2
-    assert pvt.mi == 0
-    pvt.mi = 3
-    assert pvt.mi == 1
+    pot = PostAtom()
+    mi = pot.get_member('mi')
+    assert mi.post_getattr_mode[0] == getattr(PostGetAttr, mode)
+    pot.mi
+    assert pot.counter == (1 if mode != 'NoOp' else 0)
 
-    # Test do_post_validate
-    assert mi.do_post_validate(pvt, pvt.mi, 2) == 0
-    assert mi.do_post_validate(pvt, pvt.mi, 3) == 1
-
-    # Test class defined custom post_validator
-    mmi = pvt.get_member('manual_mi')
-    assert mmi.post_validate_mode[0] == PostValidate.ObjectMethod_OldNew
-    pvt.manual_mi = 2
-    assert pvt.manual_mi == 0
-    pvt.manual_mi = 3
-    assert pvt.manual_mi == 1
-
-    # Test do_full_validate
-    assert mmi.do_post_validate(pvt, pvt.manual_mi, 2) == 0
-    assert mmi.do_post_validate(pvt, pvt.manual_mi, 3) == 1
+    # Test do_post_*** method
+    func = getattr(mi, 'do_post_getattr')
+    func(pot, 2)
+    assert pot.counter == (2 if mode != 'NoOp' else 0)
 
 
-def test_post_getattr():
-    """Test the post_getattr behaviors.
+MEMBER_METHOD_SRC = """
+class TrackedInt(Int):
+
+    def __init__(self):
+        super(TrackedInt, self).__init__()
+        mode = enum.{mode}
+        self.set_post_{operation}_mode(mode, 'post_{operation}')
+
+    def post_{operation}(self, obj, old, new):
+        obj.counter += 1
+
+class PostAtom(Atom):
+
+    mi = TrackedInt()
+
+    counter = Int()
+
+"""
+
+OBJECT_METHOD_SRC = """
+class PostAtom(Atom):
+
+    mi = Int()
+
+    counter = Int()
+
+    def _post_{operation}_mi(self, old, new):
+        self.counter += 1
+"""
+
+OBJECT_METHOD_NAME_SRC = """
+class PostAtom(Atom):
+
+    mi = Int()
+    mi.set_post_{operation}_mode(getattr(enum, 'ObjectMethod_NameOldNew'),
+                                        'post_{operation}_mi')
+
+    counter = Int()
+
+    def post_{operation}_mi(self, name, old, new):
+        self.counter += 1
+"""
+
+
+@pytest.mark.parametrize('operation, enum', [('setattr', PostSetAttr),
+                                             ('validate', PostValidate)])
+@pytest.mark.parametrize('mode', ('NoOp',
+                                  'ObjectMethod_OldNew',
+                                  'ObjectMethod_NameOldNew',
+                                  'MemberMethod_ObjectOldNew'))
+def test_post_setattr_validate(operation, enum, mode):
+    """Test the post_setattr/validate behaviors.
 
     """
-    class ModuloInt(Int):
+    namespace = {'enum': enum}
+    namespace.update(globals())
+    src = (MEMBER_METHOD_SRC if mode in ('MemberMethod_ObjectOldNew', 'NoOp')
+           else OBJECT_METHOD_SRC if mode == 'ObjectMethod_OldNew'
+           else OBJECT_METHOD_NAME_SRC)
+    src = src.format(operation=operation, mode=mode)
+    print(src)
+    exec(src, namespace)
 
-        def __init__(self):
-            super(ModuloInt, self).__init__()
-            mode = PostGetAttr.MemberMethod_ObjectValue
-            self.set_post_getattr_mode(mode, 'post_getattr')
-
-        def post_getattr(self, obj, value):
-            return value % 2
-
-    class PostGetattrTest(Atom):
-
-        mi = ModuloInt()
-
-        manual_mi = Int()
-
-        def _post_getattr_manual_mi(self, value):
-            return value % 2
+    PostAtom = namespace['PostAtom']
 
     # Test subclassed member
-    pvt = PostGetattrTest()
-    mi = pvt.get_member('mi')
-    assert mi.post_getattr_mode[0] == PostGetAttr.MemberMethod_ObjectValue
-    pvt.mi = 2
-    assert pvt.mi == 0
-    pvt.mi = 3
-    assert pvt.mi == 1
+    pot = PostAtom()
+    mi = pot.get_member('mi')
+    assert (getattr(mi, 'post_{}_mode'.format(operation))[0] ==
+            getattr(enum, mode))
+    pot.mi = 2
+    assert pot.counter == (1 if mode != 'NoOp' else 0)
 
-    # Test class defined custom post_getattr
-    mmi = pvt.get_member('manual_mi')
-    assert mmi.post_getattr_mode[0] == PostGetAttr.ObjectMethod_Value
-    pvt.manual_mi = 2
-    assert pvt.manual_mi == 0
-    pvt.manual_mi = 3
-    assert pvt.manual_mi == 1
-
-    # Test do_post_getattr
-    assert mi.do_post_getattr(pvt, 2) == 0
-    assert mi.do_post_getattr(pvt, 3) == 1
+    # Test do_post_*** method
+    func = getattr(mi, 'do_post_{}'.format(operation))
+    func(pot, 2, 3)
+    assert pot.counter == (2 if mode != 'NoOp' else 0)
 
 
-def test_post_setattr():
-    """Test the post_setattr behaviors.
+@pytest.mark.parametrize('operation, mode, msg',
+                         [('getattr', PostGetAttr.ObjectMethod_Value, 'str'),
+                          ('getattr', PostGetAttr.ObjectMethod_NameValue, 'str'),
+                          ('getattr', PostGetAttr.MemberMethod_ObjectValue, 'str'),
+                          ('setattr', PostSetAttr.ObjectMethod_OldNew, 'str'),
+                          ('setattr', PostSetAttr.ObjectMethod_NameOldNew, 'str'),
+                          ('setattr', PostSetAttr.MemberMethod_ObjectOldNew, 'str'),
+                          ('validate', PostValidate.ObjectMethod_OldNew, 'str'),
+                          ('validate', PostValidate.ObjectMethod_NameOldNew, 'str'),
+                          ('validate', PostValidate.MemberMethod_ObjectOldNew, 'str')])
+def test_wrong_argument_in_mode_setting(operation, mode, msg):
+    """Test handling wrong argument types when setting mode.
 
     """
-    class TrackedInt(Int):
-
-        def __init__(self):
-            super(TrackedInt, self).__init__()
-            mode = PostSetAttr.MemberMethod_ObjectOldNew
-            self.set_post_setattr_mode(mode, 'post_setattr')
-
-        def post_setattr(self, obj, old, new):
-            obj.counter += 1
-
-    class PostSetattrTest(Atom):
-
-        mi = TrackedInt()
-
-        manual_mi = Int()
-
-        counter = Int()
-
-        def _post_setattr_manual_mi(self, old, new):
-            self.counter += 1
-
-    # Test subclassed member
-    pvt = PostSetattrTest()
-    mi = pvt.get_member('mi')
-    assert mi.post_setattr_mode[0] == PostSetAttr.MemberMethod_ObjectOldNew
-    pvt.mi = 2
-    assert pvt.counter == 1
-    pvt.mi = 3
-    assert pvt.counter == 2
-
-    # Test class defined custom post_setattr
-    mmi = pvt.get_member('manual_mi')
-    assert mmi.post_setattr_mode[0] == PostSetAttr.ObjectMethod_OldNew
-    pvt.manual_mi = 2
-    assert pvt.counter == 3
-    pvt.manual_mi = 3
-    assert pvt.counter == 4
-
-    # Test do_post_setattr
-    mmi.do_post_setattr(pvt, pvt.manual_mi, 2)
-    assert pvt.counter == 5
-    mmi.do_post_setattr(pvt, pvt.manual_mi, 3)
-    assert pvt.counter == 6
+    m = Int()
+    with pytest.raises(TypeError)as excinfo:
+        getattr(m, 'set_post_{}_mode'.format(operation))(mode, 1)
+    assert msg in excinfo.exconly()

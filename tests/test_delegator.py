@@ -17,8 +17,10 @@ We need to test all behaviors:
     - del
 
 """
+import pytest
 from atom.api import (Atom, Int, Delegator, GetAttr, PostGetAttr, SetAttr,
                       PostSetAttr, PostValidate, DefaultValue, Validate)
+from atom.catom import DelAttr
 
 
 class TrackedInt(Int):
@@ -106,6 +108,7 @@ def test_delegator_behaviors():
     DelegateTest.d.delegate.called = []
     DelegateTest.d.set_getattr_mode(GetAttr.Delegate, DelegateTest.d.delegate)
     DelegateTest.d.set_setattr_mode(SetAttr.Delegate, DelegateTest.d.delegate)
+    DelegateTest.d.set_delattr_mode(DelAttr.Delegate, DelegateTest.d.delegate)
     assert dt.d == 1
     assert DelegateTest.d.delegate.called == ['get', 'validate',
                                               'post_validate']
@@ -114,6 +117,29 @@ def test_delegator_behaviors():
                                               'post_validate', 'validate',
                                               'post_validate', 'set']
     assert dt.d == 2
+
+    # Test delegating del (This will cause an error because the validator will
+    # get None)
+    del dt.d
+    with pytest.raises(TypeError):
+        assert dt.d == 0
+
+
+@pytest.mark.parametrize('mode, func',
+                         [(GetAttr, 'set_getattr_mode'),
+                          (SetAttr, 'set_setattr_mode'),
+                          (DelAttr, 'set_delattr_mode'),
+                          (PostGetAttr, 'set_post_getattr_mode'),
+                          (PostSetAttr, 'set_post_setattr_mode'),
+                          (Validate, 'set_validate_mode'),
+                          (PostValidate, 'set_post_validate_mode')])
+def test_delegator_mode_args_validation(mode, func):
+    """Test that a delegator properly validate the arguments when setting mode.
+
+    """
+    with pytest.raises(TypeError) as excinfo:
+        getattr(Delegator(Int()), func)(getattr(mode, 'Delegate'), None)
+    assert 'Member' in excinfo.exconly()
 
 
 def test_delegator_methods():

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2018, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -17,6 +17,23 @@ import pickle
 
 import pytest
 from atom.api import Atom, Int, set_default
+
+
+def test_init():
+    """Test init.
+
+    """
+    class A(Atom):
+        val = Int()
+
+    a = A(val=2)
+    assert a.val == 2
+
+    with pytest.raises(TypeError):
+        A(None)
+
+    # Simply check it does not crash
+    a.__sizeof__()
 
 
 def test_set_default():
@@ -101,6 +118,20 @@ def test_listing_members():
         a = b = c = d = e = Int()
 
     assert sorted(MembersTest().members().keys()) == ['a', 'b', 'c', 'd', 'e']
+
+
+def test_getting_members():
+    """Test accessing members directly.
+
+    """
+    class A(Atom):
+        val = Int()
+
+    assert A().get_member('val') is A.val
+    assert A().get_member('') is None
+
+    with pytest.raises(TypeError):
+        A().get_member(1)
 
 
 class PicklingTest(Atom):
