@@ -317,7 +317,7 @@ call_object_object_name_value_handler( Member* member, CAtom* atom, PyObject* va
     if( !valueptr )
         return -1;
     PyObjectPtr callable( newref( member->setattr_context ) );
-    PyTuplePtr args( PyTuple_New( 2 ) );
+    PyTuplePtr args( PyTuple_New( 3 ) );
     if( !args )
         return -1;
     args.initialize( 0, newref( pyobject_cast( atom ) ) );

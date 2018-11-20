@@ -134,7 +134,7 @@ lookup_method( PyTypeObject* type, const char* name )
     return 0;
 }
 
-    
+
 /**
  * A fallback 3way comparison function for when PyObject_RichCompareBool
  * fails to compare "unorderable types" on Python 3.
