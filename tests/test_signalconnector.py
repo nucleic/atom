@@ -26,16 +26,15 @@ def test_signalconnector_lifecycle():
     class SignalAtom(Atom):
         s = Signal()
 
-    signal_connectors = [SignalAtom.s for i in range(256)]
+    signal_connectors = [SignalAtom.s for i in range(512)]
     for i, e in enumerate(signal_connectors):
         signal_connectors[i] = None
         del e
         gc.collect()
 
-    l = [SignalAtom().s]
-    sa = l[0]
-    del l
-    gc.collect()  # test traverse
+    atom = SignalAtom()
+    sc = atom.s
+    assert gc.get_referents(sc) == [SignalAtom.s, atom]
 
 
 def test_signalconnector_cmp():

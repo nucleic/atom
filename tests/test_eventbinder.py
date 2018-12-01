@@ -26,15 +26,15 @@ def test_eventbinder_lifecycle():
     class EventAtom(Atom):
         e = Event()
 
-    event_binders = [EventAtom.e for i in range(256)]
+    event_binders = [EventAtom.e for i in range(512)]
     for i, e in enumerate(event_binders):
         event_binders[i] = None
         del e
         gc.collect()
 
-    l = [EventAtom().e]
-    del l
-    gc.collect()  # test traverse
+    atom = EventAtom()
+    eb = atom.e
+    assert gc.get_referents(eb) == [EventAtom.e, atom]
 
 
 def test_eventbinder_call():
