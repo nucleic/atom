@@ -1,0 +1,7 @@
+channels:
+- defaults
+
+dependencies:
+- python=3.6
+- sphinx
+- sphinx_rtd_theme
