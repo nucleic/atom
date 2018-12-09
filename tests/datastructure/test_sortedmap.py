@@ -27,6 +27,24 @@ def smap():
     return smap
 
 
+def test_sortedmap_init():
+    """Test initializing a sortedmap.
+
+    """
+    smap = sortedmap({})
+    assert smap.items() == []
+    smap = sortedmap([(1, 2)])
+    assert smap.items() == [(1, 2)]
+    smap = sortedmap({1: 2})
+    assert smap.items() == [(1, 2)]
+
+    with pytest.raises(TypeError):
+        sortedmap(1)
+    with pytest.raises(TypeError) as excinfo:
+        sortedmap([1])
+    assert 'pairs' in excinfo.exconly()
+
+
 def test_traverse(smap):
     """Test traversing on deletion.
 
@@ -101,6 +119,15 @@ def test_keys_values_items(smap):
     assert smap.items() == [('a', 1), ('b', 2), ('c', 3)]
 
 
+def test_iter(smap):
+    """Test iterating sortedmap.
+
+    """
+    keys = smap.keys()
+    for i, k in enumerate(smap):
+        assert keys[i] == k
+
+
 def test_ordering_with_inhomogeneous(smap):
     """Test the ordering of the map.
 
@@ -133,8 +160,9 @@ def test_repr(smap):
 
     """
     assert "sortedmap" in repr(smap)
-    # Sortedmaps are always created empty so they cannot round trip
-    assert eval(repr(smap)[10:-1]) == dict(smap)
+    new_smap = eval(repr(smap))
+    assert new_smap.items() == smap.items()
+    # assert eval(repr(smap)) == smap
 
 
 def test_copying(smap):
