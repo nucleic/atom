@@ -1077,7 +1077,9 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
                 callable = *it;
             }
             if( !callable( argsptr, kwargsptr ) )
-                return false;
+            {
+                PyErr_Print();
+            }
         }
     }
     return true;

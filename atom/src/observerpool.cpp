@@ -7,7 +7,6 @@
 |----------------------------------------------------------------------------*/
 #include "observerpool.h"
 
-
 namespace
 {
 
@@ -220,7 +219,9 @@ ObserverPool::notify( PyObjectPtr& topic, PyObjectPtr& args, PyObjectPtr& kwargs
                 if( obs_it->is_true() )
                 {
                     if( !obs_it->operator()( args, kwargs ) )
-                        return false;
+                    {
+                        PyErr_Print();
+                    }
                 }
                 else
                 {
