@@ -1,0 +1,58 @@
+..
+   This file holds some common substitutions (mainly for referencing code).
+   To use it add the directive include:: substitutions.rst at the beginning of
+   the file.
+
+.. ============================================================================
+.. Atom substitutions
+.. ============================================================================
+
+.. |Atom| replace:: :py:class:`~atom.atom.Atom`
+
+.. |Value| replace:: :py:class:`~atom.scalars.Value`
+
+.. |Int| replace:: :py:class:`~atom.scalars.Int`
+
+.. |Long| replace:: :py:class:`~atom.scalars.Long`
+
+.. |Float| replace:: :py:class:`~atom.scalars.Float`
+
+.. |Str| replace:: :py:class:`~atom.scalars.Str`
+
+.. |Bytes| replace:: :py:class:`~atom.scalars.Bytes`
+
+.. |Unicode| replace:: :py:class:`~atom.scalars.Unicode`
+
+.. |Enum| replace:: :py:class:`~atom.enum.Enum`
+
+.. |Typed| replace:: :py:class:`~atom.typed.Typed`
+
+.. |ForwardTyped| replace:: :py:class:`~atom.typed.ForwardTyped`
+
+.. |Instance| replace:: :py:class:`~atom.instance.Instance`
+
+.. |ForwardInstance| replace:: :py:class:`~atom.instance.ForwardInstance`
+
+.. |Subclass| replace:: :py:class:`~atom.subclass.Subclass`
+
+.. |ForwardSubclass| replace:: :py:class:`~atom.subclass.ForwardSubclass`
+
+.. |Tuple| replace:: :py:class:`~atom.tuple.Tuple`
+
+.. |List| replace:: :py:class:`~atom.list.List`
+
+.. |ContainerList| replace:: :py:class:`~atom.list.ContainerList`
+
+.. |Dict| replace:: :py:class:`~atom.dict.Dict`
+
+.. |Delegator| replace:: :py:class:`~atom.delegator.Delegator|
+
+.. |Event| replace:: :py:class:`~atom.event.Event`
+
+.. |Signal| replace:: :py:class:`~atom.signal.Signal`
+
+.. |Coerced| replace:: :py:class:`~atom.coerced.Coerced`
+
+.. |observe| replace:: :py:class:`~atom.atom.observe`
+
+.. |set_default| replace:: :py:class:`~atom.atom.set_default`
