@@ -5,6 +5,9 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+"""Demonsatrtion of the basic use of the Coerced member.
+
+"""
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 

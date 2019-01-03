@@ -5,6 +5,9 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+"""Module exporting the public interface to atom.
+
+"""
 from .atom import AtomMeta, Atom, observe, set_default
 from .catom import (
     CAtom, Member, GetAttr, SetAttr, PostGetAttr, PostSetAttr,

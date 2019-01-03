@@ -17,6 +17,7 @@ Submodules
 
 .. toctree::
 
+   atom.api
    atom.atom
    atom.catom
    atom.coerced

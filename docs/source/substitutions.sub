@@ -9,6 +9,14 @@
 
 .. |Atom| replace:: :py:class:`~atom.atom.Atom`
 
+.. |Atom.observe| replace:: :py:class:`~atom.atom.Atom.observe`
+
+.. |Atom.unobserve| replace:: :py:class:`~atom.atom.Atom.unobserve`
+
+.. |add_static_observer| replace:: :py:class:`~atom.catom.Member.add_static_observer`
+
+.. |remove_static_observer| replace:: :py:class:`~atom.catom.Member.remove_static_observer`
+
 .. |Value| replace:: :py:class:`~atom.scalars.Value`
 
 .. |Int| replace:: :py:class:`~atom.scalars.Int`
@@ -45,21 +53,23 @@
 
 .. |Dict| replace:: :py:class:`~atom.dict.Dict`
 
-.. |Delegator| replace:: :py:class:`~atom.delegator.Delegator|
+.. |Delegator| replace:: :py:class:`~atom.delegator.Delegator`
 
 .. |Event| replace:: :py:class:`~atom.event.Event`
 
-.. |bind| replace:: :py:meth:`~atom.event.Event.bind|
+.. |bind| replace:: :py:meth:`~atom.event.Event.bind`
 
-.. |unbind| replace:: :py:meth:`~atom.event.Event.unbind|
+.. |unbind| replace:: :py:meth:`~atom.event.Event.unbind`
 
 .. |Signal| replace:: :py:class:`~atom.signal.Signal`
 
-.. |connect| replace:: :py:meth:`~atom.signal.Signal.connect|
+.. |connect| replace:: :py:meth:`~atom.signal.Signal.connect`
 
-.. |disconnect| replace:: :py:meth:`~atom.signal.Signal.disconnect|
+.. |disconnect| replace:: :py:meth:`~atom.signal.Signal.disconnect`
 
 .. |Coerced| replace:: :py:class:`~atom.coerced.Coerced`
+
+.. |Property| replace:: :py:class:`~atom.property.Property`
 
 .. |observe| replace:: :py:class:`~atom.atom.observe`
 
