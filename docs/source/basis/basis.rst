@@ -1,9 +1,9 @@
 .. _basis-basis:
 
-.. include:: ../substitutions.sub
-
 Anatomy
 =======
+
+.. include:: ../substitutions.sub
 
 Since atom is designed to allow to define compact objects, the best way to
 illustrate how it works is to study a class definition making use of it. This
@@ -180,7 +180,7 @@ values.
 In this subclass, we simply alter the default values of two of the members, and
 we do that in two ways:
 
-- using |default_value| which indicates to the framework that it should create
+- using |set_default| which indicates to the framework that it should create
   a copy of the member existing of the base class and change the default value.
 
 - using a specially named method starting with ``_default_`` followed by the
@@ -208,7 +208,7 @@ The output of this block will be:
 - ``1``: which corresponds to the value returned by the method used to compute
   the default value.
 - ``[1, 2]`` which corresponds to the default value we specified using
-  |default_value|.
+  |set_default|.
 
 
 .. note::

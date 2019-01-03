@@ -1,4 +1,6 @@
-.. basis-installation:
+.. _basis-installation:
+
+.. include:: ../substitutions.sub
 
 ===============
 Installing Atom

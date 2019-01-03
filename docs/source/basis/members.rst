@@ -3,6 +3,8 @@
 Introducing the members
 =======================
 
+.. include:: ../substitutions.sub
+
 As we have seen in the introduction, members are used in the class definition
 of an atom object to define the fields that will exist on each instance of that
 class. As such members are central to atom.
@@ -62,26 +64,26 @@ value and perform the *post-getattr*, and no notification will be generated.
 
 To summarize:
 
-.. digraph::
+.. digraph:: getattr
 
-    a [label="A value was previously set?"]
-    a->b[label="No"]
-    a->c[label="Yes"]
-    b[label="get the default value"]
-    c[label="retrieve the default value"]
-    c->d
-    d[label="validate the value"]
-    d->e
-    e[label="run post-validation"]
-    e->f
-    f[label="call observers"]
-    f->g
-    g[label="store the value"]
-    g->i
-    c->i
-    i[label="run post-getattr"]
-    i->j
-    j[label="return the result of post-getattr" ]
+    a [label="A value was previously set?"];
+    a->b[label="No"];
+    a->c[label="Yes"];
+    b[label="get the default value"];
+    c[label="retrieve the default value"];
+    c->d;
+    d[label="validate the value"];
+    d->e;
+    e[label="run post-validation"];
+    e->f;
+    f[label="call observers"];
+    f->g;
+    g[label="store the value"];
+    g->i;
+    c->i;
+    i[label="run post-getattr"];
+    i->j;
+    j[label="return the result of post-getattr" ];
 
 Member writing
 ~~~~~~~~~~~~~~~
@@ -96,17 +98,17 @@ Finally is any observer is attached, the observers are notified.
 
 To summarize:
 
-.. digraph::
+.. digraph:: setattr
 
-    a [label="validate the value"]
-    a->b
-    b[label="run post-validation"]
-    b->c
-    c[label="store the value"]
-    c->d
-    d[label="run post-setattr"]
-    d->e
-    e[label="call observers"]
+    a [label="validate the value"];
+    a->b;
+    b[label="run post-validation"];
+    b->c;
+    c[label="store the value"];
+    c->d;
+    d[label="run post-setattr"];
+    d->e;
+    e[label="call observers"];
 
 
 Members introduction

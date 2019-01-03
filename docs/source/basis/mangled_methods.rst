@@ -3,6 +3,8 @@
 Customimizing members: specially named methods
 ==============================================
 
+.. include:: ../substitutions.sub
+
 Atom offers multiple ways to customize the inner working of members. The
 easiest one is to use specially named methods on your class definition. Since
 this covers most of the use cases, it is the only one that is covered here

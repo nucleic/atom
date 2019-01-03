@@ -3,6 +3,8 @@
 Notifications and observers
 ===========================
 
+.. include:: ../substitutions.sub
+
 One key feature of the framework in addition to small memory footprint and type
 validation is the implementation of the observer pattern. In
 :ref:`basis-basis`, we introduced the notion of static observers. Here we will
@@ -68,11 +70,11 @@ Static observers can be bound to a member in three ways:
 Dynamic observers
 ~~~~~~~~~~~~~~~~~
 
-Dynamic observers are managed using the |observe| and |unobserve| methods of
-the |Atom| class. To observe one needs to pass the name of the member to
-observe and the callback function. When unobserving, you can either pass just
-the member name to remove all observers at once or a name and a callback to
-remove specific observer.
+Dynamic observers are managed using the |Atom.observe| and |Atom.unobserve|
+methods of the |Atom| class. To observe one needs to pass the name of the
+member to observe and the callback function. When unobserving, you can either
+pass just the member name to remove all observers at once or a name and a
+callback to remove specific observer.
 
 .. note::
 

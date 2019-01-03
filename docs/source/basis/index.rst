@@ -14,6 +14,7 @@ shed lights on the following points:
 
 .. toctree::
     :maxdepth: 1
+
     Installation <installation.rst>
     Anatomy <basis.rst>
     Members <members.rst>
