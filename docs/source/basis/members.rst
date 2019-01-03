@@ -170,6 +170,13 @@ wrapped in an |Instance| member that will be introduced in the next section.
     container is copied. This copy on assignment behavior can cause some
     surprises if you modifiy the original container after assigning it.
 
+One additional important point, atom does not track the content of the
+container is not tracked. As a consequence, in place modification of the
+container do not trigger any notifications. One workaround can be to copy the
+container, modify it and re-assign it. Another option for lists is to use a
+|ContainerList| member, which uses a special list subclass sending
+notifications when the list is modified.
+
 Enforcing custom types
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -241,12 +248,34 @@ provided, but that can be used to fire notifications:
 
 - |Event|: this is a member to which each time a value is assigned to, a
   notification is fired. Additionally one can specify the type of value that
-  are accepted.
+  are accepted. An alternative way to fire the notification is to call the
+  object you get when accessing the member.
 - |Signal|: this member is similar to Qt signal. One cannot be assigned to it,
   however one can call it on instances, and when called the notifier will be
   called **with the arguments and keyword arguments passed to the signal**.
   Note that this is at odds with the general behavior of observers described
-  in :ref:`basis-observers`.
+  in :ref:`basis-observation`.
+
+  The example below illustrates how those members work:
+
+  .. code-block:: python
+
+    class MyAtom(Atom):
+
+        s = Signal()
+
+        e = Event()
+
+        @observe('s', 'e')
+        def print_value(self, change):
+            print(change)
+
+    obj = MyAtom()
+    obj.e = 2
+    obj.e(1)
+    obj.s(2)
+    obj.emit(1)
+
 
 |Delegator|
 ~~~~~~~~~~~
@@ -254,3 +283,9 @@ provided, but that can be used to fire notifications:
 This last member is a bit special. It does not do anything by itself but can be
 used to copy the behaviors of another member. In addition, any observer
 attached to the delegator will also be attached to the delegate member.
+
+|Property|
+~~~~~~~~~~
+
+The |Property| member is a special case and it will be discussed in details
+in :ref:`advanced-property`.

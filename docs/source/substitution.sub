@@ -49,7 +49,15 @@
 
 .. |Event| replace:: :py:class:`~atom.event.Event`
 
+.. |bind| replace:: :py:meth:`~atom.event.Event.bind|
+
+.. |unbind| replace:: :py:meth:`~atom.event.Event.unbind|
+
 .. |Signal| replace:: :py:class:`~atom.signal.Signal`
+
+.. |connect| replace:: :py:meth:`~atom.signal.Signal.connect|
+
+.. |disconnect| replace:: :py:meth:`~atom.signal.Signal.disconnect|
 
 .. |Coerced| replace:: :py:class:`~atom.coerced.Coerced`
 
