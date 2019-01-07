@@ -16,8 +16,6 @@ Composition Example
    - Provide a _default_* static constructor
    - Provide a pre-created object in the constructor
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`composition <../../../examples/api/composition.py>`
  and run::

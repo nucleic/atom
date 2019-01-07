@@ -8,8 +8,6 @@ Property Example
 
 Demonstration of the basics of the Property member.
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`property <../../../examples/api/property.py>`
  and run::

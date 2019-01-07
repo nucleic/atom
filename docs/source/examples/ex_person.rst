@@ -8,8 +8,6 @@ Person Example
 
 Simple class using atom and static observers.
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`person <../../../examples/tutorial/person.py>`
  and run::

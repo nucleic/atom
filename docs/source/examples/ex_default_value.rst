@@ -14,8 +14,6 @@ Default Value Example
 4. Provide factory callable that returns a value
 5. Use a _default_* static method
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`default_value <../../../examples/api/default_value.py>`
  and run::

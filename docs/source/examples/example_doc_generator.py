@@ -33,7 +33,7 @@ def clean_docstring(docstring):
         repl=r"``\g<identifier>``",  # Double backquoted identifiers
         string=docstring)
 
-    return docstring
+    return docstring.rstrip()
 
 
 EXAMPLE_DOC_RST_TEMPLATE = dedent("""
@@ -118,8 +118,6 @@ def main():
         files = [os.path.join(dirname, f)
                  for f in filenames if f.endswith('.py')]
         for fname in files:
-            with open(fname, 'rb') as fid:
-                data = fid.read()
             generate_example_doc(docs_path, fname)
 
 

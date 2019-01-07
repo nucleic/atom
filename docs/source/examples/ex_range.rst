@@ -8,8 +8,6 @@ Range Example
 
 Demonstration of the ranges members.
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`range <../../../examples/api/range.py>`
  and run::

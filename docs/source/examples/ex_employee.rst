@@ -8,8 +8,6 @@ Employee Example
 
 Simple example of a class hierarchy built on atom.
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`employee <../../../examples/tutorial/employee.py>`
  and run::

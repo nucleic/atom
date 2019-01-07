@@ -20,7 +20,7 @@ class Person(Atom):
     """
     first_name = Unicode()
 
-    age = Property()
+    age = Property(cached=True)
     _age = Int(40)
 
     def _get_age(self):

@@ -8,8 +8,6 @@ Containers Example
 
 Demonstration of the member handling containers.
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`containers <../../../examples/api/containers.py>`
  and run::

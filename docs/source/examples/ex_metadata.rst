@@ -8,8 +8,6 @@ Metadata Example
 
 Example demonstrating the use of metadata to filter members.
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`metadata <../../../examples/api/metadata.py>`
  and run::

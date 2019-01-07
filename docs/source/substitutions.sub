@@ -74,3 +74,7 @@
 .. |observe| replace:: :py:class:`~atom.atom.observe`
 
 .. |set_default| replace:: :py:class:`~atom.atom.set_default`
+
+.. |atomref| replace:: :py:class:`~atom.catom.atomref`
+
+.. |sortedmap| replace:: :py:class:`~atom.datastructures.sortedmap.sortedmap`

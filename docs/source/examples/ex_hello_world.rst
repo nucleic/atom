@@ -8,8 +8,6 @@ Hello World Example
 
 Hello world example: how to write an atom class.
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`hello_world <../../../examples/tutorial/hello_world.py>`
  and run::

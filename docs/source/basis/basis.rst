@@ -112,7 +112,8 @@ the assigned value is actually an integer and the default value is 10 instead
 of 0. Finally, we have |List| which obviously can only be a list. In addition,
 we tagged the member. Tags are actually metadata attached to the descriptors.
 They have no built-in use in atom but they can be used to filter on an instance
-members when filtering them. See for example the metadata.py example.
+members when filtering them. Refer to the
+:doc:`metadata.py <../examples/ex_metadata>` example for an illustration.
 
 .. note::
 

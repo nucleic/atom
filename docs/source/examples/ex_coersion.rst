@@ -6,9 +6,7 @@
 Coersion Example
 ===============================================================================
 
-Demonsatrtion of the basic use of the Coerced member.
-
-
+Demonstration of the basic use of the Coerced member.
 
 .. TIP:: To see this example in action, download it from
  :download:`coersion <../../../examples/api/coersion.py>`

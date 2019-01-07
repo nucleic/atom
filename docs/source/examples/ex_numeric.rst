@@ -8,8 +8,6 @@ Numeric Example
 
 Demonstration of the member handling numeric values.
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`numeric <../../../examples/api/numeric.py>`
  and run::

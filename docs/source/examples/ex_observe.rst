@@ -8,8 +8,6 @@ Observe Example
 
 Demonstration of the use of static and dynamic observers.
 
-
-
 .. TIP:: To see this example in action, download it from
  :download:`observe <../../../examples/api/observe.py>`
  and run::
