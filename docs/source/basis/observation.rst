@@ -140,3 +140,11 @@ disctionary can contains additional information (note that ``'value'`` and
         a = MyAtom()
         a.s.connect(print_pair)
         a.s('a', 1)
+
+
+Suppressing notifications
+-------------------------
+
+If for any reason you need to prevent notifications to be progated you can use
+the |Atom.suppress_notifications| context manager. Inside this context manager,
+notifications will not be propagated.

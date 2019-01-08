@@ -57,7 +57,7 @@ Here we import several things:
 
 - |Atom|: This is the base class to use for all object relying on Atom. It
   provides the some basic methods that will be described later on or in the
-  API documentation.
+  API documentation. (This class inherits from a more basic class CAtom)
 
 - |Value|, |Int|, |List|: Those are members. One can think of them as advanced
   properties (ie they are descriptors). They define the attributes that are
@@ -221,6 +221,13 @@ The output of this block will be:
     .. code-block:: python
 
         obj1 = CompactObject(untyped_value='e')
+
+.. note::
+
+    Atom objects can be frozen using |Atom.freeze| at any time of their
+    lifetime to forbid further modifications. At a later time the object can
+    unfrozen using |Atom.unfreeze|.
+
 
 Conclusion
 ----------
