@@ -5,6 +5,9 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+"""Demonstration of the member handling numeric values.
+
+"""
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
