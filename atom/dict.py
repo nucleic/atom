@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2019, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -94,9 +94,9 @@ class Dict(Member):
             value.set_index(index)
 
     def clone(self):
-        """ Create a clone of the list.
+        """ Create a clone of the member.
 
-        This will clone the internal list item if one is in use.
+        This will clone the internal dict key and value if one is in use.
 
         """
         clone = super(Dict, self).clone()

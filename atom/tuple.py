@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2019, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -17,7 +17,7 @@ class Tuple(Member):
     may change the item values.
 
     """
-    __slots__ = ('item')
+    __slots__ = ('item',)
 
     def __init__(self, item=None, default=()):
         """ Initialize a Tuple.
