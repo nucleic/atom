@@ -145,6 +145,24 @@ def test_cached_property():
     assert pt.prop == 2
 
 
+def test_enforce_read_only_cached_property():
+    """Check a cached property has to be read-only.
+
+    """
+    def get(self):
+        pass
+
+    def set(self, value):
+        pass
+
+    with pytest.raises(ValueError):
+        Property(get, set, cached=True)
+
+    with pytest.raises(ValueError):
+        p = Property(cached=True)
+        p.setter(set)
+
+
 def test_observed_property():
     """Test observing a property.
 
