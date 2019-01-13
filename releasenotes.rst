@@ -1,6 +1,21 @@
 Atom Release Notes
 ==================
 
+0.4.2 - unreleased
+------------------
+- ensure cached_property are always read-only #84
+- improve test coverage #84
+- properly implement traverse and clear for atomlist #84 Closes #69
+- allow to initialize sortedmap using a dict or an iterable of pairs #84
+- fix sortedmap repr #84
+- make sortedmap iterable #84
+- fix a segfault in SetAttr.ObjectCall_ObjectNameValue #84
+- make the clone method of members more homogeneous for container members #84
+- add support for Python 3.7 which introduced FAST_CALL protocol for list
+  methods #81
+- proper size check when creating a list #79
+- drop dependency of future that was takes a large time to import #78
+
 0.4.1 - 28/01/2018
 ------------------
 - add a fall-back to type name/pointer comparison on Python 3. Otherwise
