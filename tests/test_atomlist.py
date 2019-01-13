@@ -8,13 +8,14 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import gc
 from sys import version_info
 from pickle import dumps, loads
 from functools import wraps
 
 import pytest
 from atom.api import (Atom, List, Int, ContainerList, Value, atomlist,
-                      atomclist)
+                      atomclist, atomref)
 
 
 class StandardModel(Atom):
@@ -26,6 +27,13 @@ class StandardModel(Atom):
 
     #: A standard list of integers.
     typed = List(Int())
+
+
+class CyclicStandardModel(StandardModel):
+    """ A model class to test the handling of reference cycles.
+
+    """
+    typed = List(StandardModel)
 
 
 class ContainerModel(Atom):
@@ -62,10 +70,15 @@ class ContainerModel(Atom):
         return getattr(self, 'static_' + name + '_change')
 
 
+class CyclicContainerModel(ContainerModel):
+    """ A model class to test the handling of reference cycles.
+
+    """
+    typed = ContainerList(ContainerModel)
+
+
 class Indexer(object):
     """Stupid object behaving like an index but not being an int.
-
-    This allows to test List_ass_item which otherwise is bypassed.
 
     """
     def __init__(self, index):
@@ -81,6 +94,34 @@ def test_new_method_of_list_subclasses(list_subclass):
 
     """
     assert list_subclass(range(10)) == list(range(10))
+
+
+@pytest.mark.parametrize('model', [CyclicStandardModel, CyclicContainerModel])
+@pytest.mark.parametrize('kind', ['untyped', 'typed'])
+def test_list_traversal(model, kind):
+    """Test traversing atom lists.
+
+    We also test breaking reference cycles between the list and its inner
+    attributes.
+
+    """
+    m = model()
+    l = getattr(m, kind)
+    l.append(m)
+
+    referents = []
+    if model is CyclicContainerModel:
+        referents.append(getattr(model, kind))
+    if kind == 'typed':
+        referents.append(getattr(model, kind).item)
+    referents.append(m)
+
+    assert gc.get_referents(l) == referents
+
+    ref = atomref(m)
+    del m, l, referents
+    gc.collect()
+    assert not ref()
 
 
 class ListTestBase(object):

@@ -360,6 +360,7 @@ SortedMap_traverse( SortedMap* self, visitproc visit, void* arg )
 static void
 SortedMap_dealloc( SortedMap* self )
 {
+    PyObject_GC_UnTrack( self );
     SortedMap_clear( self );
     delete self->m_items;
     self->m_items = 0;

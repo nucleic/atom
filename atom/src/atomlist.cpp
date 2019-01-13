@@ -353,10 +353,23 @@ AtomList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     return ptr.release();
 }
 
+int AtomList_clear( AtomList* self )
+{
+	Py_CLEAR( self->validator );
+	return PyList_Type.tp_clear( pyobject_cast( self ) );
+}
+
+
+int AtomList_traverse( AtomList* self, visitproc visit, void* arg )
+{
+	Py_VISIT( self->validator );
+	return PyList_Type.tp_traverse( pyobject_cast( self ), visit, arg );
+}
 
 static void
 AtomList_dealloc( AtomList* self )
 {
+    PyObject_GC_UnTrack( self );
     delete self->pointer;
     self->pointer = 0;
     Py_CLEAR( self->validator );
@@ -512,10 +525,10 @@ PyTypeObject AtomList_Type = {
     (getattrofunc)0,                        /* tp_getattro */
     (setattrofunc)0,                        /* tp_setattro */
     (PyBufferProcs*)0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /* tp_flags */
     0,                                      /* Documentation string */
-    (traverseproc)0,                        /* tp_traverse */
-    (inquiry)0,                             /* tp_clear */
+    (traverseproc)AtomList_traverse,        /* tp_traverse */
+    (inquiry)AtomList_clear,                /* tp_clear */
     (richcmpfunc)0,                         /* tp_richcompare */
     0,                                      /* tp_weaklistoffset */
     (getiterfunc)0,                         /* tp_iter */
@@ -1047,12 +1060,28 @@ AtomCList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     return AtomList_Type.tp_new( type, args, kwargs );
 }
 
+int AtomCList_clear( AtomCList* self )
+{
+	Py_CLEAR( self->member );
+    return AtomList_clear( atomlist_cast( self )  );
+}
+
+
+int AtomCList_traverse( AtomCList* self, visitproc visit, void* arg )
+{
+    Py_VISIT( self->member );
+    return AtomList_traverse( atomlist_cast( self ) , visit, arg );
+}
 
 static void
 AtomCList_dealloc( AtomCList* self )
 {
+    PyObject_GC_UnTrack( self );
     Py_CLEAR( self->member );
-    AtomList_dealloc( atomlist_cast( self ) );
+    delete atomlist_cast( self )->pointer;
+    atomlist_cast( self )->pointer = 0;
+    Py_CLEAR( atomlist_cast( self )->validator );
+    PyList_Type.tp_dealloc( pyobject_cast( self ) );
 }
 
 
@@ -1231,10 +1260,10 @@ PyTypeObject AtomCList_Type = {
     (getattrofunc)0,                        /* tp_getattro */
     (setattrofunc)0,                        /* tp_setattro */
     (PyBufferProcs*)0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /* tp_flags */
     0,                                      /* Documentation string */
-    (traverseproc)0,                        /* tp_traverse */
-    (inquiry)0,                             /* tp_clear */
+    (traverseproc)AtomCList_traverse,       /* tp_traverse */
+    (inquiry)AtomCList_clear,               /* tp_clear */
     (richcmpfunc)0,                         /* tp_richcompare */
     0,                                      /* tp_weaklistoffset */
     (getiterfunc)0,                         /* tp_iter */

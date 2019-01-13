@@ -13,10 +13,11 @@ in the test dedicated to the associated behaviors.
 The methods related to member observation are tested in test_observe.py
 
 """
+import gc
 import pickle
 
 import pytest
-from atom.api import Atom, Int, set_default
+from atom.api import Atom, Int, Value, atomref, set_default
 
 
 def test_init():
@@ -177,3 +178,23 @@ def test_freezing():
         ft.a = 1
     with pytest.raises(AttributeError):
         del ft.a
+
+
+def test_traverse_atom():
+    """Test that we can break reference cycles involving Atom object.
+
+    """
+    class MyAtom(Atom):
+
+        l = Value()
+
+    a = MyAtom()
+    l = list()
+    a.l = l
+    a.l.append(a)
+
+    ref = atomref(a)
+    del a, l
+    gc.collect()
+
+    assert not ref()

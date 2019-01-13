@@ -9,9 +9,11 @@
 
 """
 import gc
+import weakref
 
 import pytest
 
+from atom.api import Atom, Value, atomref
 from atom.datastructures.api import sortedmap
 
 
@@ -45,12 +47,30 @@ def test_sortedmap_init():
     assert 'pairs' in excinfo.exconly()
 
 
-def test_traverse(smap):
+def test_traverse():
     """Test traversing on deletion.
 
     """
-    del smap
+
+    class Holder(Atom):
+
+        smap = Value()
+
+    h = Holder()
+    smap = sortedmap()
+
+    # Create a reference cycle
+    h.smap = smap
+    smap[1] = h
+
+    # Create a weakref to check that the objects involved in teh cycle are
+    # collected
+    ref = atomref(h)
+
+    del smap, h
     gc.collect()
+
+    assert not ref()
 
 
 def test_contains(smap):
