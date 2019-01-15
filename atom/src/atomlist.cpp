@@ -1062,7 +1062,7 @@ AtomCList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 
 int AtomCList_clear( AtomCList* self )
 {
-	Py_CLEAR( self->member );
+    Py_CLEAR( self->member );
     return AtomList_clear( atomlist_cast( self )  );
 }
 

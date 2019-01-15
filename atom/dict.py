@@ -96,7 +96,7 @@ class Dict(Member):
     def clone(self):
         """ Create a clone of the member.
 
-        This will clone the internal dict key and value if one is in use.
+        This will clone the internal dict key and value members if they exist.
 
         """
         clone = super(Dict, self).clone()
