@@ -49,7 +49,7 @@ CAtom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         size_t size = sizeof( PyObject* ) * count;
         void* slots = PyObject_MALLOC( size );
         if( !slots )
-            return PyErr_NoMemory();
+            return PyErr_NoMemory();  // LCOV_EXCL_LINE
         memset( slots, 0, size );
         atom->slots = reinterpret_cast<PyObject**>( slots );
         atom->set_slot_count( count );
@@ -76,7 +76,7 @@ CAtom_init( CAtom* self, PyObject* args, PyObject* kwargs )
         while( PyDict_Next( kwargs, &pos, &key, &value ) )
         {
             if( !selfptr.setattr( key, value ) )
-                return -1;
+                return -1;  // LCOV_EXCL_LINE
         }
     }
     return 0;
@@ -511,8 +511,8 @@ void CAtom::add_guard( CAtom** ptr )
     GuardMap* map = guard_map();
     if( !map )
     {
-        *ptr = 0;
-        return;
+        *ptr = 0;  // LCOV_EXCL_LINE
+        return;  // LCOV_EXCL_LINE
     }
     map->insert( GuardMap::value_type( *ptr, ptr ) );
     ( *ptr )->set_has_guards( true );
@@ -554,8 +554,8 @@ void CAtom::change_guard( CAtom** ptr, CAtom* o )
     GuardMap* map = guard_map();
     if( !map )
     {
-        *ptr = 0;
-        return;
+        *ptr = 0;  // LCOV_EXCL_LINE
+        return;  // LCOV_EXCL_LINE
     }
     if( o )
     {

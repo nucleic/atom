@@ -417,6 +417,6 @@ int
 Member::setattr( CAtom* atom, PyObject* value )
 {
     if( get_setattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom, value );
+        return no_op_handler( this, atom, value );  // LCOV_EXCL_LINE
     return handlers[ get_setattr_mode() ]( this, atom, value );
 }

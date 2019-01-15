@@ -339,7 +339,7 @@ PyObject*
 MethodWrapper_New( PyObject* method )
 {
     if( !PyMethod_Check( method ) )
-        return py_expected_type_fail( method, "MethodType" );
+        return py_expected_type_fail( method, "MethodType" );  // LCOV_EXCL_LINE
     if( !PyMethod_GET_SELF( method ) )
         return py_type_fail( "cannot wrap unbound method" );
     PyObjectPtr pywrapper;

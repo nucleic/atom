@@ -123,6 +123,6 @@ PyObject*
 Member::post_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( get_post_validate_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom, oldvalue, newvalue );
+        return no_op_handler( this, atom, oldvalue, newvalue );  // LCOV_EXCL_LINE
     return handlers[ get_post_validate_mode() ]( this, atom, oldvalue, newvalue );
 }

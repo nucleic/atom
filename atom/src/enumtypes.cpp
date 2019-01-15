@@ -87,7 +87,7 @@ int import_enumtypes()
         using namespace GetAttr;
         PyDictPtr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;
+            return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Slot ) );
         add_long( dict_ptr, expand_enum( Event ) );
@@ -109,7 +109,7 @@ int import_enumtypes()
         using namespace SetAttr;
         PyDictPtr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;
+            return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Slot ) );
         add_long( dict_ptr, expand_enum( Constant ) );
@@ -132,7 +132,7 @@ int import_enumtypes()
         using namespace DelAttr;
         PyDictPtr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;
+            return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Slot ) );
         add_long( dict_ptr, expand_enum( Constant ) );
@@ -150,7 +150,7 @@ int import_enumtypes()
         using namespace PostGetAttr;
         PyDictPtr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;
+            return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_Value ) );
@@ -165,7 +165,7 @@ int import_enumtypes()
         using namespace PostSetAttr;
         PyDictPtr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;
+            return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_OldNew ) );
@@ -180,7 +180,7 @@ int import_enumtypes()
         using namespace DefaultValue;
         PyDictPtr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;
+            return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Static ) );
         add_long( dict_ptr, expand_enum( List ) );
@@ -201,7 +201,7 @@ int import_enumtypes()
         using namespace Validate;
         PyDictPtr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;
+            return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Bool ) );
         add_long( dict_ptr, expand_enum( Int ) );
@@ -241,7 +241,7 @@ int import_enumtypes()
         using namespace PostValidate;
         PyDictPtr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;
+            return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_OldNew ) );

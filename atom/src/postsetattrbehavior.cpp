@@ -129,6 +129,6 @@ int
 Member::post_setattr( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( get_post_setattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom, oldvalue, newvalue );
+        return no_op_handler( this, atom, oldvalue, newvalue );  // LCOV_EXCL_LINE
     return handlers[ get_post_setattr_mode() ]( this, atom, oldvalue, newvalue );
 }
