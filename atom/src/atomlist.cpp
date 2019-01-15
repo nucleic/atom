@@ -57,7 +57,7 @@ init_methods()
     if( !append )
     {
         py_bad_internal_call( "failed to load list 'append' method" );
-        return false;
+        return false; // LCOV_EXCL_LINE
     }
 #if PY_VERSION_HEX >= 0x03070000
     insert = reinterpret_cast<pycfunc_f>( lookup_method( &PyList_Type, "insert" ) );
