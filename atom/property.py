@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2019, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -45,6 +45,9 @@ class Property(Member):
         """
         gm = GetAttr.CachedProperty if cached else GetAttr.Property
         self.set_getattr_mode(gm, fget)
+        if cached and fset is not None:
+            raise ValueError('Cached property are read-only, but a setter was '
+                             'specified.')
         self.set_setattr_mode(SetAttr.Property, fset)
         self.set_delattr_mode(DelAttr.Property, fdel)
 
@@ -100,6 +103,9 @@ class Property(Member):
         function will still be callable.
 
         """
+        if self.cached:
+            raise ValueError('Cached property are read-only, but a setter was '
+                             'specified.')
         self.set_setattr_mode(SetAttr.Property, func)
         return func
 

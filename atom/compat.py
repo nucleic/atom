@@ -61,7 +61,7 @@ if IS_PY3:
             return isinstance(instance, (bytes, str))
 
     def __subclasshook__(cls, thing):
-        raise NotImplemented
+        raise NotImplemented  # pragma: no cover
 
     class basestring(with_metaclass(BaseBaseString)):
         """

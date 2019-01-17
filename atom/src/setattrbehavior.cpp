@@ -317,7 +317,7 @@ call_object_object_name_value_handler( Member* member, CAtom* atom, PyObject* va
     if( !valueptr )
         return -1;
     PyObjectPtr callable( newref( member->setattr_context ) );
-    PyTuplePtr args( PyTuple_New( 2 ) );
+    PyTuplePtr args( PyTuple_New( 3 ) );
     if( !args )
         return -1;
     args.initialize( 0, newref( pyobject_cast( atom ) ) );
@@ -417,6 +417,6 @@ int
 Member::setattr( CAtom* atom, PyObject* value )
 {
     if( get_setattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom, value );
+        return no_op_handler( this, atom, value );  // LCOV_EXCL_LINE
     return handlers[ get_setattr_mode() ]( this, atom, value );
 }

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2018, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -8,12 +8,14 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
+import gc
 from sys import version_info
 from pickle import dumps, loads
 from functools import wraps
 
 import pytest
-from atom.api import Atom, List, Int, ContainerList, atomlist, atomclist
+from atom.api import (Atom, List, Int, ContainerList, Value, atomlist,
+                      atomclist, atomref)
 
 
 class StandardModel(Atom):
@@ -27,6 +29,13 @@ class StandardModel(Atom):
     typed = List(Int())
 
 
+class CyclicStandardModel(StandardModel):
+    """ A model class to test the handling of reference cycles.
+
+    """
+    typed = List(StandardModel)
+
+
 class ContainerModel(Atom):
     """ A model class for testing atomclist behavior.
 
@@ -37,9 +46,86 @@ class ContainerModel(Atom):
     #: A container list of integers.
     typed = ContainerList(Int())
 
+    #: Change dictionary for the last notification
+    change = Value()
+
+    #: Change dictionary for the last notification from static observer on
+    #: untyped
+    static_untyped_change = Value()
+
+    #: Change dictionary for the last notification from static observer on
+    #: typed
+    static_typed_change = Value()
+
+    def _observe_untyped(self, change):
+        self.static_untyped_change = change
+
+    def _observe_typed(self, change):
+        self.static_typed_change = change
+
+    def _changed(self, change):
+        self.change = change
+
+    def get_static_change(self, name):
+        return getattr(self, 'static_' + name + '_change')
+
+
+class CyclicContainerModel(ContainerModel):
+    """ A model class to test the handling of reference cycles.
+
+    """
+    typed = ContainerList(ContainerModel)
+
+
+class Indexer(object):
+    """Stupid object behaving like an index but not being an int.
+
+    """
+    def __init__(self, index):
+        self.index = index
+
+    def __index__(self):
+        return self.index
+
+
+@pytest.mark.parametrize('list_subclass', [atomlist, atomclist])
+def test_new_method_of_list_subclasses(list_subclass):
+    """Test directly creating list subclass.
+
+    """
+    assert list_subclass(range(10)) == list(range(10))
+
+
+@pytest.mark.parametrize('model', [CyclicStandardModel, CyclicContainerModel])
+@pytest.mark.parametrize('kind', ['untyped', 'typed'])
+def test_list_traversal(model, kind):
+    """Test traversing atom lists.
+
+    We also test breaking reference cycles between the list and its inner
+    attributes.
+
+    """
+    m = model()
+    l = getattr(m, kind)
+    l.append(m)
+
+    referents = []
+    if model is CyclicContainerModel:
+        referents.append(getattr(model, kind))
+    if kind == 'typed':
+        referents.append(getattr(model, kind).item)
+    referents.append(m)
+
+    assert gc.get_referents(l) == referents
+
+    ref = atomref(m)
+    del m, l, referents
+    gc.collect()
+    assert not ref()
+
 
 class ListTestBase(object):
-    """ A base class which provides untyped base list tests.
+    """ A base class which provides base list tests.
 
     """
     #: Set this to one of the models defined above in setUp.
@@ -94,6 +180,8 @@ class ListTestBase(object):
         assert self.model.untyped == list(range(9))
         self.model.untyped.pop(0)
         assert self.model.untyped == list(range(1, 9))
+        self.model.untyped.pop(-1)
+        assert self.model.untyped == list(range(1, 8))
 
     def test_untyped_index(self):
         self.model.untyped = list(range(10))
@@ -120,6 +208,8 @@ class ListTestBase(object):
     def test_untyped_get_item(self):
         self.model.untyped = list(range(10))
         assert self.model.untyped[3] == 3
+        assert self.model.untyped[Indexer(3)] == 3
+        assert self.model.untyped[Indexer(-1)] == 9
 
     def test_untyped_get_slice(self):
         self.model.untyped = list(range(10))
@@ -133,6 +223,10 @@ class ListTestBase(object):
         self.model.untyped = list(range(10))
         self.model.untyped[5] = 42
         assert self.model.untyped[5] == 42
+        self.model.untyped[Indexer(5)] = 43
+        assert self.model.untyped[5] == 43
+        self.model.untyped[Indexer(-1)] = 41
+        assert self.model.untyped[Indexer(-1)] == 41
 
     def test_untyped_set_slice(self):
         self.model.untyped = list(range(5))
@@ -213,6 +307,8 @@ class ListTestBase(object):
         assert self.model.typed == list(range(9))
         self.model.typed.pop(0)
         assert self.model.typed == list(range(1, 9))
+        self.model.typed.pop(-1)
+        assert self.model.typed == list(range(1, 8))
 
     def test_typed_index(self):
         self.model.typed = list(range(10))
@@ -239,6 +335,8 @@ class ListTestBase(object):
     def test_typed_get_item(self):
         self.model.typed = list(range(10))
         assert self.model.typed[3] == 3
+        assert self.model.typed[Indexer(3)] == 3
+        assert self.model.typed[Indexer(-1)] == 9
 
     def test_typed_get_slice(self):
         self.model.typed = list(range(10))
@@ -252,6 +350,10 @@ class ListTestBase(object):
         self.model.typed = list(range(10))
         self.model.typed[5] = 42
         assert self.model.typed[5] == 42
+        self.model.typed[Indexer(5)] = 43
+        assert self.model.typed[5] == 43
+        self.model.typed[Indexer(-1)] = 41
+        assert self.model.typed[Indexer(-1)] == 41
 
     def test_typed_set_slice(self):
         self.model.typed = list(range(5))
@@ -352,7 +454,6 @@ class TestContainerList(TestStandardList):
     """ A test class for the ContainerList.
 
     """
-    change = None
 
     def setup_method(self):
         self.model = ContainerModel()
@@ -365,228 +466,213 @@ class TestContainerList(TestStandardList):
         assert type(self.model.typed) == atomclist
 
 
-def containertest(func):
-    @wraps(func)
-    def closure(self, name):
-        mlist = getattr(self.model, name)
-        func(self, mlist)
-        self.verify_base_change(name, mlist)
-    return closure
-
-
-class TestContainerNotify(object):
-    """ A test class for the ContainerList.
+@pytest.yield_fixture
+def container_model():
+    """ Create the typed model and setup the observers.
 
     """
-    model = None
+    model = ContainerModel()
+    model.untyped = list(range(10))
+    model.typed = list(range(10))
+    model.observe('untyped', model._changed)
+    model.observe('typed', model._changed)
+    yield model
+    model.unobserve('untyped', model._changed)
+    model.unobserve('typed', model._changed)
 
-    change = None
 
-    def setup_method(self):
-        self.model = ContainerModel()
-        self.model.untyped = list(range(10))
-        self.model.typed = list(range(10))
-        self.model.observe('untyped', self._changed)
-        self.model.observe('typed', self._changed)
+def verify_base_change(model, name):
+    for change in (model.change, model.get_static_change(name)):
+        assert change['type'] == 'container'
+        assert change['name'] == name
+        assert change['object'] == model
+        assert change['value'] == getattr(model, name)
 
-    def teardown_method(self):
-        self.model.unobserve('untyped', self._changed)
-        self.model.unobserve('typed', self._changed)
-        self.model = None
 
-    def _changed(self, change):
-        self.change = change
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_append(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist.append(1)
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == 'append'
+        assert change['item'] == 1
 
-    def verify_base_change(self, name, mlist):
-        assert self.change['type'] == 'container'
-        assert self.change['name'] == name
-        assert self.change['object'] == self.model
-        assert self.change['value'] == mlist
 
-    # Use pytest.mark.parametrize
-    @containertest
-    def container_append(self, mlist):
-        mlist.append(1)
-        assert self.change['operation'] == 'append'
-        assert self.change['item'] == 1
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_insert(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist.insert(0, 42)
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == 'insert'
+        assert change['index'] == 0
+        assert change['item'] == 42
 
-    def test_container_append(self):
-        yield (self.container_append, 'untyped')
-        yield (self.container_append, 'typed')
 
-    @containertest
-    def container_insert(self, mlist):
-        mlist.insert(0, 42)
-        assert self.change['operation'] == 'insert'
-        assert self.change['index'] == 0
-        assert self.change['item'] == 42
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_extend(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist.extend(list(range(3)))
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == 'extend'
+        assert change['items'] == list(range(3))
 
-    def test_container_insert(self):
-        yield (self.container_insert, 'untyped')
-        yield (self.container_insert, 'typed')
 
-    @containertest
-    def container_extend(self, mlist):
-        mlist.extend(list(range(3)))
-        assert self.change['operation'] == 'extend'
-        assert self.change['items'] == list(range(3))
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_remove(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist.remove(5)
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == 'remove'
+        assert change['item'] == 5
 
-    def test_container_extend(self):
-        yield (self.container_extend, 'untyped')
-        yield (self.container_extend, 'typed')
 
-    @containertest
-    def container_remove(self, mlist):
-        mlist.remove(5)
-        assert self.change['operation'] == 'remove'
-        assert self.change['item'] == 5
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_pop(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist.pop(0)
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == 'pop'
+        assert change['index'] == 0
+        assert change['item'] == 0
 
-    def test_container_remove(self):
-        yield (self.container_remove, 'untyped')
-        yield (self.container_remove, 'typed')
 
-    @containertest
-    def container_pop(self, mlist):
-        mlist.pop(0)
-        assert self.change['operation'] == 'pop'
-        assert self.change['index'] == 0
-        assert self.change['item'] == 0
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_reverse(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist.reverse()
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == 'reverse'
 
-    def test_container_pop(self):
-        yield (self.container_pop, 'untyped')
-        yield (self.container_pop, 'typed')
 
-    @containertest
-    def container_reverse(self, mlist):
-        mlist.reverse()
-        assert self.change['operation'] == 'reverse'
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_sort(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist.sort()
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == 'sort'
+        assert change['key'] is None
+        assert change['reverse'] is False
 
-    def test_container_reverse(self):
-        yield (self.container_reverse, 'untyped')
-        yield (self.container_reverse, 'typed')
 
-    @containertest
-    def container_sort(self, mlist):
-        mlist.sort()
-        assert self.change['operation'] == 'sort'
-        if version_info.major < 3:
-            assert self.change['cmp'] is None
-        assert self.change['key'] is None
-        assert self.change['reverse'] is False
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_key_sort(container_model, kind):
+    mlist = getattr(container_model, kind)
+    key = lambda i: i
+    mlist.sort(key=key, reverse=True)
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == 'sort'
+        assert change['key'] == key
+        assert change['reverse'] is True
 
-    @containertest
-    def container_key_sort(self, mlist):
-        key = lambda i: i
-        mlist.sort(key=key, reverse=True)
-        assert self.change['operation'] == 'sort'
-        if version_info.major < 3:
-            assert self.change['cmp'] is None
-        assert self.change['key'] == key
-        assert self.change['reverse'] is True
 
-    @containertest
-    def container_cmp_sort(self, mlist):
-        cmpfunc = lambda a, b: a < b
-        mlist.sort(cmp=cmpfunc, reverse=True)
-        assert self.change['operation'] == 'sort'
-        assert self.change['cmp'] == cmpfunc
-        assert self.change['key'] is None
-        assert self.change['reverse'] is True
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_set_item(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist[0] = 42
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == '__setitem__'
+        assert change['index'] == 0
+        assert change['olditem'] == 0
+        assert change['newitem'] == 42
 
-    def test_container_sort(self):
-        yield (self.container_sort, 'untyped')
-        yield (self.container_sort, 'typed')
-        yield (self.container_key_sort, 'untyped')
-        yield (self.container_key_sort, 'typed')
-        if version_info.major < 3:
-            yield (self.container_cmp_sort, 'untyped')
-            yield (self.container_cmp_sort, 'typed')
 
-    @containertest
-    def container_set_item(self, mlist):
-        mlist[0] = 42
-        assert self.change['operation'] == '__setitem__'
-        assert self.change['index'] == 0
-        assert self.change['olditem'] == 0
-        assert self.change['newitem'] == 42
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_set_slice(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist[3:5] = [1, 2, 3]
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == '__setitem__'
+        assert change['index'] == slice(3, 5, None)
+        assert change['olditem'] == [3, 4]
+        assert change['newitem'] == [1, 2, 3]
 
-    def test_container_set_item(self):
-        yield (self.container_set_item, 'untyped')
-        yield (self.container_set_item, 'typed')
 
-    @containertest
-    def container_set_slice(self, mlist):
-        mlist[3:5] = [1, 2, 3]
-        assert self.change['operation'] == '__setitem__'
-        assert self.change['index'] == slice(3, 5, None)
-        assert self.change['olditem'] == [3, 4]
-        assert self.change['newitem'] == [1, 2, 3]
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_set_slice_step(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist[::2] = [1, 2, 3, 4, 5]
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == '__setitem__'
+        assert change['index'] == slice(None, None, 2)
+        assert change['olditem'] == [0, 2, 4, 6, 8]
+        assert change['newitem'] == [1, 2, 3, 4, 5]
 
-    def test_container_set_slice(self):
-        yield (self.container_set_slice, 'untyped')
-        yield (self.container_set_slice, 'typed')
 
-    @containertest
-    def container_set_slice_step(self, mlist):
-        mlist[::2] = [1, 2, 3, 4, 5]
-        assert self.change['operation'] == '__setitem__'
-        assert self.change['index'] == slice(None, None, 2)
-        assert self.change['olditem'] == [0, 2, 4, 6, 8]
-        assert self.change['newitem'] == [1, 2, 3, 4, 5]
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_del_item(container_model, kind):
+    mlist = getattr(container_model, kind)
+    del mlist[0]
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == '__delitem__'
+        assert change['index'] == 0
+        assert change['item'] == 0
 
-    def test_container_set_slice_step(self):
-        yield (self.container_set_slice_step, 'untyped')
-        yield (self.container_set_slice_step, 'typed')
 
-    @containertest
-    def container_del_item(self, mlist):
-        del mlist[0]
-        assert self.change['operation'] == '__delitem__'
-        assert self.change['index'] == 0
-        assert self.change['item'] == 0
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_del_slice(container_model, kind):
+    mlist = getattr(container_model, kind)
+    del mlist[0:5]
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == '__delitem__'
+        assert change['index'] == slice(0, 5, None)
+        assert change['item'] == list(range(5))
 
-    def test_container_del_item(self):
-        yield (self.container_del_item, 'untyped')
-        yield (self.container_del_item, 'typed')
 
-    @containertest
-    def container_del_slice(self, mlist):
-        del mlist[0:5]
-        assert self.change['operation'] == '__delitem__'
-        assert self.change['index'] == slice(0, 5, None)
-        assert self.change['item'] == list(range(5))
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_del_slice_step(container_model, kind):
+    mlist = getattr(container_model, kind)
+    del mlist[::2]
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == '__delitem__'
+        assert change['index'] == slice(None, None, 2)
+        assert change['item'] == list(range(10))[::2]
 
-    def test_container_del_slice(self):
-        yield (self.container_del_slice, 'untyped')
-        yield (self.container_del_slice, 'typed')
 
-    @containertest
-    def container_del_slice_step(self, mlist):
-        del mlist[::2]
-        assert self.change['operation'] == '__delitem__'
-        assert self.change['index'] == slice(None, None, 2)
-        assert self.change['item'] == list(range(10))[::2]
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_concat(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist += [1, 2, 3]
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == '__iadd__'
+        assert change['items'] == [1, 2, 3]
 
-    def test_container_del_slice_step(self):
-        yield (self.container_del_slice_step, 'untyped')
-        yield (self.container_del_slice_step, 'typed')
 
-    @containertest
-    def container_concat(self, mlist):
-        mlist += [1, 2, 3]
-        assert self.change['operation'] == '__iadd__'
-        assert self.change['items'] == [1, 2, 3]
-
-    def test_container_concat(self):
-        yield (self.container_concat, 'untyped')
-        yield (self.container_concat, 'typed')
-
-    @containertest
-    def container_repeat(self, mlist):
-        mlist *= 2
-        assert self.change['operation'] == '__imul__'
-        assert self.change['count'] == 2
-
-    def test_container_repeat(self):
-        yield (self.container_repeat, 'untyped')
-        yield (self.container_repeat, 'typed')
+@pytest.mark.parametrize("kind", ('untyped', 'typed'))
+def test_container_repeat(container_model, kind):
+    mlist = getattr(container_model, kind)
+    mlist *= 2
+    verify_base_change(container_model, kind)
+    for change in (container_model.change,
+                   container_model.get_static_change(kind)):
+        assert change['operation'] == '__imul__'
+        assert change['count'] == 2

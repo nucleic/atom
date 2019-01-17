@@ -304,6 +304,6 @@ PyObject*
 Member::getattr( CAtom* atom )
 {
     if( get_getattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom );
+        return no_op_handler( this, atom );  // LCOV_EXCL_LINE
     return handlers[ get_getattr_mode() ]( this, atom );
 }

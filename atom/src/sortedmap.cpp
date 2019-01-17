@@ -12,6 +12,14 @@
 #include "pythonhelpers.h"
 #include "py23compat.h"
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
+#endif
+
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif
+
 using namespace PythonHelpers;
 
 class MapItem
@@ -269,11 +277,47 @@ struct SortedMap
 static PyObject*
 SortedMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-    PyObject* self = PyType_GenericNew( type, args, kwargs );
+    PyObject* map = 0;
+    static char* kwlist[] = { "map", 0 };
+    if( !PyArg_ParseTupleAndKeywords( args, kwargs, "|O:__new__", kwlist, &map ) )
+        return 0;
+
+    PyObject* self = PyType_GenericNew( type, 0, 0 );
     if( !self )
         return 0;
     SortedMap* cself = reinterpret_cast<SortedMap*>( self );
     cself->m_items = new SortedMap::Items();
+
+    PyObjectPtr seq;
+    if( map )
+    {
+        if( PyDict_Check( map ) )
+        {
+            seq = PyObject_GetIter( PyDict_Items( map ) );
+            if( !seq )
+                return 0;
+        }
+        else
+        {
+            seq = PyObject_GetIter( map );
+            if( !seq )
+                return 0;
+        }
+    }
+
+    if( seq )
+    {
+        PyObjectPtr item;
+        while( (item = PyIter_Next( seq.get() )) )
+        {
+            if( PySequence_Length( item.get() ) != 2)
+                return py_expected_type_fail( item.get(), "pairs of objects" );
+
+            cself->setitem( PySequence_GetItem( item.get(), 0 ),
+                            PySequence_GetItem( item.get(), 1 ) );
+        }
+    }
+
     return self;
 }
 
@@ -316,6 +360,7 @@ SortedMap_traverse( SortedMap* self, visitproc visit, void* arg )
 static void
 SortedMap_dealloc( SortedMap* self )
 {
+    PyObject_GC_UnTrack( self );
     SortedMap_clear( self );
     delete self->m_items;
     self->m_items = 0;
@@ -445,6 +490,17 @@ SortedMap_items( SortedMap* self )
 
 
 static PyObject*
+SortedMap_iter( SortedMap* self )
+{
+    PyObjectPtr keys( self->keys() );
+    if( !keys )
+        return 0;
+    return PyObject_GetIter( keys.get() );
+}
+
+
+
+static PyObject*
 SortedMap_copy( SortedMap* self )
 {
     PyTypeObject* type = pytype_cast( Py_TYPE(self) );
@@ -462,23 +518,23 @@ static PyObject*
 SortedMap_repr( SortedMap* self )
 {
     std::ostringstream ostr;
-    ostr << "sortedmap({";
+    ostr << "sortedmap([";
     SortedMap::Items::iterator it;
     SortedMap::Items::iterator end_it = self->m_items->end();
     for( it = self->m_items->begin(); it != end_it; ++it )
     {
-        PyObjectPtr keystr( PyObject_Str( it->key() ) );
+        PyObjectPtr keystr( PyObject_Repr( it->key() ) );
         if( !keystr )
             return 0;
-        PyObjectPtr valstr( PyObject_Str( it->value() ) );
+        PyObjectPtr valstr( PyObject_Repr( it->value() ) );
         if( !valstr )
             return 0;
-        ostr << Py23Str_AS_STRING( keystr.get() ) << ": ";
-        ostr << Py23Str_AS_STRING( valstr.get() ) << ", ";
+        ostr << "(" << Py23Str_AS_STRING( keystr.get() ) << ", ";
+        ostr << Py23Str_AS_STRING( valstr.get() ) << "), ";
     }
     if( self->m_items->size() > 0 )
         ostr.seekp( -2, std::ios_base::cur );
-    ostr << "})";
+    ostr << "])";
     return PyUnicode_FromString( ostr.str().c_str() );
 }
 
@@ -560,7 +616,7 @@ PyTypeObject SortedMap_Type = {
     (inquiry)SortedMap_clear,               /* tp_clear */
     (richcmpfunc)0,                         /* tp_richcompare */
     0,                                      /* tp_weaklistoffset */
-    (getiterfunc)0,                         /* tp_iter */
+    (getiterfunc) SortedMap_iter,           /* tp_iter */
     (iternextfunc)0,                        /* tp_iternext */
     (struct PyMethodDef*)SortedMap_methods, /* tp_methods */
     (struct PyMemberDef*)0,                 /* tp_members */

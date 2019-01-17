@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2019, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -92,6 +92,21 @@ class Dict(Member):
             key.set_index(index)
         if value is not None:
             value.set_index(index)
+
+    def clone(self):
+        """ Create a clone of the member.
+
+        This will clone the internal dict key and value members if they exist.
+
+        """
+        clone = super(Dict, self).clone()
+        key, value = self.validate_mode[1]
+        if key is not None or value is not None:
+            key_clone = key.clone() if key is not None else None
+            value_clone = value.clone() if value is not None else None
+            mode, _ = self.validate_mode
+            clone.set_validate_mode(mode, (key_clone, value_clone))
+        return clone
 
 
 class _DictProxy(MutableMapping):

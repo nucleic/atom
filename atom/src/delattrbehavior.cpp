@@ -207,6 +207,6 @@ int
 Member::delattr( CAtom* atom )
 {
     if( get_delattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom );
+        return no_op_handler( this, atom );  // LCOV_EXCL_LINE
     return handlers[ get_delattr_mode() ]( this, atom );
 }

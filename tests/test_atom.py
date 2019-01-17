@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2018, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -13,10 +13,28 @@ in the test dedicated to the associated behaviors.
 The methods related to member observation are tested in test_observe.py
 
 """
+import gc
 import pickle
 
 import pytest
-from atom.api import Atom, Int, set_default
+from atom.api import Atom, Int, Value, atomref, set_default
+
+
+def test_init():
+    """Test init.
+
+    """
+    class A(Atom):
+        val = Int()
+
+    a = A(val=2)
+    assert a.val == 2
+
+    with pytest.raises(TypeError):
+        A(None)
+
+    # Simply check it does not crash
+    a.__sizeof__()
 
 
 def test_set_default():
@@ -103,6 +121,20 @@ def test_listing_members():
     assert sorted(MembersTest().members().keys()) == ['a', 'b', 'c', 'd', 'e']
 
 
+def test_getting_members():
+    """Test accessing members directly.
+
+    """
+    class A(Atom):
+        val = Int()
+
+    assert A().get_member('val') is A.val
+    assert A().get_member('') is None
+
+    with pytest.raises(TypeError):
+        A().get_member(1)
+
+
 class PicklingTest(Atom):
 
     __slots__ = ('d',)
@@ -146,3 +178,23 @@ def test_freezing():
         ft.a = 1
     with pytest.raises(AttributeError):
         del ft.a
+
+
+def test_traverse_atom():
+    """Test that we can break reference cycles involving Atom object.
+
+    """
+    class MyAtom(Atom):
+
+        l = Value()
+
+    a = MyAtom()
+    l = list()
+    a.l = l
+    a.l.append(a)
+
+    ref = atomref(a)
+    del a, l
+    gc.collect()
+
+    assert not ref()

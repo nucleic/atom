@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2019, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -17,7 +17,7 @@ class Tuple(Member):
     may change the item values.
 
     """
-    __slots__ = ()
+    __slots__ = ('item',)
 
     def __init__(self, item=None, default=()):
         """ Initialize a Tuple.
@@ -36,5 +36,42 @@ class Tuple(Member):
         """
         if item is not None and not isinstance(item, Member):
             item = Instance(item)
+        self.item = item
         self.set_default_value_mode(DefaultValue.Static, default)
         self.set_validate_mode(Validate.Tuple, item)
+
+    def set_name(self, name):
+        """ Set the name of the member.
+
+        This method ensures that the item member name is also updated.
+
+        """
+        super(Tuple, self).set_name(name)
+        if self.item is not None:
+            self.item.set_name(name + "|item")
+
+    def set_index(self, index):
+        """ Assign the index to this member.
+
+        This method ensures that the item member index is also updated.
+
+        """
+        super(Tuple, self).set_index(index)
+        if self.item is not None:
+            self.item.set_index(index)
+
+    def clone(self):
+        """ Create a clone of the tuple.
+
+        This will clone the internal tuple item if one is in use.
+
+        """
+        clone = super(Tuple, self).clone()
+        item = self.item
+        if item is not None:
+            clone.item = item_clone = item.clone()
+            mode, ctxt = self.validate_mode
+            clone.set_validate_mode(mode, item_clone)
+        else:
+            clone.item = None
+        return clone
