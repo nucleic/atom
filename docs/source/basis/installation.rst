@@ -22,9 +22,9 @@ If you use the `Anaconda`_ Python distribution platform (or `Miniconda`_, its
 lighter-weight companion), the latest release of Atom can be installed using
 conda from the default channel or the conda-forge channel::
 
-    $ conda install enaml
+    $ conda install atom
 
-    $ conda install enaml -c conda-forge
+    $ conda install atom -c conda-forge
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda
 .. _Miniconda: https://conda.io/miniconda.html
