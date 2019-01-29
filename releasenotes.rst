@@ -1,7 +1,11 @@
 Atom Release Notes
 ==================
 
-0.4.2 - unreleased
+0.5.0 - unreleased
+------------------
+
+
+0.4.2 - 28/01/2019
 ------------------
 - ensure cached_property are always read-only #84
 - improve test coverage #84
