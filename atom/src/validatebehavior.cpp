@@ -559,7 +559,8 @@ instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
         return 0;
     if( res == 1 )
         return newref( newvalue );
-    return py_type_fail( "invalid instance type" );
+    PyTypeObject* type = pytype_cast( member->validate_context );
+    return validate_type_fail( member, atom, newvalue, type->tp_name );
 }
 
 
