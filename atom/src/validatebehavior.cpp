@@ -168,6 +168,24 @@ Member::check_context( Validate::Mode mode, PyObject* context )
 
 
 static PyObject*
+validate_instance_fail( Member* member, CAtom* atom, PyObject* newvalue )
+{
+    PyObject* type = PyObject_Repr( member->validate_context );
+    PyErr_Format(
+        PyExc_TypeError,
+        "The '%s' member on the '%s' object must be an instance of '%s'. "
+        "Got object of type '%s' instead.",
+        Py23Str_AS_STRING( member->name ),
+        pyobject_cast( atom )->ob_type->tp_name,
+        Py23Str_AS_STRING( type ),
+        newvalue->ob_type->tp_name
+    );
+    Py_XDECREF( type );
+    return 0;
+}
+
+
+static PyObject*
 validate_type_fail( Member* member, CAtom* atom, PyObject* newvalue, const char* type )
 {
     PyErr_Format(
@@ -559,8 +577,7 @@ instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
         return 0;
     if( res == 1 )
         return newref( newvalue );
-    PyTypeObject* type = pytype_cast( member->validate_context );
-    return validate_type_fail( member, atom, newvalue, type->tp_name );
+    return validate_instance_fail( member, atom, newvalue );
 }
 
 
