@@ -99,6 +99,9 @@ def test_no_op_validation():
                           (Coerced(set), [{1}, [1], (1,)], [{1}]*3, [1]),
                           (Coerced(int, coercer=lambda x: int(str(x), 2)),
                            ['101'], [5], []),
+                          (Coerced((int, float),
+                                   coercer=lambda x: int(str(x), 2)),
+                           ['101'], [5], []),
                           (Coerced(int, coercer=lambda x: []),
                            [], [], ['']),
                           (Tuple(), [(1,)], [(1,)], [[1]]),
@@ -124,7 +127,8 @@ def test_no_op_validation():
                            [1, 2.0], [1, 2.0], ['']),
                           (Typed(float), [1.0, None], [1.0, None], [1]),
                           (ForwardTyped(lambda: float), [1.0], [1.0], [1]),
-                          (Subclass(CAtom), [Atom], [Atom], [int]),
+                          (Subclass(CAtom), [Atom], [Atom], [int, 1]),
+                          (Subclass((CAtom, float)), [Atom], [Atom], [int, 1]),
                           (ForwardSubclass(lambda: CAtom),
                            [Atom], [Atom], [int]),
                           ] +
@@ -152,8 +156,11 @@ def test_validation_modes(member, set_values, values, raising_values):
                                              isinstance(rv, float) and
                                              rv > 2**32)
                            else ValueError if isinstance(member, Enum)
-                           else TypeError):
+                           else TypeError) as excinfo:
             tester.m = rv
+        if isinstance(member, (Instance, Subclass)):
+            print(excinfo.exconly())
+            assert False
 
 @pytest.mark.parametrize("member, mode, arg, msg",
                          [(List(), 'List', 1, "Member or None"),
@@ -176,6 +183,10 @@ def test_validation_modes(member, set_values, values, raising_values):
                           (Coerced(int), 'Coerced', 1, "2-tuple of (type, callable)"),
                           (Coerced(int), 'Coerced', (), "2-tuple of (type, callable)"),
                           (Coerced(int), 'Coerced', (int, 1), "2-tuple of (type, callable)"),
+                          (Instance(int), 'Instance', 1, "type or tuple of types"),
+                          (Instance(int), 'Instance', (int, 1), "type or tuple of types"),
+                          (Subclass(int), 'Instance', 1, "type or tuple of types"),
+                          (Subclass(int), 'Instance', (int, 1), "type or tuple of types"),
                           (Delegator(Int()), 'Delegate', 1, "Member")])
 def test_handling_wrong_context(member, mode, arg, msg):
     """Test handling wrong args to members leading to wrong validate behaviors.
