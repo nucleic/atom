@@ -16,19 +16,19 @@
 using namespace PythonHelpers;
 
 
-bool validate_type_tuple_types( PyObject* type_tuple_types)
+bool validate_type_tuple_types( PyObject* type_tuple_types )
 {
     if( PyTuple_Check( type_tuple_types ) )
     {
         int i, len;
         len = PySequence_Size( type_tuple_types );
         for (i = 0; i < len; i++) {
-            if( !PyType_Check( PyTuple_GET_ITEM( type_tuple_types, i) ) )
+            if( !PyType_Check( PyTuple_GET_ITEM( type_tuple_types, i ) ) )
             {
                 PyErr_Format(
                     PyExc_TypeError,
                     "Expected type or tuple of types. Got a tuple containing an instance of `%s` instead.",
-                    PyTuple_GET_ITEM( type_tuple_types, i)->ob_type->tp_name
+                    PyTuple_GET_ITEM( type_tuple_types, i )->ob_type->tp_name
                 );
                 return false;
             }
@@ -230,7 +230,7 @@ std::string name_from_type_tuple_types( PyObject* type_tuple_types )
         }
         ostr << ")";
     }
-    ostr.str().c_str();
+
     return ostr.str();
 }
 
