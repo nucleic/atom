@@ -158,9 +158,7 @@ def test_validation_modes(member, set_values, values, raising_values):
                            else ValueError if isinstance(member, Enum)
                            else TypeError) as excinfo:
             tester.m = rv
-        if isinstance(member, (Instance, Subclass)):
-            print(excinfo.exconly())
-            assert False
+
 
 @pytest.mark.parametrize("member, mode, arg, msg",
                          [(List(), 'List', 1, "Member or None"),

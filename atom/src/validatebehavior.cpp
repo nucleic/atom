@@ -25,7 +25,11 @@ bool validate_type_tuple_types( PyObject* type_tuple_types)
         for (i = 0; i < len; i++) {
             if( !PyType_Check( PyTuple_GET_ITEM( type_tuple_types, i) ) )
             {
-                py_expected_type_fail( PyTuple_GET_ITEM( type_tuple_types, i), "type or tuple of types" );
+                PyErr_Format(
+                    PyExc_TypeError,
+                    "Expected type or tuple of types. Got a tuple containing an instance of `%s` instead.",
+                    PyTuple_GET_ITEM( type_tuple_types, i)->ob_type->tp_name
+                );
                 return false;
             }
         }
@@ -160,7 +164,11 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             if( PyTuple_GET_SIZE( context ) != 2 )
             {
-                py_expected_type_fail( context, "2-tuple of (type, callable)" );
+                PyErr_Format(
+                    PyExc_TypeError,
+                    "Expected 2-tuple of (type, callable). Got a tuple of length %d instead.",
+                    PyTuple_GET_SIZE( context )
+                );
                 return false;
             }
             PyObject* type = PyTuple_GET_ITEM( context, 0 );
