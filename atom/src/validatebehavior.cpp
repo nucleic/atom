@@ -646,6 +646,21 @@ typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 static PyObject*
 subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
+
+    if( !PyType_Check( newvalue ) )
+    {
+        PyErr_Format(
+            PyExc_TypeError,
+            "The '%s' member on the '%s' object must be a subclass of '%s'. "
+            "Got instance of '%s' instead.",
+            Py23Str_AS_STRING( member->name ),
+            pyobject_cast( atom )->ob_type->tp_name,
+            name_from_type_tuple_types( member->validate_context ).c_str(),
+            newvalue->ob_type->tp_name
+        );
+        return 0;
+    }
+
     int res = PyObject_IsSubclass( newvalue, member->validate_context );
     if( res < 0 )
         return 0;
@@ -663,18 +678,6 @@ subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
             pyobject_cast( atom )->ob_type->tp_name,
             name_from_type_tuple_types( member->validate_context ).c_str(),
             type->tp_name
-        );
-    }
-    else
-    {
-        PyErr_Format(
-            PyExc_TypeError,
-            "The '%s' member on the '%s' object must be a subclass of '%s'. "
-            "Got instance of '%s' instead.",
-            Py23Str_AS_STRING( member->name ),
-            pyobject_cast( atom )->ob_type->tp_name,
-            name_from_type_tuple_types( member->validate_context ).c_str(),
-            newvalue->ob_type->tp_name
         );
     }
 
