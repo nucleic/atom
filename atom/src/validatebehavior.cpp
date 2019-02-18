@@ -6,12 +6,42 @@
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <limits>
+#include <iostream>
+#include <sstream>
 #include "member.h"
 #include "atomlist.h"
 #include "py23compat.h"
 
 
 using namespace PythonHelpers;
+
+
+bool validate_type_tuple_types( PyObject* type_tuple_types )
+{
+    if( PyTuple_Check( type_tuple_types ) )
+    {
+        int len = PySequence_Size( type_tuple_types );
+        for( int i = 0; i < len; i++ )
+        {
+            if( !PyType_Check( PyTuple_GET_ITEM( type_tuple_types, i ) ) )
+            {
+                PyErr_Format(
+                    PyExc_TypeError,
+                    "Expected type or tuple of types. Got a tuple containing an instance of `%s` instead.",
+                    PyTuple_GET_ITEM( type_tuple_types, i )->ob_type->tp_name
+                );
+                return false;
+            }
+        }
+        return true;
+    }
+    if( !PyType_Check( type_tuple_types ) )
+    {
+        py_expected_type_fail( type_tuple_types, "type or tuple of types" );
+        return false;
+    }
+    return true;
+}
 
 
 bool
@@ -54,7 +84,11 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             break;
         }
-        // XXX validate a valid isinstance type?
+        case Validate::Instance:
+        case Validate::Subclass:
+        {
+            return validate_type_tuple_types( context );
+        }
         case Validate::Typed:
             if( !PyType_Check( context ) )
             {
@@ -62,7 +96,6 @@ Member::check_context( Validate::Mode mode, PyObject* context )
                 return false;
             }
             break;
-        // XXX validate a valid subclass type?
         case Validate::Enum:
             if( !PySequence_Check( context ) )
             {
@@ -131,12 +164,19 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             if( PyTuple_GET_SIZE( context ) != 2 )
             {
-                py_expected_type_fail( context, "2-tuple of (type, callable)" );
+                PyErr_Format(
+                    PyExc_TypeError,
+                    "Expected 2-tuple of (type, callable). Got a tuple of length %d instead.",
+                    PyTuple_GET_SIZE( context )
+                );
                 return false;
             }
             PyObject* type = PyTuple_GET_ITEM( context, 0 );
             PyObject* coercer = PyTuple_GET_ITEM( context, 1 );
-            // XXX validate type as valid for isinstance(..., type)
+            if( !validate_type_tuple_types( type ) )
+            {
+                return false;
+            }
             if( !PyCallable_Check( coercer ) )
             {
                 py_expected_type_fail( context, "2-tuple of (type, callable)" );
@@ -164,6 +204,34 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             break;
     }
     return true;
+}
+
+
+std::string name_from_type_tuple_types( PyObject* type_tuple_types )
+{
+    // This should never be used if the input can be something else than a type
+    // or a tuple of types.
+    std::ostringstream ostr;
+    if( PyType_Check( type_tuple_types ) )
+    {
+        PyTypeObject* type = pytype_cast( type_tuple_types );
+        ostr << type->tp_name;
+    }
+    else
+    {
+        ostr << "(";
+        int len = PySequence_Size( type_tuple_types );
+        for( int i = 0; i < len; i++ )
+        {
+            PyTypeObject* type = pytype_cast( PyTuple_GET_ITEM( type_tuple_types, i ) );
+            ostr << type->tp_name;
+            if( i != len-1 )
+                ostr << ", ";
+        }
+        ostr << ")";
+    }
+
+    return ostr.str();
 }
 
 
@@ -559,7 +627,7 @@ instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
         return 0;
     if( res == 1 )
         return newref( newvalue );
-    return py_type_fail( "invalid instance type" );
+    return validate_type_fail( member, atom, newvalue, name_from_type_tuple_types( member->validate_context ).c_str() );
 }
 
 
@@ -578,12 +646,42 @@ typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 static PyObject*
 subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
+
+    if( !PyType_Check( newvalue ) )
+    {
+        PyErr_Format(
+            PyExc_TypeError,
+            "The '%s' member on the '%s' object must be a subclass of '%s'. "
+            "Got instance of '%s' instead.",
+            Py23Str_AS_STRING( member->name ),
+            pyobject_cast( atom )->ob_type->tp_name,
+            name_from_type_tuple_types( member->validate_context ).c_str(),
+            newvalue->ob_type->tp_name
+        );
+        return 0;
+    }
+
     int res = PyObject_IsSubclass( newvalue, member->validate_context );
     if( res < 0 )
         return 0;
     if( res == 1 )
         return newref( newvalue );
-    return py_type_fail( "invalid subclass type" );
+
+    if( PyType_Check( newvalue ) )
+    {
+        PyTypeObject* type = pytype_cast( newvalue );
+        PyErr_Format(
+            PyExc_TypeError,
+            "The '%s' member on the '%s' object must be a subclass of '%s'. "
+            "Got class '%s' instead.",
+            Py23Str_AS_STRING( member->name ),
+            pyobject_cast( atom )->ob_type->tp_name,
+            name_from_type_tuple_types( member->validate_context ).c_str(),
+            type->tp_name
+        );
+    }
+
+    return 0;
 }
 
 
