@@ -5,6 +5,12 @@ Atom Release Notes
 ------------------
 
 
+0.4.3 - 18/02/2019
+------------------
+- improve validation error messages for Instance and Subclass PR #91
+- improve validation of validation mode for Instance and Subclass PR #91
+
+
 0.4.2 - 28/01/2019
 ------------------
 - ensure cached_property are always read-only #84
@@ -20,10 +26,12 @@ Atom Release Notes
 - proper size check when creating a list #79
 - drop dependency of future that was taking a large time to import #78
 
+
 0.4.1 - 28/01/2018
 ------------------
 - add a fall-back to type name/pointer comparison on Python 3. Otherwise
   sortedmap can fail for non homogeneously typed keys. #77
+
 
 0.4.0 - 11/10/2017
 ------------------
