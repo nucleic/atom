@@ -4,7 +4,10 @@ Welcome to Atom
 .. image:: https://travis-ci.org/nucleic/atom.svg?branch=master
     :target: https://travis-ci.org/nucleic/atom
 .. image:: https://codecov.io/gh/nucleic/atom/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/nucleic/atom
+    :target: https://codecov.io/gh/nucleic/atom
+.. image:: https://readthedocs.org/projects/atom/badge/?version=latest
+    :target: https://atom.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 Atom is a framework for creating memory efficient Python objects with enhanced
 features such as dynamic initialization, validation, and change notification for
