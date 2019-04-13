@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -8,12 +8,9 @@
 #include <limits>
 #include <iostream>
 #include <sstream>
+#include <cppy/cppy.h>
 #include "member.h"
 #include "atomlist.h"
-#include "py23compat.h"
-
-
-using namespace PythonHelpers;
 
 
 bool validate_type_tuple_types( PyObject* type_tuple_types )
@@ -37,7 +34,7 @@ bool validate_type_tuple_types( PyObject* type_tuple_types )
     }
     if( !PyType_Check( type_tuple_types ) )
     {
-        py_expected_type_fail( type_tuple_types, "type or tuple of types" );
+        cppy::type_error( type_tuple_types, "type or tuple of types" );
         return false;
     }
     return true;
@@ -54,7 +51,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
         case Validate::ContainerList:
             if( context != Py_None && !Member::TypeCheck( context ) )
             {
-                py_expected_type_fail( context, "Member or None" );
+                cppy::type_error( context, "Member or None" );
                 return false;
             }
             break;
@@ -62,24 +59,24 @@ Member::check_context( Validate::Mode mode, PyObject* context )
         {
             if( !PyTuple_Check( context ) )
             {
-                py_expected_type_fail( context, "2-tuple of Member or None" );
+                cppy::type_error( context, "2-tuple of Member or None" );
                 return false;
             }
             if( PyTuple_GET_SIZE( context ) != 2 )
             {
-                py_expected_type_fail( context, "2-tuple of Member or None" );
+                cppy::type_error( context, "2-tuple of Member or None" );
                 return false;
             }
             PyObject* k = PyTuple_GET_ITEM( context, 0 );
             PyObject* v = PyTuple_GET_ITEM( context, 1 );
             if( k != Py_None && !Member::TypeCheck( k ) )
             {
-                py_expected_type_fail( context, "2-tuple of Member or None" );
+                cppy::type_error( context, "2-tuple of Member or None" );
                 return false;
             }
             if( v != Py_None && !Member::TypeCheck( v ) )
             {
-                py_expected_type_fail( context, "2-tuple of Member or None" );
+                cppy::type_error( context, "2-tuple of Member or None" );
                 return false;
             }
             break;
@@ -92,14 +89,14 @@ Member::check_context( Validate::Mode mode, PyObject* context )
         case Validate::Typed:
             if( !PyType_Check( context ) )
             {
-                py_expected_type_fail( context, "type" );
+                cppy::type_error( context, "type" );
                 return false;
             }
             break;
         case Validate::Enum:
             if( !PySequence_Check( context ) )
             {
-                py_expected_type_fail( context, "sequence" );
+                cppy::type_error( context, "sequence" );
                 return false;
             }
             break;
@@ -107,24 +104,24 @@ Member::check_context( Validate::Mode mode, PyObject* context )
         {
             if( !PyTuple_Check( context ) )
             {
-                py_expected_type_fail( context, "2-tuple of float or None" );
+                cppy::type_error( context, "2-tuple of float or None" );
                 return false;
             }
             if( PyTuple_GET_SIZE( context ) != 2 )
             {
-                py_expected_type_fail( context, "2-tuple of float or None" );
+                cppy::type_error( context, "2-tuple of float or None" );
                 return false;
             }
             PyObject* start = PyTuple_GET_ITEM( context, 0 );
             PyObject* end = PyTuple_GET_ITEM( context, 1 );
             if( start != Py_None && !PyFloat_Check( start ) )
             {
-                py_expected_type_fail( context, "2-tuple of float or None" );
+                cppy::type_error( context, "2-tuple of float or None" );
                 return false;
             }
             if( end != Py_None && !PyFloat_Check( end ) )
             {
-                py_expected_type_fail( context, "2-tuple of float or None" );
+                cppy::type_error( context, "2-tuple of float or None" );
                 return false;
             }
             break;
@@ -133,24 +130,24 @@ Member::check_context( Validate::Mode mode, PyObject* context )
         {
             if( !PyTuple_Check( context ) )
             {
-                py_expected_type_fail( context, "2-tuple of int or None" );
+                cppy::type_error( context, "2-tuple of int or None" );
                 return false;
             }
             if( PyTuple_GET_SIZE( context ) != 2 )
             {
-                py_expected_type_fail( context, "2-tuple of int or None" );
+                cppy::type_error( context, "2-tuple of int or None" );
                 return false;
             }
             PyObject* start = PyTuple_GET_ITEM( context, 0 );
             PyObject* end = PyTuple_GET_ITEM( context, 1 );
-            if( start != Py_None && !Py23Int_Check( start ) )
+            if( start != Py_None && !PyLong_Check( start ) )
             {
-                py_expected_type_fail( context, "2-tuple of int or None" );
+                cppy::type_error( context, "2-tuple of int or None" );
                 return false;
             }
-            if( end != Py_None && !Py23Int_Check( end ) )
+            if( end != Py_None && !PyLong_Check( end ) )
             {
-                py_expected_type_fail( context, "2-tuple of int or None" );
+                cppy::type_error( context, "2-tuple of int or None" );
                 return false;
             }
             break;
@@ -159,7 +156,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
         {
             if( !PyTuple_Check( context ) )
             {
-                py_expected_type_fail( context, "2-tuple of (type, callable)" );
+                cppy::type_error( context, "2-tuple of (type, callable)" );
                 return false;
             }
             if( PyTuple_GET_SIZE( context ) != 2 )
@@ -179,7 +176,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             if( !PyCallable_Check( coercer ) )
             {
-                py_expected_type_fail( context, "2-tuple of (type, callable)" );
+                cppy::type_error( context, "2-tuple of (type, callable)" );
                 return false;
             }
             break;
@@ -187,16 +184,16 @@ Member::check_context( Validate::Mode mode, PyObject* context )
         case Validate::Delegate:
             if( !Member::TypeCheck( context ) )
             {
-                py_expected_type_fail( context, "Member" );
+                cppy::type_error( context, "Member" );
                 return false;
             }
             break;
         case Validate::ObjectMethod_OldNew:
         case Validate::ObjectMethod_NameOldNew:
         case Validate::MemberMethod_ObjectOldNew:
-            if( !Py23Str_Check( context ) )
+            if( !PyUnicode_Check( context ) )
             {
-                py_expected_type_fail( context, "str" );
+                cppy::type_error( context, "str" );
                 return false;
             }
             break;
@@ -242,7 +239,7 @@ validate_type_fail( Member* member, CAtom* atom, PyObject* newvalue, const char*
         PyExc_TypeError,
         "The '%s' member on the '%s' object must be of type '%s'. "
         "Got object of type '%s' instead.",
-        Py23Str_AS_STRING( member->name ),
+        PyUnicode_AsUTF8( member->name ),
         pyobject_cast( atom )->ob_type->tp_name,
         type,
         newvalue->ob_type->tp_name
@@ -254,7 +251,7 @@ validate_type_fail( Member* member, CAtom* atom, PyObject* newvalue, const char*
 static PyObject*
 no_op_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    return newref( newvalue );
+    return cppy::incref( newvalue );
 }
 
 
@@ -262,57 +259,17 @@ static PyObject*
 bool_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_True || newvalue == Py_False )
-        return newref( newvalue );
+        return cppy::incref( newvalue );
     return validate_type_fail( member, atom, newvalue, "bool" );
 }
 
-// Python 3 has a single int type
-#if PY_MAJOR_VERSION < 3
-static PyObject*
-int_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
-{
-    if( Py23Int_Check( newvalue ) )
-        return newref( newvalue );
-    return validate_type_fail( member, atom, newvalue, "int" );
-}
-
-static PyObject*
-int_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
-{
-    if( PyInt_Check( newvalue ) )
-        return newref( newvalue );
-    if( PyFloat_Check( newvalue ) ) {
-        double value = PyFloat_AS_DOUBLE( newvalue );
-        if( value < static_cast<double>( std::numeric_limits<long>::min() ) ||
-            value > static_cast<double>( std::numeric_limits<long>::max() ) )
-        {
-            PyErr_SetString( PyExc_OverflowError, "Python float too large to convert to C long" );
-            return 0;
-        }
-        return Py23Int_FromLong( static_cast<long>( value ) );
-    }
-    if( PyLong_Check( newvalue ) ) {
-        long value = PyInt_AsLong( newvalue );
-        if( value == -1 && PyErr_Occurred() )
-            return 0;
-        return PyInt_FromLong( value );
-    }
-    return validate_type_fail( member, atom, newvalue, "int float or long" );
-}
-#endif
-
-#if PY_MAJOR_VERSION >= 3
-    #define LONG_NAME "int"
-#else
-    #define LONG_NAME "long"
-#endif
 
 static PyObject*
 long_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyLong_Check( newvalue ) )
-        return newref( newvalue );
-    return validate_type_fail( member, atom, newvalue, LONG_NAME );
+        return cppy::incref( newvalue );
+    return validate_type_fail( member, atom, newvalue, "int" );
 }
 
 
@@ -320,17 +277,12 @@ static PyObject*
 long_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyLong_Check( newvalue ) )
-        return newref( newvalue );
-    // Under Python 3 there is a single kind of int (PyLong)
-    #if PY_MAJOR_VERSION < 3
-        if( PyInt_Check( newvalue ) )
-            return PyLong_FromLong( PyInt_AS_LONG( newvalue ) );
-    #endif
+        return cppy::incref( newvalue );
     if( PyFloat_Check( newvalue ) ) {
         double value = PyFloat_AS_DOUBLE( newvalue );
         return PyLong_FromDouble( value );
     }
-    return validate_type_fail( member, atom, newvalue, LONG_NAME );
+    return validate_type_fail( member, atom, newvalue, "int" );
 }
 
 
@@ -338,7 +290,7 @@ static PyObject*
 float_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyFloat_Check( newvalue ) )
-        return newref( newvalue );
+        return cppy::incref( newvalue );
     return validate_type_fail( member, atom, newvalue, "float" );
 }
 
@@ -347,11 +299,7 @@ static PyObject*
 float_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyFloat_Check( newvalue ) )
-        return newref( newvalue );
-    #if PY_MAJOR_VERSION < 3
-    if( PyInt_Check( newvalue ) )
-        return PyFloat_FromDouble( static_cast<double>( PyInt_AS_LONG( newvalue ) ) );
-    #endif
+        return cppy::incref( newvalue );
     if( PyLong_Check( newvalue ) )
     {
         double value = PyLong_AsDouble( newvalue );
@@ -362,80 +310,44 @@ float_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject
     return validate_type_fail( member, atom, newvalue, "float" );
 }
 
-#if PY_MAJOR_VERSION >= 3
-    #define BYTES_STR "bytes"
-    #define UNICODE_STR "str"
-#else
-    #define BYTES_STR "str"
-    #define UNICODE_STR "unicode"
-#endif
-
 
 static PyObject*
 bytes_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( Py23Bytes_Check( newvalue ) )
-        return newref( newvalue );
-    return validate_type_fail( member, atom, newvalue, BYTES_STR );
+    if( PyBytes_Check( newvalue ) )
+        return cppy::incref( newvalue );
+    return validate_type_fail( member, atom, newvalue, "bytes" );
 }
 
 static PyObject*
 bytes_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( Py23Bytes_Check( newvalue ) )
-        return newref( newvalue );
+    if( PyBytes_Check( newvalue ) )
+        return cppy::incref( newvalue );
 
     if( PyUnicode_Check( newvalue ) )
         return PyUnicode_AsUTF8String( newvalue );
 
-    return validate_type_fail( member, atom, newvalue, BYTES_STR );
+    return validate_type_fail( member, atom, newvalue, "bytes" );
 }
 
 static PyObject*
-string_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+str_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( Py23Str_Check( newvalue ) )
-        return newref( newvalue );
+    if( PyUnicode_Check( newvalue ) )
+        return cppy::incref( newvalue );
     return validate_type_fail( member, atom, newvalue, "str" );
 }
 
 
 static PyObject*
-string_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+str_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( Py23Str_Check( newvalue ) )
-        return newref( newvalue );
-#if PY_MAJOR_VERSION >= 3
+    if( PyUnicode_Check( newvalue ) )
+        return cppy::incref( newvalue );
     if( PyBytes_Check( newvalue ) )
         return PyUnicode_FromString( PyBytes_AS_STRING( newvalue ) );
-
-#else
-    if( PyUnicode_Check( newvalue ) )
-        return PyUnicode_AsUTF8String( newvalue );
-
-#endif
     return validate_type_fail( member, atom, newvalue, "str" );
-}
-
-static PyObject*
-unicode_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
-{
-    if( PyUnicode_Check( newvalue ) )
-        return newref( newvalue );
-    return validate_type_fail( member, atom, newvalue, UNICODE_STR );
-}
-
-
-static PyObject*
-unicode_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
-{
-    if( PyUnicode_Check( newvalue ) )
-        return newref( newvalue );
-
-    if( Py23Bytes_Check( newvalue ) )
-        return PyUnicode_FromString( Py23Bytes_AS_STRING( newvalue ) );
-
-    return validate_type_fail( member, atom, newvalue, UNICODE_STR );
 }
 
 
@@ -444,21 +356,21 @@ tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 {
     if( !PyTuple_Check( newvalue ) )
         return validate_type_fail( member, atom, newvalue, "tuple" );
-    PyTuplePtr tupleptr( newref( newvalue ) );
+    cppy::ptr tupleptr( cppy::incref( newvalue ) );
     if( member->validate_context != Py_None )
     {
         Py_ssize_t size = PyTuple_GET_SIZE( newvalue );
-        PyTuplePtr tuplecopy = PyTuple_New( size );
+        cppy::ptr tuplecopy = PyTuple_New( size );
         if( !tuplecopy )
             return 0;
         Member* item_member = member_cast( member->validate_context );
         for( Py_ssize_t i = 0; i < size; ++i )
         {
-            PyObjectPtr item( tupleptr.get_item( i ) );
-            PyObjectPtr valid_item( item_member->full_validate( atom, Py_None, item.get() ) );
+            cppy::ptr item( cppy::incref( PyTuple_GET_ITEM( tupleptr.get(), i ) ) );
+            cppy::ptr valid_item( item_member->full_validate( atom, Py_None, item.get() ) );
             if( !valid_item )
                 return 0;
-            tuplecopy.set_item( i, valid_item );
+            PyTuple_SET_ITEM( tuplecopy.get(), i, valid_item.release() );
         }
         tupleptr = tuplecopy;
     }
@@ -475,23 +387,23 @@ common_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
     if( member->validate_context != Py_None )
         validator = member_cast( member->validate_context );
     Py_ssize_t size = PyList_GET_SIZE( newvalue );
-    PyListPtr listptr( ListFactory()( member, atom, validator, size ) );
+    cppy::ptr listptr( ListFactory()( member, atom, validator, size ) );
     if( !listptr )
         return 0;
     if( !validator )
     {
         for( Py_ssize_t i = 0; i < size; ++i )
-            listptr.set_item( i, newref( PyList_GET_ITEM( newvalue, i ) ) );
+            PyList_SET_ITEM( listptr.get(), i, cppy::incref( PyList_GET_ITEM( newvalue, i ) ) );
     }
     else
     {
         for( Py_ssize_t i = 0; i < size; ++i )
         {
             PyObject* item = PyList_GET_ITEM( newvalue, i );
-            PyObjectPtr valid_item( validator->full_validate( atom, Py_None, item ) );
+            cppy::ptr valid_item( validator->full_validate( atom, Py_None, item ) );
             if( !valid_item )
                 return 0;
-            listptr.set_item( i, valid_item );
+            PyList_SET_ITEM( listptr.get(), i, valid_item.release() );
         }
     }
     return listptr.release();
@@ -538,18 +450,18 @@ validate_dict_key_value( Member* keymember, Member* valmember, CAtom* atom, PyOb
     PyObject* key;
     PyObject* value;
     Py_ssize_t pos = 0;
-    PyDictPtr newptr( PyDict_New() );
+    cppy::ptr newptr( PyDict_New() );
     if( !newptr )
         return 0;
     while( PyDict_Next( dict, &pos, &key, &value ) )
     {
-        PyObjectPtr keyptr( keymember->full_validate( atom, Py_None, key ) );
+        cppy::ptr keyptr( keymember->full_validate( atom, Py_None, key ) );
         if( !keyptr )
             return 0;
-        PyObjectPtr valptr( valmember->full_validate( atom, Py_None, value ) );
+        cppy::ptr valptr( valmember->full_validate( atom, Py_None, value ) );
         if( !valptr )
             return 0;
-        if( !newptr.set_item( keyptr, valptr ) )
+        if( PyDict_SetItem( newptr.get(), keyptr.get(), valptr.get() ) != 0 )
             return 0;
     }
     return newptr.release();
@@ -562,16 +474,16 @@ validate_dict_value( Member* valmember, CAtom* atom, PyObject* dict )
     PyObject* key;
     PyObject* value;
     Py_ssize_t pos = 0;
-    PyDictPtr newptr( PyDict_New() );
+    cppy::ptr newptr( PyDict_New() );
     if( !newptr )
         return 0;
     while( PyDict_Next( dict, &pos, &key, &value ) )
     {
-        PyObjectPtr keyptr( newref( key ) );
-        PyObjectPtr valptr( valmember->full_validate( atom, Py_None, value ) );
+        cppy::ptr keyptr( cppy::incref( key ) );
+        cppy::ptr valptr( valmember->full_validate( atom, Py_None, value ) );
         if( !valptr )
             return 0;
-        if( !newptr.set_item( keyptr, valptr ) )
+        if( PyDict_SetItem( newptr.get(), keyptr.get(), valptr.get() ) != 0 )
             return 0;
     }
     return newptr.release();
@@ -584,16 +496,16 @@ validate_dict_key( Member* keymember, CAtom* atom, PyObject* dict )
     PyObject* key;
     PyObject* value;
     Py_ssize_t pos = 0;
-    PyDictPtr newptr( PyDict_New() );
+    cppy::ptr newptr( PyDict_New() );
     if( !newptr )
         return 0;
     while( PyDict_Next( dict, &pos, &key, &value ) )
     {
-        PyObjectPtr keyptr( keymember->full_validate( atom, Py_None, key ) );
+        cppy::ptr keyptr( keymember->full_validate( atom, Py_None, key ) );
         if( !keyptr )
             return 0;
-        PyObjectPtr valptr( newref( value ) );
-        if( !newptr.set_item( keyptr, valptr ) )
+        cppy::ptr valptr( cppy::incref( value ) );
+        if( PyDict_SetItem( newptr.get(), keyptr.get(), valptr.get() ) != 0 )
             return 0;
     }
     return newptr.release();
@@ -621,12 +533,12 @@ static PyObject*
 instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_None )
-        return newref( newvalue );
+        return cppy::incref( newvalue );
     int res = PyObject_IsInstance( newvalue, member->validate_context );
     if( res < 0 )
         return 0;
     if( res == 1 )
-        return newref( newvalue );
+        return cppy::incref( newvalue );
     return validate_type_fail( member, atom, newvalue, name_from_type_tuple_types( member->validate_context ).c_str() );
 }
 
@@ -635,10 +547,10 @@ static PyObject*
 typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_None )
-        return newref( newvalue );
+        return cppy::incref( newvalue );
     PyTypeObject* type = pytype_cast( member->validate_context );
     if( PyObject_TypeCheck( newvalue, type ) )
-        return newref( newvalue );
+        return cppy::incref( newvalue );
     return validate_type_fail( member, atom, newvalue, type->tp_name );
 }
 
@@ -653,7 +565,7 @@ subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
             PyExc_TypeError,
             "The '%s' member on the '%s' object must be a subclass of '%s'. "
             "Got instance of '%s' instead.",
-            Py23Str_AS_STRING( member->name ),
+            PyUnicode_AsUTF8( member->name ),
             pyobject_cast( atom )->ob_type->tp_name,
             name_from_type_tuple_types( member->validate_context ).c_str(),
             newvalue->ob_type->tp_name
@@ -665,7 +577,7 @@ subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
     if( res < 0 )
         return 0;
     if( res == 1 )
-        return newref( newvalue );
+        return cppy::incref( newvalue );
 
     if( PyType_Check( newvalue ) )
     {
@@ -674,7 +586,7 @@ subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
             PyExc_TypeError,
             "The '%s' member on the '%s' object must be a subclass of '%s'. "
             "Got class '%s' instead.",
-            Py23Str_AS_STRING( member->name ),
+            PyUnicode_AsUTF8( member->name ),
             pyobject_cast( atom )->ob_type->tp_name,
             name_from_type_tuple_types( member->validate_context ).c_str(),
             type->tp_name
@@ -692,8 +604,8 @@ enum_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
     if( res < 0 )
         return 0;
     if( res == 1 )
-        return newref( newvalue );
-    return py_value_fail( "invalid enum value" );
+        return cppy::incref( newvalue );
+    return cppy::value_error( "invalid enum value" );
 }
 
 
@@ -701,9 +613,9 @@ static PyObject*
 callable_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_None )
-        return newref( newvalue );
+        return cppy::incref( newvalue );
     if( PyCallable_Check( newvalue ) )
-        return newref( newvalue );
+        return cppy::incref( newvalue );
     return validate_type_fail( member, atom, newvalue, "callable" );
 }
 
@@ -719,35 +631,35 @@ float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
     if( low != Py_None )
     {
         if( PyFloat_AS_DOUBLE( low ) > value )
-            return py_type_fail( "range value too small" );
+            return cppy::type_error( "range value too small" );
     }
     if( high != Py_None )
     {
         if( PyFloat_AS_DOUBLE( high ) < value )
-            return py_type_fail( "range value too large" );
+            return cppy::type_error( "range value too large" );
     }
-    return newref( newvalue );
+    return cppy::incref( newvalue );
 }
 
 
 static PyObject*
 range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( !Py23Int_Check( newvalue ) )
+    if( !PyLong_Check( newvalue ) )
         return validate_type_fail( member, atom, newvalue, "int" );
     PyObject* low = PyTuple_GET_ITEM( member->validate_context, 0 );
     PyObject* high = PyTuple_GET_ITEM( member->validate_context, 1 );
     if( low != Py_None )
     {
         if( PyObject_RichCompareBool( low , newvalue, Py_GT ) )
-            return py_type_fail( "range value too small" );
+            return cppy::type_error( "range value too small" );
     }
     if( high != Py_None )
     {
         if( PyObject_RichCompareBool( high , newvalue, Py_LT ) )
-            return py_type_fail( "range value too large" );
+            return cppy::type_error( "range value too large" );
     }
-    return newref( newvalue );
+    return cppy::incref( newvalue );
 }
 
 
@@ -757,16 +669,16 @@ coerced_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newv
     PyObject* type = PyTuple_GET_ITEM( member->validate_context, 0 );
     int res = PyObject_IsInstance( newvalue, type );
     if( res == 1 )
-        return newref( newvalue );
+        return cppy::incref( newvalue );
     if( res == -1 )
         return 0;
-    PyTuplePtr argsptr( PyTuple_New( 1 ) );
+    cppy::ptr argsptr( PyTuple_New( 1 ) );
     if( !argsptr )
         return 0;
-    argsptr.initialize( 0, newref( newvalue ) );
+    PyTuple_SET_ITEM(argsptr.get(), 0, cppy::incref( newvalue ) );
     PyObject* coercer = PyTuple_GET_ITEM( member->validate_context, 1 );
-    PyObjectPtr callable( newref( coercer ) );
-    PyObjectPtr coerced( callable( argsptr ) );
+    cppy::ptr callable( cppy::incref( coercer ) );
+    cppy::ptr coerced( callable.call( argsptr ) );
     if( !coerced )
         return 0;
     res = PyObject_IsInstance( coerced.get(), type );
@@ -774,7 +686,7 @@ coerced_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newv
         return coerced.release();
     if( res == -1 )
         return 0;
-    return py_type_fail( "could not coerce value to an appropriate type" );
+    return cppy::type_error( "could not coerce value to an appropriate type" );
 }
 
 
@@ -790,15 +702,15 @@ static PyObject*
 object_method_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->validate_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->validate_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 2 ) );
+    cppy::ptr args( PyTuple_New( 2 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( oldvalue ) );
-    args.initialize( 1, newref( newvalue ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM(args.get(), 0, cppy::incref( oldvalue ) );
+    PyTuple_SET_ITEM(args.get(), 1, cppy::incref( newvalue ) );
+    return callable.call( args );
 }
 
 
@@ -806,16 +718,16 @@ static PyObject*
 object_method_name_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->validate_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->validate_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 3 ) );
+    cppy::ptr args( PyTuple_New( 3 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( member->name ) );
-    args.initialize( 1, newref( oldvalue ) );
-    args.initialize( 2, newref( newvalue ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM(args.get(), 0, cppy::incref( member->name ) );
+    PyTuple_SET_ITEM(args.get(), 1, cppy::incref( oldvalue ) );
+    PyTuple_SET_ITEM(args.get(), 2, cppy::incref( newvalue ) );
+    return callable.call( args );
 }
 
 
@@ -823,16 +735,16 @@ static PyObject*
 member_method_object_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( member ), member->validate_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->validate_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 3 ) );
+    cppy::ptr args( PyTuple_New( 3 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    args.initialize( 1, newref( oldvalue ) );
-    args.initialize( 2, newref( newvalue ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM(args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
+    PyTuple_SET_ITEM(args.get(), 1, cppy::incref( oldvalue ) );
+    PyTuple_SET_ITEM(args.get(), 2, cppy::incref( newvalue ) );
+    return callable.call( args );
 }
 
 
@@ -844,24 +756,18 @@ static handler
 handlers[] = {
     no_op_handler,
     bool_handler,
-    // Python 3 has a single int type hence we use twice the same validator
-    #if PY_MAJOR_VERSION >= 3
     long_handler,
     long_promote_handler,
-    #else
-    int_handler,
-    int_promote_handler,
-    #endif
     long_handler,
     long_promote_handler,
     float_handler,
     float_promote_handler,
     bytes_handler,
     bytes_promote_handler,
-    string_handler,
-    string_promote_handler,
-    unicode_handler,
-    unicode_promote_handler,
+    str_handler,
+    str_promote_handler,
+    str_handler,
+    str_promote_handler,
     tuple_handler,
     list_handler,
     container_list_handler,

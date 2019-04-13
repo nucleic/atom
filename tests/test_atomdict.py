@@ -83,17 +83,6 @@ def test_copy(atom_dict, member):
     setattr(atom_dict, member, d)
     assert getattr(atom_dict, member).copy() == d
 
-@pytest.mark.skipif(sys.version_info > (3,), reason='Meaningful only on Python 2')
-@pytest.mark.parametrize('member',
-                         ['untyped', 'keytyped', 'valuetyped', 'fullytyped'])
-def test_has_key(atom_dict, member):
-    """Test has_key.
-
-    """
-    d = {i: i**2 for i in range(10)}
-    setattr(atom_dict, member, d)
-    assert getattr(atom_dict, member).has_key(5)
-
 
 def test_setitem(atom_dict):
     """Test setting items.

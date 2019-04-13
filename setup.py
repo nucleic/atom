@@ -10,6 +10,8 @@ import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
 
+import cppy
+
 sys.path.insert(0, os.path.abspath('.'))
 from atom.version import __version__
 
@@ -38,11 +40,13 @@ ext_modules = [
             'atom/src/signalconnector.cpp',
             'atom/src/validatebehavior.cpp',
         ],
+        include_dirs=[cppy.get_include(), 'src'],
         language='c++',
     ),
     Extension(
         'atom.datastructures.sortedmap',
         ['atom/src/sortedmap.cpp'],
+        include_dirs=[cppy.get_include(), 'src'],
         language='c++',
     ),
 ]
@@ -91,6 +95,7 @@ setup(
       ],
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
     install_requires=['setuptools'],
+    setup_requires=['cppy'],
     packages=find_packages(exclude=['tests', 'tests.*']),
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},

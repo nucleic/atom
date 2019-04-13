@@ -1,15 +1,13 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2018, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <cppy/cppy.h>
 #include "enumtypes.h"
 #include "packagenaming.h"
-#include "py23compat.h"
-
-using namespace PythonHelpers;
 
 #define expand_enum( e ) #e, e
 
@@ -31,38 +29,39 @@ PyObject* PyPostValidate = 0;
 namespace {
 
 template<typename T> inline bool
-add_long( PyDictPtr& dict_ptr, const char* name, T value )
+add_long( cppy::ptr& dict_ptr, const char* name, T value )
 {
-    PyObjectPtr pyint( Py23Int_FromLong( static_cast<long>( value ) ) );
+    cppy::ptr pyint( PyLong_FromLong( static_cast<long>( value ) ) );
     if( !pyint )
         return false;
-    if( !dict_ptr.set_item( name, pyint ) )
+    if( PyDict_SetItemString( dict_ptr.get(), name, pyint.get() ) != 0 )
         return false;
+    pyint.release(); // Release the reference since the operation succeeded
     return true;
 }
 
 
 inline PyObject*
-make_enum( const char* name, PyDictPtr& dict_ptr )
+make_enum( const char* name, cppy::ptr& dict_ptr )
 {
-    PyObjectPtr pyname( Py23Str_FromString( name ) );
+    cppy::ptr pyname( PyUnicode_FromString( name ) );
     if( !pyname )
         return 0;
-    PyObjectPtr pybases( PyTuple_Pack( 1, PyIntEnum ) );
+    cppy::ptr pybases( PyTuple_Pack( 1, PyIntEnum ) );
     if( !pybases )
         return 0;
-    PyDictPtr pydict( PyDict_Copy( dict_ptr.get() ) );
+    cppy::ptr pydict( PyDict_Copy( dict_ptr.get() ) );
     if( !pydict )
         return 0;
-    PyObjectPtr modname( Py23Str_FromString( PACKAGE_PREFIX ) );
+    cppy::ptr modname( PyUnicode_FromString( PACKAGE_PREFIX ) );
     if( !modname )
         return 0;
-    if( !pydict.set_item( "__module__", modname ) )
+    if( PyDict_SetItemString( pydict.get(), "__module__", modname.get() ) != 0 )
         return 0;
-    PyObjectPtr callargs( PyTuple_Pack( 3, pyname.get(), pybases.get(), pydict.get() ) );
+    cppy::ptr callargs( PyTuple_Pack( 3, pyname.get(), pybases.get(), pydict.get() ) );
     if( !callargs )
         return 0;
-    PyObjectPtr enumclass( PyObject_CallObject( PyIntEnumMeta, callargs.get() ) );
+    cppy::ptr enumclass( PyObject_CallObject( PyIntEnumMeta, callargs.get() ) );
     if( !enumclass )
         return 0;
     return enumclass.release();
@@ -73,19 +72,19 @@ make_enum( const char* name, PyDictPtr& dict_ptr )
 
 int import_enumtypes()
 {
-    PyObjectPtr intenum_mod( PyImport_ImportModule( "atom.intenum" ) );
+    cppy::ptr intenum_mod( PyImport_ImportModule( "atom.intenum" ) );
     if( !intenum_mod )
         return -1;
-    PyIntEnumMeta = intenum_mod.getattr( "_IntEnumMeta" ).release();
+    PyIntEnumMeta = intenum_mod.getattr( "_IntEnumMeta" );
     if( !PyIntEnumMeta )
         return -1;
-    PyIntEnum = intenum_mod.getattr( "IntEnum" ).release();
+    PyIntEnum = intenum_mod.getattr( "IntEnum" );
     if( !PyIntEnum )
         return -1;
 
     {
         using namespace GetAttr;
-        PyDictPtr dict_ptr( PyDict_New() );
+        cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
             return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
@@ -107,7 +106,7 @@ int import_enumtypes()
 
     {
         using namespace SetAttr;
-        PyDictPtr dict_ptr( PyDict_New() );
+        cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
             return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
@@ -130,7 +129,7 @@ int import_enumtypes()
 
     {
         using namespace DelAttr;
-        PyDictPtr dict_ptr( PyDict_New() );
+        cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
             return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
@@ -148,7 +147,7 @@ int import_enumtypes()
 
     {
         using namespace PostGetAttr;
-        PyDictPtr dict_ptr( PyDict_New() );
+        cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
             return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
@@ -163,7 +162,7 @@ int import_enumtypes()
 
     {
         using namespace PostSetAttr;
-        PyDictPtr dict_ptr( PyDict_New() );
+        cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
             return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
@@ -178,7 +177,7 @@ int import_enumtypes()
 
     {
         using namespace DefaultValue;
-        PyDictPtr dict_ptr( PyDict_New() );
+        cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
             return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
@@ -199,7 +198,7 @@ int import_enumtypes()
 
     {
         using namespace Validate;
-        PyDictPtr dict_ptr( PyDict_New() );
+        cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
             return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );
@@ -212,8 +211,8 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( FloatPromote ) );
         add_long( dict_ptr, expand_enum( Bytes ) );
         add_long( dict_ptr, expand_enum( BytesPromote ) );
-        add_long( dict_ptr, expand_enum( String ) );
-        add_long( dict_ptr, expand_enum( StringPromote ) );
+        add_long( dict_ptr, expand_enum( Str ) );
+        add_long( dict_ptr, expand_enum( StrPromote ) );
         add_long( dict_ptr, expand_enum( Unicode ) );
         add_long( dict_ptr, expand_enum( UnicodePromote ) );
         add_long( dict_ptr, expand_enum( Tuple ) );
@@ -239,7 +238,7 @@ int import_enumtypes()
 
     {
         using namespace PostValidate;
-        PyDictPtr dict_ptr( PyDict_New() );
+        cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
             return -1;  // LCOV_EXCL_LINE
         add_long( dict_ptr, expand_enum( NoOp ) );

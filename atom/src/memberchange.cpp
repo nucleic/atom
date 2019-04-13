@@ -1,15 +1,12 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <cppy/cppy.h>
 #include "memberchange.h"
-#include "py23compat.h"
-
-
-using namespace PythonHelpers;
 
 
 namespace MemberChange
@@ -30,16 +27,16 @@ static PyObject* oldvaluestr;
 PyObject*
 created( CAtom* atom, Member* member, PyObject* value )
 {
-    PyDictPtr dict( PyDict_New() );
+    cppy::ptr dict( PyDict_New() );
     if( !dict )
         return 0;
-    if( !dict.set_item( typestr, createstr ) )
+    if( PyDict_SetItem( dict.get(),  typestr, createstr ) != 0 )
         return 0;
-    if( !dict.set_item( objectstr, pyobject_cast( atom ) ) )
+    if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
         return 0;
-    if( !dict.set_item( namestr, member->name ) )
+    if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
         return 0;
-    if( !dict.set_item( valuestr, value ) )
+    if( PyDict_SetItem( dict.get(),  valuestr, value ) != 0 )
         return 0;
     return dict.release();
 }
@@ -48,18 +45,18 @@ created( CAtom* atom, Member* member, PyObject* value )
 PyObject*
 updated( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyDictPtr dict( PyDict_New() );
+    cppy::ptr dict( PyDict_New() );
     if( !dict )
         return 0;
-    if( !dict.set_item( typestr, updatestr ) )
+    if( PyDict_SetItem( dict.get(),  typestr, updatestr ) != 0 )
         return 0;
-    if( !dict.set_item( objectstr, pyobject_cast( atom ) ) )
+    if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
         return 0;
-    if( !dict.set_item( namestr, member->name ) )
+    if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
         return 0;
-    if( !dict.set_item( oldvaluestr, oldvalue ) )
+    if( PyDict_SetItem( dict.get(),  oldvaluestr, oldvalue ) != 0 )
         return 0;
-    if( !dict.set_item( valuestr, newvalue ) )
+    if( PyDict_SetItem( dict.get(),  valuestr, newvalue ) != 0 )
         return 0;
     return dict.release();
 }
@@ -68,16 +65,16 @@ updated( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
 PyObject*
 deleted( CAtom* atom, Member* member, PyObject* value )
 {
-    PyDictPtr dict( PyDict_New() );
+    cppy::ptr dict( PyDict_New() );
     if( !dict )
         return 0;
-    if( !dict.set_item( typestr, deletestr ) )
+    if( PyDict_SetItem( dict.get(),  typestr, deletestr ) != 0 )
         return 0;
-    if( !dict.set_item( objectstr, pyobject_cast( atom ) ) )
+    if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
         return 0;
-    if( !dict.set_item( namestr, member->name ) )
+    if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
         return 0;
-    if( !dict.set_item( valuestr, value ) )
+    if( PyDict_SetItem( dict.get(),  valuestr, value ) != 0 )
         return 0;
     return dict.release();
 }
@@ -86,16 +83,16 @@ deleted( CAtom* atom, Member* member, PyObject* value )
 PyObject*
 event( CAtom* atom, Member* member, PyObject* value )
 {
-    PyDictPtr dict( PyDict_New() );
+    cppy::ptr dict( PyDict_New() );
     if( !dict )
         return 0;
-    if( !dict.set_item( typestr, eventstr ) )
+    if( PyDict_SetItem( dict.get(),  typestr, eventstr ) != 0 )
         return 0;
-    if( !dict.set_item( objectstr, pyobject_cast( atom ) ) )
+    if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
         return 0;
-    if( !dict.set_item( namestr, member->name ) )
+    if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
         return 0;
-    if( !dict.set_item( valuestr, value ) )
+    if( PyDict_SetItem( dict.get(),  valuestr, value ) != 0 )
         return 0;
     return dict.release();
 }
@@ -104,18 +101,18 @@ event( CAtom* atom, Member* member, PyObject* value )
 PyObject*
 property( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyDictPtr dict( PyDict_New() );
+    cppy::ptr dict( PyDict_New() );
     if( !dict )
         return 0;
-    if( !dict.set_item( typestr, propertystr ) )
+    if( PyDict_SetItem( dict.get(),  typestr, propertystr ) != 0)
         return 0;
-    if( !dict.set_item( objectstr, pyobject_cast( atom ) ) )
+    if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
         return 0;
-    if( !dict.set_item( namestr, member->name ) )
+    if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
         return 0;
-    if( !dict.set_item( oldvaluestr, oldvalue ) )
+    if( PyDict_SetItem( dict.get(),  oldvaluestr, oldvalue ) != 0 )
         return 0;
-    if( !dict.set_item( valuestr, newvalue ) )
+    if( PyDict_SetItem( dict.get(),  valuestr, newvalue ) != 0 )
         return 0;
     return dict.release();
 }
@@ -129,34 +126,34 @@ import_memberchange()
     static bool alloced = false;
     if( alloced )
         return 0;
-    MemberChange::createstr = Py23Str_InternFromString( "create" );
+    MemberChange::createstr = PyUnicode_InternFromString( "create" );
     if( !MemberChange::createstr )
         return -1;
-    MemberChange::updatestr = Py23Str_InternFromString( "update" );
+    MemberChange::updatestr = PyUnicode_InternFromString( "update" );
     if( !MemberChange::updatestr )
         return -1;
-    MemberChange::deletestr = Py23Str_InternFromString( "delete" );
+    MemberChange::deletestr = PyUnicode_InternFromString( "delete" );
     if( !MemberChange::deletestr )
         return -1;
-    MemberChange::eventstr = Py23Str_InternFromString( "event" );
+    MemberChange::eventstr = PyUnicode_InternFromString( "event" );
     if( !MemberChange::eventstr )
         return -1;
-    MemberChange::propertystr = Py23Str_InternFromString( "property" );
+    MemberChange::propertystr = PyUnicode_InternFromString( "property" );
     if( !MemberChange::propertystr )
         return -1;
-    MemberChange::typestr = Py23Str_InternFromString( "type" );
+    MemberChange::typestr = PyUnicode_InternFromString( "type" );
     if( !MemberChange::typestr )
         return -1;
-    MemberChange::objectstr = Py23Str_InternFromString( "object" );
+    MemberChange::objectstr = PyUnicode_InternFromString( "object" );
     if( !MemberChange::objectstr )
         return -1;
-    MemberChange::namestr = Py23Str_InternFromString( "name" );
+    MemberChange::namestr = PyUnicode_InternFromString( "name" );
     if( !MemberChange::namestr )
         return -1;
-    MemberChange::valuestr = Py23Str_InternFromString( "value" );
+    MemberChange::valuestr = PyUnicode_InternFromString( "value" );
     if( !MemberChange::valuestr )
         return -1;
-    MemberChange::oldvaluestr = Py23Str_InternFromString( "oldvalue" );
+    MemberChange::oldvaluestr = PyUnicode_InternFromString( "oldvalue" );
     if( !MemberChange::oldvaluestr )
         return -1;
     alloced = true;

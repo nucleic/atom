@@ -5,7 +5,7 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-#include "pythonhelpers.h"
+#include <cppy/cppy.h>
 #include "behaviors.h"
 #include "catom.h"
 #include "member.h"
@@ -16,9 +16,6 @@
 #include "atomlist.h"
 #include "enumtypes.h"
 #include "propertyhelper.h"
-#include "py23compat.h"
-
-using namespace PythonHelpers;
 
 
 static PyMethodDef
@@ -28,7 +25,6 @@ catom_methods[] = {
     { 0 } // Sentinel
 };
 
-#if PY_MAJOR_VERSION >= 3
 
 static struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
@@ -42,36 +38,30 @@ static struct PyModuleDef moduledef = {
         NULL
 };
 
-#endif
 
-
-MOD_INIT(catom)
+PyMODINIT_FUNC PyInit_catom( void )
 {
-#if PY_MAJOR_VERSION >= 3
     PyObject *mod = PyModule_Create(&moduledef);
-#else
-    PyObject* mod = Py_InitModule( "catom", catom_methods );
-#endif
     if( !mod )
-        INITERROR;
+        return 0;
     if( import_member() < 0 )
-        INITERROR;
+        return 0;
     if( import_memberchange() < 0 )
-        INITERROR;
+        return 0;
     if( import_catom() < 0 )
-        INITERROR;
+        return 0;
     if( import_eventbinder() < 0 )
-        INITERROR;
+        return 0;
     if( import_signalconnector() < 0 )
-        INITERROR;
+        return 0;
     if( import_atomref() < 0 )
-        INITERROR;
+        return 0;
     if( import_atomlist() < 0 )
-        INITERROR;
+        return 0;
     //if( import_atomdict() < 0 )
-    //    INITERROR;
+    //    return 0;
     if( import_enumtypes() < 0 )
-        INITERROR;
+        return 0;
 
     Py_INCREF( &Member_Type );
     Py_INCREF( &CAtom_Type );
@@ -102,7 +92,5 @@ MOD_INIT(catom)
     PyModule_AddObject( mod, "Validate", PyValidate );
     PyModule_AddObject( mod, "PostValidate", PyPostValidate );
 
-#if PY_MAJOR_VERSION >= 3
     return mod;
-#endif
 }
