@@ -6,3 +6,5 @@ build/
 dist/
 atom.egg-info/
 .eggs
+
+.vscode
