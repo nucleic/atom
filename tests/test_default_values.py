@@ -25,7 +25,6 @@ import pytest
 from atom.api import (Atom, Coerced, DefaultValue, Dict, FloatRange,
                       ForwardInstance, ForwardSubclass, ForwardTyped, Instance,
                       List, Member, Range, Subclass, Typed, Value)
-from atom.compat import int
 
 
 def test_no_op_handler():

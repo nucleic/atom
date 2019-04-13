@@ -5,11 +5,7 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from .compat import IS_PY3
-if IS_PY3:
-    from collections import MutableMapping
-else:
-    from UserDict import DictMixin as MutableMapping
+from collections import MutableMapping
 
 from .catom import Member, PostGetAttr, DefaultValue, Validate
 from .instance import Instance

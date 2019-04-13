@@ -5,26 +5,24 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
-#include "pythonhelpers.h"
+#include <cppy/cppy.h>
 #include "behaviors.h"
 #include "catom.h"
 #include "member.h"
 #include "memberchange.h"
 
-using namespace PythonHelpers;
-
 
 static PyObject*
 property_args( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyTuplePtr argsptr( PyTuple_New( 1 ) );
-    if( !argsptr )
+    cppy::ptr args( PyTuple_New( 1 ) );
+    if( !args )
         return 0;
-    PyObjectPtr changeptr( MemberChange::property( atom, member, oldvalue, newvalue ) );
-    if( !changeptr )
+    cppy::ptr change( MemberChange::property( atom, member, oldvalue, newvalue ) );
+    if( !change )
         return 0;
-    argsptr.initialize( 0, changeptr );
-    return argsptr.release();
+    PyTuple_SET_ITEM( args.get(), 0, change.release() );
+    return args.release();
 }
 
 
@@ -32,32 +30,32 @@ PyObject*
 reset_property( PyObject* mod, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 2 )
-        return py_type_fail( "reset_property() takes exactly 2 arguments" );
+        return cppy::type_error( "reset_property() takes exactly 2 arguments" );
     PyObject* pymember = PyTuple_GET_ITEM( args, 0 );
     PyObject* pyatom = PyTuple_GET_ITEM( args, 1 );
     if( !Member::TypeCheck( pymember ) )
-        return py_expected_type_fail( pymember, "Member" );
+        return cppy::type_error( pymember, "Member" );
     if( !CAtom::TypeCheck( pyatom ) )
-        return py_expected_type_fail( pyatom, "CAtom" );
+        return cppy::type_error( pyatom, "CAtom" );
     Member* member = member_cast( pymember );
     CAtom* atom = catom_cast( pyatom );
     if( member->index >= atom->get_slot_count() )
-        return py_bad_internal_call( "invalid member index" );
-    PyObjectPtr oldptr( atom->get_slot( member->index ) );
+        return cppy::system_error( "invalid member index" );
+    cppy::ptr oldptr( atom->get_slot( member->index ) );
     atom->set_slot( member->index, 0 );
     bool has_static = member->has_observers();
     bool has_dynamic = atom->has_observers( member->name );
     if( has_static || has_dynamic )
     {
         if( !oldptr )
-            oldptr = newref( Py_None );
-        PyObjectPtr newptr( member->getattr( atom ) );
+            oldptr = cppy::incref( Py_None );
+        cppy::ptr newptr( member->getattr( atom ) );
         if( !newptr )
             return 0;
         bool cached = member->get_getattr_mode() == GetAttr::CachedProperty;
-        if( !cached || !oldptr.richcompare( newptr, Py_EQ ) )
+        if( !cached || !oldptr.richcmp( newptr, Py_EQ ) )
         {
-            PyObjectPtr argsptr( property_args( atom, member, oldptr.get(), newptr.get() ) );
+            cppy::ptr argsptr( property_args( atom, member, oldptr.get(), newptr.get() ) );
             if( !argsptr )
                 return 0;
             if( has_static && !member->notify( atom, argsptr.get(), 0 ) )

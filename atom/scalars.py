@@ -5,9 +5,8 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
+import warnings
 from .catom import Member, DefaultValue, Validate, SetAttr, DelAttr
-
-from .compat import long
 
 
 class Value(Member):
@@ -115,7 +114,9 @@ class Long(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=long(0), factory=None, strict=False):
+    def __init__(self, default=0, factory=None, strict=False):
+        msg = 'Long is deprecated and will be removed in atom 0.6.0'
+        warnings.warn(FutureWarning(msg))
         super(Long, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Long, None)
@@ -198,36 +199,34 @@ class Bytes(Value):
 
 
 class Str(Value):
-    """A value of type `str`.
+    """ A value of type `str`.
 
-    Under Python 2 this is a byte string and behaves as Bytes with respect to
-    promotion, under Python 3 it is a unicode string and behaves as Unicode
-    with respect to promotion.
-
-    The use of this member is discouraged in Python 2/3 compatible codebase
-    as Bytes and Unicode provide a more homogeneous behavior.
+    By default, bytes strings will be promoted to unicode strings. Pass
+    strict=True to the constructor to enable strict unicode checking.
 
     """
     def __init__(self, default='', factory=None, strict=False):
         super(Str, self).__init__(default, factory)
         if strict:
-            self.set_validate_mode(Validate.String, None)
+            self.set_validate_mode(Validate.Str, None)
         else:
-            self.set_validate_mode(Validate.StringPromote, None)
+            self.set_validate_mode(Validate.StrPromote, None)
 
 
 class Unicode(Value):
-    """ A value of type `unicode`.
+    """ A value of type `str`.
 
-    By default, plain strings will be promoted to unicode strings. Pass
+    By default, bytes strings will be promoted to unicode strings. Pass
     strict=True to the constructor to enable strict unicode checking.
 
     """
     __slots__ = ()
 
     def __init__(self, default=u'', factory=None, strict=False):
+        msg = 'Unicode is deprecated and will be removed in atom 0.6.0'
+        warnings.warn(FutureWarning(msg))
         super(Unicode, self).__init__(default, factory)
         if strict:
-            self.set_validate_mode(Validate.Unicode, None)
+            self.set_validate_mode(Validate.Str, None)
         else:
-            self.set_validate_mode(Validate.UnicodePromote, None)
+            self.set_validate_mode(Validate.StrPromote, None)

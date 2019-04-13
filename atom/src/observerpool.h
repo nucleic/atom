@@ -8,12 +8,10 @@
 #pragma once
 
 #include <vector>
-#include "inttypes.h"
-#include "pythonhelpers.h"
+#include <cppy/cppy.h>
+#include "platstdint.h"
 #include "modifyguard.h"
 
-
-using PythonHelpers::PyObjectPtr;
 
 
 class ObserverPool
@@ -21,14 +19,14 @@ class ObserverPool
 
     struct Topic
     {
-        Topic( PyObjectPtr& topic ) : m_topic( topic ), m_count( 0 ) {}
-        Topic( PyObjectPtr& topic, uint32_t count ) : m_topic( topic ), m_count( count ) {}
+        Topic( cppy::ptr& topic ) : m_topic( topic ), m_count( 0 ) {}
+        Topic( cppy::ptr& topic, uint32_t count ) : m_topic( topic ), m_count( count ) {}
         ~Topic() {}
-        bool match( PyObjectPtr& topic )
+        bool match( cppy::ptr& topic )
         {
-            return m_topic == topic || m_topic.richcompare( topic, Py_EQ );
+            return m_topic == topic || m_topic.richcmp( topic, Py_EQ );
         }
-        PyObjectPtr m_topic;
+        cppy::ptr m_topic;
         uint32_t m_count;
     };
 
@@ -43,23 +41,23 @@ public:
 
     ~ObserverPool() {}
 
-    bool has_topic( PyObjectPtr& topic );
+    bool has_topic( cppy::ptr& topic );
 
-    bool has_observer( PyObjectPtr& topic, PyObjectPtr& observer );
+    bool has_observer( cppy::ptr& topic, cppy::ptr& observer );
 
-    void add( PyObjectPtr& topic, PyObjectPtr& observer );
+    void add( cppy::ptr& topic, cppy::ptr& observer );
 
-    void remove( PyObjectPtr& topic, PyObjectPtr& observer );
+    void remove( cppy::ptr& topic, cppy::ptr& observer );
 
-    void remove( PyObjectPtr& topic );
+    void remove( cppy::ptr& topic );
 
-    bool notify( PyObjectPtr& topic, PyObjectPtr& args, PyObjectPtr& kwargs );
+    bool notify( cppy::ptr& topic, cppy::ptr& args, cppy::ptr& kwargs );
 
     Py_ssize_t py_sizeof()
     {
         Py_ssize_t size = sizeof( ModifyGuard<ObserverPool>* );
         size += sizeof( std::vector<Topic> ) + sizeof( Topic ) * m_topics.capacity();
-        size += sizeof( std::vector<PyObjectPtr> ) + sizeof( PyObjectPtr ) * m_observers.capacity();
+        size += sizeof( std::vector<cppy::ptr> ) + sizeof( cppy::ptr ) * m_observers.capacity();
         return size;
     };
 
@@ -72,7 +70,7 @@ public:
         // decref, including calls into methods which mutate the vector.
         // To avoid segfaults, first make the vector empty, then let the
         // destructors run for the old items.
-        std::vector<PyObjectPtr> empty;
+        std::vector<cppy::ptr> empty;
         m_observers.swap( empty );
     }
 
@@ -80,7 +78,7 @@ private:
 
     ModifyGuard<ObserverPool>* m_modify_guard;
     std::vector<Topic> m_topics;
-    std::vector<PyObjectPtr> m_observers;
+    std::vector<cppy::ptr> m_observers;
     ObserverPool(const ObserverPool& other);
     ObserverPool& operator=(const ObserverPool&);
 

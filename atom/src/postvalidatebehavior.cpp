@@ -5,11 +5,8 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <cppy/cppy.h>
 #include "member.h"
-#include "py23compat.h"
-
-
-using namespace PythonHelpers;
 
 
 bool
@@ -20,16 +17,16 @@ Member::check_context( PostValidate::Mode mode, PyObject* context )
         case PostValidate::Delegate:
             if( !Member::TypeCheck( context ) )
             {
-                py_expected_type_fail( context, "Member" );
+                cppy::type_error( context, "Member" );
                 return false;
             }
             break;
         case PostValidate::ObjectMethod_OldNew:
         case PostValidate::ObjectMethod_NameOldNew:
         case PostValidate::MemberMethod_ObjectOldNew:
-            if( !Py23Str_Check( context ) )
+            if( !PyUnicode_Check( context ) )
             {
-                py_expected_type_fail( context, "str" );
+                cppy::type_error( context, "str" );
                 return false;
             }
             break;
@@ -43,7 +40,7 @@ Member::check_context( PostValidate::Mode mode, PyObject* context )
 static PyObject*
 no_op_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    return newref( newvalue );
+    return cppy::incref( newvalue );
 }
 
 
@@ -59,15 +56,15 @@ static PyObject*
 object_method_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_validate_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_validate_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 2 ) );
+    cppy::ptr args( PyTuple_New( 2 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( oldvalue ) );
-    args.initialize( 1, newref( newvalue ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( oldvalue ) );
+    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( newvalue ) );
+    return callable.call( args );
 }
 
 
@@ -75,16 +72,16 @@ static PyObject*
 object_method_name_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_validate_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_validate_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 3 ) );
+    cppy::ptr args( PyTuple_New( 3 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( member->name ) );
-    args.initialize( 1, newref( oldvalue ) );
-    args.initialize( 2, newref( newvalue ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( member->name ) );
+    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( oldvalue ) );
+    PyTuple_SET_ITEM( args.get(), 2, cppy::incref( newvalue ) );
+    return callable.call( args );
 }
 
 
@@ -92,16 +89,16 @@ static PyObject*
 member_method_object_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( member ), member->post_validate_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->post_validate_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 3 ) );
+    cppy::ptr args( PyTuple_New( 3 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    args.initialize( 1, newref( oldvalue ) );
-    args.initialize( 2, newref( newvalue ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
+    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( oldvalue ) );
+    PyTuple_SET_ITEM( args.get(), 2, cppy::incref( newvalue ) );
+    return callable.call( args );
 }
 
 

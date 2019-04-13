@@ -8,8 +8,8 @@
 #pragma once
 
 #include <vector>
+#include <cppy/cppy.h>
 #include "inttypes.h"
-#include "pythonhelpers.h"
 #include "behaviors.h"
 #include "catom.h"
 #include "modifyguard.h"
@@ -40,7 +40,7 @@ struct Member
     PyObject* default_value_context;
     PyObject* post_validate_context;
     ModifyGuard<Member>* modify_guard;
-    std::vector<PythonHelpers::PyObjectPtr>* static_observers;
+    std::vector<cppy::ptr>* static_observers;
 
     // ModifyGuard template interface
     ModifyGuard<Member>* get_modify_guard() { return modify_guard; }

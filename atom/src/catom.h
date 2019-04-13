@@ -7,8 +7,8 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
-#include "inttypes.h"
-#include "pythonhelpers.h"
+#include <cppy/cppy.h>
+#include "platstdint.h"
 #include "observerpool.h"
 
 
@@ -44,7 +44,7 @@ struct CAtom
 
     PyObject* get_slot( uint32_t index )
     {
-        return PythonHelpers::xnewref( slots[ index ] );
+        return cppy::xincref( slots[ index ] );
     }
 
     void set_slot( uint32_t index, PyObject* object )
@@ -98,7 +98,7 @@ struct CAtom
     {
         if( observers )
         {
-            PyObjectPtr topicptr( PythonHelpers::newref( topic ) );
+            cppy::ptr topicptr( cppy::incref( topic ) );
             return observers->has_topic( topicptr );
         }
         return false;
@@ -108,8 +108,8 @@ struct CAtom
     {
         if( observers )
         {
-            PyObjectPtr topicptr( PythonHelpers::newref( topic ) );
-            PyObjectPtr callbackptr( PythonHelpers::newref( callback ) );
+            cppy::ptr topicptr( cppy::incref( topic ) );
+            cppy::ptr callbackptr( cppy::incref( callback ) );
             return observers->has_observer( topicptr, callbackptr );
         }
         return false;

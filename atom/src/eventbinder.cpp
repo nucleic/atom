@@ -1,15 +1,13 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2018, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <cppy/cppy.h>
 #include "eventbinder.h"
-#include "py23compat.h"
-
-
-using namespace PythonHelpers;
+#include "packagenaming.h"
 
 
 typedef struct {
@@ -98,10 +96,10 @@ static PyObject*
 EventBinder__call__( EventBinder* self, PyObject* args, PyObject* kwargs )
 {
     if( kwargs && ( PyDict_Size( kwargs ) > 0 ) )
-        return py_type_fail( "An event cannot be triggered with keyword arguments" );
+        return cppy::type_error( "An event cannot be triggered with keyword arguments" );
     Py_ssize_t size = PyTuple_GET_SIZE( args );
     if( size > 1 )
-        return py_type_fail( "An event can be triggered with at most 1 argument" );
+        return cppy::type_error( "An event can be triggered with at most 1 argument" );
     PyObject* value = size == 0 ? Py_None : PyTuple_GET_ITEM( args, 0 );
     if( self->member->setattr( self->atom, value ) < 0 )
         return 0;
@@ -121,57 +119,51 @@ EventBinder_methods[] = {
 
 PyTypeObject EventBinder_Type = {
     PyVarObject_HEAD_INIT( NULL, 0 )
-    "EventBinder",                          /* tp_name */
-    sizeof( EventBinder ),                  /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    (destructor)EventBinder_dealloc,        /* tp_dealloc */
-    (printfunc)0,                           /* tp_print */
-    (getattrfunc)0,                         /* tp_getattr */
-    (setattrfunc)0,                         /* tp_setattr */
-#if PY_VERSION_HEX >= 0x03050000
-	( PyAsyncMethods* )0,                   /* tp_as_async */
-#elif PY_VERSION_HEX >= 0x03000000
-	( void* ) 0,                            /* tp_reserved */
-#else
-	( cmpfunc )0,                           /* tp_compare */
-#endif
-    (reprfunc)0,                            /* tp_repr */
-    (PyNumberMethods*)0,                    /* tp_as_number */
-    (PySequenceMethods*)0,                  /* tp_as_sequence */
-    (PyMappingMethods*)0,                   /* tp_as_mapping */
-    (hashfunc)0,                            /* tp_hash */
-    (ternaryfunc)EventBinder__call__,       /* tp_call */
-    (reprfunc)0,                            /* tp_str */
-    (getattrofunc)0,                        /* tp_getattro */
-    (setattrofunc)0,                        /* tp_setattro */
-    (PyBufferProcs*)0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC,  /* tp_flags */
-    0,                                      /* Documentation string */
-    (traverseproc)EventBinder_traverse,     /* tp_traverse */
-    (inquiry)EventBinder_clear,             /* tp_clear */
-    (richcmpfunc)EventBinder_richcompare,   /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    (getiterfunc)0,                         /* tp_iter */
-    (iternextfunc)0,                        /* tp_iternext */
-    (struct PyMethodDef*)EventBinder_methods, /* tp_methods */
-    (struct PyMemberDef*)0,                 /* tp_members */
-    0,                                      /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    (descrgetfunc)0,                        /* tp_descr_get */
-    (descrsetfunc)0,                        /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)0,                            /* tp_init */
-    (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-    (newfunc)0,                             /* tp_new */
-    (freefunc)PyObject_GC_Del,              /* tp_free */
-    (inquiry)0,                             /* tp_is_gc */
-    0,                                      /* tp_bases */
-    0,                                      /* tp_mro */
-    0,                                      /* tp_cache */
-    0,                                      /* tp_subclasses */
-    0,                                      /* tp_weaklist */
-    (destructor)0                           /* tp_del */
+    PACKAGE_TYPENAME( "EventBinder" ),          /* tp_name */
+    sizeof( EventBinder ),                      /* tp_basicsize */
+    0,                                          /* tp_itemsize */
+    ( destructor )EventBinder_dealloc,          /* tp_dealloc */
+    ( printfunc )0,                             /* tp_print */
+    ( getattrfunc )0,                           /* tp_getattr */
+    ( setattrfunc )0,                           /* tp_setattr */
+	( PyAsyncMethods* )0,                       /* tp_as_async */
+    ( reprfunc )0,                              /* tp_repr */
+    ( PyNumberMethods* )0,                      /* tp_as_number */
+    ( PySequenceMethods* )0,                    /* tp_as_sequence */
+    ( PyMappingMethods* )0,                     /* tp_as_mapping */
+    ( hashfunc )0,                              /* tp_hash */
+    ( ternaryfunc )EventBinder__call__,         /* tp_call */
+    ( reprfunc )0,                              /* tp_str */
+    ( getattrofunc )0,                          /* tp_getattro */
+    ( setattrofunc )0,                          /* tp_setattro */
+    ( PyBufferProcs* )0,                        /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC,      /* tp_flags */
+    0,                                          /* Documentation string */
+    ( traverseproc )EventBinder_traverse,       /* tp_traverse */
+    ( inquiry )EventBinder_clear,               /* tp_clear */
+    ( richcmpfunc )EventBinder_richcompare,     /* tp_richcompare */
+    0,                                          /* tp_weaklistoffset */
+    ( getiterfunc )0,                           /* tp_iter */
+    ( iternextfunc)0,                           /* tp_iternext */
+    ( struct PyMethodDef* )EventBinder_methods, /* tp_methods */
+    ( struct PyMemberDef* )0,                   /* tp_members */
+    0,                                          /* tp_getset */
+    0,                                          /* tp_base */
+    0,                                          /* tp_dict */
+    ( descrgetfunc )0,                          /* tp_descr_get */
+    ( descrsetfunc )0,                          /* tp_descr_set */
+    0,                                          /* tp_dictoffset */
+    ( initproc )0,                              /* tp_init */
+    ( allocfunc )PyType_GenericAlloc,           /* tp_alloc */
+    ( newfunc )0,                               /* tp_new */
+    ( freefunc )PyObject_GC_Del,                /* tp_free */
+    ( inquiry )0,                               /* tp_is_gc */
+    0,                                          /* tp_bases */
+    0,                                          /* tp_mro */
+    0,                                          /* tp_cache */
+    0,                                          /* tp_subclasses */
+    0,                                          /* tp_weaklist */
+    ( destructor )0                             /* tp_del */
 };
 
 

@@ -5,11 +5,8 @@
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <cppy/cppy.h>
 #include "member.h"
-#include "py23compat.h"
-
-
-using namespace PythonHelpers;
 
 
 bool
@@ -20,21 +17,21 @@ Member::check_context( DefaultValue::Mode mode, PyObject* context )
         case DefaultValue::List:
             if( context != Py_None && !PyList_Check( context ) )
             {
-                py_expected_type_fail( context, "list or None" );
+                cppy::type_error( context, "list or None" );
                 return false;
             }
             break;
         case DefaultValue::Dict:
             if( context != Py_None && !PyDict_Check( context ) )
             {
-                py_expected_type_fail( context, "dict or None" );
+                cppy::type_error( context, "dict or None" );
                 return false;
             }
             break;
         case DefaultValue::Delegate:
             if( !Member::TypeCheck( context ) )
             {
-                py_expected_type_fail( context, "Member" );
+                cppy::type_error( context, "Member" );
                 return false;
             }
             break;
@@ -43,16 +40,16 @@ Member::check_context( DefaultValue::Mode mode, PyObject* context )
         case DefaultValue::CallObject_ObjectName:
             if( !PyCallable_Check( context ) )
             {
-                py_expected_type_fail( context, "callable" );
+                cppy::type_error( context, "callable" );
                 return false;
             }
             break;
         case DefaultValue::ObjectMethod:
         case DefaultValue::ObjectMethod_Name:
         case DefaultValue::MemberMethod_Object:
-            if( !Py23Str_Check( context ) )
+            if( !PyUnicode_Check( context ) )
             {
-                py_expected_type_fail( context, "str" );
+                cppy::type_error( context, "str" );
                 return false;
             }
             break;
@@ -66,14 +63,14 @@ Member::check_context( DefaultValue::Mode mode, PyObject* context )
 static PyObject*
 no_op_handler( Member* member, CAtom* atom )
 {
-    return newref( Py_None );
+    return cppy::incref( Py_None );
 }
 
 
 static PyObject*
 static_handler( Member* member, CAtom* atom )
 {
-    return newref( member->default_value_context );
+    return cppy::incref( member->default_value_context );
 }
 
 
@@ -107,77 +104,77 @@ delegate_handler( Member* member, CAtom* atom )
 static PyObject*
 call_object_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( newref( member->default_value_context ) );
-    PyTuplePtr args( PyTuple_New( 0 ) );
+    cppy::ptr callable( cppy::incref( member->default_value_context ) );
+    cppy::ptr args( PyTuple_New( 0 ) );
     if( !args )
         return 0;
-    return callable( args ).release();
+    return callable.call( args );
 }
 
 
 static PyObject*
 call_object_object_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( newref( member->default_value_context ) );
-    PyTuplePtr args( PyTuple_New( 1 ) );
+    cppy::ptr callable( cppy::incref( member->default_value_context ) );
+    cppy::ptr args( PyTuple_New( 1 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
+    return callable.call( args );
 }
 
 
 static PyObject*
 call_object_object_name_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( newref( member->default_value_context ) );
-    PyTuplePtr args( PyTuple_New( 2 ) );
+    cppy::ptr callable( cppy::incref( member->default_value_context ) );
+    cppy::ptr args( PyTuple_New( 2 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    args.initialize( 1, newref( member->name ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
+    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( member->name ) );
+    return callable.call( args );
 }
 
 
 static PyObject*
 object_method_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->default_value_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->default_value_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 0 ) );
+    cppy::ptr args( PyTuple_New( 0 ) );
     if( !args )
         return 0;
-    return callable( args ).release();
+    return callable.call( args );
 }
 
 
 static PyObject*
 object_method_name_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->default_value_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->default_value_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 1 ) );
+    cppy::ptr args( PyTuple_New( 1 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( member->name ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( member->name ) );
+    return callable.call( args );
 }
 
 
 static PyObject*
 member_method_object_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( member ), member->default_value_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->default_value_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 1 ) );
+    cppy::ptr args( PyTuple_New( 1 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
+    return callable.call( args );
 }
 
 

@@ -5,15 +5,10 @@
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-import sys
-if sys.version_info >= (3,):
-    import copyreg
-else:
-    import copy_reg as copyreg
+import copyreg
 from contextlib import contextmanager
 
 from types import FunctionType
-from .compat import with_metaclass, basestring
 
 from .catom import (
     CAtom, Member, DefaultValue, PostGetAttr, PostSetAttr, Validate,
@@ -44,7 +39,7 @@ def observe(*names):
         names = names[0]
     pairs = []
     for name in names:
-        if not isinstance(name, basestring):
+        if not isinstance(name, str):
             msg = "observe attribute name must be a string, got '%s' instead"
             raise TypeError(msg % type(name).__name__)
         ndots = name.count('.')
@@ -395,7 +390,7 @@ def __newobj__(cls, *args):
     return cls.__new__(cls, *args)
 
 
-class Atom(with_metaclass(AtomMeta, CAtom)):
+class Atom(CAtom, metaclass=AtomMeta):
     """ The base class for defining atom objects.
 
     `Atom` objects are special Python objects which never allocate an
