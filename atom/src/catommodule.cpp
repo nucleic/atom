@@ -14,6 +14,7 @@
 #include "signalconnector.h"
 #include "atomref.h"
 #include "atomlist.h"
+#include "atomdict.h"
 #include "enumtypes.h"
 #include "propertyhelper.h"
 
@@ -41,7 +42,7 @@ static struct PyModuleDef moduledef = {
 
 PyMODINIT_FUNC PyInit_catom( void )
 {
-    PyObject *mod = PyModule_Create(&moduledef);
+    PyObject *mod = PyModule_Create( &moduledef );
     if( !mod )
         return 0;
     if( import_member() < 0 )
@@ -58,8 +59,8 @@ PyMODINIT_FUNC PyInit_catom( void )
         return 0;
     if( import_atomlist() < 0 )
         return 0;
-    //if( import_atomdict() < 0 )
-    //    return 0;
+    if( import_atomdict() < 0 )
+       return 0;
     if( import_enumtypes() < 0 )
         return 0;
 
@@ -68,7 +69,7 @@ PyMODINIT_FUNC PyInit_catom( void )
     Py_INCREF( &AtomRef_Type );
     Py_INCREF( &AtomList_Type );
     Py_INCREF( &AtomCList_Type );
-    //Py_INCREF( &AtomDict_Type );
+    Py_INCREF( &AtomDict_Type );
     Py_INCREF( PyGetAttr );
     Py_INCREF( PySetAttr );
     Py_INCREF( PyDelAttr );
@@ -82,7 +83,7 @@ PyMODINIT_FUNC PyInit_catom( void )
     PyModule_AddObject( mod, "atomref", pyobject_cast( &AtomRef_Type ) );
     PyModule_AddObject( mod, "atomlist", pyobject_cast( &AtomList_Type ) );
     PyModule_AddObject( mod, "atomclist", pyobject_cast( &AtomCList_Type ) );
-    //PyModule_AddObject( mod, "atomdict", pyobject_cast( &AtomDict_Type ) );
+    PyModule_AddObject( mod, "atomdict", pyobject_cast( &AtomDict_Type ) );
     PyModule_AddObject( mod, "GetAttr", PyGetAttr );
     PyModule_AddObject( mod, "SetAttr", PySetAttr );
     PyModule_AddObject( mod, "DelAttr", PyDelAttr );

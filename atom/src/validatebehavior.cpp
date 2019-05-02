@@ -11,6 +11,7 @@
 #include <cppy/cppy.h>
 #include "member.h"
 #include "atomlist.h"
+#include "atomdict.h"
 
 
 bool validate_type_tuple_types( PyObject* type_tuple_types )
@@ -517,15 +518,40 @@ dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 {
     if( !PyDict_Check( newvalue ) )
         return validate_type_fail( member, atom, newvalue, "dict" );
+
+    // Get the key validator if it exists
     PyObject* k = PyTuple_GET_ITEM( member->validate_context, 0 );
-    PyObject* v = PyTuple_GET_ITEM( member->validate_context, 1 );
-    if( k != Py_None && v != Py_None )
-        return validate_dict_key_value( member_cast( k ), member_cast( v ), atom, newvalue );
-    if( v != Py_None )
-        return validate_dict_value( member_cast( v ), atom, newvalue );
+    Member* key_validator = 0;
     if( k != Py_None )
-        return validate_dict_key( member_cast( k ), atom, newvalue );
-    return PyDict_Copy( newvalue );
+    {
+        key_validator = member_cast( k );
+    }
+
+    // Get the value validator if it exists
+    PyObject* v = PyTuple_GET_ITEM( member->validate_context, 1 );
+    Member* value_validator = 0;
+    if( v != Py_None )
+    {
+        value_validator = member_cast( v );
+    }
+
+    // Create a new atom dict and update it.
+    cppy::ptr newdict( AtomDict_New( atom, key_validator, value_validator ) );
+    if( !newdict )
+    {
+        return 0;
+    }
+    cppy::ptr name( PyUnicode_FromString( "update" ) );
+    if( !name )
+    {
+        return 0;
+    }
+    if( !AtomDict_Update( newdict.get(), newvalue ) )
+    {
+        return 0;
+    }
+
+    return newdict.release();
 }
 
 

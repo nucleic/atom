@@ -20,6 +20,7 @@ ext_modules = [
         'atom.catom',
         [
             'atom/src/atomlist.cpp',
+            'atom/src/atomdict.cpp',
             'atom/src/atomref.cpp',
             'atom/src/catom.cpp',
             'atom/src/catommodule.cpp',
@@ -68,6 +69,7 @@ class BuildExt(build_ext):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
         for ext in self.extensions:
+            ext.include_dirs.insert(0, cppy.get_include())
             ext.extra_compile_args = opts
         build_ext.build_extensions(self)
 
