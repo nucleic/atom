@@ -183,6 +183,7 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Static ) );
         add_long( dict_ptr, expand_enum( List ) );
+        add_long( dict_ptr, expand_enum( Set ) );
         add_long( dict_ptr, expand_enum( Dict ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
         add_long( dict_ptr, expand_enum( CallObject ) );
@@ -218,6 +219,7 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( Tuple ) );
         add_long( dict_ptr, expand_enum( List ) );
         add_long( dict_ptr, expand_enum( ContainerList ) );
+        add_long( dict_ptr, expand_enum( Set ) );
         add_long( dict_ptr, expand_enum( Dict ) );
         add_long( dict_ptr, expand_enum( Instance ) );
         add_long( dict_ptr, expand_enum( Typed ) );

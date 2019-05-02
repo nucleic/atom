@@ -22,6 +22,7 @@
     tuple_handler
     list_handler
     container_list_handler
+    set_handler
     dict_handler
     instance_handler
     typed_handler
@@ -38,14 +39,14 @@
 
 """
 import sys
+
 import pytest
 
-from atom.api import (CAtom, Atom, Value, Bool, Int, Long, Range, Float,
-                      FloatRange, Bytes, Str, Unicode, Enum, Callable, Coerced,
-                      Tuple, List, ContainerList, Dict, Instance,
-                      ForwardInstance, Typed, ForwardTyped, Subclass,
-                      ForwardSubclass, Event, Delegator,
-                      Validate)
+from atom.api import (Atom, Bool, Bytes, Callable, CAtom, Coerced,
+                      ContainerList, Delegator, Dict, Enum, Event, Float,
+                      FloatRange, ForwardInstance, ForwardSubclass,
+                      ForwardTyped, Instance, Int, List, Long, Range, Set, Str,
+                      Subclass, Tuple, Typed, Unicode, Validate, Value)
 
 
 def test_no_op_validation():
@@ -114,6 +115,10 @@ def test_no_op_validation():
                           (ContainerList(float), [[1.0]], [[1.0]], [[1]]),
                           (ContainerList((int, float)), [[1, 1.0]], [[1, 1.0]],
                            [['']]),
+                          (Set(), [{1}], [{1}], [()]),
+                          (Set(Int()), [{1}], [{1}], [{''}]),
+                          (Set(item=Int()), [{1}], [{1}], [{''}]),
+                          (Set(int), [{1}], [{1}], [{''}]),
                           (Dict(), [{1: 2}], [{1: 2}], [()]),
                           (Dict(Int()), [{1: 2}], [{1: 2}], [{'': 2}]),
                           (Dict(value=Int()), [{1: 2}], [{1: 2}], [{2: ''}]),
@@ -158,10 +163,30 @@ def test_validation_modes(member, set_values, values, raising_values):
             tester.m = rv
 
 
+@pytest.mark.parametrize("members, value",
+                         [((List(Int()), List()), [1]),
+                          ((ContainerList(Int()), ContainerList()), [1]),
+                          ((Dict(Int(), Int()), Dict()), {1: 1})]
+                         )
+def test_validating_container_subclasses(members, value):
+    """Ensure that we can pass atom containers to members.
+
+    """
+    class MemberTest(Atom):
+
+        m1 = members[0]
+        m2 = members[1]
+
+    tester = MemberTest()
+    tester.m1 = value
+    tester.m2 = tester.m1
+
+
 @pytest.mark.parametrize("member, mode, arg, msg",
                          [(List(), 'List', 1, "Member or None"),
                           (Tuple(), 'Tuple', 1, "Member or None"),
                           (ContainerList(), 'ContainerList', 1, "Member or None"),
+                          (Set(), 'Set', 1, "Member or None"),
                           (Dict(), 'Dict', 1, "2-tuple of Member or None"),
                           (Dict(), 'Dict', (), "2-tuple of Member or None"),
                           (Dict(), 'Dict', (1, None), "2-tuple of Member or None"),

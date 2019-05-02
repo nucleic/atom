@@ -21,6 +21,13 @@ Member::check_context( DefaultValue::Mode mode, PyObject* context )
                 return false;
             }
             break;
+        case DefaultValue::Set:
+            if( context != Py_None && !PyAnySet_Check( context ) )
+            {
+                cppy::type_error( context, "set or None" );
+                return false;
+            }
+            break;
         case DefaultValue::Dict:
             if( context != Py_None && !PyDict_Check( context ) )
             {
@@ -81,6 +88,15 @@ list_handler( Member* member, CAtom* atom )
         return PyList_New( 0 );
     Py_ssize_t size = PyList_GET_SIZE( member->default_value_context );
     return PyList_GetSlice( member->default_value_context, 0, size );
+}
+
+
+static PyObject*
+set_handler( Member* member, CAtom* atom )
+{
+    if( member->default_value_context == Py_None )
+        return PySet_New( 0 );
+    return PySet_New( member->default_value_context );
 }
 
 
@@ -187,6 +203,7 @@ handlers[] = {
     no_op_handler,
     static_handler,
     list_handler,
+    set_handler,
     dict_handler,
     delegate_handler,
     call_object_handler,

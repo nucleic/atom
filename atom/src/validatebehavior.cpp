@@ -12,6 +12,7 @@
 #include "member.h"
 #include "atomlist.h"
 #include "atomdict.h"
+#include "atomset.h"
 
 
 bool validate_type_tuple_types( PyObject* type_tuple_types )
@@ -50,6 +51,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
         case Validate::Tuple:
         case Validate::List:
         case Validate::ContainerList:
+        case Validate::Set:
             if( context != Py_None && !Member::TypeCheck( context ) )
             {
                 cppy::type_error( context, "Member or None" );
@@ -260,7 +262,9 @@ static PyObject*
 bool_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_True || newvalue == Py_False )
+    {
         return cppy::incref( newvalue );
+    }
     return validate_type_fail( member, atom, newvalue, "bool" );
 }
 
@@ -269,7 +273,9 @@ static PyObject*
 long_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyLong_Check( newvalue ) )
+    {
         return cppy::incref( newvalue );
+    }
     return validate_type_fail( member, atom, newvalue, "int" );
 }
 
@@ -278,11 +284,16 @@ static PyObject*
 long_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyLong_Check( newvalue ) )
+    {
         return cppy::incref( newvalue );
-    if( PyFloat_Check( newvalue ) ) {
+    }
+
+    if( PyFloat_Check( newvalue ) )
+    {
         double value = PyFloat_AS_DOUBLE( newvalue );
         return PyLong_FromDouble( value );
     }
+
     return validate_type_fail( member, atom, newvalue, "int" );
 }
 
@@ -291,7 +302,10 @@ static PyObject*
 float_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyFloat_Check( newvalue ) )
+    {
         return cppy::incref( newvalue );
+    }
+
     return validate_type_fail( member, atom, newvalue, "float" );
 }
 
@@ -300,12 +314,16 @@ static PyObject*
 float_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyFloat_Check( newvalue ) )
+    {
         return cppy::incref( newvalue );
+    }
     if( PyLong_Check( newvalue ) )
     {
         double value = PyLong_AsDouble( newvalue );
         if( value == -1.0 && PyErr_Occurred() )
+        {
             return 0;
+        }
         return PyFloat_FromDouble( value );
     }
     return validate_type_fail( member, atom, newvalue, "float" );
@@ -316,7 +334,10 @@ static PyObject*
 bytes_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyBytes_Check( newvalue ) )
+    {
         return cppy::incref( newvalue );
+    }
+
     return validate_type_fail( member, atom, newvalue, "bytes" );
 }
 
@@ -324,10 +345,14 @@ static PyObject*
 bytes_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyBytes_Check( newvalue ) )
+    {
         return cppy::incref( newvalue );
+    }
 
     if( PyUnicode_Check( newvalue ) )
+    {
         return PyUnicode_AsUTF8String( newvalue );
+    }
 
     return validate_type_fail( member, atom, newvalue, "bytes" );
 }
@@ -336,7 +361,9 @@ static PyObject*
 str_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyUnicode_Check( newvalue ) )
+    {
         return cppy::incref( newvalue );
+    }
     return validate_type_fail( member, atom, newvalue, "str" );
 }
 
@@ -345,9 +372,13 @@ static PyObject*
 str_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyUnicode_Check( newvalue ) )
+    {
         return cppy::incref( newvalue );
+    }
     if( PyBytes_Check( newvalue ) )
+    {
         return PyUnicode_FromString( PyBytes_AS_STRING( newvalue ) );
+    }
     return validate_type_fail( member, atom, newvalue, "str" );
 }
 
@@ -356,21 +387,27 @@ static PyObject*
 tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyTuple_Check( newvalue ) )
+    {
         return validate_type_fail( member, atom, newvalue, "tuple" );
+    }
     cppy::ptr tupleptr( cppy::incref( newvalue ) );
     if( member->validate_context != Py_None )
     {
         Py_ssize_t size = PyTuple_GET_SIZE( newvalue );
         cppy::ptr tuplecopy = PyTuple_New( size );
         if( !tuplecopy )
+        {
             return 0;
+        }
         Member* item_member = member_cast( member->validate_context );
         for( Py_ssize_t i = 0; i < size; ++i )
         {
             cppy::ptr item( cppy::incref( PyTuple_GET_ITEM( tupleptr.get(), i ) ) );
             cppy::ptr valid_item( item_member->full_validate( atom, Py_None, item.get() ) );
             if( !valid_item )
+            {
                 return 0;
+            }
             PyTuple_SET_ITEM( tuplecopy.get(), i, valid_item.release() );
         }
         tupleptr = tuplecopy;
@@ -386,11 +423,15 @@ common_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
         return validate_type_fail( member, atom, newvalue, "list" );
     Member* validator = 0;
     if( member->validate_context != Py_None )
+    {
         validator = member_cast( member->validate_context );
+    }
     Py_ssize_t size = PyList_GET_SIZE( newvalue );
     cppy::ptr listptr( ListFactory()( member, atom, validator, size ) );
     if( !listptr )
+    {
         return 0;
+    }
     if( !validator )
     {
         for( Py_ssize_t i = 0; i < size; ++i )
@@ -403,7 +444,9 @@ common_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
             PyObject* item = PyList_GET_ITEM( newvalue, i );
             cppy::ptr valid_item( validator->full_validate( atom, Py_None, item ) );
             if( !valid_item )
+            {
                 return 0;
+            }
             PyList_SET_ITEM( listptr.get(), i, valid_item.release() );
         }
     }
@@ -446,70 +489,31 @@ container_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObjec
 
 
 static PyObject*
-validate_dict_key_value( Member* keymember, Member* valmember, CAtom* atom, PyObject* dict )
+set_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyObject* key;
-    PyObject* value;
-    Py_ssize_t pos = 0;
-    cppy::ptr newptr( PyDict_New() );
-    if( !newptr )
-        return 0;
-    while( PyDict_Next( dict, &pos, &key, &value ) )
+    if( !PyAnySet_Check( newvalue ) )
+        return validate_type_fail( member, atom, newvalue, "set" );
+
+    // Get the validator if it exists
+    Member* validator = 0;
+    if( member->validate_context != Py_None )
     {
-        cppy::ptr keyptr( keymember->full_validate( atom, Py_None, key ) );
-        if( !keyptr )
-            return 0;
-        cppy::ptr valptr( valmember->full_validate( atom, Py_None, value ) );
-        if( !valptr )
-            return 0;
-        if( PyDict_SetItem( newptr.get(), keyptr.get(), valptr.get() ) != 0 )
-            return 0;
+        validator = member_cast( member->validate_context );
     }
-    return newptr.release();
-}
 
-
-static PyObject*
-validate_dict_value( Member* valmember, CAtom* atom, PyObject* dict )
-{
-    PyObject* key;
-    PyObject* value;
-    Py_ssize_t pos = 0;
-    cppy::ptr newptr( PyDict_New() );
-    if( !newptr )
-        return 0;
-    while( PyDict_Next( dict, &pos, &key, &value ) )
+    // Create a new atom set and update it.
+    cppy::ptr newset( AtomSet_New( atom, validator ) );
+    if( !newset )
     {
-        cppy::ptr keyptr( cppy::incref( key ) );
-        cppy::ptr valptr( valmember->full_validate( atom, Py_None, value ) );
-        if( !valptr )
-            return 0;
-        if( PyDict_SetItem( newptr.get(), keyptr.get(), valptr.get() ) != 0 )
-            return 0;
-    }
-    return newptr.release();
-}
-
-
-static PyObject*
-validate_dict_key( Member* keymember, CAtom* atom, PyObject* dict )
-{
-    PyObject* key;
-    PyObject* value;
-    Py_ssize_t pos = 0;
-    cppy::ptr newptr( PyDict_New() );
-    if( !newptr )
         return 0;
-    while( PyDict_Next( dict, &pos, &key, &value ) )
-    {
-        cppy::ptr keyptr( keymember->full_validate( atom, Py_None, key ) );
-        if( !keyptr )
-            return 0;
-        cppy::ptr valptr( cppy::incref( value ) );
-        if( PyDict_SetItem( newptr.get(), keyptr.get(), valptr.get() ) != 0 )
-            return 0;
     }
-    return newptr.release();
+
+    if( AtomSet_Update( atomset_cast( newset.get() ), newvalue) < 0 )
+    {
+        return 0;
+    }
+
+    return newset.release();
 }
 
 
@@ -541,12 +545,8 @@ dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
     {
         return 0;
     }
-    cppy::ptr name( PyUnicode_FromString( "update" ) );
-    if( !name )
-    {
-        return 0;
-    }
-    if( !AtomDict_Update( newdict.get(), newvalue ) )
+
+    if( AtomDict_Update( atomdict_cast( newdict.get() ), newvalue ) < 0 )
     {
         return 0;
     }
@@ -797,6 +797,7 @@ handlers[] = {
     tuple_handler,
     list_handler,
     container_list_handler,
+    set_handler,
     dict_handler,
     instance_handler,
     typed_handler,

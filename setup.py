@@ -21,6 +21,7 @@ ext_modules = [
         [
             'atom/src/atomlist.cpp',
             'atom/src/atomdict.cpp',
+            'atom/src/atomset.cpp',
             'atom/src/atomref.cpp',
             'atom/src/catom.cpp',
             'atom/src/catommodule.cpp',
@@ -41,13 +42,13 @@ ext_modules = [
             'atom/src/signalconnector.cpp',
             'atom/src/validatebehavior.cpp',
         ],
-        include_dirs=[cppy.get_include(), 'src'],
+        include_dirs=['src'],
         language='c++',
     ),
     Extension(
         'atom.datastructures.sortedmap',
         ['atom/src/sortedmap.cpp'],
-        include_dirs=[cppy.get_include(), 'src'],
+        include_dirs=['src'],
         language='c++',
     ),
 ]
@@ -58,7 +59,7 @@ class BuildExt(build_ext):
 
     """
     c_opts = {
-        'msvc': ['/EHsc']
+        'msvc': ['/EHsc'],
     }
 
     def initialize_options(self):
@@ -66,6 +67,10 @@ class BuildExt(build_ext):
         self.debug = False
 
     def build_extensions(self):
+
+        # Delayed import of cppy to let setup_requires install it if necessary
+        import cppy
+
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
         for ext in self.extensions:
