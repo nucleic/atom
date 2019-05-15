@@ -502,13 +502,13 @@ set_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue
     }
 
     // Create a new atom set and update it.
-    cppy::ptr newset( AtomSet_New( atom, validator ) );
+    cppy::ptr newset( atom::AtomSet::New( atom, validator ) );
     if( !newset )
     {
         return 0;
     }
 
-    if( AtomSet_Update( atomset_cast( newset.get() ), newvalue) < 0 )
+    if( atom::AtomSet::Update( atomset_cast( newset.get() ), newvalue) < 0 )
     {
         return 0;
     }

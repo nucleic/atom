@@ -9,6 +9,11 @@
 #include "atomset.h"
 #include "packagenaming.h"
 
+namespace atom
+{
+
+namespace
+{
 
 inline bool should_validate( AtomSet* set )
 {
@@ -54,40 +59,6 @@ PyObject* validate_set( AtomSet* set, PyObject* value )
         }
 	}
 	return val_set.release();
-}
-
-
-PyObject* AtomSet_New( CAtom* atom, Member* validator )
-{
-    cppy::ptr self( PySet_Type.tp_new( &AtomSet_Type, 0, 0 ) );
-	if( !self )
-	{
-		return 0;
-	}
-    cppy::xincref( pyobject_cast( validator ) );
-    atomset_cast( self.get() )->m_value_validator = validator;
-    atomset_cast( self.get() )->pointer = new CAtomPointer( atom );
-    return self.release();
-}
-
-
-int AtomSet_Update( AtomSet* set, PyObject* value )
-{
-	if( !should_validate( set ) )
-	{
-		return _PySet_Update( pyobject_cast( set ), value );
-	}
-	cppy::ptr temp( cppy::incref( value ) );
-	if( !PyAnySet_Check( value ) && !( temp = PySet_New( value ) ) )
-	{
-		return -1;
-	}
-    temp = validate_set( set, temp.get() );
-	if( !temp )
-	{
-		return -1;
-	}
-	return _PySet_Update( pyobject_cast( set ), temp.get() );
 }
 
 
@@ -254,45 +225,12 @@ PyObject* AtomSet_symmetric_difference_update( AtomSet* self, PyObject* value )
 
 PyObject* AtomSet_update( AtomSet* self, PyObject* value )
 {
-	if( AtomSet_Update( self, value ) < 0 )
+	if( AtomSet::Update( self, value ) < 0 )
 	{
 		return 0;
 	}
 	return cppy::incref( Py_None );
 }
-
-
-PyNumberMethods AtomSet_as_number = {
-	0,                                  /* nb_add */
-	0,                                  /* nb_subtract */
-	0,                                  /* nb_multiply */
-	0,                                  /* nb_remainder */
-	0,                                  /* nb_divmod */
-	0,                                  /* nb_power */
-	0,                                  /* nb_negative */
-	0,                                  /* nb_positive */
-	0,                                  /* nb_absolute */
-	0,                                  /* nb_bool */
-	0,                                  /* nb_invert */
-	0,                                  /* nb_lshift */
-	0,                                  /* nb_rshift */
-	0,                                  /* nb_and */
-	0,                                  /* nb_xor */
-	0,                                  /* nb_or */
-	0,                                  /* nb_int */
-	0,                                  /* nb_reserved */
-	0,                                  /* nb_float */
-	0,                                  /* nb_inplace_add */
-	(binaryfunc)AtomSet_isub,          /* nb_inplace_subtract */
-	0,                                  /* nb_inplace_multiply */
-	0,                                  /* nb_inplace_remainder */
-	0,                                  /* nb_inplace_power */
-	0,                                  /* nb_inplace_lshift */
-	0,                                  /* nb_inplace_rshift */
-	(binaryfunc)AtomSet_iand,          /* nb_inplace_and */
-	(binaryfunc)AtomSet_ixor,          /* nb_inplace_xor */
-	(binaryfunc)AtomSet_ior            /* nb_inplace_or */
-};
 
 
 PyMethodDef AtomSet_methods[] = {
@@ -320,64 +258,82 @@ PyMethodDef AtomSet_methods[] = {
 };
 
 
-
-PyTypeObject AtomSet_Type = {
-	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-	PACKAGE_TYPENAME( "atomset" ),            /* tp_name */
-	sizeof( AtomSet ),                        /* tp_basicsize */
-	0,                                        /* tp_itemsize */
-	( destructor )AtomSet_dealloc,            /* tp_dealloc */
-	( printfunc )0,                           /* tp_print */
-	( getattrfunc )0,                         /* tp_getattr */
-	( setattrfunc )0,                         /* tp_setattr */
-	( PyAsyncMethods* )0,                     /* tp_as_async */
-	( reprfunc )0,                            /* tp_repr */
-	( PyNumberMethods* )&AtomSet_as_number,   /* tp_as_number */
-	( PySequenceMethods* )0,                  /* tp_as_sequence */
-	( PyMappingMethods* )0,                   /* tp_as_mapping */
-	( hashfunc )0,                            /* tp_hash */
-	( ternaryfunc )0,                         /* tp_call */
-	( reprfunc )0,                            /* tp_str */
-	( getattrofunc )0,                        /* tp_getattro */
-	( setattrofunc )0,                        /* tp_setattro */
-	( PyBufferProcs* )0,                      /* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT
-	| Py_TPFLAGS_BASETYPE
-	| Py_TPFLAGS_HAVE_GC
-	| Py_TPFLAGS_HAVE_VERSION_TAG,            /* tp_flags */
-	0,                                        /* Documentation string */
-	( traverseproc )AtomSet_traverse,         /* tp_traverse */
-	( inquiry )AtomSet_clear,                 /* tp_clear */
-	( richcmpfunc )0,                         /* tp_richcompare */
-	0,                                        /* tp_weaklistoffset */
-	( getiterfunc )0,                         /* tp_iter */
-	( iternextfunc )0,                        /* tp_iternext */
-	( struct PyMethodDef* )AtomSet_methods,   /* tp_methods */
-	( struct PyMemberDef* )0,                 /* tp_members */
-	0,                                        /* tp_getset */
-	&PySet_Type,                              /* tp_base */
-	0,                                        /* tp_dict */
-	( descrgetfunc )0,                        /* tp_descr_get */
-	( descrsetfunc )0,                        /* tp_descr_set */
-	0,                                        /* tp_dictoffset */
-	( initproc )0,                            /* tp_init */
-	( allocfunc )0,                           /* tp_alloc */
-	( newfunc )AtomSet_new,                   /* tp_new */
-	( freefunc )0,                            /* tp_free */
-	( inquiry )0,                             /* tp_is_gc */
-	0,                                        /* tp_bases */
-	0,                                        /* tp_mro */
-	0,                                        /* tp_cache */
-	0,                                        /* tp_subclasses */
-	0,                                        /* tp_weaklist */
-	( destructor )0                           /* tp_del */
+static PyType_Slot AtomSet_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( AtomSet_dealloc ) },         /* tp_dealloc */
+    { Py_tp_traverse, void_cast( AtomSet_traverse ) },       /* tp_traverse */
+    { Py_tp_clear, void_cast( AtomSet_clear ) },             /* tp_clear */
+    { Py_tp_methods, void_cast( AtomSet_methods ) },         /* tp_methods */
+    { Py_tp_base, void_cast( &PySet_Type ) },                /* tp_base */
+    { Py_tp_new, void_cast( AtomSet_new ) },                 /* tp_new */
+    { Py_nb_inplace_subtract, void_cast( AtomSet_isub ) },   /* nb_inplace_substract */
+    { Py_nb_inplace_and, void_cast( AtomSet_iand ) },        /* nb_inplace_substract */
+    { Py_nb_inplace_xor, void_cast( AtomSet_ixor ) },        /* nb_inplace_substract */
+    { Py_nb_inplace_or, void_cast( AtomSet_ior ) },          /* nb_inplace_substract */
+    { 0, 0 },
 };
 
 
-int
-import_atomset()
+}  // namespace
+
+
+PyTypeObject* AtomSet::TypeObject = NULL;
+
+
+PyType_Spec AtomSet::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "atomset" ),             /* tp_name */
+	sizeof( AtomSet ),                         /* tp_basicsize */
+	0,                                         /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT
+	| Py_TPFLAGS_BASETYPE
+	| Py_TPFLAGS_HAVE_GC
+	| Py_TPFLAGS_HAVE_VERSION_TAG,              /* tp_flags */
+    AtomSet_Type_slots                          /* slots */
+};
+
+
+PyObject* AtomSet::New( CAtom* atom, Member* validator )
 {
-    if( PyType_Ready( &AtomSet_Type ) < 0 )
-        return -1;
-    return 0;
+    cppy::ptr self( PySet_Type.tp_new( AtomSet::TypeObject, 0, 0 ) );
+	if( !self )
+	{
+		return 0;
+	}
+    cppy::xincref( pyobject_cast( validator ) );
+    atomset_cast( self.get() )->m_value_validator = validator;
+    atomset_cast( self.get() )->pointer = new CAtomPointer( atom );
+    return self.release();
 }
+
+
+int AtomSet::Update( AtomSet* set, PyObject* value )
+{
+	if( !should_validate( set ) )
+	{
+		return _PySet_Update( pyobject_cast( set ), value );
+	}
+	cppy::ptr temp( cppy::incref( value ) );
+	if( !PyAnySet_Check( value ) && !( temp = PySet_New( value ) ) )
+	{
+		return -1;
+	}
+    temp = validate_set( set, temp.get() );
+	if( !temp )
+	{
+		return -1;
+	}
+	return _PySet_Update( pyobject_cast( set ), temp.get() );
+}
+
+
+bool AtomSet::Ready()
+{
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
+}
+
+}  // namespace atom
