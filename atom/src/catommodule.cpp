@@ -20,52 +20,62 @@
 #include "propertyhelper.h"
 
 
-static PyMethodDef
-catom_methods[] = {
-    { "reset_property", ( PyCFunction )reset_property, METH_VARARGS,
-      "Reset a Property member. For internal use only!" },
-    { 0 } // Sentinel
-};
-
-
-static struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
-        "catom",
-        "catom extension module",
-        -1,
-        catom_methods,
-        NULL,
-        NULL,
-        NULL,
-        NULL
-};
-
-
-PyMODINIT_FUNC PyInit_catom( void )
+namespace
 {
-    PyObject *mod = PyModule_Create( &moduledef );
-    if( !mod )
-        return 0;
+
+
+bool ready_types()
+{
+    using namespace atom;
+    if( !AtomDict::Ready() )
+    {
+        return false;
+    }
+    return true;
+}
+
+bool add_objects( PyObject* mod )
+{
+	using namespace atom;
+    cppy::ptr atom_dict( pyobject_cast( AtomDict::TypeObject ) );
+	if( PyModule_AddObject( mod, "atomdict", atom_dict.get() ) < 0 )
+	{
+		return false;
+	}
+    atom_dict.release();
+	return true;
+}
+
+
+int
+catom_modexec( PyObject *mod )
+{
+    if( !ready_types() )
+    {
+        return -1;
+    }
+    if( !add_objects( mod ) )
+    {
+        return -1;
+    }
     if( import_member() < 0 )
-        return 0;
+        return -1;
     if( import_memberchange() < 0 )
-        return 0;
+        return -1;
     if( import_catom() < 0 )
-        return 0;
+        return -1;
     if( import_eventbinder() < 0 )
-        return 0;
+        return -1;
     if( import_signalconnector() < 0 )
-        return 0;
+        return -1;
     if( import_atomref() < 0 )
-        return 0;
+        return -1;
     if( import_atomlist() < 0 )
-        return 0;
-    if( import_atomdict() < 0 )
-       return 0;
+        return -1;
     if( import_atomset() < 0 )
-       return 0;
+       return -1;
     if( import_enumtypes() < 0 )
-        return 0;
+        return -1;
 
     Py_INCREF( &Member_Type );
     Py_INCREF( &CAtom_Type );
@@ -73,7 +83,6 @@ PyMODINIT_FUNC PyInit_catom( void )
     Py_INCREF( &AtomList_Type );
     Py_INCREF( &AtomCList_Type );
     Py_INCREF( &AtomSet_Type );
-    Py_INCREF( &AtomDict_Type );
     Py_INCREF( PyGetAttr );
     Py_INCREF( PySetAttr );
     Py_INCREF( PyDelAttr );
@@ -88,7 +97,6 @@ PyMODINIT_FUNC PyInit_catom( void )
     PyModule_AddObject( mod, "atomlist", pyobject_cast( &AtomList_Type ) );
     PyModule_AddObject( mod, "atomclist", pyobject_cast( &AtomCList_Type ) );
     PyModule_AddObject( mod, "atomset", pyobject_cast( &AtomSet_Type ) );
-    PyModule_AddObject( mod, "atomdict", pyobject_cast( &AtomDict_Type ) );
     PyModule_AddObject( mod, "GetAttr", PyGetAttr );
     PyModule_AddObject( mod, "SetAttr", PySetAttr );
     PyModule_AddObject( mod, "DelAttr", PyDelAttr );
@@ -98,5 +106,40 @@ PyMODINIT_FUNC PyInit_catom( void )
     PyModule_AddObject( mod, "Validate", PyValidate );
     PyModule_AddObject( mod, "PostValidate", PyPostValidate );
 
-    return mod;
+    return 0;
+}
+
+
+PyMethodDef
+catom_methods[] = {
+    { "reset_property", ( PyCFunction )reset_property, METH_VARARGS,
+      "Reset a Property member. For internal use only!" },
+    { 0 } // Sentinel
+};
+
+
+PyModuleDef_Slot catom_slots[] = {
+    {Py_mod_exec, reinterpret_cast<void*>( catom_modexec ) },
+    {0, NULL}
+};
+
+
+struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "catom",
+        "catom extension module",
+        0,
+        catom_methods,
+        catom_slots,
+        NULL,
+        NULL,
+        NULL
+};
+
+}  // namespace
+
+
+PyMODINIT_FUNC PyInit_catom( void )
+{
+    return PyModuleDef_Init( &moduledef );
 }

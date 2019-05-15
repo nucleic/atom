@@ -12,29 +12,35 @@
 #include "member.h"
 
 
-#define atomdict_cast( o ) ( reinterpret_cast<AtomDict*>( o ) )
+#define atomdict_cast( o ) ( reinterpret_cast<atom::AtomDict*>( o ) )
 
 
-typedef struct
+namespace atom
+{
+
+// POD struct - all member fields are considered private
+struct AtomDict
 {
 	PyDictObject dict;
 	Member* m_key_validator;
 	Member* m_value_validator;
     CAtomPointer* pointer;
 
-} AtomDict;
+	static PyType_Spec TypeObject_Spec;
 
+    static PyTypeObject* TypeObject;
 
-extern PyTypeObject AtomDict_Type;
+	static bool Ready();
 
+    static PyObject* New( CAtom* atom, Member* key_validator, Member* value_validator );
 
-PyObject*
-AtomDict_New( CAtom* atom, Member* key_validator, Member* value_validator );
+    static int Update( AtomDict* dict, PyObject* value );
 
+    static bool TypeCheck( PyObject* ob )
+	{
+		return PyObject_TypeCheck( ob, TypeObject ) != 0;
+	}
 
-int
-AtomDict_Update( AtomDict* dict, PyObject* value );
+};
 
-
-int
-import_atomdict();
+} // namespace atom

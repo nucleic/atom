@@ -9,6 +9,11 @@
 #include "atomdict.h"
 #include "packagenaming.h"
 
+namespace atom
+{
+
+namespace
+{
 
 inline bool should_validate( AtomDict* dict )
 {
@@ -69,60 +74,6 @@ int merge_items( PyObject* dict, PyObject* item, PyObject* kwargs )
 		ok = PyDict_Merge( dict, kwargs, 1 );
 	}
 	return ok;
-}
-
-
-PyObject* AtomDict_New( CAtom* atom, Member* key_validator, Member* value_validator )
-{
-    cppy::ptr self( PyDict_Type.tp_new( &AtomDict_Type, 0, 0 ) );
-	if( !self )
-	{
-		return 0;
-	}
-    cppy::xincref( pyobject_cast( key_validator ) );
-    atomdict_cast( self.get() )->m_key_validator = key_validator;
-    cppy::xincref( pyobject_cast( value_validator ) );
-    atomdict_cast( self.get() )->m_value_validator = value_validator;
-    atomdict_cast( self.get() )->pointer = new CAtomPointer( atom );
-    return self.release();
-}
-
-
-int AtomDict_Update( AtomDict* dict, PyObject* value )
-{
-	cppy::ptr validated_dict( PyDict_New() );
-	PyObject* key;
-	PyObject* val;
-	Py_ssize_t index = 0;
-	while( PyDict_Next( value, &index, &key, &val ) )
-	{
-        cppy::ptr key_ptr( cppy::incref( key ) );
-        key_ptr = validate_key( dict, key_ptr.get() );
-		if( !key_ptr )
-		{
-			return -1;
-		}
-
-        cppy::ptr val_ptr( cppy::incref( val ) );
-        val_ptr = validate_value( dict, val_ptr.get() );
-		if( !val_ptr )
-		{
-			return -1;
-		}
-
-        if( PyDict_SetItem( validated_dict.get(), key_ptr.get(), val_ptr.get() ) != 0 )
-        {
-            return -1;
-        }
-
-	}
-
-	if( PyDict_Update( pyobject_cast( dict ), validated_dict.get() ) < 0 )
-	{
-		return -1;
-	}
-
-    return 0;
 }
 
 
@@ -235,7 +186,7 @@ PyObject* AtomDict_update( AtomDict* dict, PyObject* args, PyObject* kwargs )
 		return 0;
 	}
 
-    if( AtomDict_Update( dict, temp.get() ) < 0 )
+    if( AtomDict::Update( dict, temp.get() ) < 0 )
 	{
 		return 0;
 	}
@@ -257,70 +208,102 @@ PyMethodDef AtomDict_methods[] = {
 };
 
 
-PyMappingMethods AtomDict_as_mapping = {
-	( lenfunc )0,                             /* mp_length */
-	( binaryfunc )0,                          /* mp_subscript */
-	( objobjargproc )AtomDict_ass_subscript  /* mp_ass_subscript */
+#define void_cast( o ) ( reinterpret_cast<void*>( o ) )
+
+
+static PyType_Slot AtomDict_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( AtomDict_dealloc ) },              /* tp_dealloc */
+    { Py_mp_ass_subscript, void_cast( AtomDict_ass_subscript ) },  /* tp_as_mapping */
+    { Py_tp_traverse, void_cast( AtomDict_traverse ) },            /* tp_traverse */
+    { Py_tp_clear, void_cast( AtomDict_clear ) },                  /* tp_clear */
+    { Py_tp_methods, void_cast( AtomDict_methods ) },              /* tp_methods */
+    { Py_tp_base, void_cast( &PyDict_Type ) },                     /* tp_base */
+    { Py_tp_new, void_cast( AtomDict_new ) },                      /* tp_new */
+    { 0, 0 },
 };
 
 
-PyTypeObject AtomDict_Type = {
-	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
+} // namespace
+
+
+PyTypeObject* AtomDict::TypeObject = NULL;
+
+
+PyType_Spec AtomDict::TypeObject_Spec = {
 	PACKAGE_TYPENAME( "atomdict" ),             /* tp_name */
 	sizeof( AtomDict ),                         /* tp_basicsize */
 	0,                                          /* tp_itemsize */
-	( destructor )AtomDict_dealloc,             /* tp_dealloc */
-	( printfunc )0,                             /* tp_print */
-	( getattrfunc )0,                           /* tp_getattr */
-	( setattrfunc )0,                           /* tp_setattr */
-	( PyAsyncMethods* )0,                       /* tp_as_async */
-	( reprfunc )0,                              /* tp_repr */
-	( PyNumberMethods* )0,                      /* tp_as_number */
-	( PySequenceMethods* )0,                    /* tp_as_sequence */
-	( PyMappingMethods* )&AtomDict_as_mapping,  /* tp_as_mapping */
-	( hashfunc )0,                              /* tp_hash */
-	( ternaryfunc )0,                           /* tp_call */
-	( reprfunc )0,                              /* tp_str */
-	( getattrofunc )0,                          /* tp_getattro */
-	( setattrofunc )0,                          /* tp_setattro */
-	( PyBufferProcs* )0,                        /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT
 	| Py_TPFLAGS_BASETYPE
 	| Py_TPFLAGS_HAVE_GC
 	| Py_TPFLAGS_HAVE_VERSION_TAG,              /* tp_flags */
-	0,                                          /* Documentation string */
-	( traverseproc )AtomDict_traverse,          /* tp_traverse */
-	( inquiry )AtomDict_clear,                  /* tp_clear */
-	( richcmpfunc )0,                           /* tp_richcompare */
-	0,                                          /* tp_weaklistoffset */
-	( getiterfunc )0,                           /* tp_iter */
-	( iternextfunc )0,                          /* tp_iternext */
-	( struct PyMethodDef* )AtomDict_methods,    /* tp_methods */
-	( struct PyMemberDef* )0,                   /* tp_members */
-	0,                                          /* tp_getset */
-	&PyDict_Type,                               /* tp_base */
-	0,                                          /* tp_dict */
-	( descrgetfunc )0,                          /* tp_descr_get */
-	( descrsetfunc )0,                          /* tp_descr_set */
-	0,                                          /* tp_dictoffset */
-	( initproc )0,                              /* tp_init */
-	( allocfunc )0,                             /* tp_alloc */
-	( newfunc )AtomDict_new,                    /* tp_new */
-	( freefunc )0,                              /* tp_free */
-	( inquiry )0,                               /* tp_is_gc */
-	0,                                          /* tp_bases */
-	0,                                          /* tp_mro */
-	0,                                          /* tp_cache */
-	0,                                          /* tp_subclasses */
-	0,                                          /* tp_weaklist */
-	( destructor )0                             /* tp_del */
+    AtomDict_Type_slots                         /* slots */
 };
 
 
-int
-import_atomdict()
+PyObject* AtomDict::New( CAtom* atom, Member* key_validator, Member* value_validator )
 {
-    if( PyType_Ready( &AtomDict_Type ) < 0 )
-        return -1;
+    cppy::ptr self( PyDict_Type.tp_new( AtomDict::TypeObject, 0, 0 ) );
+	if( !self )
+	{
+		return 0;
+	}
+    cppy::xincref( pyobject_cast( key_validator ) );
+    atomdict_cast( self.get() )->m_key_validator = key_validator;
+    cppy::xincref( pyobject_cast( value_validator ) );
+    atomdict_cast( self.get() )->m_value_validator = value_validator;
+    atomdict_cast( self.get() )->pointer = new CAtomPointer( atom );
+    return self.release();
+}
+
+
+int AtomDict::Update( AtomDict* dict, PyObject* value )
+{
+	cppy::ptr validated_dict( PyDict_New() );
+	PyObject* key;
+	PyObject* val;
+	Py_ssize_t index = 0;
+	while( PyDict_Next( value, &index, &key, &val ) )
+	{
+        cppy::ptr key_ptr( cppy::incref( key ) );
+        key_ptr = validate_key( dict, key_ptr.get() );
+		if( !key_ptr )
+		{
+			return -1;
+		}
+
+        cppy::ptr val_ptr( cppy::incref( val ) );
+        val_ptr = validate_value( dict, val_ptr.get() );
+		if( !val_ptr )
+		{
+			return -1;
+		}
+
+        if( PyDict_SetItem( validated_dict.get(), key_ptr.get(), val_ptr.get() ) != 0 )
+        {
+            return -1;
+        }
+
+	}
+
+	if( PyDict_Update( pyobject_cast( dict ), validated_dict.get() ) < 0 )
+	{
+		return -1;
+	}
+
     return 0;
 }
+
+
+bool AtomDict::Ready()
+{
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
+}
+
+
+} // namespace atom

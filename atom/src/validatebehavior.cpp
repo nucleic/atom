@@ -540,13 +540,14 @@ dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
     }
 
     // Create a new atom dict and update it.
-    cppy::ptr newdict( AtomDict_New( atom, key_validator, value_validator ) );
+    cppy::ptr newdict( atom::AtomDict::New( atom, key_validator, value_validator ) );
     if( !newdict )
     {
+        std::cout << "Failed to create atomdict" << std::flush;
         return 0;
     }
 
-    if( AtomDict_Update( atomdict_cast( newdict.get() ), newvalue ) < 0 )
+    if( atom::AtomDict::Update( atomdict_cast( newdict.get() ), newvalue ) < 0 )
     {
         return 0;
     }
