@@ -208,12 +208,9 @@ PyMethodDef AtomDict_methods[] = {
 };
 
 
-#define void_cast( o ) ( reinterpret_cast<void*>( o ) )
-
-
 static PyType_Slot AtomDict_Type_slots[] = {
     { Py_tp_dealloc, void_cast( AtomDict_dealloc ) },              /* tp_dealloc */
-    { Py_mp_ass_subscript, void_cast( AtomDict_ass_subscript ) },  /* tp_as_mapping */
+    { Py_mp_ass_subscript, void_cast( AtomDict_ass_subscript ) },  /* mp_ass_subscript */
     { Py_tp_traverse, void_cast( AtomDict_traverse ) },            /* tp_traverse */
     { Py_tp_clear, void_cast( AtomDict_clear ) },                  /* tp_clear */
     { Py_tp_methods, void_cast( AtomDict_methods ) },              /* tp_methods */
@@ -297,6 +294,7 @@ int AtomDict::Update( AtomDict* dict, PyObject* value )
 
 bool AtomDict::Ready()
 {
+    // The reference will be handled by the module to which we will add the type
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
     {
