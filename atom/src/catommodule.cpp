@@ -27,6 +27,14 @@ namespace
 bool ready_types()
 {
     using namespace atom;
+    if( !AtomList::Ready() )
+    {
+        return false;
+    }
+    if( !AtomCList::Ready() )
+    {
+        return false;
+    }
     if( !AtomDict::Ready() )
     {
         return false;
@@ -41,6 +49,18 @@ bool ready_types()
 bool add_objects( PyObject* mod )
 {
 	using namespace atom;
+    cppy::ptr atom_list( pyobject_cast( AtomList::TypeObject ) );
+	if( PyModule_AddObject( mod, "atomlist", atom_list.get() ) < 0 )
+	{
+		return false;
+	}
+    atom_list.release();
+    cppy::ptr atom_clist( pyobject_cast( AtomCList::TypeObject ) );
+	if( PyModule_AddObject( mod, "atomclist", atom_clist.get() ) < 0 )
+	{
+		return false;
+	}
+    atom_clist.release();
     cppy::ptr atom_dict( pyobject_cast( AtomDict::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomdict", atom_dict.get() ) < 0 )
 	{
@@ -80,16 +100,12 @@ catom_modexec( PyObject *mod )
         return -1;
     if( import_atomref() < 0 )
         return -1;
-    if( import_atomlist() < 0 )
-        return -1;
     if( import_enumtypes() < 0 )
         return -1;
 
     Py_INCREF( &Member_Type );
     Py_INCREF( &CAtom_Type );
     Py_INCREF( &AtomRef_Type );
-    Py_INCREF( &AtomList_Type );
-    Py_INCREF( &AtomCList_Type );
     Py_INCREF( PyGetAttr );
     Py_INCREF( PySetAttr );
     Py_INCREF( PyDelAttr );
@@ -101,8 +117,6 @@ catom_modexec( PyObject *mod )
     PyModule_AddObject( mod, "Member", pyobject_cast( &Member_Type ) );
     PyModule_AddObject( mod, "CAtom", pyobject_cast( &CAtom_Type ) );
     PyModule_AddObject( mod, "atomref", pyobject_cast( &AtomRef_Type ) );
-    PyModule_AddObject( mod, "atomlist", pyobject_cast( &AtomList_Type ) );
-    PyModule_AddObject( mod, "atomclist", pyobject_cast( &AtomCList_Type ) );
     PyModule_AddObject( mod, "GetAttr", PyGetAttr );
     PyModule_AddObject( mod, "SetAttr", PySetAttr );
     PyModule_AddObject( mod, "DelAttr", PyDelAttr );

@@ -258,7 +258,7 @@ PyMethodDef AtomSet_methods[] = {
 };
 
 
-static PyType_Slot AtomSet_Type_slots[] = {
+PyType_Slot AtomSet_Type_slots[] = {
     { Py_tp_dealloc, void_cast( AtomSet_dealloc ) },         /* tp_dealloc */
     { Py_tp_traverse, void_cast( AtomSet_traverse ) },       /* tp_traverse */
     { Py_tp_clear, void_cast( AtomSet_clear ) },             /* tp_clear */

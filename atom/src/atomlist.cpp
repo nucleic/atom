@@ -17,6 +17,10 @@
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #endif
 
+namespace atom
+{
+
+
 typedef PyCFunction pycfunc;
 typedef PyCFunctionWithKeywords pycfunc_kw;
 #if PY_VERSION_HEX >= 0x03070000
@@ -26,78 +30,78 @@ typedef _PyCFunctionFastWithKeywords pycfunc_fkw;
 
 namespace ListMethods
 {
-pycfunc extend = 0;
-#if PY_VERSION_HEX >= 0x03070000
-static pycfunc_f pop = 0;
-#else
-static pycfunc pop = 0;
-#endif
-static pycfunc remove = 0;
-#if PY_VERSION_HEX >= 0x03070000
-static pycfunc_fkw sort = 0;
-#else
-static pycfunc_kw sort = 0;
-#endif
+    pycfunc extend = 0;
+    #if PY_VERSION_HEX >= 0x03070000
+    static pycfunc_f pop = 0;
+    #else
+    static pycfunc pop = 0;
+    #endif
+    static pycfunc remove = 0;
+    #if PY_VERSION_HEX >= 0x03070000
+    static pycfunc_fkw sort = 0;
+    #else
+    static pycfunc_kw sort = 0;
+    #endif
 
-inline PyCFunction
-lookup_method( PyTypeObject* type, const char* name )
-{
-    PyMethodDef* method = type->tp_methods;
-    for( ; method->ml_name != 0; ++method )
+    inline PyCFunction
+    lookup_method( PyTypeObject* type, const char* name )
     {
-        if( strcmp( method->ml_name, name ) == 0 )
-            return method->ml_meth;
+        PyMethodDef* method = type->tp_methods;
+        for( ; method->ml_name != 0; ++method )
+        {
+            if( strcmp( method->ml_name, name ) == 0 )
+                return method->ml_meth;
+        }
+        return 0;
     }
-    return 0;
-}
 
-static bool
-init_methods()
-{
+    static bool
+    init_methods()
+    {
 
-    extend = lookup_method( &PyList_Type, "extend" );
-    if( !extend )
-    {
-// LCOV_EXCL_START
-        cppy::system_error( "failed to load list 'extend' method" );
-        return false;
-// LCOV_EXCL_STOP
-    }
-#if PY_VERSION_HEX >= 0x03070000
-    pop = reinterpret_cast<pycfunc_f>( lookup_method( &PyList_Type, "pop" ) );
-#else
-    pop = lookup_method( &PyList_Type, "pop" );
-#endif
-    if( !pop )
-    {
-// LCOV_EXCL_START
-        cppy::system_error( "failed to load list 'pop' method" );
-        return false;
-// LCOV_EXCL_STOP
-    }
-    remove = lookup_method( &PyList_Type, "remove" );
-    if( !remove )
-    {
-// LCOV_EXCL_START
-        cppy::system_error( "failed to load list 'remove' method" );
-        return false;
-// LCOV_EXCL_STOP
-    }
-#if PY_VERSION_HEX >= 0x03070000
-    sort = reinterpret_cast<pycfunc_fkw>( lookup_method( &PyList_Type, "sort" ) );
-#else
-    sort = reinterpret_cast<pycfunc_kw>( lookup_method( &PyList_Type, "sort" ) );
-#endif
+        extend = lookup_method( &PyList_Type, "extend" );
+        if( !extend )
+        {
+    // LCOV_EXCL_START
+            cppy::system_error( "failed to load list 'extend' method" );
+            return false;
+    // LCOV_EXCL_STOP
+        }
+    #if PY_VERSION_HEX >= 0x03070000
+        pop = reinterpret_cast<pycfunc_f>( lookup_method( &PyList_Type, "pop" ) );
+    #else
+        pop = lookup_method( &PyList_Type, "pop" );
+    #endif
+        if( !pop )
+        {
+    // LCOV_EXCL_START
+            cppy::system_error( "failed to load list 'pop' method" );
+            return false;
+    // LCOV_EXCL_STOP
+        }
+        remove = lookup_method( &PyList_Type, "remove" );
+        if( !remove )
+        {
+    // LCOV_EXCL_START
+            cppy::system_error( "failed to load list 'remove' method" );
+            return false;
+    // LCOV_EXCL_STOP
+        }
+    #if PY_VERSION_HEX >= 0x03070000
+        sort = reinterpret_cast<pycfunc_fkw>( lookup_method( &PyList_Type, "sort" ) );
+    #else
+        sort = reinterpret_cast<pycfunc_kw>( lookup_method( &PyList_Type, "sort" ) );
+    #endif
 
-    if( !sort )
-    {
-// LCOV_EXCL_START
-        cppy::system_error( "failed to load list 'sort' method" );
-        return false;
-// LCOV_EXCL_STOP
+        if( !sort )
+        {
+    // LCOV_EXCL_START
+            cppy::system_error( "failed to load list 'sort' method" );
+            return false;
+    // LCOV_EXCL_STOP
+        }
+        return true;
     }
-    return true;
-}
 
 }  // namespace ListMethods
 
@@ -123,34 +127,6 @@ ListSubtype_New( PyTypeObject* subtype, Py_ssize_t size )
     }
     Py_SIZE( op ) = size;
     op->allocated = size;
-    return ptr.release();
-}
-
-
-PyObject*
-AtomList_New( Py_ssize_t size, CAtom* atom, Member* validator )
-{
-    cppy::ptr ptr( ListSubtype_New( &AtomList_Type, size ) );
-    if( !ptr )
-        return 0;
-    cppy::xincref( pyobject_cast( validator ) );
-    atomlist_cast( ptr.get() )->validator = validator;
-    atomlist_cast( ptr.get() )->pointer = new CAtomPointer( atom );
-    return ptr.release();
-}
-
-
-PyObject*
-AtomCList_New( Py_ssize_t size, CAtom* atom, Member* validator, Member* member )
-{
-    cppy::ptr ptr( ListSubtype_New( &AtomCList_Type, size ) );
-    if( !ptr )
-        return 0;
-    cppy::xincref( pyobject_cast( validator ) );
-    cppy::xincref( pyobject_cast( member ) );
-    atomlist_cast( ptr.get() )->validator = validator;
-    atomlist_cast( ptr.get() )->pointer = new CAtomPointer( atom );
-    atomclist_cast( ptr.get() )->member = member;
     return ptr.release();
 }
 
@@ -313,15 +289,15 @@ private:
     AtomListHandler();
 };
 
-}  // namespace
-
 
 static PyObject*
 AtomList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     cppy::ptr ptr( PyList_Type.tp_new( type, args, kwargs ) );
     if( !ptr )
+    {
         return 0;
+    }
     atomlist_cast( ptr.get() )->pointer = new CAtomPointer();
     return ptr.release();
 }
@@ -425,8 +401,7 @@ PyDoc_STRVAR( a_extend_doc,
 "L.extend(iterable) -- extend list by appending elements from the iterable" );
 
 
-static PyMethodDef
-AtomList_methods[] = {
+PyMethodDef AtomList_methods[] = {
     { "append", ( PyCFunction )AtomList_append, METH_O, a_append_doc },
     { "insert", ( PyCFunction )AtomList_insert, METH_VARARGS, a_insert_doc },
     { "extend", ( PyCFunction )AtomList_extend, METH_O, a_extend_doc },
@@ -434,79 +409,64 @@ AtomList_methods[] = {
     { 0 }  /* sentinel */
 };
 
-static PySequenceMethods
-AtomList_as_sequence = {
-    ( lenfunc )0,                                 /* sq_length */
-    ( binaryfunc )0,                              /* sq_concat */
-    ( ssizeargfunc )0,                            /* sq_repeat */
-    ( ssizeargfunc )0,                            /* sq_item */
-    ( void * )0,                                  /* sq_slice */
-    ( ssizeobjargproc )AtomList_ass_item,         /* sq_ass_item */
-    ( void * )0,                                  /* sq_ass_slice */
-    ( objobjproc )0,                              /* sq_contains */
-    ( binaryfunc )AtomList_inplace_concat,        /* sq_inplace_concat */
-    ( ssizeargfunc )0,                            /* sq_inplace_repeat */
+
+
+PyType_Slot AtomList_Type_slots[] = {
+    { Py_tp_base, void_cast( &PyList_Type ) },                      /* tp_base */
+    { Py_tp_new, void_cast( AtomList_new ) },                       /* tp_new */
+    { Py_tp_dealloc, void_cast( AtomList_dealloc ) },               /* tp_dealloc */
+    { Py_tp_traverse, void_cast( AtomList_traverse ) },             /* tp_traverse */
+    { Py_tp_clear, void_cast( AtomList_clear ) },                   /* tp_clear */
+    { Py_tp_methods, void_cast( AtomList_methods ) },               /* tp_methods */
+    { Py_sq_ass_item, void_cast( AtomList_ass_item ) },             /* sq_ass_item */
+    { Py_sq_inplace_concat, void_cast( AtomList_inplace_concat ) }, /* sq_ass_item */
+    { Py_mp_ass_subscript, void_cast( AtomList_ass_subscript ) },   /* mp_ass_subscript */
+    { 0, 0 },
 };
 
 
-static PyMappingMethods
-AtomList_as_mapping = {
-    ( lenfunc )0,                             /* mp_length */
-    ( binaryfunc )0,                          /* mp_subscript */
-    ( objobjargproc )AtomList_ass_subscript   /* mp_ass_subscript */
-};
+}  // namespace
 
 
-PyTypeObject AtomList_Type = {
-    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-    PACKAGE_TYPENAME( "atomlist" ),              /* tp_name */
-    sizeof( AtomList ),                          /* tp_basicsize */
-    0,                                           /* tp_itemsize */
-    ( destructor )AtomList_dealloc,              /* tp_dealloc */
-    ( printfunc )0,                              /* tp_print */
-    ( getattrfunc )0,                            /* tp_getattr */
-    ( setattrfunc )0,                            /* tp_setattr */
-	( PyAsyncMethods* )0,                        /* tp_as_async */
-    ( reprfunc )0,                               /* tp_repr */
-    ( PyNumberMethods* )0,                       /* tp_as_number */
-    ( PySequenceMethods* )&AtomList_as_sequence, /* tp_as_sequence */
-    ( PyMappingMethods* )&AtomList_as_mapping,   /* tp_as_mapping */
-    ( hashfunc )0,                               /* tp_hash */
-    ( ternaryfunc )0,                            /* tp_call */
-    ( reprfunc )0,                               /* tp_str */
-    ( getattrofunc )0,                           /* tp_getattro */
-    ( setattrofunc )0,                           /* tp_setattro */
-    ( PyBufferProcs* )0,                         /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT
+PyTypeObject* AtomList::TypeObject = NULL;
+
+
+PyType_Spec AtomList::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "atomlist" ),             /* tp_name */
+	sizeof( AtomList ),                         /* tp_basicsize */
+	0,                                          /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT
     |Py_TPFLAGS_BASETYPE
-    |Py_TPFLAGS_HAVE_GC,                         /* tp_flags */
-    0,                                           /* Documentation string */
-    ( traverseproc )AtomList_traverse,           /* tp_traverse */
-    ( inquiry )AtomList_clear,                   /* tp_clear */
-    ( richcmpfunc )0,                            /* tp_richcompare */
-    0,                                           /* tp_weaklistoffset */
-    ( getiterfunc )0,                            /* tp_iter */
-    ( iternextfunc )0,                           /* tp_iternext */
-    ( struct PyMethodDef* )AtomList_methods,     /* tp_methods */
-    ( struct PyMemberDef* )0,                    /* tp_members */
-    0,                                           /* tp_getset */
-    &PyList_Type,                                /* tp_base */
-    0,                                           /* tp_dict */
-    ( descrgetfunc )0,                           /* tp_descr_get */
-    ( descrsetfunc )0,                           /* tp_descr_set */
-    0,                                           /* tp_dictoffset */
-    ( initproc )0,                               /* tp_init */
-    ( allocfunc )0,                              /* tp_alloc */
-    ( newfunc )AtomList_new,                     /* tp_new */
-    ( freefunc )0,                               /* tp_free */
-    ( inquiry )0,                                /* tp_is_gc */
-    0,                                           /* tp_bases */
-    0,                                           /* tp_mro */
-    0,                                           /* tp_cache */
-    0,                                           /* tp_subclasses */
-    0,                                           /* tp_weaklist */
-    ( destructor )0                              /* tp_del */
+    |Py_TPFLAGS_HAVE_GC,              /* tp_flags */
+    AtomList_Type_slots                         /* slots */
 };
+
+
+PyObject*
+AtomList::New( Py_ssize_t size, CAtom* atom, Member* validator )
+{
+    cppy::ptr ptr( ListSubtype_New( AtomList::TypeObject, size ) );
+    if( !ptr )
+        return 0;
+    cppy::xincref( pyobject_cast( validator ) );
+    atomlist_cast( ptr.get() )->validator = validator;
+    atomlist_cast( ptr.get() )->pointer = new CAtomPointer( atom );
+    return ptr.release();
+}
+
+
+bool AtomList::Ready()
+{
+    if( !ListMethods::init_methods() )
+        return false;
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
+}
 
 
 /*-----------------------------------------------------------------------------
@@ -515,60 +475,60 @@ PyTypeObject AtomList_Type = {
 namespace PySStr
 {
 
-class PyStringMaker
-{
-
-public:
-
-    PyStringMaker( const char* string ) : m_pystring( 0 )
+    class PyStringMaker
     {
-        m_pystring = PyUnicode_FromString( string );
-    }
 
-    PyObject* operator()()
-    {
-        return m_pystring.get();
-    }
+    public:
 
-private:
+        PyStringMaker( const char* string ) : m_pystring( 0 )
+        {
+            m_pystring = PyUnicode_FromString( string );
+        }
 
-    PyStringMaker();
-    cppy::ptr m_pystring;
-};
+        PyObject* operator()()
+        {
+            return m_pystring.get();
+        }
+
+    private:
+
+        PyStringMaker();
+        cppy::ptr m_pystring;
+    };
 
 
-#define _STATIC_STRING( name )                \
-    static PyObject*                          \
-    name()                                    \
-    {                                         \
-        static PyStringMaker string( #name ); \
-        return string();                      \
-    }
+    #define _STATIC_STRING( name )                \
+        static PyObject*                          \
+        name()                                    \
+        {                                         \
+            static PyStringMaker string( #name ); \
+            return string();                      \
+        }
 
-_STATIC_STRING( type )
-_STATIC_STRING( name )
-_STATIC_STRING( object )
-_STATIC_STRING( value )
-_STATIC_STRING( operation )
-_STATIC_STRING( item )
-_STATIC_STRING( items )
-_STATIC_STRING( index )
-_STATIC_STRING( key )
-_STATIC_STRING( reverse )
-_STATIC_STRING( container )
-_STATIC_STRING( __delitem__ )
-_STATIC_STRING( __iadd__ )
-_STATIC_STRING( __imul__ )
-_STATIC_STRING( __setitem__ )
-_STATIC_STRING( append )
-_STATIC_STRING( extend )
-_STATIC_STRING( insert )
-_STATIC_STRING( pop )
-_STATIC_STRING( remove )
-_STATIC_STRING( sort )
-_STATIC_STRING( olditem )
-_STATIC_STRING( newitem )
-_STATIC_STRING( count )
+    _STATIC_STRING( type )
+    _STATIC_STRING( name )
+    _STATIC_STRING( object )
+    _STATIC_STRING( value )
+    _STATIC_STRING( operation )
+    _STATIC_STRING( item )
+    _STATIC_STRING( items )
+    _STATIC_STRING( index )
+    _STATIC_STRING( key )
+    _STATIC_STRING( reverse )
+    _STATIC_STRING( container )
+    _STATIC_STRING( __delitem__ )
+    _STATIC_STRING( __iadd__ )
+    _STATIC_STRING( __imul__ )
+    _STATIC_STRING( __setitem__ )
+    _STATIC_STRING( append )
+    _STATIC_STRING( extend )
+    _STATIC_STRING( insert )
+    _STATIC_STRING( pop )
+    _STATIC_STRING( remove )
+    _STATIC_STRING( sort )
+    _STATIC_STRING( olditem )
+    _STATIC_STRING( newitem )
+    _STATIC_STRING( count )
 
 }  // namespace PySStr
 
@@ -964,13 +924,11 @@ private:
     bool m_obsa;
 };
 
-}  // namespace
-
 
 static PyObject*
 AtomCList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-    return AtomList_Type.tp_new( type, args, kwargs );
+    return AtomList::TypeObject->tp_new( type, args, kwargs );
 }
 
 
@@ -1109,89 +1067,69 @@ AtomCList_methods[] = {
 };
 
 
-static PySequenceMethods
-AtomCList_as_sequence = {
-    ( lenfunc )0,                                 /* sq_length */
-    ( binaryfunc )0,                              /* sq_concat */
-    ( ssizeargfunc )0,                            /* sq_repeat */
-    ( ssizeargfunc )0,                            /* sq_item */
-    ( void * )0,                                  /* sq_slice */
-    ( ssizeobjargproc )AtomCList_ass_item,        /* sq_ass_item */
-    ( void * )0,                                  /* sq_ass_slice */
-    ( objobjproc )0,                              /* sq_contains */
-    ( binaryfunc )AtomCList_inplace_concat,       /* sq_inplace_concat */
-    ( ssizeargfunc )AtomCList_inplace_repeat,     /* sq_inplace_repeat */
+PyType_Slot AtomCList_Type_slots[] = {
+    { Py_tp_base, NULL },  // Set once the base type is created      /* tp_base */
+    { Py_tp_new, void_cast( AtomCList_new ) },                       /* tp_new */
+    { Py_tp_dealloc, void_cast( AtomCList_dealloc ) },               /* tp_dealloc */
+    { Py_tp_traverse, void_cast( AtomCList_traverse ) },             /* tp_traverse */
+    { Py_tp_clear, void_cast( AtomCList_clear ) },                   /* tp_clear */
+    { Py_tp_methods, void_cast( AtomCList_methods ) },               /* tp_methods */
+    { Py_sq_ass_item, void_cast( AtomCList_ass_item ) },             /* sq_ass_item */
+    { Py_sq_inplace_concat, void_cast( AtomCList_inplace_concat ) }, /* sq_ass_item */
+    { Py_sq_inplace_repeat, void_cast( AtomCList_inplace_repeat ) }, /* sq_ass_item */
+    { Py_mp_ass_subscript, void_cast( AtomCList_ass_subscript ) },   /* mp_ass_subscript */
+    { 0, 0 },
 };
 
-
-static PyMappingMethods
-AtomCList_as_mapping = {
-    ( lenfunc )0,                             /* mp_length */
-    ( binaryfunc )0,                          /* mp_subscript */
-    ( objobjargproc )AtomCList_ass_subscript  /* mp_ass_subscript */
-};
+}  // namespace
 
 
-PyTypeObject AtomCList_Type = {
-    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-    PACKAGE_TYPENAME( "atomclist" ),              /* tp_name */
-    sizeof( AtomCList ),                          /* tp_basicsize */
-    0,                                            /* tp_itemsize */
-    ( destructor )AtomCList_dealloc,              /* tp_dealloc */
-    ( printfunc )0,                               /* tp_print */
-    ( getattrfunc )0,                             /* tp_getattr */
-    ( setattrfunc )0,                             /* tp_setattr */
-	( PyAsyncMethods* )0,                         /* tp_as_async */
-    ( reprfunc )0,                                /* tp_repr */
-    ( PyNumberMethods* )0,                        /* tp_as_number */
-    ( PySequenceMethods* )&AtomCList_as_sequence, /* tp_as_sequence */
-    ( PyMappingMethods* )&AtomCList_as_mapping,   /* tp_as_mapping */
-    ( hashfunc )0,                                /* tp_hash */
-    ( ternaryfunc )0,                             /* tp_call */
-    ( reprfunc )0,                                /* tp_str */
-    ( getattrofunc )0,                            /* tp_getattro */
-    ( setattrofunc )0,                            /* tp_setattro */
-    ( PyBufferProcs* )0,                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT
+PyTypeObject* AtomCList::TypeObject = NULL;
+
+
+PyType_Spec AtomCList::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "atomclist" ),             /* tp_name */
+	sizeof( AtomCList ),                         /* tp_basicsize */
+	0,                                           /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT
     |Py_TPFLAGS_BASETYPE
-    |Py_TPFLAGS_HAVE_GC,                          /* tp_flags */
-    0,                                            /* Documentation string */
-    ( traverseproc )AtomCList_traverse,           /* tp_traverse */
-    ( inquiry )AtomCList_clear,                   /* tp_clear */
-    ( richcmpfunc )0,                             /* tp_richcompare */
-    0,                                            /* tp_weaklistoffset */
-    ( getiterfunc )0,                             /* tp_iter */
-    ( iternextfunc )0,                            /* tp_iternext */
-    ( struct PyMethodDef* )AtomCList_methods,     /* tp_methods */
-    ( struct PyMemberDef* )0,                     /* tp_members */
-    0,                                            /* tp_getset */
-    &AtomList_Type,                               /* tp_base */
-    0,                                            /* tp_dict */
-    ( descrgetfunc )0,                            /* tp_descr_get */
-    ( descrsetfunc )0,                            /* tp_descr_set */
-    0,                                            /* tp_dictoffset */
-    ( initproc )0,                                /* tp_init */
-    ( allocfunc )0,                               /* tp_alloc */
-    ( newfunc )AtomCList_new,                     /* tp_new */
-    ( freefunc )0,                                /* tp_free */
-    ( inquiry )0,                                 /* tp_is_gc */
-    0,                                            /* tp_bases */
-    0,                                            /* tp_mro */
-    0,                                            /* tp_cache */
-    0,                                            /* tp_subclasses */
-    0,                                            /* tp_weaklist */
-    ( destructor )0                               /* tp_del */
+    |Py_TPFLAGS_HAVE_GC,                         /* tp_flags */
+    AtomCList_Type_slots                         /* slots */
 };
 
 
-int
-import_atomlist()
+PyObject*
+AtomCList::New( Py_ssize_t size, CAtom* atom, Member* validator, Member* member )
 {
-    if( PyType_Ready( &AtomList_Type ) < 0 )
-        return -1;
-    if( PyType_Ready( &AtomCList_Type ) < 0 )
-        return -1;
-    if( !ListMethods::init_methods() )
-        return -1;
-    return 0;
+    cppy::ptr ptr( ListSubtype_New( AtomCList::TypeObject, size ) );
+    if( !ptr )
+        return 0;
+    cppy::xincref( pyobject_cast( validator ) );
+    cppy::xincref( pyobject_cast( member ) );
+    atomlist_cast( ptr.get() )->validator = validator;
+    atomlist_cast( ptr.get() )->pointer = new CAtomPointer( atom );
+    atomclist_cast( ptr.get() )->member = member;
+    return ptr.release();
 }
+
+
+bool AtomCList::Ready()
+{
+    // Ensure the parent type was created
+    if( !AtomList::TypeObject )
+    {
+        return false;
+    }
+    AtomCList_Type_slots[0].pfunc = void_cast( AtomList::TypeObject );
+
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
+}
+
+
+}  // namespace atom

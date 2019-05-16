@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -12,38 +12,58 @@
 #include "member.h"
 
 
-#define atomlist_cast( o ) ( reinterpret_cast<AtomList*>( o ) )
-#define atomclist_cast( o ) ( reinterpret_cast<AtomCList*>( o ) )
-#define AtomList_Check( o ) ( PyObject_TypeCheck( o, &AtomList_Type ) )
-#define AtomCList_Check( o ) ( PyObject_TypeCheck( o, &AtomCList_Type ) )
+#define atomlist_cast( o ) ( reinterpret_cast<atom::AtomList*>( o ) )
+#define atomclist_cast( o ) ( reinterpret_cast<atom::AtomCList*>( o ) )
+
+namespace atom
+{
 
 
-typedef struct {
-    PyListObject list;
+// POD struct - all member fields are considered private
+struct AtomList
+{
+	PyListObject list;
     Member* validator;
     CAtomPointer* pointer;
-} AtomList;
+
+	static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+
+    static PyObject* New( Py_ssize_t size, CAtom* atom, Member* validator );
+
+    static bool TypeCheck( PyObject* ob )
+	{
+		return PyObject_TypeCheck( ob, TypeObject ) != 0;
+	}
+
+};
 
 
-typedef struct {
-    AtomList atomlist;
+// POD struct - all member fields are considered private
+struct AtomCList
+{
+	PyListObject list;
+    Member* validator;
+    CAtomPointer* pointer;
     Member* member;
-} AtomCList;
+
+	static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+
+    static PyObject* New( Py_ssize_t size, CAtom* atom, Member* validator, Member* member );
+
+    static bool TypeCheck( PyObject* ob )
+	{
+		return PyObject_TypeCheck( ob, TypeObject ) != 0;
+	}
+
+};
 
 
-extern PyTypeObject AtomList_Type;
-
-
-extern PyTypeObject AtomCList_Type;
-
-
-PyObject*
-AtomList_New( Py_ssize_t size, CAtom* atom, Member* validator );
-
-
-PyObject*
-AtomCList_New( Py_ssize_t size, CAtom* atom, Member* validator, Member* member );
-
-
-int
-import_atomlist();
+}

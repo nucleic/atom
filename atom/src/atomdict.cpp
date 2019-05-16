@@ -208,7 +208,7 @@ PyMethodDef AtomDict_methods[] = {
 };
 
 
-static PyType_Slot AtomDict_Type_slots[] = {
+PyType_Slot AtomDict_Type_slots[] = {
     { Py_tp_dealloc, void_cast( AtomDict_dealloc ) },              /* tp_dealloc */
     { Py_mp_ass_subscript, void_cast( AtomDict_ass_subscript ) },  /* mp_ass_subscript */
     { Py_tp_traverse, void_cast( AtomDict_traverse ) },            /* tp_traverse */

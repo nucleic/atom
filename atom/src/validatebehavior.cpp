@@ -459,7 +459,7 @@ class AtomListFactory
 public:
     PyObject* operator()( Member* member, CAtom* atom, Member* validator, Py_ssize_t size )
     {
-        return AtomList_New( size, atom, validator );
+        return atom::AtomList::New( size, atom, validator );
     }
 };
 
@@ -469,7 +469,7 @@ class AtomCListFactory
 public:
     PyObject* operator()( Member* member, CAtom* atom, Member* validator, Py_ssize_t size )
     {
-        return AtomCList_New( size, atom, validator, member );
+        return atom::AtomCList::New( size, atom, validator, member );
     }
 };
 
