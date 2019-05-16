@@ -22,13 +22,12 @@
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #endif
 
-#define atomref_cast( o ) ( reinterpret_cast<AtomRef*>( o ) )
+
+#define atomref_cast( o ) ( reinterpret_cast<atom::AtomRef*>( o ) )
 
 
-typedef struct {
-    PyObject_HEAD
-    CAtomPointer pointer;  // constructed with placement new
-} AtomRef;
+namespace atom
+{
 
 
 namespace SharedAtomRef
@@ -42,10 +41,14 @@ PyObject*
 get( CAtom* atom )
 {
     if( atom->has_atomref() )
+    {
         return cppy::incref( ( *ref_map() )[ atom ].get() );
-    PyObject* pyref = AtomRef_Type.tp_alloc( &AtomRef_Type, 0 );
+    }
+    PyObject* pyref = PyType_GenericAlloc( AtomRef::TypeObject, 0 );
     if( !pyref )
+    {
         return 0;
+    }
     // placement new since Python malloc'd and zero'd the struct
     new( &atomref_cast( pyref )->pointer ) CAtomPointer( atom );
     ( *ref_map() )[ atom ] = cppy::incref( pyref );
@@ -63,6 +66,8 @@ clear( CAtom* atom )
 
 }  // namespace SharedAtomRef
 
+namespace
+{
 
 static PyObject*
 AtomRef_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
@@ -70,9 +75,13 @@ AtomRef_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     static char *kwlist[] = { "atom", 0 };
     PyObject* atom;
     if( !PyArg_ParseTupleAndKeywords( args, kwargs, "O:__new__", kwlist, &atom ) )
+    {
         return 0;
+    }
     if( !CAtom::TypeCheck( atom ) )
+    {
         return cppy::type_error( atom, "CAtom" );
+    }
     return SharedAtomRef::get( catom_cast( atom ) );
 }
 
@@ -91,7 +100,9 @@ AtomRef_call( AtomRef* self, PyObject* args, PyObject* kwargs )
 {
     static char *kwlist[] = { 0 };
     if( !PyArg_ParseTupleAndKeywords( args, kwargs, ":__call__", kwlist ) )
+    {
         return 0;
+    }
     PyObject* obj = pyobject_cast( self->pointer.data() );
     return cppy::incref( obj ? obj : Py_None );
 }
@@ -103,7 +114,9 @@ AtomRef_repr( AtomRef* self )
     std::ostringstream ostr;
     ostr << "AtomRef(atom=";
     if( self->pointer.is_null() )
+    {
         ostr << "None";
+    }
     else
     {
         PyObject* obj = pyobject_cast( self->pointer.data() );
@@ -133,20 +146,6 @@ AtomRef__bool__( AtomRef* self )
 }
 
 
-PyNumberMethods AtomRef_as_number = {
-     ( binaryfunc )0,                       /* nb_add */
-     ( binaryfunc )0,                       /* nb_subtract */
-     ( binaryfunc )0,                       /* nb_multiply */
-     ( binaryfunc )0,                       /* nb_remainder */
-     ( binaryfunc )0,                       /* nb_divmod */
-     ( ternaryfunc )0,                      /* nb_power */
-     ( unaryfunc )0,                        /* nb_negative */
-     ( unaryfunc )0,                        /* nb_positive */
-     ( unaryfunc )0,                        /* nb_absolute */
-     ( inquiry )AtomRef__bool__             /* nb_bool */
-};
-
-
 static PyMethodDef
 AtomRef_methods[] = {
     { "__sizeof__", ( PyCFunction )AtomRef_sizeof, METH_NOARGS,
@@ -155,60 +154,42 @@ AtomRef_methods[] = {
 };
 
 
-PyTypeObject AtomRef_Type = {
-    PyVarObject_HEAD_INIT( NULL, 0 )
-    PACKAGE_TYPENAME( "atomref" ),            /* tp_name */
-    sizeof( AtomRef ),                        /* tp_basicsize */
-    0,                                        /* tp_itemsize */
-    ( destructor )AtomRef_dealloc,            /* tp_dealloc */
-    ( printfunc )0,                           /* tp_print */
-    ( getattrfunc )0,                         /* tp_getattr */
-    ( setattrfunc )0,                         /* tp_setattr */
-	( PyAsyncMethods* )0,                     /* tp_as_async */
-    ( reprfunc )AtomRef_repr,                 /* tp_repr */
-    ( PyNumberMethods* )&AtomRef_as_number,   /* tp_as_number */
-    ( PySequenceMethods* )0,                  /* tp_as_sequence */
-    ( PyMappingMethods* )0,                   /* tp_as_mapping */
-    ( hashfunc )0,                            /* tp_hash */
-    ( ternaryfunc )AtomRef_call,              /* tp_call */
-    ( reprfunc )0,                            /* tp_str */
-    ( getattrofunc )0,                        /* tp_getattro */
-    ( setattrofunc )0,                        /* tp_setattro */
-    ( PyBufferProcs* )0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                       /* tp_flags */
-    0,                                        /* Documentation string */
-    ( traverseproc )0,                        /* tp_traverse */
-    ( inquiry )0,                             /* tp_clear */
-    ( richcmpfunc )0,                         /* tp_richcompare */
-    0,                                        /* tp_weaklistoffset */
-    ( getiterfunc )0,                         /* tp_iter */
-    ( iternextfunc )0,                        /* tp_iternext */
-    ( struct PyMethodDef* )AtomRef_methods,   /* tp_methods */
-    ( struct PyMemberDef* )0,                 /* tp_members */
-    0,                                        /* tp_getset */
-    0,                                        /* tp_base */
-    0,                                        /* tp_dict */
-    ( descrgetfunc )0,                        /* tp_descr_get */
-    ( descrsetfunc )0,                        /* tp_descr_set */
-    0,                                        /* tp_dictoffset */
-    ( initproc )0,                            /* tp_init */
-    ( allocfunc )PyType_GenericAlloc,         /* tp_alloc */
-    ( newfunc )AtomRef_new,                   /* tp_new */
-    ( freefunc )0,                            /* tp_free */
-    ( inquiry )0,                             /* tp_is_gc */
-    0,                                        /* tp_bases */
-    0,                                        /* tp_mro */
-    0,                                        /* tp_cache */
-    0,                                        /* tp_subclasses */
-    0,                                        /* tp_weaklist */
-    ( destructor )0                           /* tp_del */
+PyType_Slot AtomRef_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( AtomRef_dealloc ) },              /* tp_dealloc */
+    { Py_tp_repr, void_cast( AtomRef_repr ) },                    /* tp_repr */
+    { Py_tp_methods, void_cast( AtomRef_methods ) },              /* tp_methods */
+    { Py_tp_new, void_cast( AtomRef_new ) },                      /* tp_new */
+    { Py_tp_call, void_cast( AtomRef_call ) },                    /* tp_call */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },            /* tp_alloc */
+    { Py_nb_bool, void_cast( AtomRef__bool__ ) },                 /* nb_bool */
+    { 0, 0 },
+};
+
+}  // namespace
+
+
+PyTypeObject* AtomRef::TypeObject = NULL;
+
+
+PyType_Spec AtomRef::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "atomref" ),             /* tp_name */
+	sizeof( AtomRef ),                          /* tp_basicsize */
+	0,                                          /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT,                          /* tp_flags */
+    AtomRef_Type_slots                          /* slots */
 };
 
 
-int
-import_atomref()
+bool AtomRef::Ready()
 {
-    if( PyType_Ready( &AtomRef_Type ) < 0 )
-        return -1;
-    return 0;
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
+}
+
+
 }
