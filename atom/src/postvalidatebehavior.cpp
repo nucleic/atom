@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -7,6 +7,10 @@
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
 #include "member.h"
+
+
+namespace atom
+{
 
 
 bool
@@ -35,6 +39,10 @@ Member::check_context( PostValidate::Mode mode, PyObject* context )
     }
     return true;
 }
+
+
+namespace
+{
 
 
 static PyObject*
@@ -116,6 +124,9 @@ handlers[] = {
 };
 
 
+}  // namespace
+
+
 PyObject*
 Member::post_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
@@ -123,3 +134,5 @@ Member::post_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
         return no_op_handler( this, atom, oldvalue, newvalue );  // LCOV_EXCL_LINE
     return handlers[ get_post_validate_mode() ]( this, atom, oldvalue, newvalue );
 }
+
+}  // namespace atom

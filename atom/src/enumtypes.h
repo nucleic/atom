@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2018, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -8,6 +8,9 @@
 #pragma once
 #include <cppy/cppy.h>
 #include "behaviors.h"
+
+namespace atom
+{
 
 
 extern PyObject* PyGetAttr;
@@ -20,7 +23,7 @@ extern PyObject* PyValidate;
 extern PyObject* PyPostValidate;
 
 
-int import_enumtypes();
+bool init_enumtypes();
 
 
 namespace EnumTypes
@@ -29,7 +32,7 @@ namespace EnumTypes
 template<typename T> inline bool
 _from_py_enum( PyObject* value, PyObject* py_type, T& out )
 {
-    PyTypeObject* ob_type = reinterpret_cast<PyTypeObject*>( py_type );
+    PyTypeObject* ob_type = pytype_cast( py_type );
     if( !PyObject_TypeCheck( value, ob_type ) )
     {
         cppy::type_error( value, ob_type->tp_name );
@@ -177,3 +180,5 @@ to_py_enum( PostValidate::Mode value )
 }
 
 }  // namespace EnumTypes
+
+}  // namespace atom

@@ -10,6 +10,8 @@
 #include "catom.h"
 #include "member.h"
 
+namespace atom
+{
 
 namespace MemberChange
 {
@@ -36,5 +38,7 @@ property( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue );
 } // namespace MemberChange
 
 
-int
-import_memberchange();
+bool
+init_memberchange();
+
+}  // namespace atom

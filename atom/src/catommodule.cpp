@@ -47,6 +47,10 @@ bool ready_types()
     {
         return false;
     }
+    if( !Member::Ready() )
+    {
+        return false;
+    }
     return true;
 }
 
@@ -83,6 +87,31 @@ bool add_objects( PyObject* mod )
 		return false;
 	}
     atom_ref.release();
+    cppy::ptr member( pyobject_cast( Member::TypeObject ) );
+	if( PyModule_AddObject( mod, "Member", member.get() ) < 0 )
+	{
+		return false;
+	}
+    member.release();
+
+    cppy::incref( PyGetAttr );
+    cppy::incref( PySetAttr );
+    cppy::incref( PyDelAttr );
+    cppy::incref( PyPostGetAttr );
+    cppy::incref( PyPostSetAttr );
+    cppy::incref( PyDefaultValue );
+    cppy::incref( PyValidate );
+    cppy::incref( PyPostValidate );
+    PyModule_AddObject( mod, "CAtom", pyobject_cast( &CAtom_Type ) );
+    PyModule_AddObject( mod, "GetAttr", PyGetAttr );
+    PyModule_AddObject( mod, "SetAttr", PySetAttr );
+    PyModule_AddObject( mod, "DelAttr", PyDelAttr );
+    PyModule_AddObject( mod, "PostGetAttr", PyPostGetAttr );
+    PyModule_AddObject( mod, "PostSetAttr", PyPostSetAttr );
+    PyModule_AddObject( mod, "DefaultValue", PyDefaultValue );
+    PyModule_AddObject( mod, "Validate", PyValidate );
+    PyModule_AddObject( mod, "PostValidate", PyPostValidate );
+
 	return true;
 }
 
@@ -94,43 +123,26 @@ catom_modexec( PyObject *mod )
     {
         return -1;
     }
+    if( !atom::init_enumtypes() )
+    {
+        return -1;
+    }
+    if( !atom::init_memberchange() )
+    {
+        return -1;
+    }
     if( !add_objects( mod ) )
     {
         return -1;
     }
-    if( import_member() < 0 )
-        return -1;
-    if( import_memberchange() < 0 )
-        return -1;
     if( import_catom() < 0 )
         return -1;
     if( import_eventbinder() < 0 )
         return -1;
     if( import_signalconnector() < 0 )
         return -1;
-    if( import_enumtypes() < 0 )
-        return -1;
 
-    Py_INCREF( &Member_Type );
-    Py_INCREF( &CAtom_Type );
-    Py_INCREF( PyGetAttr );
-    Py_INCREF( PySetAttr );
-    Py_INCREF( PyDelAttr );
-    Py_INCREF( PyPostGetAttr );
-    Py_INCREF( PyPostSetAttr );
-    Py_INCREF( PyDefaultValue );
-    Py_INCREF( PyValidate );
-    Py_INCREF( PyPostValidate );
-    PyModule_AddObject( mod, "Member", pyobject_cast( &Member_Type ) );
-    PyModule_AddObject( mod, "CAtom", pyobject_cast( &CAtom_Type ) );
-    PyModule_AddObject( mod, "GetAttr", PyGetAttr );
-    PyModule_AddObject( mod, "SetAttr", PySetAttr );
-    PyModule_AddObject( mod, "DelAttr", PyDelAttr );
-    PyModule_AddObject( mod, "PostGetAttr", PyPostGetAttr );
-    PyModule_AddObject( mod, "PostSetAttr", PyPostSetAttr );
-    PyModule_AddObject( mod, "DefaultValue", PyDefaultValue );
-    PyModule_AddObject( mod, "Validate", PyValidate );
-    PyModule_AddObject( mod, "PostValidate", PyPostValidate );
+    cppy::incref( &CAtom_Type );
 
     return 0;
 }
@@ -138,7 +150,7 @@ catom_modexec( PyObject *mod )
 
 PyMethodDef
 catom_methods[] = {
-    { "reset_property", ( PyCFunction )reset_property, METH_VARARGS,
+    { "reset_property", ( PyCFunction )atom::reset_property, METH_VARARGS,
       "Reset a Property member. For internal use only!" },
     { 0 } // Sentinel
 };

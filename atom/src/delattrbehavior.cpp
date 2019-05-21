@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2018, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -8,6 +8,10 @@
 #include <cppy/cppy.h>
 #include "member.h"
 #include "memberchange.h"
+
+
+namespace atom
+{
 
 
 bool
@@ -36,14 +40,17 @@ Member::check_context( DelAttr::Mode mode, PyObject* context )
 }
 
 
-static int
+namespace
+{
+
+int
 no_op_handler( Member* member, CAtom* atom )
 {
     return 0;
 }
 
 
-static PyObject*
+PyObject*
 deleted_args( CAtom* atom, Member* member, PyObject* value )
 {
     cppy::ptr argsptr( PyTuple_New( 1 ) );
@@ -57,7 +64,7 @@ deleted_args( CAtom* atom, Member* member, PyObject* value )
 }
 
 
-static int
+int
 slot_handler( Member* member, CAtom* atom )
 {
     if( member->index >= atom->get_slot_count() )
@@ -101,7 +108,7 @@ slot_handler( Member* member, CAtom* atom )
 }
 
 
-static int
+int
 constant_handler( Member* member, CAtom* atom )
 {
     cppy::type_error( "cannot delete the value of a constant member" );
@@ -109,7 +116,7 @@ constant_handler( Member* member, CAtom* atom )
 }
 
 
-static int
+int
 read_only_handler( Member* member, CAtom* atom )
 {
     cppy::type_error( "cannot delete the value of a read only member" );
@@ -117,7 +124,7 @@ read_only_handler( Member* member, CAtom* atom )
 }
 
 
-static int
+int
 event_handler( Member* member, CAtom* atom )
 {
     cppy::type_error( "cannot delete the value of an event" );
@@ -125,7 +132,7 @@ event_handler( Member* member, CAtom* atom )
 }
 
 
-static int
+int
 signal_handler( Member* member, CAtom* atom )
 {
     cppy::type_error( "cannot delete the value of a signal" );
@@ -133,7 +140,7 @@ signal_handler( Member* member, CAtom* atom )
 }
 
 
-static int
+int
 delegate_handler( Member* member, CAtom* atom )
 {
     Member* delegate = member_cast( member->delattr_context );
@@ -141,7 +148,7 @@ delegate_handler( Member* member, CAtom* atom )
 }
 
 
-static int
+int
 _mangled_property_handler( Member* member, CAtom* atom )
 {
     char* suffix = (char *)PyUnicode_AsUTF8( member->name );
@@ -165,7 +172,7 @@ _mangled_property_handler( Member* member, CAtom* atom )
 }
 
 
-static int
+int
 property_handler( Member* member, CAtom* atom )
 {
     if( member->delattr_context != Py_None )
@@ -200,6 +207,9 @@ handlers[] = {
 };
 
 
+}  // namespace
+
+
 int
 Member::delattr( CAtom* atom )
 {
@@ -207,3 +217,6 @@ Member::delattr( CAtom* atom )
         return no_op_handler( this, atom );  // LCOV_EXCL_LINE
     return handlers[ get_delattr_mode() ]( this, atom );
 }
+
+
+}  // namespace atom

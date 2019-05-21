@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Atom Development Team.
+| Copyright (c) 2013-2019, Atom Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -10,6 +10,9 @@
 #include "member.h"
 #include "memberchange.h"
 #include "signalconnector.h"
+
+namespace atom
+{
 
 
 bool
@@ -56,14 +59,18 @@ Member::check_context( GetAttr::Mode mode, PyObject* context )
 }
 
 
-static PyObject*
+namespace
+{
+
+
+PyObject*
 no_op_handler( Member* member, CAtom* atom )
 {
     return cppy::incref( Py_None );
 }
 
 
-static PyObject*
+PyObject*
 created_args( CAtom* atom, Member* member, PyObject* value )
 {
     cppy::ptr argsptr( PyTuple_New( 1 ) );
@@ -77,7 +84,7 @@ created_args( CAtom* atom, Member* member, PyObject* value )
 }
 
 
-static PyObject*
+PyObject*
 slot_handler( Member* member, CAtom* atom )
 {
     if( member->index >= atom->get_slot_count() )
@@ -125,21 +132,21 @@ slot_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 event_handler( Member* member, CAtom* atom )
 {
     return EventBinder_New( member, atom );
 }
 
 
-static PyObject*
+PyObject*
 signal_handler( Member* member, CAtom* atom )
 {
     return SignalConnector_New( member, atom );
 }
 
 
-static PyObject*
+PyObject*
 delegate_handler( Member* member, CAtom* atom )
 {
     Member* delegate = member_cast( member->getattr_context );
@@ -147,7 +154,7 @@ delegate_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 _mangled_property_handler( Member* member, CAtom* atom )
 {
     char* suffix = (char *)PyUnicode_AsUTF8( member->name );
@@ -168,7 +175,7 @@ _mangled_property_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 property_handler( Member* member, CAtom* atom )
 {
     if( member->getattr_context != Py_None )
@@ -183,7 +190,7 @@ property_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 cached_property_handler( Member* member, CAtom* atom )
 {
     cppy::ptr value( atom->get_slot( member->index ) );
@@ -195,7 +202,7 @@ cached_property_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 call_object_object_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( cppy::incref( member->getattr_context ) );
@@ -210,7 +217,7 @@ call_object_object_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 call_object_object_name_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( cppy::incref( member->getattr_context ) );
@@ -226,7 +233,7 @@ call_object_object_name_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 object_method_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->getattr_context ) );
@@ -242,7 +249,7 @@ object_method_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 object_method_name_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->getattr_context ) );
@@ -259,7 +266,7 @@ object_method_name_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 member_method_object_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->getattr_context ) );
@@ -296,6 +303,8 @@ handlers[] = {
     member_method_object_handler
 };
 
+}  // namespace
+
 
 PyObject*
 Member::getattr( CAtom* atom )
@@ -304,3 +313,5 @@ Member::getattr( CAtom* atom )
         return no_op_handler( this, atom );  // LCOV_EXCL_LINE
     return handlers[ get_getattr_mode() ]( this, atom );
 }
+
+}  // namespace atom

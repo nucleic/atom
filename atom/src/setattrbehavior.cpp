@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -8,6 +8,10 @@
 #include <cppy/cppy.h>
 #include "member.h"
 #include "memberchange.h"
+
+
+namespace atom
+{
 
 
 bool
@@ -53,6 +57,10 @@ Member::check_context( SetAttr::Mode mode, PyObject* context )
 }
 
 
+namespace
+{
+
+
 static int
 no_op_handler( Member* member, CAtom* atom, PyObject* value )
 {
@@ -60,7 +68,7 @@ no_op_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static PyObject*
+PyObject*
 created_args( CAtom* atom, Member* member, PyObject* value )
 {
     cppy::ptr argsptr( PyTuple_New( 1 ) );
@@ -74,7 +82,7 @@ created_args( CAtom* atom, Member* member, PyObject* value )
 }
 
 
-static PyObject*
+PyObject*
 updated_args( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
 {
     cppy::ptr argsptr( PyTuple_New( 1 ) );
@@ -180,7 +188,7 @@ read_only_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static PyObject*
+PyObject*
 event_args( CAtom* atom, Member* member, PyObject* value )
 {
     cppy::ptr argsptr( PyTuple_New( 1 ) );
@@ -410,6 +418,9 @@ handlers[] = {
 };
 
 
+} // namespace
+
+
 int
 Member::setattr( CAtom* atom, PyObject* value )
 {
@@ -417,3 +428,6 @@ Member::setattr( CAtom* atom, PyObject* value )
         return no_op_handler( this, atom, value );  // LCOV_EXCL_LINE
     return handlers[ get_setattr_mode() ]( this, atom, value );
 }
+
+
+}  // namespace atom

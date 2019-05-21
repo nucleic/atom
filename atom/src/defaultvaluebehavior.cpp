@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -7,6 +7,10 @@
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
 #include "member.h"
+
+
+namespace atom
+{
 
 
 bool
@@ -67,21 +71,25 @@ Member::check_context( DefaultValue::Mode mode, PyObject* context )
 }
 
 
-static PyObject*
+namespace
+{
+
+
+PyObject*
 no_op_handler( Member* member, CAtom* atom )
 {
     return cppy::incref( Py_None );
 }
 
 
-static PyObject*
+PyObject*
 static_handler( Member* member, CAtom* atom )
 {
     return cppy::incref( member->default_value_context );
 }
 
 
-static PyObject*
+PyObject*
 list_handler( Member* member, CAtom* atom )
 {
     if( member->default_value_context == Py_None )
@@ -91,7 +99,7 @@ list_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 set_handler( Member* member, CAtom* atom )
 {
     if( member->default_value_context == Py_None )
@@ -100,7 +108,7 @@ set_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 dict_handler( Member* member, CAtom* atom )
 {
     if( member->default_value_context == Py_None )
@@ -109,7 +117,7 @@ dict_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 delegate_handler( Member* member, CAtom* atom )
 {
     Member* delegate = member_cast( member->default_value_context );
@@ -117,7 +125,7 @@ delegate_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 call_object_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( cppy::incref( member->default_value_context ) );
@@ -128,7 +136,7 @@ call_object_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 call_object_object_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( cppy::incref( member->default_value_context ) );
@@ -140,7 +148,7 @@ call_object_object_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 call_object_object_name_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( cppy::incref( member->default_value_context ) );
@@ -153,7 +161,7 @@ call_object_object_name_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 object_method_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->default_value_context ) );
@@ -166,7 +174,7 @@ object_method_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 object_method_name_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->default_value_context ) );
@@ -180,7 +188,7 @@ object_method_name_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 member_method_object_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->default_value_context ) );
@@ -215,6 +223,9 @@ handlers[] = {
 };
 
 
+}  // namespace
+
+
 PyObject*
 Member::default_value( CAtom* atom )
 {
@@ -222,3 +233,6 @@ Member::default_value( CAtom* atom )
         return no_op_handler( this, atom );  // LCOV_EXCL_LINE
     return handlers[ get_default_value_mode() ]( this, atom );
 }
+
+
+}  // namespace atom

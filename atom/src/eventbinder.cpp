@@ -12,7 +12,7 @@
 
 typedef struct {
     PyObject_HEAD
-    Member* member;
+    atom::Member* member;
     CAtom* atom;
 } EventBinder;
 
@@ -175,7 +175,7 @@ EventBinder_Check( PyObject* object )
 
 
 PyObject*
-EventBinder_New( Member* member, CAtom* atom )
+EventBinder_New( atom::Member* member, CAtom* atom )
 {
     PyObject* pybinder;
     if( numfree > 0 )

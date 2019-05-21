@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2018, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -11,9 +11,8 @@
 
 #define expand_enum( e ) #e, e
 
-
-static PyObject* PyIntEnumMeta = 0;
-static PyObject* PyIntEnum = 0;
+namespace atom
+{
 
 
 PyObject* PyGetAttr = 0;
@@ -28,14 +27,23 @@ PyObject* PyPostValidate = 0;
 
 namespace {
 
+
+static PyObject* PyIntEnumMeta = 0;
+static PyObject* PyIntEnum = 0;
+
+
 template<typename T> inline bool
 add_long( cppy::ptr& dict_ptr, const char* name, T value )
 {
     cppy::ptr pyint( PyLong_FromLong( static_cast<long>( value ) ) );
     if( !pyint )
+    {
         return false;
+    }
     if( PyDict_SetItemString( dict_ptr.get(), name, pyint.get() ) != 0 )
+    {
         return false;
+    }
     pyint.release(); // Release the reference since the operation succeeded
     return true;
 }
@@ -46,47 +54,69 @@ make_enum( const char* name, cppy::ptr& dict_ptr )
 {
     cppy::ptr pyname( PyUnicode_FromString( name ) );
     if( !pyname )
+    {
         return 0;
+    }
     cppy::ptr pybases( PyTuple_Pack( 1, PyIntEnum ) );
     if( !pybases )
+    {
         return 0;
+    }
     cppy::ptr pydict( PyDict_Copy( dict_ptr.get() ) );
     if( !pydict )
+    {
         return 0;
+    }
     cppy::ptr modname( PyUnicode_FromString( PACKAGE_PREFIX ) );
     if( !modname )
+    {
         return 0;
+    }
     if( PyDict_SetItemString( pydict.get(), "__module__", modname.get() ) != 0 )
+    {
         return 0;
+    }
     cppy::ptr callargs( PyTuple_Pack( 3, pyname.get(), pybases.get(), pydict.get() ) );
     if( !callargs )
+    {
         return 0;
+    }
     cppy::ptr enumclass( PyObject_CallObject( PyIntEnumMeta, callargs.get() ) );
     if( !enumclass )
+    {
         return 0;
+    }
     return enumclass.release();
 }
 
 } // namespace
 
 
-int import_enumtypes()
+bool init_enumtypes()
 {
     cppy::ptr intenum_mod( PyImport_ImportModule( "atom.intenum" ) );
     if( !intenum_mod )
-        return -1;
+    {
+        return false;
+    }
     PyIntEnumMeta = intenum_mod.getattr( "_IntEnumMeta" );
     if( !PyIntEnumMeta )
-        return -1;
+    {
+        return false;
+    }
     PyIntEnum = intenum_mod.getattr( "IntEnum" );
     if( !PyIntEnum )
-        return -1;
+    {
+        return false;
+    }
 
     {
         using namespace GetAttr;
         cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;  // LCOV_EXCL_LINE
+        {
+            return false;  // LCOV_EXCL_LINE
+        }
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Slot ) );
         add_long( dict_ptr, expand_enum( Event ) );
@@ -101,14 +131,18 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( MemberMethod_Object ) );
         PyGetAttr = make_enum( "GetAttr", dict_ptr );
         if( !PyGetAttr )
-            return -1;
+        {
+               return false;
+        }
     }
 
     {
         using namespace SetAttr;
         cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;  // LCOV_EXCL_LINE
+        {
+            return false;  // LCOV_EXCL_LINE
+        }
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Slot ) );
         add_long( dict_ptr, expand_enum( Constant ) );
@@ -124,14 +158,18 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( MemberMethod_ObjectValue ) );
         PySetAttr = make_enum( "SetAttr", dict_ptr );
         if( !PySetAttr )
-            return -1;
+        {
+               return false;
+        }
     }
 
     {
         using namespace DelAttr;
         cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;  // LCOV_EXCL_LINE
+        {
+            return false;  // LCOV_EXCL_LINE
+        }
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Slot ) );
         add_long( dict_ptr, expand_enum( Constant ) );
@@ -142,14 +180,18 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( Property ) );
         PyDelAttr = make_enum( "DelAttr", dict_ptr );
         if( !PyDelAttr )
-            return -1;
+        {
+               return false;
+        }
     }
 
     {
         using namespace PostGetAttr;
         cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;  // LCOV_EXCL_LINE
+        {
+            return false;  // LCOV_EXCL_LINE
+        }
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_Value ) );
@@ -157,14 +199,18 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( MemberMethod_ObjectValue ) );
         PyPostGetAttr = make_enum( "PostGetAttr", dict_ptr );
         if( !PyPostGetAttr )
-            return -1;
+        {
+               return false;
+        }
     }
 
     {
         using namespace PostSetAttr;
         cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;  // LCOV_EXCL_LINE
+        {
+            return false;  // LCOV_EXCL_LINE
+        }
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_OldNew ) );
@@ -172,14 +218,18 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( MemberMethod_ObjectOldNew ) );
         PyPostSetAttr = make_enum( "PostSetAttr", dict_ptr );
         if( !PyPostSetAttr )
-            return -1;
+        {
+               return false;
+        }
     }
 
     {
         using namespace DefaultValue;
         cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;  // LCOV_EXCL_LINE
+        {
+            return false;  // LCOV_EXCL_LINE
+        }
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Static ) );
         add_long( dict_ptr, expand_enum( List ) );
@@ -194,14 +244,18 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( MemberMethod_Object ) );
         PyDefaultValue = make_enum( "DefaultValue", dict_ptr );
         if( !PyDefaultValue )
-            return -1;
+        {
+               return false;
+        }
     }
 
     {
         using namespace Validate;
         cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;  // LCOV_EXCL_LINE
+        {
+            return false;  // LCOV_EXCL_LINE
+        }
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Bool ) );
         add_long( dict_ptr, expand_enum( Int ) );
@@ -235,14 +289,18 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( MemberMethod_ObjectOldNew ) );
         PyValidate = make_enum( "Validate", dict_ptr );
         if( !PyValidate )
-            return -1;
+        {
+               return false;
+        }
     }
 
     {
         using namespace PostValidate;
         cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
-            return -1;  // LCOV_EXCL_LINE
+        {
+            return false;  // LCOV_EXCL_LINE
+        }
         add_long( dict_ptr, expand_enum( NoOp ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_OldNew ) );
@@ -250,8 +308,12 @@ int import_enumtypes()
         add_long( dict_ptr, expand_enum( MemberMethod_ObjectOldNew ) );
         PyPostValidate = make_enum( "PostValidate", dict_ptr );
         if( !PyPostValidate )
-            return -1;
+        {
+            return false;
+        }
     }
 
-    return 0;
+    return true;
 }
+
+}  // namespace atom

@@ -9,6 +9,9 @@
 #include "memberchange.h"
 
 
+namespace atom
+{
+
 namespace MemberChange
 {
 
@@ -29,15 +32,25 @@ created( CAtom* atom, Member* member, PyObject* value )
 {
     cppy::ptr dict( PyDict_New() );
     if( !dict )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  typestr, createstr ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  valuestr, value ) != 0 )
+    {
         return 0;
+    }
     return dict.release();
 }
 
@@ -47,17 +60,29 @@ updated( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
 {
     cppy::ptr dict( PyDict_New() );
     if( !dict )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  typestr, updatestr ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  oldvaluestr, oldvalue ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  valuestr, newvalue ) != 0 )
+    {
         return 0;
+    }
     return dict.release();
 }
 
@@ -67,15 +92,25 @@ deleted( CAtom* atom, Member* member, PyObject* value )
 {
     cppy::ptr dict( PyDict_New() );
     if( !dict )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  typestr, deletestr ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  valuestr, value ) != 0 )
+    {
         return 0;
+    }
     return dict.release();
 }
 
@@ -85,15 +120,25 @@ event( CAtom* atom, Member* member, PyObject* value )
 {
     cppy::ptr dict( PyDict_New() );
     if( !dict )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  typestr, eventstr ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  valuestr, value ) != 0 )
+    {
         return 0;
+    }
     return dict.release();
 }
 
@@ -103,59 +148,95 @@ property( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
 {
     cppy::ptr dict( PyDict_New() );
     if( !dict )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  typestr, propertystr ) != 0)
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  oldvaluestr, oldvalue ) != 0 )
+    {
         return 0;
+    }
     if( PyDict_SetItem( dict.get(),  valuestr, newvalue ) != 0 )
+    {
         return 0;
+    }
     return dict.release();
 }
 
 } // namespace MemberChange
 
 
-int
-import_memberchange()
+bool
+init_memberchange()
 {
     static bool alloced = false;
     if( alloced )
-        return 0;
+    {
+        return true;
+    }
     MemberChange::createstr = PyUnicode_InternFromString( "create" );
     if( !MemberChange::createstr )
-        return -1;
+    {
+        return false;
+    }
     MemberChange::updatestr = PyUnicode_InternFromString( "update" );
     if( !MemberChange::updatestr )
-        return -1;
+    {
+        return false;
+    }
     MemberChange::deletestr = PyUnicode_InternFromString( "delete" );
     if( !MemberChange::deletestr )
-        return -1;
+    {
+        return false;
+    }
     MemberChange::eventstr = PyUnicode_InternFromString( "event" );
     if( !MemberChange::eventstr )
-        return -1;
+    {
+        return false;
+    }
     MemberChange::propertystr = PyUnicode_InternFromString( "property" );
     if( !MemberChange::propertystr )
-        return -1;
+    {
+        return false;
+    }
     MemberChange::typestr = PyUnicode_InternFromString( "type" );
     if( !MemberChange::typestr )
-        return -1;
+    {
+        return false;
+    }
     MemberChange::objectstr = PyUnicode_InternFromString( "object" );
     if( !MemberChange::objectstr )
-        return -1;
+    {
+        return false;
+    }
     MemberChange::namestr = PyUnicode_InternFromString( "name" );
     if( !MemberChange::namestr )
-        return -1;
+    {
+        return false;
+    }
     MemberChange::valuestr = PyUnicode_InternFromString( "value" );
     if( !MemberChange::valuestr )
-        return -1;
+    {
+        return false;
+    }
     MemberChange::oldvaluestr = PyUnicode_InternFromString( "oldvalue" );
     if( !MemberChange::oldvaluestr )
-        return -1;
+    {
+        return false;
+    }
     alloced = true;
-    return 0;
+    return true;
 }
+
+}  // namespace atom

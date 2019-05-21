@@ -12,7 +12,7 @@
 
 
 PyObject*
-SignalConnector_New( Member* member, CAtom* atom );
+SignalConnector_New( atom::Member* member, CAtom* atom );
 
 
 int import_signalconnector();

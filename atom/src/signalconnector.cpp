@@ -11,7 +11,7 @@
 
 typedef struct {
     PyObject_HEAD
-    Member* member;
+    atom::Member* member;
     CAtom* atom;
 } SignalConnector;
 
@@ -189,7 +189,7 @@ SignalConnector_Check( PyObject* object )
 
 
 PyObject*
-SignalConnector_New( Member* member, CAtom* atom )
+SignalConnector_New( atom::Member* member, CAtom* atom )
 {
     PyObject* pyconnector;
     if( numfree > 0 )

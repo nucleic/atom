@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -7,6 +7,10 @@
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
 #include "member.h"
+
+
+namespace atom
+{
 
 
 bool
@@ -37,14 +41,18 @@ Member::check_context( PostGetAttr::Mode mode, PyObject* context )
 }
 
 
-static PyObject*
+namespace
+{
+
+
+PyObject*
 no_op_handler( Member* member, CAtom* atom, PyObject* value )
 {
     return cppy::incref( value );
 }
 
 
-static PyObject*
+PyObject*
 delegate_handler( Member* member, CAtom* atom, PyObject* value )
 {
     Member* delegate = member_cast( member->post_getattr_context );
@@ -52,7 +60,7 @@ delegate_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static PyObject*
+PyObject*
 object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_getattr_context ) );
@@ -66,7 +74,7 @@ object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static PyObject*
+PyObject*
 object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_getattr_context ) );
@@ -81,7 +89,7 @@ object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static PyObject*
+PyObject*
 member_method_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->post_getattr_context ) );
@@ -110,6 +118,9 @@ handlers[] = {
 };
 
 
+}  // namespace
+
+
 PyObject*
 Member::post_getattr( CAtom* atom, PyObject* value )
 {
@@ -117,3 +128,6 @@ Member::post_getattr( CAtom* atom, PyObject* value )
         return no_op_handler( this, atom, value );  // LCOV_EXCL_LINE
     return handlers[ get_post_getattr_mode() ]( this, atom, value );
 }
+
+
+}  // namespace atom

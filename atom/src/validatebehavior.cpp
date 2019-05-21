@@ -15,6 +15,13 @@
 #include "atomset.h"
 
 
+namespace atom
+{
+
+
+namespace
+{
+
 bool validate_type_tuple_types( PyObject* type_tuple_types )
 {
     if( PyTuple_Check( type_tuple_types ) )
@@ -41,6 +48,8 @@ bool validate_type_tuple_types( PyObject* type_tuple_types )
     }
     return true;
 }
+
+}  // namespace
 
 
 bool
@@ -207,6 +216,10 @@ Member::check_context( Validate::Mode mode, PyObject* context )
 }
 
 
+namespace
+{
+
+
 std::string name_from_type_tuple_types( PyObject* type_tuple_types )
 {
     // This should never be used if the input can be something else than a type
@@ -235,7 +248,7 @@ std::string name_from_type_tuple_types( PyObject* type_tuple_types )
 }
 
 
-static PyObject*
+PyObject*
 validate_type_fail( Member* member, CAtom* atom, PyObject* newvalue, const char* type )
 {
     PyErr_Format(
@@ -251,14 +264,14 @@ validate_type_fail( Member* member, CAtom* atom, PyObject* newvalue, const char*
 }
 
 
-static PyObject*
+PyObject*
 no_op_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     return cppy::incref( newvalue );
 }
 
 
-static PyObject*
+PyObject*
 bool_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_True || newvalue == Py_False )
@@ -269,7 +282,7 @@ bool_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 }
 
 
-static PyObject*
+PyObject*
 long_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyLong_Check( newvalue ) )
@@ -280,7 +293,7 @@ long_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 }
 
 
-static PyObject*
+PyObject*
 long_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyLong_Check( newvalue ) )
@@ -298,7 +311,7 @@ long_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject*
 }
 
 
-static PyObject*
+PyObject*
 float_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyFloat_Check( newvalue ) )
@@ -310,7 +323,7 @@ float_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 }
 
 
-static PyObject*
+PyObject*
 float_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyFloat_Check( newvalue ) )
@@ -330,7 +343,7 @@ float_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject
 }
 
 
-static PyObject*
+PyObject*
 bytes_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyBytes_Check( newvalue ) )
@@ -341,7 +354,7 @@ bytes_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
     return validate_type_fail( member, atom, newvalue, "bytes" );
 }
 
-static PyObject*
+PyObject*
 bytes_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyBytes_Check( newvalue ) )
@@ -357,7 +370,7 @@ bytes_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject
     return validate_type_fail( member, atom, newvalue, "bytes" );
 }
 
-static PyObject*
+PyObject*
 str_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyUnicode_Check( newvalue ) )
@@ -368,7 +381,7 @@ str_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue
 }
 
 
-static PyObject*
+PyObject*
 str_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( PyUnicode_Check( newvalue ) )
@@ -383,7 +396,7 @@ str_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
 }
 
 
-static PyObject*
+PyObject*
 tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyTuple_Check( newvalue ) )
@@ -474,21 +487,21 @@ public:
 };
 
 
-static PyObject*
+PyObject*
 list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     return common_list_handler<AtomListFactory>( member, atom, oldvalue, newvalue );
 }
 
 
-static PyObject*
+PyObject*
 container_list_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     return common_list_handler<AtomCListFactory>( member, atom, oldvalue, newvalue );
 }
 
 
-static PyObject*
+PyObject*
 set_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyAnySet_Check( newvalue ) )
@@ -517,7 +530,7 @@ set_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue
 }
 
 
-static PyObject*
+PyObject*
 dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyDict_Check( newvalue ) )
@@ -556,7 +569,7 @@ dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 }
 
 
-static PyObject*
+PyObject*
 instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_None )
@@ -570,7 +583,7 @@ instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
 }
 
 
-static PyObject*
+PyObject*
 typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_None )
@@ -582,7 +595,7 @@ typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 }
 
 
-static PyObject*
+PyObject*
 subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
 
@@ -624,7 +637,7 @@ subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
 }
 
 
-static PyObject*
+PyObject*
 enum_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     int res = PySequence_Contains( member->validate_context, newvalue );
@@ -636,7 +649,7 @@ enum_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 }
 
 
-static PyObject*
+PyObject*
 callable_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_None )
@@ -647,7 +660,7 @@ callable_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
 }
 
 
-static PyObject*
+PyObject*
 float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyFloat_Check( newvalue ) )
@@ -669,7 +682,7 @@ float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
 }
 
 
-static PyObject*
+PyObject*
 range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyLong_Check( newvalue ) )
@@ -690,7 +703,7 @@ range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
 }
 
 
-static PyObject*
+PyObject*
 coerced_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     PyObject* type = PyTuple_GET_ITEM( member->validate_context, 0 );
@@ -717,7 +730,7 @@ coerced_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newv
 }
 
 
-static PyObject*
+PyObject*
 delegate_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     Member* delegate = member_cast( member->validate_context );
@@ -725,7 +738,7 @@ delegate_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
 }
 
 
-static PyObject*
+PyObject*
 object_method_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
@@ -741,7 +754,7 @@ object_method_old_new_handler(
 }
 
 
-static PyObject*
+PyObject*
 object_method_name_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
@@ -758,7 +771,7 @@ object_method_name_old_new_handler(
 }
 
 
-static PyObject*
+PyObject*
 member_method_object_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
@@ -815,6 +828,9 @@ handlers[] = {
 };
 
 
+}  // namespace
+
+
 PyObject*
 Member::validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
@@ -822,3 +838,6 @@ Member::validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
         return no_op_handler( this, atom, oldvalue, newvalue );  // LCOV_EXCL_LINE
     return handlers[ get_validate_mode() ]( this, atom, oldvalue, newvalue );
 }
+
+
+}  // namespace atom

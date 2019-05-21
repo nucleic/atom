@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -20,7 +20,12 @@
 #include "utils.h"
 
 
-static PyObject* undefined;
+namespace atom
+{
+
+
+namespace
+{
 
 
 static PyObject*
@@ -30,7 +35,7 @@ Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     if( !selfptr )
         return 0;
     Member* member = member_cast( selfptr.get() );
-    member->name = cppy::incref( undefined );
+    member->name = cppy::incref( Member::undefined );
     member->set_getattr_mode( GetAttr::Slot );
     member->set_setattr_mode( SetAttr::Slot );
     member->set_delattr_mode( DelAttr::Slot );
@@ -87,7 +92,7 @@ Member_dealloc( Member* self )
     Member_clear( self );
     delete self->static_observers;
     self->static_observers = 0;
-    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
+    reinterpret_cast<destructor>( PyType_GetSlot( Py_TYPE(self), Py_tp_free ) )( pyobject_cast( self ) );
 }
 
 
@@ -368,11 +373,11 @@ Member_set_name( Member* self, PyObject* value )
 {
     if( !PyUnicode_CheckExact( value ) )
         return cppy::type_error( value, "str" );
-    Py_INCREF( value ); // incref before interning or segfault!
+    cppy::incref( value ); // incref before interning or segfault!
     PyUnicode_InternInPlace( &value );
     PyObject* old = self->name;
     self->name = value;
-    Py_DECREF( old );
+    cppy::decref( old );
     Py_RETURN_NONE;
 }
 
@@ -437,8 +442,8 @@ Member_set_getattr_mode( Member* self, PyObject* args )
     self->set_getattr_mode( mode );
     PyObject* old = self->getattr_context;
     self->getattr_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
@@ -469,8 +474,8 @@ Member_set_setattr_mode( Member* self, PyObject* args )
     self->set_setattr_mode( mode );
     PyObject* old = self->setattr_context;
     self->setattr_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
@@ -501,8 +506,8 @@ Member_set_delattr_mode( Member* self, PyObject* args )
     self->set_delattr_mode( mode );
     PyObject* old = self->delattr_context;
     self->delattr_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
@@ -533,8 +538,8 @@ Member_set_post_getattr_mode( Member* self, PyObject* args )
     self->set_post_getattr_mode( mode );
     PyObject* old = self->post_getattr_context;
     self->post_getattr_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
@@ -565,8 +570,8 @@ Member_set_post_setattr_mode( Member* self, PyObject* args )
     self->set_post_setattr_mode( mode );
     PyObject* old = self->post_setattr_context;
     self->post_setattr_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
@@ -597,8 +602,8 @@ Member_set_default_value_mode( Member* self, PyObject* args )
     self->set_default_value_mode( mode );
     PyObject* old = self->default_value_context;
     self->default_value_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
@@ -629,8 +634,8 @@ Member_set_validate_mode( Member* self, PyObject* args )
     self->set_validate_mode( mode );
     PyObject* old = self->validate_context;
     self->validate_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
@@ -661,8 +666,8 @@ Member_set_post_validate_mode( Member* self, PyObject* args )
     self->set_post_validate_mode( mode );
     PyObject* old = self->post_validate_context;
     self->post_validate_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
@@ -708,7 +713,7 @@ Member_get_metadata( Member* self, void* ctxt )
 {
     if( !self->metadata )
         Py_RETURN_NONE;
-    Py_INCREF( self->metadata );
+    cppy::incref( self->metadata );
     return self->metadata;
 }
 
@@ -725,8 +730,8 @@ Member_set_metadata( Member* self, PyObject* value, void* ctxt )
         value = 0;
     PyObject* old = self->metadata;
     self->metadata = value;
-    Py_XINCREF( value );
-    Py_XDECREF( old );
+    cppy::xincref( value );
+    cppy::xdecref( old );
     return 0;
 }
 
@@ -852,68 +857,38 @@ Member_methods[] = {
 };
 
 
-PyTypeObject Member_Type = {
-    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-    PACKAGE_TYPENAME( "Member" ),             /* tp_name */
-    sizeof( Member ),                         /* tp_basicsize */
-    0,                                        /* tp_itemsize */
-    ( destructor )Member_dealloc,             /* tp_dealloc */
-    ( printfunc )0,                           /* tp_print */
-    ( getattrfunc )0,                         /* tp_getattr */
-    ( setattrfunc )0,                         /* tp_setattr */
-	( PyAsyncMethods* )0,                     /* tp_as_async */
-    ( reprfunc )0,                            /* tp_repr */
-    ( PyNumberMethods* )0,                    /* tp_as_number */
-    ( PySequenceMethods* )0,                  /* tp_as_sequence */
-    ( PyMappingMethods* )0,                   /* tp_as_mapping */
-    ( hashfunc )0,                            /* tp_hash */
-    ( ternaryfunc )0,                         /* tp_call */
-    ( reprfunc )0,                            /* tp_str */
-    ( getattrofunc )0,                        /* tp_getattro */
-    ( setattrofunc )0,                        /* tp_setattro */
-    ( PyBufferProcs* )0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT
-    |Py_TPFLAGS_BASETYPE
-    |Py_TPFLAGS_HAVE_GC,                      /* tp_flags */
-    0,                                        /* Documentation string */
-    ( traverseproc )Member_traverse,          /* tp_traverse */
-    ( inquiry )Member_clear,                  /* tp_clear */
-    ( richcmpfunc )0,                         /* tp_richcompare */
-    0,                                        /* tp_weaklistoffset */
-    ( getiterfunc )0,                         /* tp_iter */
-    ( iternextfunc )0,                        /* tp_iternext */
-    ( struct PyMethodDef* )Member_methods,    /* tp_methods */
-    ( struct PyMemberDef* )0,                 /* tp_members */
-    Member_getset,                            /* tp_getset */
-    0,                                        /* tp_base */
-    0,                                        /* tp_dict */
-    ( descrgetfunc )Member__get__,            /* tp_descr_get */
-    ( descrsetfunc )Member__set__,            /* tp_descr_set */
-    0,                                        /* tp_dictoffset */
-    ( initproc )0,                            /* tp_init */
-    ( allocfunc )PyType_GenericAlloc,         /* tp_alloc */
-    ( newfunc )Member_new,                    /* tp_new */
-    ( freefunc )PyObject_GC_Del,              /* tp_free */
-    ( inquiry )0,                             /* tp_is_gc */
-    0,                                        /* tp_bases */
-    0,                                        /* tp_mro */
-    0,                                        /* tp_cache */
-    0,                                        /* tp_subclasses */
-    0,                                        /* tp_weaklist */
-    ( destructor )0                           /* tp_del */
+PyType_Slot Member_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( Member_dealloc ) },              /* tp_dealloc */
+    { Py_tp_traverse, void_cast( Member_traverse ) },            /* tp_traverse */
+    { Py_tp_clear, void_cast( Member_clear ) },                  /* tp_clear */
+    { Py_tp_methods, void_cast( Member_methods ) },              /* tp_methods */
+    { Py_tp_getset, void_cast( Member_getset ) },                /* tp_getset */
+    { Py_tp_descr_get, void_cast( Member__get__ ) },             /* tp_descr_get */
+    { Py_tp_descr_set, void_cast( Member__set__ ) },             /* tp_descr_get */
+    { Py_tp_new, void_cast( Member_new ) },                      /* tp_new */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },           /* tp_new */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },                /* tp_new */
+    { 0, 0 },
 };
 
 
-int
-import_member()
-{
-    if( PyType_Ready( &Member_Type ) < 0 )
-        return -1;
-    undefined = PyUnicode_FromString( "<undefined>" );
-    if( !undefined )
-        return -1;
-    return 0;
-}
+}  // namespace
+
+
+// Initialize static variables (otherwise the compiler eliminate them)
+PyObject* Member::undefined = NULL;
+PyTypeObject* Member::TypeObject = NULL;
+
+
+PyType_Spec Member::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "Member" ),               /* tp_name */
+	sizeof( Member ),                           /* tp_basicsize */
+	0,                                          /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT
+    |Py_TPFLAGS_BASETYPE
+    |Py_TPFLAGS_HAVE_GC,                        /* tp_flags */
+    Member_Type_slots                         /* slots */
+};
 
 
 PyObject*
@@ -1077,3 +1052,23 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
     }
     return true;
 }
+
+bool Member::Ready()
+{
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+
+    undefined = PyUnicode_FromString( "<undefined>" );
+    if( !undefined )
+    {
+        return false;
+    }
+
+    return true;
+}
+
+}  // namespace atom

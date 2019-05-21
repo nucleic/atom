@@ -12,6 +12,14 @@
 #include "memberchange.h"
 
 
+namespace atom
+{
+
+
+namespace
+{
+
+
 static PyObject*
 property_args( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
 {
@@ -28,6 +36,9 @@ property_args( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newval
     PyTuple_SET_ITEM( args.get(), 0, change.release() );
     return args.release();
 }
+
+
+}  // namespace
 
 
 PyObject*
@@ -88,3 +99,6 @@ reset_property( PyObject* mod, PyObject* args )
     }
     Py_RETURN_NONE;
 }
+
+
+}  // namespace atom
