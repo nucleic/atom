@@ -77,7 +77,9 @@ CAtom_init( CAtom* self, PyObject* args, PyObject* kwargs )
         while( PyDict_Next( kwargs, &pos, &key, &value ) )
         {
             if( !selfptr.setattr( key, value ) )
+            {
                 return -1;  // LCOV_EXCL_LINE
+            }
         }
     }
     return 0;
@@ -89,9 +91,13 @@ CAtom_clear( CAtom* self )
 {
     uint32_t count = self->get_slot_count();
     for( uint32_t i = 0; i < count; ++i )
+    {
         Py_CLEAR( self->slots[ i ] );
+    }
     if( self->observers )
+    {
         self->observers->py_clear();
+    }
 }
 
 
@@ -100,9 +106,13 @@ CAtom_traverse( CAtom* self, visitproc visit, void* arg )
 {
     uint32_t count = self->get_slot_count();
     for( uint32_t i = 0; i < count; ++i )
+    {
         Py_VISIT( self->slots[ i ] );
+    }
     if( self->observers )
+    {
         return self->observers->py_traverse( visit, arg );
+    }
     return 0;
 }
 
@@ -111,13 +121,19 @@ static void
 CAtom_dealloc( CAtom* self )
 {
     if( self->has_guards() )
+    {
         CAtom::clear_guards( self );
+    }
     if( self->has_atomref() )
-        SharedAtomRef::clear( self );
+    {
+        atom::SharedAtomRef::clear( self );
+    }
     PyObject_GC_UnTrack( self );
     CAtom_clear( self );
     if( self->slots )
+    {
         PyObject_FREE( self->slots );
+    }
     delete self->observers;
     self->observers = 0;
     Py_TYPE(self)->tp_free( pyobject_cast( self ) );
