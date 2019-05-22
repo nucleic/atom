@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -19,10 +19,12 @@
 #define GUARD_BIT ( static_cast<uint32_t>( 1 << 17 ) )
 #define ATOMREF_BIT ( static_cast<uint32_t>( 1 << 18 ) )
 #define FROZEN_BIT ( static_cast<uint32_t>( 1 << 19 ) )
-#define catom_cast( o ) ( reinterpret_cast<CAtom*>( o ) )
+#define catom_cast( o ) ( reinterpret_cast<atom::CAtom*>( o ) )
 
 
-extern PyTypeObject CAtom_Type;
+namespace atom
+{
+
 
 
 struct CAtom
@@ -31,6 +33,12 @@ struct CAtom
     uint32_t bitfield;  // lower 16 == slot count, upper 16 == flags
     PyObject** slots;
     ObserverPool* observers;
+
+    static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
 
     uint32_t get_slot_count()
     {
@@ -140,7 +148,7 @@ struct CAtom
 
     static int TypeCheck( PyObject* object )
     {
-        return PyObject_TypeCheck( object, &CAtom_Type );
+        return PyObject_TypeCheck( object, TypeObject );
     }
 
     static void add_guard( CAtom** ptr );
@@ -153,5 +161,4 @@ struct CAtom
 };
 
 
-int
-import_catom();
+}  // namespace atom

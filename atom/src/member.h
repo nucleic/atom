@@ -43,8 +43,6 @@ struct Member
     ModifyGuard<Member>* modify_guard;
     std::vector<cppy::ptr>* static_observers;
 
-    static PyObject* undefined;
-
     static PyType_Spec TypeObject_Spec;
 
     static PyTypeObject* TypeObject;

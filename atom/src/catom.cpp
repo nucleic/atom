@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -26,6 +26,13 @@
 #define signal_cast( o ) reinterpret_cast<Signal*>( o )
 #define pymethod_cast( o ) reinterpret_cast<PyMethodObject*>( o )
 
+
+namespace atom
+{
+
+
+namespace
+{
 
 static PyObject* atom_members;
 
@@ -126,7 +133,7 @@ CAtom_dealloc( CAtom* self )
     }
     if( self->has_atomref() )
     {
-        atom::SharedAtomRef::clear( self );
+        SharedAtomRef::clear( self );
     }
     PyObject_GC_UnTrack( self );
     CAtom_clear( self );
@@ -143,7 +150,7 @@ CAtom_dealloc( CAtom* self )
 static PyObject*
 CAtom_notifications_enabled( CAtom* self )
 {
-    return atom::utils::py_bool( self->get_notifications_enabled() );
+    return utils::py_bool( self->get_notifications_enabled() );
 }
 
 
@@ -154,7 +161,7 @@ CAtom_set_notifications_enabled( CAtom* self, PyObject* arg )
         return cppy::type_error( arg, "bool" );
     bool old = self->get_notifications_enabled();
     self->set_notifications_enabled( arg == Py_True ? true : false );
-    return atom::utils::py_bool( old );
+    return utils::py_bool( old );
 }
 
 
@@ -184,7 +191,7 @@ CAtom_observe( CAtom* self, PyObject* args )
     PyObject* callback = PyTuple_GET_ITEM( args, 1 );
     if( !PyCallable_Check( callback ) )
         return cppy::type_error( callback, "callable" );
-    if( atom::utils::str_check( topic ) )
+    if( utils::str_check( topic ) )
     {
         if( !self->observe( topic, callback ) )
             return 0;
@@ -197,7 +204,7 @@ CAtom_observe( CAtom* self, PyObject* args )
         cppy::ptr topicptr;
         while( ( topicptr = PyIter_Next( iterator.get() ) ) )
         {
-            if( !atom::utils::str_check( topicptr.get() ) )
+            if( !utils::str_check( topicptr.get() ) )
                 return cppy::type_error( topicptr.get(), "str" );
             if( !self->observe( topicptr.get(), callback ) )
                 return 0;
@@ -221,7 +228,7 @@ _CAtom_unobserve_0( CAtom* self )
 static PyObject*
 _CAtom_unobserve_1( CAtom* self, PyObject* topic )
 {
-    if( atom::utils::str_check( topic ) )
+    if( utils::str_check( topic ) )
     {
         if( !self->unobserve( topic ) )
             return 0;
@@ -234,7 +241,7 @@ _CAtom_unobserve_1( CAtom* self, PyObject* topic )
         cppy::ptr topicptr;
         while( ( topicptr = PyIter_Next( iterator.get() ) ) )
         {
-            if( !atom::utils::str_check( topicptr.get() ) )
+            if( !utils::str_check( topicptr.get() ) )
                 return cppy::type_error( topicptr.get(), "str" );
             if( !self->unobserve( topicptr.get() ) )
                 return 0;
@@ -251,7 +258,7 @@ _CAtom_unobserve_2( CAtom* self, PyObject* topic, PyObject* callback )
 {
     if( !PyCallable_Check( callback ) )
         return cppy::type_error( callback, "callable" );
-    if( atom::utils::str_check( topic ) )
+    if( utils::str_check( topic ) )
     {
         if( !self->unobserve( topic, callback ) )
             return 0;
@@ -264,7 +271,7 @@ _CAtom_unobserve_2( CAtom* self, PyObject* topic, PyObject* callback )
         cppy::ptr topicptr;
         while( ( topicptr = PyIter_Next( iterator.get() ) ) )
         {
-            if( !atom::utils::str_check( topicptr.get() ) )
+            if( !utils::str_check( topicptr.get() ) )
                 return cppy::type_error( topicptr.get(), "str" );
             if( !self->unobserve( topicptr.get(), callback ) )
                 return 0;
@@ -294,7 +301,7 @@ CAtom_unobserve( CAtom* self, PyObject* args )
 static PyObject*
 CAtom_has_observers( CAtom* self, PyObject* topic )
 {
-    return atom::utils::py_bool( self->has_observers( topic ) );
+    return utils::py_bool( self->has_observers( topic ) );
 }
 
 
@@ -305,11 +312,11 @@ CAtom_has_observer( CAtom* self, PyObject* args )
         return cppy::type_error( "has_observer() takes exactly 2 arguments" );
     PyObject* topic = PyTuple_GET_ITEM( args, 0 );
     PyObject* callback = PyTuple_GET_ITEM( args, 1 );
-    if( !atom::utils::str_check( topic ) )
+    if( !utils::str_check( topic ) )
         return cppy::type_error( topic, "str" );
     if( !PyCallable_Check( callback ) )
         return cppy::type_error( callback, "callable" );
-    return atom::utils::py_bool( self->has_observer( topic, callback ) );
+    return utils::py_bool( self->has_observer( topic, callback ) );
 }
 
 
@@ -319,7 +326,7 @@ CAtom_notify( CAtom* self, PyObject* args, PyObject* kwargs )
     if( PyTuple_GET_SIZE( args ) < 1 )
         return cppy::type_error( "notify() requires at least 1 argument" );
     PyObject* topic = PyTuple_GET_ITEM( args, 0 );
-    if( !atom::utils::str_check( topic ) )
+    if( !utils::str_check( topic ) )
         return cppy::type_error( topic, "str" );
     cppy::ptr argsptr( PyTuple_GetSlice( args, 1, PyTuple_GET_SIZE( args ) ) );
     if( !argsptr )
@@ -375,69 +382,52 @@ CAtom_methods[] = {
 };
 
 
-PyTypeObject CAtom_Type = {
-    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-    PACKAGE_TYPENAME( "CAtom" ),              /* tp_name */
-    sizeof( CAtom ),                          /* tp_basicsize */
-    0,                                        /* tp_itemsize */
-    ( destructor )CAtom_dealloc,              /* tp_dealloc */
-    ( printfunc )0,                           /* tp_print */
-    ( getattrfunc )0,                         /* tp_getattr */
-    ( setattrfunc )0,                         /* tp_setattr */
-	( PyAsyncMethods* )0,                     /* tp_as_async */
-    ( reprfunc )0,                            /* tp_repr */
-    ( PyNumberMethods* )0,                    /* tp_as_number */
-    ( PySequenceMethods* )0,                  /* tp_as_sequence */
-    ( PyMappingMethods* )0,                   /* tp_as_mapping */
-    ( hashfunc )0,                            /* tp_hash */
-    ( ternaryfunc )0,                         /* tp_call */
-    ( reprfunc )0,                            /* tp_str */
-    ( getattrofunc )0,                        /* tp_getattro */
-    ( setattrofunc )0,                        /* tp_setattro */
-    ( PyBufferProcs* )0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT
-    |Py_TPFLAGS_BASETYPE
-    |Py_TPFLAGS_HAVE_GC,                      /* tp_flags */
-    0,                                        /* Documentation string */
-    ( traverseproc )CAtom_traverse,           /* tp_traverse */
-    ( inquiry )CAtom_clear,                   /* tp_clear */
-    ( richcmpfunc )0,                         /* tp_richcompare */
-    0,                                        /* tp_weaklistoffset */
-    ( getiterfunc )0,                         /* tp_iter */
-    ( iternextfunc )0,                        /* tp_iternext */
-    ( struct PyMethodDef* )CAtom_methods,     /* tp_methods */
-    ( struct PyMemberDef* )0,                 /* tp_members */
-    0,                                        /* tp_getset */
-    0,                                        /* tp_base */
-    0,                                        /* tp_dict */
-    ( descrgetfunc )0,                        /* tp_descr_get */
-    ( descrsetfunc )0,                        /* tp_descr_set */
-    0,                                        /* tp_dictoffset */
-    ( initproc )CAtom_init,                   /* tp_init */
-    ( allocfunc )PyType_GenericAlloc,         /* tp_alloc */
-    ( newfunc )CAtom_new,                     /* tp_new */
-    ( freefunc )PyObject_GC_Del,              /* tp_free */
-    ( inquiry )0,                             /* tp_is_gc */
-    0,                                        /* tp_bases */
-    0,                                        /* tp_mro */
-    0,                                        /* tp_cache */
-    0,                                        /* tp_subclasses */
-    0,                                        /* tp_weaklist */
-    ( destructor )0                           /* tp_del */
+PyType_Slot Atom_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( CAtom_dealloc ) },              /* tp_dealloc */
+    { Py_tp_traverse, void_cast( CAtom_traverse ) },            /* tp_traverse */
+    { Py_tp_clear, void_cast( CAtom_clear ) },                  /* tp_clear */
+    { Py_tp_methods, void_cast( CAtom_methods ) },              /* tp_methods */
+    { Py_tp_new, void_cast( CAtom_new ) },                      /* tp_new */
+    { Py_tp_init, void_cast( CAtom_init) },                     /* tp_new */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },          /* tp_new */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },               /* tp_new */
+    { 0, 0 },
 };
 
 
-int
-import_catom()
+}  // namespace
+
+
+// Initialize static variables (otherwise the compiler eliminate them)
+PyTypeObject* CAtom::TypeObject = NULL;
+
+
+PyType_Spec CAtom::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "CAtom" ),               /* tp_name */
+	sizeof( CAtom ),                           /* tp_basicsize */
+	0,                                          /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT
+    |Py_TPFLAGS_BASETYPE
+    |Py_TPFLAGS_HAVE_GC,                        /* tp_flags */
+    Atom_Type_slots                         /* slots */
+};
+
+
+bool CAtom::Ready()
 {
-    if( import_methodwrapper() < 0 )
-        return -1;
-    if( PyType_Ready( &CAtom_Type ) < 0 )
-        return -1;
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
     atom_members = PyUnicode_FromString( "__atom_members__" );
     if( !atom_members )
-        return -1;
-    return 0;
+    {
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -601,3 +591,6 @@ void CAtom::clear_guards( CAtom* o )
     map->erase( first, it );
     o->set_has_guards( false );
 }
+
+
+}  // namespace atom

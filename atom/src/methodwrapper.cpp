@@ -22,7 +22,7 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
     PyObject* im_func;
-    CAtomPointer pointer;  // constructed with placement new
+    atom::CAtomPointer pointer;  // constructed with placement new
 } AtomMethodWrapper;
 
 
@@ -314,7 +314,7 @@ MethodWrapper_New( PyObject* method )
     if( !PyMethod_GET_SELF( method ) )
         return cppy::type_error( "cannot wrap unbound method" );
     cppy::ptr pywrapper;
-    if( CAtom::TypeCheck( PyMethod_GET_SELF( method ) ) )
+    if( atom::CAtom::TypeCheck( PyMethod_GET_SELF( method ) ) )
     {
         pywrapper = PyType_GenericNew( &AtomMethodWrapper_Type, 0, 0 );
         if( !pywrapper )
@@ -322,7 +322,7 @@ MethodWrapper_New( PyObject* method )
         AtomMethodWrapper* wrapper = reinterpret_cast<AtomMethodWrapper*>( pywrapper.get() );
         wrapper->im_func = cppy::incref( PyMethod_GET_FUNCTION( method ) );
         // placement new since Python malloc'd and zero'd the struct
-        new( &wrapper->pointer ) CAtomPointer( catom_cast( PyMethod_GET_SELF( method ) ) );
+        new( &wrapper->pointer ) atom::CAtomPointer( catom_cast( PyMethod_GET_SELF( method ) ) );
     }
     else
     {

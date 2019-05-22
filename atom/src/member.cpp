@@ -27,6 +27,8 @@ namespace atom
 namespace
 {
 
+static PyObject* undefined;
+
 
 static PyObject*
 Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
@@ -35,7 +37,7 @@ Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     if( !selfptr )
         return 0;
     Member* member = member_cast( selfptr.get() );
-    member->name = cppy::incref( Member::undefined );
+    member->name = cppy::incref( undefined );
     member->set_getattr_mode( GetAttr::Slot );
     member->set_setattr_mode( SetAttr::Slot );
     member->set_delattr_mode( DelAttr::Slot );
@@ -876,7 +878,6 @@ PyType_Slot Member_Type_slots[] = {
 
 
 // Initialize static variables (otherwise the compiler eliminate them)
-PyObject* Member::undefined = NULL;
 PyTypeObject* Member::TypeObject = NULL;
 
 

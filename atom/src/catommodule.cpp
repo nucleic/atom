@@ -51,48 +51,72 @@ bool ready_types()
     {
         return false;
     }
+    if( !CAtom::Ready() )
+    {
+        return false;
+    }
     return true;
 }
 
 bool add_objects( PyObject* mod )
 {
 	using namespace atom;
+
+    // atomlist
     cppy::ptr atom_list( pyobject_cast( AtomList::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomlist", atom_list.get() ) < 0 )
 	{
 		return false;
 	}
     atom_list.release();
+
+    // atomclist
     cppy::ptr atom_clist( pyobject_cast( AtomCList::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomclist", atom_clist.get() ) < 0 )
 	{
 		return false;
 	}
     atom_clist.release();
+
+    // atomdict
     cppy::ptr atom_dict( pyobject_cast( AtomDict::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomdict", atom_dict.get() ) < 0 )
 	{
 		return false;
 	}
     atom_dict.release();
+
+    // atomset
     cppy::ptr atom_set( pyobject_cast( AtomSet::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomset", atom_set.get() ) < 0 )
 	{
 		return false;
 	}
     atom_set.release();
+
+    // atomref
     cppy::ptr atom_ref( pyobject_cast( AtomRef::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomref", atom_ref.get() ) < 0 )
 	{
 		return false;
 	}
     atom_ref.release();
+
+    // Member
     cppy::ptr member( pyobject_cast( Member::TypeObject ) );
 	if( PyModule_AddObject( mod, "Member", member.get() ) < 0 )
 	{
 		return false;
 	}
     member.release();
+
+    // CAtom
+    cppy::ptr catom( pyobject_cast( CAtom::TypeObject ) );
+	if( PyModule_AddObject( mod, "CAtom", catom.get() ) < 0 )
+	{
+		return false;
+	}
+    catom.release();
 
     cppy::incref( PyGetAttr );
     cppy::incref( PySetAttr );
@@ -102,7 +126,6 @@ bool add_objects( PyObject* mod )
     cppy::incref( PyDefaultValue );
     cppy::incref( PyValidate );
     cppy::incref( PyPostValidate );
-    PyModule_AddObject( mod, "CAtom", pyobject_cast( &CAtom_Type ) );
     PyModule_AddObject( mod, "GetAttr", PyGetAttr );
     PyModule_AddObject( mod, "SetAttr", PySetAttr );
     PyModule_AddObject( mod, "DelAttr", PyDelAttr );
@@ -135,14 +158,10 @@ catom_modexec( PyObject *mod )
     {
         return -1;
     }
-    if( import_catom() < 0 )
-        return -1;
     if( import_eventbinder() < 0 )
         return -1;
     if( import_signalconnector() < 0 )
         return -1;
-
-    cppy::incref( &CAtom_Type );
 
     return 0;
 }

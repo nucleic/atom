@@ -11,7 +11,7 @@
 
 
 PyObject*
-EventBinder_New( atom::Member* member, CAtom* atom );
+EventBinder_New( atom::Member* member, atom::CAtom* atom );
 
 
 int import_eventbinder();
