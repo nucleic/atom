@@ -135,7 +135,7 @@ slot_handler( Member* member, CAtom* atom )
 PyObject*
 event_handler( Member* member, CAtom* atom )
 {
-    return EventBinder_New( member, atom );
+    return EventBinder::New( member, atom );
 }
 
 

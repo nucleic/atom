@@ -10,23 +10,19 @@
 #include "packagenaming.h"
 
 
-typedef struct {
-    PyObject_HEAD
-    atom::Member* member;
-    atom::CAtom* atom;
-} EventBinder;
+namespace atom
+{
 
+
+namespace
+{
 
 #define FREELIST_MAX 128
 static int numfree = 0;
 static EventBinder* freelist[ FREELIST_MAX ];
 
 
-static int
-EventBinder_Check( PyObject* object );
-
-
-static void
+void
 EventBinder_clear( EventBinder* self )
 {
     Py_CLEAR( self->member );
@@ -34,7 +30,7 @@ EventBinder_clear( EventBinder* self )
 }
 
 
-static int
+int
 EventBinder_traverse( EventBinder* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->member );
@@ -43,7 +39,7 @@ EventBinder_traverse( EventBinder* self, visitproc visit, void* arg )
 }
 
 
-static void
+void
 EventBinder_dealloc( EventBinder* self )
 {
     PyObject_GC_UnTrack( self );
@@ -55,12 +51,12 @@ EventBinder_dealloc( EventBinder* self )
 }
 
 
-static PyObject*
+PyObject*
 EventBinder_richcompare( EventBinder* self, PyObject* other, int op )
 {
     if( op == Py_EQ )
     {
-        if( EventBinder_Check( other ) )
+        if( EventBinder::TypeCheck( other ) )
         {
             EventBinder* binder = reinterpret_cast<EventBinder*>( other );
             if( self->member == binder->member && self->atom == binder->atom )
@@ -74,7 +70,7 @@ EventBinder_richcompare( EventBinder* self, PyObject* other, int op )
 }
 
 
-static PyObject*
+PyObject*
 EventBinder_bind( EventBinder* self, PyObject* callback )
 {
     if( !self->atom->observe( self->member->name, callback ) )
@@ -83,7 +79,7 @@ EventBinder_bind( EventBinder* self, PyObject* callback )
 }
 
 
-static PyObject*
+PyObject*
 EventBinder_unbind( EventBinder* self, PyObject* callback )
 {
     if( !self->atom->unobserve( self->member->name, callback ) )
@@ -92,7 +88,7 @@ EventBinder_unbind( EventBinder* self, PyObject* callback )
 }
 
 
-static PyObject*
+PyObject*
 EventBinder__call__( EventBinder* self, PyObject* args, PyObject* kwargs )
 {
     if( kwargs && ( PyDict_Size( kwargs ) > 0 ) )
@@ -116,66 +112,37 @@ EventBinder_methods[] = {
     { 0 } // sentinel
 };
 
-
-PyTypeObject EventBinder_Type = {
-    PyVarObject_HEAD_INIT( NULL, 0 )
-    PACKAGE_TYPENAME( "EventBinder" ),          /* tp_name */
-    sizeof( EventBinder ),                      /* tp_basicsize */
-    0,                                          /* tp_itemsize */
-    ( destructor )EventBinder_dealloc,          /* tp_dealloc */
-    ( printfunc )0,                             /* tp_print */
-    ( getattrfunc )0,                           /* tp_getattr */
-    ( setattrfunc )0,                           /* tp_setattr */
-	( PyAsyncMethods* )0,                       /* tp_as_async */
-    ( reprfunc )0,                              /* tp_repr */
-    ( PyNumberMethods* )0,                      /* tp_as_number */
-    ( PySequenceMethods* )0,                    /* tp_as_sequence */
-    ( PyMappingMethods* )0,                     /* tp_as_mapping */
-    ( hashfunc )0,                              /* tp_hash */
-    ( ternaryfunc )EventBinder__call__,         /* tp_call */
-    ( reprfunc )0,                              /* tp_str */
-    ( getattrofunc )0,                          /* tp_getattro */
-    ( setattrofunc )0,                          /* tp_setattro */
-    ( PyBufferProcs* )0,                        /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC,      /* tp_flags */
-    0,                                          /* Documentation string */
-    ( traverseproc )EventBinder_traverse,       /* tp_traverse */
-    ( inquiry )EventBinder_clear,               /* tp_clear */
-    ( richcmpfunc )EventBinder_richcompare,     /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    ( getiterfunc )0,                           /* tp_iter */
-    ( iternextfunc)0,                           /* tp_iternext */
-    ( struct PyMethodDef* )EventBinder_methods, /* tp_methods */
-    ( struct PyMemberDef* )0,                   /* tp_members */
-    0,                                          /* tp_getset */
-    0,                                          /* tp_base */
-    0,                                          /* tp_dict */
-    ( descrgetfunc )0,                          /* tp_descr_get */
-    ( descrsetfunc )0,                          /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    ( initproc )0,                              /* tp_init */
-    ( allocfunc )PyType_GenericAlloc,           /* tp_alloc */
-    ( newfunc )0,                               /* tp_new */
-    ( freefunc )PyObject_GC_Del,                /* tp_free */
-    ( inquiry )0,                               /* tp_is_gc */
-    0,                                          /* tp_bases */
-    0,                                          /* tp_mro */
-    0,                                          /* tp_cache */
-    0,                                          /* tp_subclasses */
-    0,                                          /* tp_weaklist */
-    ( destructor )0                             /* tp_del */
+PyType_Slot EventBinder_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( EventBinder_dealloc ) },          /* tp_dealloc */
+    { Py_tp_traverse, void_cast( EventBinder_traverse ) },        /* tp_traverse */
+    { Py_tp_clear, void_cast( EventBinder_clear ) },              /* tp_clear */
+    { Py_tp_methods, void_cast( EventBinder_methods ) },          /* tp_methods */
+    { Py_tp_call, void_cast( EventBinder__call__ ) },             /* tp_call */
+    { Py_tp_richcompare, void_cast( EventBinder_richcompare ) },  /* tp_richcompare */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },            /* tp_alloc */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },                 /* tp_free */
+    { 0, 0 },
 };
 
 
-static int
-EventBinder_Check( PyObject* object )
-{
-    return PyObject_TypeCheck( object, &EventBinder_Type );
-}
+} // namespace
+
+
+PyTypeObject* EventBinder::TypeObject = NULL;
+
+
+PyType_Spec EventBinder::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "EventBinder" ),             /* tp_name */
+	sizeof( EventBinder ),                         /* tp_basicsize */
+	0,                                             /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT|
+    Py_TPFLAGS_HAVE_GC,                            /* tp_flags */
+    EventBinder_Type_slots                         /* slots */
+};
 
 
 PyObject*
-EventBinder_New( atom::Member* member, atom::CAtom* atom )
+EventBinder::New( atom::Member* member, atom::CAtom* atom )
 {
     PyObject* pybinder;
     if( numfree > 0 )
@@ -185,7 +152,7 @@ EventBinder_New( atom::Member* member, atom::CAtom* atom )
     }
     else
     {
-        pybinder = PyType_GenericAlloc( &EventBinder_Type, 0 );
+        pybinder = PyType_GenericAlloc( EventBinder::TypeObject, 0 );
         if( !pybinder )
             return 0;
     }
@@ -198,10 +165,16 @@ EventBinder_New( atom::Member* member, atom::CAtom* atom )
 }
 
 
-int
-import_eventbinder( void )
+bool EventBinder::Ready()
 {
-    if( PyType_Ready( &EventBinder_Type ) < 0 )
-        return -1;
-    return 0;
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
 }
+
+
+} // namespace atom

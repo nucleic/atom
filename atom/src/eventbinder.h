@@ -9,9 +9,29 @@
 #include "catom.h"
 #include "member.h"
 
+namespace atom
+{
 
-PyObject*
-EventBinder_New( atom::Member* member, atom::CAtom* atom );
+// POD struct - all member fields are considered private
+struct EventBinder
+{
+	PyObject_HEAD
+    Member* member;
+    CAtom* atom;
 
+	static PyType_Spec TypeObject_Spec;
 
-int import_eventbinder();
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+
+    static PyObject* New( Member* member, CAtom* atom );
+
+    static bool TypeCheck( PyObject* ob )
+	{
+		return PyObject_TypeCheck( ob, TypeObject ) != 0;
+	}
+
+};
+
+}  // namespace atom

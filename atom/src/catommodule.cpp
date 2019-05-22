@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -52,6 +52,10 @@ bool ready_types()
         return false;
     }
     if( !CAtom::Ready() )
+    {
+        return false;
+    }
+    if( !EventBinder::Ready() )
     {
         return false;
     }
@@ -158,8 +162,6 @@ catom_modexec( PyObject *mod )
     {
         return -1;
     }
-    if( import_eventbinder() < 0 )
-        return -1;
     if( import_signalconnector() < 0 )
         return -1;
 
