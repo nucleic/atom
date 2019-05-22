@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -10,6 +10,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include "packagenaming.h"
 
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wdeprecated-writable-strings"
@@ -19,6 +20,9 @@
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #endif
 
+
+namespace
+{
 
 /**
  * A fallback 3way comparison function for when PyObject_RichCompareBool
@@ -194,6 +198,12 @@ struct SortedMap
     PyObject_HEAD
     Items* m_items;
 
+    static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+
     PyObject* getitem( PyObject* key, PyObject* default_value = 0 )
     {
         Items::iterator it = std::lower_bound(
@@ -344,7 +354,7 @@ struct SortedMap
 };
 
 
-static PyObject*
+PyObject*
 SortedMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     PyObject* map = 0;
@@ -395,7 +405,7 @@ SortedMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 // decref, including calls into methods which mutate the vector.
 // To avoid segfaults, first make the vector empty, then let the
 // destructors run for the old items.
-static int
+int
 SortedMap_clear( SortedMap* self )
 {
     SortedMap::Items empty;
@@ -404,7 +414,7 @@ SortedMap_clear( SortedMap* self )
 }
 
 
-static int
+int
 SortedMap_traverse( SortedMap* self, visitproc visit, void* arg )
 {
     SortedMap::Items::iterator it;
@@ -418,7 +428,7 @@ SortedMap_traverse( SortedMap* self, visitproc visit, void* arg )
 }
 
 
-static void
+void
 SortedMap_dealloc( SortedMap* self )
 {
     PyObject_GC_UnTrack( self );
@@ -429,21 +439,21 @@ SortedMap_dealloc( SortedMap* self )
 }
 
 
-static Py_ssize_t
+Py_ssize_t
 SortedMap_length( SortedMap* self )
 {
     return static_cast<Py_ssize_t>( self->m_items->size() );
 }
 
 
-static PyObject*
+PyObject*
 SortedMap_subscript( SortedMap* self, PyObject* key )
 {
     return self->getitem( key );
 }
 
 
-static int
+int
 SortedMap_ass_subscript( SortedMap* self, PyObject* key, PyObject* value )
 {
     if( !value )
@@ -452,37 +462,14 @@ SortedMap_ass_subscript( SortedMap* self, PyObject* key, PyObject* value )
 }
 
 
-static PyMappingMethods
-SortedMap_as_mapping = {
-    ( lenfunc )SortedMap_length,              /*mp_length*/
-    ( binaryfunc )SortedMap_subscript,        /*mp_subscript*/
-    ( objobjargproc )SortedMap_ass_subscript, /*mp_ass_subscript*/
-};
-
-
-static int
+int
 SortedMap_contains( SortedMap* self, PyObject* key )
 {
     return self->contains( key );
 }
 
 
-static PySequenceMethods
-SortedMap_as_sequence = {
-    0,                                /* sq_length */
-    0,                                /* sq_concat */
-    0,                                /* sq_repeat */
-    0,                                /* sq_item */
-    0,                                /* sq_slice */
-    0,                                /* sq_ass_item */
-    0,                                /* sq_ass_slice */
-    ( objobjproc )SortedMap_contains, /* sq_contains */
-    0,                                /* sq_inplace_concat */
-    0,                                /* sq_inplace_repeat */
-};
-
-
-static PyObject*
+PyObject*
 SortedMap_get( SortedMap* self, PyObject* args )
 {
     Py_ssize_t nargs = PyTuple_GET_SIZE( args );
@@ -499,7 +486,7 @@ SortedMap_get( SortedMap* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 SortedMap_pop( SortedMap* self, PyObject* args )
 {
     Py_ssize_t nargs = PyTuple_GET_SIZE( args );
@@ -516,7 +503,7 @@ SortedMap_pop( SortedMap* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 SortedMap_clearmethod( SortedMap* self )
 {
     // Clearing the vector may cause arbitrary side effects on item
@@ -529,28 +516,28 @@ SortedMap_clearmethod( SortedMap* self )
 }
 
 
-static PyObject*
+PyObject*
 SortedMap_keys( SortedMap* self )
 {
     return self->keys();
 }
 
 
-static PyObject*
+PyObject*
 SortedMap_values( SortedMap* self )
 {
     return self->values();
 }
 
 
-static PyObject*
+PyObject*
 SortedMap_items( SortedMap* self )
 {
     return self->items();
 }
 
 
-static PyObject*
+PyObject*
 SortedMap_iter( SortedMap* self )
 {
     cppy::ptr keys( self->keys() );
@@ -561,7 +548,7 @@ SortedMap_iter( SortedMap* self )
 
 
 
-static PyObject*
+PyObject*
 SortedMap_copy( SortedMap* self )
 {
     PyTypeObject* type = pytype_cast( Py_TYPE(self) );
@@ -575,7 +562,7 @@ SortedMap_copy( SortedMap* self )
 }
 
 
-static PyObject*
+PyObject*
 SortedMap_repr( SortedMap* self )
 {
     std::ostringstream ostr;
@@ -600,16 +587,18 @@ SortedMap_repr( SortedMap* self )
 }
 
 
-static PyObject*
+PyObject*
 SortedMap_contains_bool( SortedMap* self, PyObject* key )
 {
     if( self->contains( key ) )
+    {
         Py_RETURN_TRUE;
+    }
     Py_RETURN_FALSE;
 }
 
 
-static PyObject*
+PyObject*
 SortedMap_sizeof( SortedMap* self, PyObject* args )
 {
     Py_ssize_t size = Py_TYPE(self)->tp_basicsize;
@@ -645,59 +634,79 @@ SortedMap_methods[] = {
 };
 
 
-PyTypeObject SortedMap_Type = {
-    PyVarObject_HEAD_INIT( NULL, 0 )
-    "atom.sortedmap.sortedmap",                   /* tp_name */
-    sizeof( SortedMap ),                          /* tp_basicsize */
-    0,                                            /* tp_itemsize */
-    ( destructor )SortedMap_dealloc,              /* tp_dealloc */
-    ( printfunc )0,                               /* tp_print */
-    ( getattrfunc )0,                             /* tp_getattr */
-    ( setattrfunc )0,                             /* tp_setattr */
-	( PyAsyncMethods* )0,                         /* tp_as_async */
-    ( reprfunc )SortedMap_repr,                   /* tp_repr */
-    ( PyNumberMethods* )0,                        /* tp_as_number */
-    ( PySequenceMethods* )&SortedMap_as_sequence, /* tp_as_sequence */
-    ( PyMappingMethods* )&SortedMap_as_mapping,   /* tp_as_mapping */
-    ( hashfunc )0,                                /* tp_hash */
-    ( ternaryfunc )0,                             /* tp_call */
-    ( reprfunc )0,                                /* tp_str */
-    ( getattrofunc )0,                            /* tp_getattro */
-    ( setattrofunc )0,                            /* tp_setattro */
-    ( PyBufferProcs* )0,                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,      /* tp_flags */
-    0,                                            /* Documentation string */
-    ( traverseproc )SortedMap_traverse,           /* tp_traverse */
-    ( inquiry )SortedMap_clear,                   /* tp_clear */
-    ( richcmpfunc )0,                             /* tp_richcompare */
-    0,                                            /* tp_weaklistoffset */
-    ( getiterfunc )SortedMap_iter,                /* tp_iter */
-    ( iternextfunc )0,                            /* tp_iternext */
-    ( struct PyMethodDef* )SortedMap_methods,     /* tp_methods */
-    ( struct PyMemberDef* )0,                     /* tp_members */
-    0,                                            /* tp_getset */
-    0,                                            /* tp_base */
-    0,                                            /* tp_dict */
-    ( descrgetfunc )0,                            /* tp_descr_get */
-    ( descrsetfunc )0,                            /* tp_descr_set */
-    0,                                            /* tp_dictoffset */
-    ( initproc )0,                                /* tp_init */
-    ( allocfunc )PyType_GenericAlloc,             /* tp_alloc */
-    ( newfunc )SortedMap_new,                     /* tp_new */
-    ( freefunc )0,                                /* tp_free */
-    ( inquiry )0,                                 /* tp_is_gc */
-    0,                                            /* tp_bases */
-    0,                                            /* tp_mro */
-    0,                                            /* tp_cache */
-    0,                                            /* tp_subclasses */
-    0,                                            /* tp_weaklist */
-    ( destructor )0                               /* tp_del */
+PyType_Slot SortedMap_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( SortedMap_dealloc ) },               /* tp_dealloc */
+    { Py_tp_traverse, void_cast( SortedMap_traverse ) },             /* tp_traverse */
+    { Py_tp_clear, void_cast( SortedMap_clear ) },                   /* tp_clear */
+    { Py_tp_methods, void_cast( SortedMap_methods ) },               /* tp_methods */
+    { Py_tp_repr, void_cast( SortedMap_repr ) },                    /* tp_repr */
+    { Py_tp_new, void_cast( SortedMap_new ) },                      /* tp_new */
+    { Py_tp_iter, void_cast( SortedMap_iter ) },                    /* tp_iter */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },              /* tp_alloc */
+    { Py_mp_length, void_cast( SortedMap_length ) },                /* mp_length */
+    { Py_mp_subscript, void_cast( SortedMap_subscript ) },          /* mp_subscript */
+    { Py_mp_ass_subscript, void_cast( SortedMap_ass_subscript ) },  /* mp_ass_subscript */
+    { Py_sq_contains, void_cast( SortedMap_contains ) },            /* sq_contains */
+    { 0, 0 },
 };
 
+
+// Initialize static variables (otherwise the compiler eliminates them)
+PyTypeObject* SortedMap::TypeObject = NULL;
+
+
+PyType_Spec SortedMap::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "sortedmap.sortedmap" ),   /* tp_name */
+	sizeof( SortedMap ),                         /* tp_basicsize */
+	0,                                           /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT|
+    Py_TPFLAGS_HAVE_GC,                          /* tp_flags */
+    SortedMap_Type_slots                         /* slots */
+};
+
+
+bool SortedMap::Ready()
+{
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
+}
+
+
+// Module creation
 
 static PyMethodDef
 sortedmap_methods[] = {
     { 0 } // Sentinel
+};
+
+int
+sortedmap_modexec( PyObject *mod )
+{
+    if( !SortedMap::Ready() )
+    {
+        return -1;
+    }
+
+    cppy::ptr sortedmap( pyobject_cast( SortedMap::TypeObject ) );
+	if( PyModule_AddObject( mod, "sortedmap", sortedmap.get() ) < 0 )
+	{
+		return false;
+	}
+    sortedmap.release();
+
+
+    return 0;
+}
+
+
+PyModuleDef_Slot sortedmap_slots[] = {
+    {Py_mod_exec, reinterpret_cast<void*>( sortedmap_modexec ) },
+    {0, NULL}
 };
 
 
@@ -705,24 +714,19 @@ static struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
         "sortedmap",
         "sortedmap extension module",
-        -1,
+        0,
         sortedmap_methods,
-        NULL,
+        sortedmap_slots,
         NULL,
         NULL,
         NULL
 };
 
 
-PyMODINIT_FUNC PyInit_sortedmap(void)
-{
-    PyObject *mod = PyModule_Create(&moduledef);
-    if( !mod )
-        return 0;
-    if( PyType_Ready( &SortedMap_Type ) )
-        return 0;
-    Py_INCREF( ( PyObject* )( &SortedMap_Type ) );
-    PyModule_AddObject( mod, "sortedmap", ( PyObject* )( &SortedMap_Type ) );
+}  // namespace
 
-    return mod;
+
+PyMODINIT_FUNC PyInit_sortedmap( void )
+{
+    return PyModuleDef_Init( &moduledef );
 }

@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -20,7 +20,7 @@ namespace
 {
 
 
-static PyObject*
+PyObject*
 property_args( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
 {
     cppy::ptr args( PyTuple_New( 1 ) );

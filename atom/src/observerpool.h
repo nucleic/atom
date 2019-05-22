@@ -12,6 +12,8 @@
 #include "platstdint.h"
 #include "modifyguard.h"
 
+namespace atom
+{
 
 
 class ObserverPool
@@ -83,3 +85,6 @@ private:
     ObserverPool& operator=(const ObserverPool&);
 
 };
+
+
+} // namespace atom

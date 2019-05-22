@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -11,6 +11,7 @@
 
 namespace atom
 {
+
 
 // POD struct - all member fields are considered private
 struct EventBinder
@@ -33,5 +34,6 @@ struct EventBinder
 	}
 
 };
+
 
 }  // namespace atom

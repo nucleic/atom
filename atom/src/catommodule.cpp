@@ -59,6 +59,10 @@ bool ready_types()
     {
         return false;
     }
+    if( !SignalConnector::Ready() )
+    {
+        return false;
+    }
     return true;
 }
 
@@ -162,8 +166,7 @@ catom_modexec( PyObject *mod )
     {
         return -1;
     }
-    if( import_signalconnector() < 0 )
-        return -1;
+
 
     return 0;
 }

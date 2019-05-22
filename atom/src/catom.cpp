@@ -389,8 +389,8 @@ PyType_Slot Atom_Type_slots[] = {
     { Py_tp_methods, void_cast( CAtom_methods ) },              /* tp_methods */
     { Py_tp_new, void_cast( CAtom_new ) },                      /* tp_new */
     { Py_tp_init, void_cast( CAtom_init) },                     /* tp_new */
-    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },          /* tp_new */
-    { Py_tp_free, void_cast( PyObject_GC_Del ) },               /* tp_new */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },          /* tp_alloc */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },               /* tp_free */
     { 0, 0 },
 };
 
@@ -398,7 +398,7 @@ PyType_Slot Atom_Type_slots[] = {
 }  // namespace
 
 
-// Initialize static variables (otherwise the compiler eliminate them)
+// Initialize static variables (otherwise the compiler eliminates them)
 PyTypeObject* CAtom::TypeObject = NULL;
 
 
@@ -415,6 +415,16 @@ PyType_Spec CAtom::TypeObject_Spec = {
 
 bool CAtom::Ready()
 {
+
+    if( !MethodWrapper::Ready() )
+    {
+        return false;
+    }
+    if( !AtomMethodWrapper::Ready() )
+    {
+        return false;
+    }
+
     // The reference will be handled by the module to which we will add the type
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
@@ -435,7 +445,7 @@ static PyObject*
 wrap_callback( PyObject* callback )
 {
     if( PyMethod_Check( callback ) && PyMethod_GET_SELF( callback ) )
-        return MethodWrapper_New( callback );
+        return MethodWrapper::New( callback );
     return cppy::incref( callback );
 }
 

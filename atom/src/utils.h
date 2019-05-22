@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -112,6 +112,7 @@ fallback_3way_compare( PyObject* first, PyObject* second ) {
     Py_uintptr_t stp = reinterpret_cast<Py_uintptr_t>( second->ob_type );
     return ftp < stp ? -1 : 1;
 }
+
 
 } // namespace utils
 

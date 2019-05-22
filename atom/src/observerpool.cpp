@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -7,6 +7,9 @@
 |----------------------------------------------------------------------------*/
 #include "observerpool.h"
 
+
+namespace atom
+{
 
 namespace
 {
@@ -258,3 +261,6 @@ ObserverPool::py_traverse( visitproc visit, void* arg )
     }
     return 0;
 }
+
+
+}  //namespace atom

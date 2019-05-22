@@ -94,14 +94,14 @@ Member_dealloc( Member* self )
     Member_clear( self );
     delete self->static_observers;
     self->static_observers = 0;
-    reinterpret_cast<destructor>( PyType_GetSlot( Py_TYPE(self), Py_tp_free ) )( pyobject_cast( self ) );
+    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
 
 static PyObject*
 Member_has_observers( Member* self )
 {
-    return atom::utils::py_bool( self->has_observers() );
+    return utils::py_bool( self->has_observers() );
 }
 
 
@@ -110,7 +110,7 @@ Member_has_observer( Member* self, PyObject* observer )
 {
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return cppy::type_error( observer, "str or callable" );
-    return atom::utils::py_bool( self->has_observer( observer ) );
+    return utils::py_bool( self->has_observer( observer ) );
 }
 
 

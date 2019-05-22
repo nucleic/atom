@@ -61,7 +61,7 @@ namespace
 {
 
 
-static int
+int
 no_op_handler( Member* member, CAtom* atom, PyObject* value )
 {
     return 0;
@@ -96,7 +96,7 @@ updated_args( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalu
 }
 
 
-static int
+int
 slot_handler( Member* member, CAtom* atom, PyObject* value )
 {
     if( member->index >= atom->get_slot_count() )
@@ -162,7 +162,7 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static int
+int
 constant_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::type_error( "cannot set the value of a constant member" );
@@ -170,7 +170,7 @@ constant_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static int
+int
 read_only_handler( Member* member, CAtom* atom, PyObject* value )
 {
     if( member->index >= atom->get_slot_count() )
@@ -202,7 +202,7 @@ event_args( CAtom* atom, Member* member, PyObject* value )
 }
 
 
-static int
+int
 event_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::ptr valueptr( member->full_validate( atom, Py_None, value ) );
@@ -235,7 +235,7 @@ event_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static int
+int
 signal_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::type_error( "cannot set the value of a signal" );
@@ -243,7 +243,7 @@ signal_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static int
+int
 delegate_handler( Member* member, CAtom* atom, PyObject* value )
 {
     Member* delegate = member_cast( member->setattr_context );
@@ -251,7 +251,7 @@ delegate_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static int
+int
 _mangled_property_handler( Member* member, CAtom* atom, PyObject* value )
 {
     char* suffix = (char *)PyUnicode_AsUTF8( member->name );
@@ -276,7 +276,7 @@ _mangled_property_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static int
+int
 property_handler( Member* member, CAtom* atom, PyObject* value )
 {
     if( member->setattr_context != Py_None )
@@ -295,7 +295,7 @@ property_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static int
+int
 call_object_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::ptr valueptr( cppy::incref( value ) );
@@ -314,7 +314,7 @@ call_object_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static int
+int
 call_object_object_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::ptr valueptr( cppy::incref( value ) );
@@ -334,7 +334,7 @@ call_object_object_name_value_handler( Member* member, CAtom* atom, PyObject* va
 }
 
 
-static int
+int
 object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::ptr valueptr( cppy::incref( value ) );
@@ -354,7 +354,7 @@ object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static int
+int
 object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::ptr valueptr( cppy::incref( value ) );
@@ -375,7 +375,7 @@ object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static int
+int
 member_method_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
     cppy::ptr valueptr( cppy::incref( value ) );

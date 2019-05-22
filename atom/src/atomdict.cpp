@@ -223,6 +223,7 @@ PyType_Slot AtomDict_Type_slots[] = {
 } // namespace
 
 
+// Initialize static variables (otherwise the compiler eliminates them)
 PyTypeObject* AtomDict::TypeObject = NULL;
 
 

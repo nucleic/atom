@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2018, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -16,6 +16,7 @@ namespace atom
 
 namespace
 {
+
 
 #define FREELIST_MAX 128
 static int numfree = 0;
@@ -125,9 +126,10 @@ PyType_Slot EventBinder_Type_slots[] = {
 };
 
 
-} // namespace
+}  // namespace
 
 
+// Initialize static variables (otherwise the compiler eliminates them)
 PyTypeObject* EventBinder::TypeObject = NULL;
 
 
@@ -141,8 +143,21 @@ PyType_Spec EventBinder::TypeObject_Spec = {
 };
 
 
+bool
+EventBinder::Ready()
+{
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
+}
+
+
 PyObject*
-EventBinder::New( atom::Member* member, atom::CAtom* atom )
+EventBinder::New( Member* member, CAtom* atom )
 {
     PyObject* pybinder;
     if( numfree > 0 )
@@ -152,7 +167,7 @@ EventBinder::New( atom::Member* member, atom::CAtom* atom )
     }
     else
     {
-        pybinder = PyType_GenericAlloc( EventBinder::TypeObject, 0 );
+        pybinder = PyType_GenericAlloc( TypeObject, 0 );
         if( !pybinder )
             return 0;
     }
@@ -162,18 +177,6 @@ EventBinder::New( atom::Member* member, atom::CAtom* atom )
     binder->member = member;
     binder->atom = atom;
     return pybinder;
-}
-
-
-bool EventBinder::Ready()
-{
-    // The reference will be handled by the module to which we will add the type
-	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
-    if( !TypeObject )
-    {
-        return false;
-    }
-    return true;
 }
 
 

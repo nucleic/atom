@@ -142,7 +142,7 @@ event_handler( Member* member, CAtom* atom )
 PyObject*
 signal_handler( Member* member, CAtom* atom )
 {
-    return SignalConnector_New( member, atom );
+    return SignalConnector::New( member, atom );
 }
 
 

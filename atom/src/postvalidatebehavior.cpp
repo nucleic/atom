@@ -45,14 +45,14 @@ namespace
 {
 
 
-static PyObject*
+PyObject*
 no_op_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     return cppy::incref( newvalue );
 }
 
 
-static PyObject*
+PyObject*
 delegate_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     Member* delegate = member_cast( member->post_validate_context );
@@ -60,7 +60,7 @@ delegate_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
 }
 
 
-static PyObject*
+PyObject*
 object_method_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
@@ -76,7 +76,7 @@ object_method_old_new_handler(
 }
 
 
-static PyObject*
+PyObject*
 object_method_name_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
@@ -93,7 +93,7 @@ object_method_name_old_new_handler(
 }
 
 
-static PyObject*
+PyObject*
 member_method_object_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {

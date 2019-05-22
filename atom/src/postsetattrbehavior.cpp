@@ -45,14 +45,14 @@ namespace
 {
 
 
-static int
+int
 no_op_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     return 0;
 }
 
 
-static int
+int
 delegate_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     Member* delegate = member_cast( member->post_setattr_context );
@@ -60,7 +60,7 @@ delegate_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
 }
 
 
-static int
+int
 object_method_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
@@ -78,7 +78,7 @@ object_method_old_new_handler(
 }
 
 
-static int
+int
 object_method_name_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
@@ -97,7 +97,7 @@ object_method_name_old_new_handler(
 }
 
 
-static int
+int
 member_method_object_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
