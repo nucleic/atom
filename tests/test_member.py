@@ -39,10 +39,11 @@ Methods:
 
 """
 import pytest
-from atom.api import (Atom, Value, Int, List, Tuple, Dict, Event, Instance,
-                      ForwardInstance, ForwardSubclass, ForwardTyped,
-                      GetAttr, SetAttr, DefaultValue, Validate, PostGetAttr,
-                      PostSetAttr, PostValidate, observe)
+
+from atom.api import (Atom, DefaultValue, Dict, Event, ForwardInstance,
+                      ForwardSubclass, ForwardTyped, GetAttr, Instance, Int,
+                      List, PostGetAttr, PostSetAttr, PostValidate, Set,
+                      SetAttr, Tuple, Validate, Value, observe)
 from atom.catom import DelAttr
 
 
@@ -292,7 +293,8 @@ def test_member_cloning():
 @pytest.mark.parametrize('untyped, typed',
                          [(List(), List(int)),
                           (Tuple(), Tuple(int)),
-                          (Dict(), Dict(int, int))])
+                          (Dict(), Dict(int, int)),
+                          (Set(), Set(int))])
 def test_cloning_containers_member(untyped, typed):
     """Check that cloning a list does clone the validation item is present.
 

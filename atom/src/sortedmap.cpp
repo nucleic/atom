@@ -635,10 +635,10 @@ SortedMap_methods[] = {
 
 
 PyType_Slot SortedMap_Type_slots[] = {
-    { Py_tp_dealloc, void_cast( SortedMap_dealloc ) },               /* tp_dealloc */
-    { Py_tp_traverse, void_cast( SortedMap_traverse ) },             /* tp_traverse */
-    { Py_tp_clear, void_cast( SortedMap_clear ) },                   /* tp_clear */
-    { Py_tp_methods, void_cast( SortedMap_methods ) },               /* tp_methods */
+    { Py_tp_dealloc, void_cast( SortedMap_dealloc ) },              /* tp_dealloc */
+    { Py_tp_traverse, void_cast( SortedMap_traverse ) },            /* tp_traverse */
+    { Py_tp_clear, void_cast( SortedMap_clear ) },                  /* tp_clear */
+    { Py_tp_methods, void_cast( SortedMap_methods ) },              /* tp_methods */
     { Py_tp_repr, void_cast( SortedMap_repr ) },                    /* tp_repr */
     { Py_tp_new, void_cast( SortedMap_new ) },                      /* tp_new */
     { Py_tp_iter, void_cast( SortedMap_iter ) },                    /* tp_iter */
