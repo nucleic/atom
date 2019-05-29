@@ -13,7 +13,7 @@ from .typed import Typed
 class Set(Member):
     """ A member which allows set values.
 
-    Assigning to a set creates a copy. The orginal set will remain
+    Assigning to a set creates a copy. The original set will remain
     unmodified. This is similar to the semantics of the assignment
     operator on the C++ STL container classes.
 
@@ -39,6 +39,7 @@ class Set(Member):
         self.set_default_value_mode(DefaultValue.Set, default)
         if item is not None and not isinstance(item, Member):
             item = Instance(item)
+        self.item = item
         self.set_validate_mode(Validate.Set, item)
 
     def set_name(self, name):
@@ -50,7 +51,7 @@ class Set(Member):
 
         """
         super(Set, self).set_name(name)
-        item = self.validate_mode[1]
+        item = self.item
         if item is not None:
             item.set_name(name + '|item')
 
@@ -63,7 +64,7 @@ class Set(Member):
 
         """
         super(Set, self).set_index(index)
-        item = self.validate_mode[1]
+        item = self.item
         if item is not None:
             item.set_index(index)
 
@@ -74,7 +75,7 @@ class Set(Member):
 
         """
         clone = super(Set, self).clone()
-        item = self.validate_mode[1]
+        item = self.item
         if item is not None:
             item_clone = item.clone()
             mode, _ = self.validate_mode
