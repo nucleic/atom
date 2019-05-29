@@ -77,7 +77,9 @@ class Set(Member):
         clone = super(Set, self).clone()
         item = self.item
         if item is not None:
-            item_clone = item.clone()
-            mode, _ = self.validate_mode
+            clone.item = item_clone = item.clone()
+            mode, ctxt = self.validate_mode
             clone.set_validate_mode(mode, item_clone)
+        else:
+            clone.item = None
         return clone
