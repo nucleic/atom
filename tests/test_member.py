@@ -299,7 +299,7 @@ def test_cloning_containers_member(untyped, typed):
     """Check that cloning a list does clone the validation item is present.
 
     """
-    if not isinstance(untyped, Dict):
+    if not isinstance(untyped, (Set, Dict)):
         assert untyped.clone().item is None
 
     typed.set_index(5)
