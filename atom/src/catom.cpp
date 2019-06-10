@@ -37,7 +37,7 @@ namespace
 static PyObject* atom_members;
 
 
-static PyObject*
+PyObject*
 CAtom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     cppy::ptr membersptr( PyObject_GetAttr( pyobject_cast( type ), atom_members ) );
@@ -67,7 +67,7 @@ CAtom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-static int
+int
 CAtom_init( CAtom* self, PyObject* args, PyObject* kwargs )
 {
     if( PyTuple_GET_SIZE( args ) > 0 )
@@ -93,7 +93,7 @@ CAtom_init( CAtom* self, PyObject* args, PyObject* kwargs )
 }
 
 
-static void
+void
 CAtom_clear( CAtom* self )
 {
     uint32_t count = self->get_slot_count();
@@ -108,7 +108,7 @@ CAtom_clear( CAtom* self )
 }
 
 
-static int
+int
 CAtom_traverse( CAtom* self, visitproc visit, void* arg )
 {
     uint32_t count = self->get_slot_count();
@@ -124,7 +124,7 @@ CAtom_traverse( CAtom* self, visitproc visit, void* arg )
 }
 
 
-static void
+void
 CAtom_dealloc( CAtom* self )
 {
     if( self->has_guards() )
@@ -147,14 +147,14 @@ CAtom_dealloc( CAtom* self )
 }
 
 
-static PyObject*
+PyObject*
 CAtom_notifications_enabled( CAtom* self )
 {
     return utils::py_bool( self->get_notifications_enabled() );
 }
 
 
-static PyObject*
+PyObject*
 CAtom_set_notifications_enabled( CAtom* self, PyObject* arg )
 {
     if( !PyBool_Check( arg ) )
@@ -165,7 +165,7 @@ CAtom_set_notifications_enabled( CAtom* self, PyObject* arg )
 }
 
 
-static PyObject*
+PyObject*
 CAtom_get_member( PyObject* self, PyObject* name )
 {
     if( !PyUnicode_Check( name ) )
@@ -182,7 +182,7 @@ CAtom_get_member( PyObject* self, PyObject* name )
 }
 
 
-static PyObject*
+PyObject*
 CAtom_observe( CAtom* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 2 )
@@ -216,7 +216,7 @@ CAtom_observe( CAtom* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 _CAtom_unobserve_0( CAtom* self )
 {
     if( !self->unobserve() )
@@ -225,7 +225,7 @@ _CAtom_unobserve_0( CAtom* self )
 }
 
 
-static PyObject*
+PyObject*
 _CAtom_unobserve_1( CAtom* self, PyObject* topic )
 {
     if( utils::str_check( topic ) )
@@ -253,7 +253,7 @@ _CAtom_unobserve_1( CAtom* self, PyObject* topic )
 }
 
 
-static PyObject*
+PyObject*
 _CAtom_unobserve_2( CAtom* self, PyObject* topic, PyObject* callback )
 {
     if( !PyCallable_Check( callback ) )
@@ -283,7 +283,7 @@ _CAtom_unobserve_2( CAtom* self, PyObject* topic, PyObject* callback )
 }
 
 
-static PyObject*
+PyObject*
 CAtom_unobserve( CAtom* self, PyObject* args )
 {
     Py_ssize_t n_args = PyTuple_GET_SIZE( args );
@@ -298,14 +298,14 @@ CAtom_unobserve( CAtom* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 CAtom_has_observers( CAtom* self, PyObject* topic )
 {
     return utils::py_bool( self->has_observers( topic ) );
 }
 
 
-static PyObject*
+PyObject*
 CAtom_has_observer( CAtom* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 2 )
@@ -320,7 +320,7 @@ CAtom_has_observer( CAtom* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 CAtom_notify( CAtom* self, PyObject* args, PyObject* kwargs )
 {
     if( PyTuple_GET_SIZE( args ) < 1 )
@@ -337,7 +337,7 @@ CAtom_notify( CAtom* self, PyObject* args, PyObject* kwargs )
 }
 
 
-static PyObject*
+PyObject*
 CAtom_freeze( CAtom* self )
 {
     self->set_frozen( true );
@@ -345,7 +345,7 @@ CAtom_freeze( CAtom* self )
 }
 
 
-static PyObject*
+PyObject*
 CAtom_sizeof( CAtom* self, PyObject* args )
 {
     Py_ssize_t size = Py_TYPE(self)->tp_basicsize;
@@ -382,7 +382,7 @@ CAtom_methods[] = {
 };
 
 
-PyType_Slot Atom_Type_slots[] = {
+static PyType_Slot Atom_Type_slots[] = {
     { Py_tp_dealloc, void_cast( CAtom_dealloc ) },              /* tp_dealloc */
     { Py_tp_traverse, void_cast( CAtom_traverse ) },            /* tp_traverse */
     { Py_tp_clear, void_cast( CAtom_clear ) },                  /* tp_clear */
@@ -517,7 +517,7 @@ typedef std::multimap<CAtom*, CAtom**> GuardMap;
 GLOBAL_STATIC( GuardMap, guard_map )
 
 
-void CAtom::add_guard( CAtom** ptr )
+static void CAtom::add_guard( CAtom** ptr )
 {
     if( !*ptr )
         return;
@@ -532,7 +532,7 @@ void CAtom::add_guard( CAtom** ptr )
 }
 
 
-void CAtom::remove_guard( CAtom** ptr )
+static void CAtom::remove_guard( CAtom** ptr )
 {
     if( !*ptr )
         return;
@@ -562,7 +562,7 @@ void CAtom::remove_guard( CAtom** ptr )
 }
 
 
-void CAtom::change_guard( CAtom** ptr, CAtom* o )
+static void CAtom::change_guard( CAtom** ptr, CAtom* o )
 {
     GuardMap* map = guard_map();
     if( !map )
@@ -580,7 +580,7 @@ void CAtom::change_guard( CAtom** ptr, CAtom* o )
 }
 
 
-void CAtom::clear_guards( CAtom* o )
+static void CAtom::clear_guards( CAtom* o )
 {
     GuardMap* map = 0;
     try

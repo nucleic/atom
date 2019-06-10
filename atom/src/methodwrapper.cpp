@@ -84,7 +84,7 @@ MethodWrapper__bool__( MethodWrapper* self )
 }
 
 
-PyType_Slot MethodWrapper_Type_slots[] = {
+static PyType_Slot MethodWrapper_Type_slots[] = {
     { Py_tp_dealloc, void_cast( MethodWrapper_dealloc ) },          /* tp_dealloc */
     { Py_tp_call, void_cast( MethodWrapper__call__ ) },             /* tp_call */
     { Py_tp_richcompare, void_cast( MethodWrapper_richcompare ) },  /* tp_richcompare */
@@ -191,7 +191,7 @@ AtomMethodWrapper__bool__( AtomMethodWrapper* self )
 }
 
 
-PyType_Slot AtomMethodWrapper_Type_slots[] = {
+static PyType_Slot AtomMethodWrapper_Type_slots[] = {
     { Py_tp_dealloc, void_cast( AtomMethodWrapper_dealloc ) },          /* tp_dealloc */
     { Py_tp_call, void_cast( AtomMethodWrapper__call__ ) },             /* tp_call */
     { Py_tp_richcompare, void_cast( AtomMethodWrapper_richcompare ) },  /* tp_richcompare */

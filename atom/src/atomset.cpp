@@ -233,7 +233,7 @@ PyObject* AtomSet_update( AtomSet* self, PyObject* value )
 }
 
 
-PyMethodDef AtomSet_methods[] = {
+static PyMethodDef AtomSet_methods[] = {
 	{ "add",
 	  ( PyCFunction )AtomSet_add,
 	  METH_O,
@@ -258,7 +258,7 @@ PyMethodDef AtomSet_methods[] = {
 };
 
 
-PyType_Slot AtomSet_Type_slots[] = {
+static PyType_Slot AtomSet_Type_slots[] = {
     { Py_tp_dealloc, void_cast( AtomSet_dealloc ) },         /* tp_dealloc */
     { Py_tp_traverse, void_cast( AtomSet_traverse ) },       /* tp_traverse */
     { Py_tp_clear, void_cast( AtomSet_clear ) },             /* tp_clear */

@@ -30,7 +30,7 @@ namespace
 static PyObject* undefined;
 
 
-static PyObject*
+PyObject*
 Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     cppy::ptr selfptr( PyType_GenericNew( type, args, kwargs ) );
@@ -45,7 +45,7 @@ Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-static void
+void
 Member_clear( Member* self )
 {
     Py_CLEAR( self->name );
@@ -63,7 +63,7 @@ Member_clear( Member* self )
 }
 
 
-static int
+int
 Member_traverse( Member* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->name );
@@ -87,7 +87,7 @@ Member_traverse( Member* self, visitproc visit, void* arg )
 }
 
 
-static void
+void
 Member_dealloc( Member* self )
 {
     PyObject_GC_UnTrack( self );
@@ -98,14 +98,14 @@ Member_dealloc( Member* self )
 }
 
 
-static PyObject*
+PyObject*
 Member_has_observers( Member* self )
 {
     return utils::py_bool( self->has_observers() );
 }
 
 
-static PyObject*
+PyObject*
 Member_has_observer( Member* self, PyObject* observer )
 {
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
@@ -114,7 +114,7 @@ Member_has_observer( Member* self, PyObject* observer )
 }
 
 
-static PyObject*
+PyObject*
 Member_copy_static_observers( Member* self, PyObject* other )
 {
     if( !Member::TypeCheck( other ) )
@@ -137,7 +137,7 @@ Member_copy_static_observers( Member* self, PyObject* other )
 }
 
 
-static PyObject*
+PyObject*
 Member_static_observers( Member* self )
 {
     if( !self->static_observers )
@@ -153,7 +153,7 @@ Member_static_observers( Member* self )
 }
 
 
-static PyObject*
+PyObject*
 Member_add_static_observer( Member* self, PyObject* observer )
 {
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
@@ -163,7 +163,7 @@ Member_add_static_observer( Member* self, PyObject* observer )
 }
 
 
-static PyObject*
+PyObject*
 Member_remove_static_observer( Member* self, PyObject* observer )
 {
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
@@ -173,7 +173,7 @@ Member_remove_static_observer( Member* self, PyObject* observer )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_slot( Member* self, PyObject* object )
 {
     if( !CAtom::TypeCheck( object ) )
@@ -188,7 +188,7 @@ Member_get_slot( Member* self, PyObject* object )
 }
 
 
-static PyObject*
+PyObject*
 Member_set_slot( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 2 )
@@ -205,7 +205,7 @@ Member_set_slot( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_del_slot( Member* self, PyObject* object )
 {
     if( !CAtom::TypeCheck( object ) )
@@ -218,7 +218,7 @@ Member_del_slot( Member* self, PyObject* object )
 }
 
 
-static PyObject*
+PyObject*
 Member_do_getattr( Member* self, PyObject* object )
 {
     if( !CAtom::TypeCheck( object ) )
@@ -227,7 +227,7 @@ Member_do_getattr( Member* self, PyObject* object )
 }
 
 
-static PyObject*
+PyObject*
 Member_do_setattr( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 2 )
@@ -242,7 +242,7 @@ Member_do_setattr( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_do_delattr( Member* self, PyObject* object )
 {
     if( !CAtom::TypeCheck( object ) )
@@ -253,7 +253,7 @@ Member_do_delattr( Member* self, PyObject* object )
 }
 
 
-static PyObject*
+PyObject*
 Member_do_post_getattr( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 2 )
@@ -266,7 +266,7 @@ Member_do_post_getattr( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_do_post_setattr( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 3 )
@@ -282,7 +282,7 @@ Member_do_post_setattr( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_do_default_value( Member* self, PyObject* object )
 {
     if( !CAtom::TypeCheck( object ) )
@@ -291,7 +291,7 @@ Member_do_default_value( Member* self, PyObject* object )
 }
 
 
-static PyObject*
+PyObject*
 Member_do_validate( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 3 )
@@ -305,7 +305,7 @@ Member_do_validate( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_do_post_validate( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 3 )
@@ -319,7 +319,7 @@ Member_do_post_validate( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_do_full_validate( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 3 )
@@ -333,7 +333,7 @@ Member_do_full_validate( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_clone( Member* self )
 {
     // reimplement in a subclass to clone additional Python state
@@ -363,14 +363,14 @@ Member_clone( Member* self )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_name( Member* self, void* context )
 {
     return cppy::incref( self->name );
 }
 
 
-static PyObject*
+PyObject*
 Member_set_name( Member* self, PyObject* value )
 {
     if( !PyUnicode_CheckExact( value ) )
@@ -384,14 +384,14 @@ Member_set_name( Member* self, PyObject* value )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_index( Member* self, void* context )
 {
     return PyLong_FromSsize_t( static_cast<Py_ssize_t>( self->index ) );
 }
 
 
-static PyObject*
+PyObject*
 Member_set_index( Member* self, PyObject* value )
 {
     if( !PyLong_Check( value ) )
@@ -418,7 +418,7 @@ parse_mode_and_context( PyObject* args, PyObject** context, T& mode )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_getattr_mode( Member* self, void* ctxt )
 {
     cppy::ptr tuple( PyTuple_New( 2 ) );
@@ -434,7 +434,7 @@ Member_get_getattr_mode( Member* self, void* ctxt )
 }
 
 
-static PyObject*
+PyObject*
 Member_set_getattr_mode( Member* self, PyObject* args )
 {
     GetAttr::Mode mode;
@@ -450,7 +450,7 @@ Member_set_getattr_mode( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_setattr_mode( Member* self, void* ctxt )
 {
     cppy::ptr tuple( PyTuple_New( 2 ) );
@@ -466,7 +466,7 @@ Member_get_setattr_mode( Member* self, void* ctxt )
 }
 
 
-static PyObject*
+PyObject*
 Member_set_setattr_mode( Member* self, PyObject* args )
 {
     SetAttr::Mode mode;
@@ -482,7 +482,7 @@ Member_set_setattr_mode( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_delattr_mode( Member* self, void* ctxt )
 {
     cppy::ptr tuple( PyTuple_New( 2 ) );
@@ -498,7 +498,7 @@ Member_get_delattr_mode( Member* self, void* ctxt )
 }
 
 
-static PyObject*
+PyObject*
 Member_set_delattr_mode( Member* self, PyObject* args )
 {
     DelAttr::Mode mode;
@@ -514,7 +514,7 @@ Member_set_delattr_mode( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_post_getattr_mode( Member* self, void* ctxt )
 {
     cppy::ptr tuple( PyTuple_New( 2 ) );
@@ -530,7 +530,7 @@ Member_get_post_getattr_mode( Member* self, void* ctxt )
 }
 
 
-static PyObject*
+PyObject*
 Member_set_post_getattr_mode( Member* self, PyObject* args )
 {
     PostGetAttr::Mode mode;
@@ -546,7 +546,7 @@ Member_set_post_getattr_mode( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_post_setattr_mode( Member* self, void* ctxt )
 {
     cppy::ptr tuple( PyTuple_New( 2 ) );
@@ -562,7 +562,7 @@ Member_get_post_setattr_mode( Member* self, void* ctxt )
 }
 
 
-static PyObject*
+PyObject*
 Member_set_post_setattr_mode( Member* self, PyObject* args )
 {
     PostSetAttr::Mode mode;
@@ -578,7 +578,7 @@ Member_set_post_setattr_mode( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_default_value_mode( Member* self, void* ctxt )
 {
     cppy::ptr tuple( PyTuple_New( 2 ) );
@@ -594,7 +594,7 @@ Member_get_default_value_mode( Member* self, void* ctxt )
 }
 
 
-static PyObject*
+PyObject*
 Member_set_default_value_mode( Member* self, PyObject* args )
 {
     DefaultValue::Mode mode;
@@ -610,7 +610,7 @@ Member_set_default_value_mode( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_validate_mode( Member* self, void* ctxt )
 {
     cppy::ptr tuple( PyTuple_New( 2 ) );
@@ -626,7 +626,7 @@ Member_get_validate_mode( Member* self, void* ctxt )
 }
 
 
-static PyObject*
+PyObject*
 Member_set_validate_mode( Member* self, PyObject* args )
 {
     Validate::Mode mode;
@@ -642,7 +642,7 @@ Member_set_validate_mode( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_post_validate_mode( Member* self, void* ctxt )
 {
     cppy::ptr tuple( PyTuple_New( 2 ) );
@@ -658,7 +658,7 @@ Member_get_post_validate_mode( Member* self, void* ctxt )
 }
 
 
-static PyObject*
+PyObject*
 Member_set_post_validate_mode( Member* self, PyObject* args )
 {
     PostValidate::Mode mode;
@@ -674,7 +674,7 @@ Member_set_post_validate_mode( Member* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Member_notify( Member* self, PyObject* args, PyObject* kwargs )
 {
     if( PyTuple_GET_SIZE( args ) < 1 )
@@ -691,7 +691,7 @@ Member_notify( Member* self, PyObject* args, PyObject* kwargs )
 }
 
 
-static PyObject*
+PyObject*
 Member_tag( Member* self, PyObject* args, PyObject* kwargs )
 {
     if( PyTuple_GET_SIZE( args ) != 0 )
@@ -710,7 +710,7 @@ Member_tag( Member* self, PyObject* args, PyObject* kwargs )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_metadata( Member* self, void* ctxt )
 {
     if( !self->metadata )
@@ -720,7 +720,7 @@ Member_get_metadata( Member* self, void* ctxt )
 }
 
 
-static int
+int
 Member_set_metadata( Member* self, PyObject* value, void* ctxt )
 {
     if( value && value != Py_None && !PyDict_Check( value ) )
@@ -738,7 +738,7 @@ Member_set_metadata( Member* self, PyObject* value, void* ctxt )
 }
 
 
-static PyObject*
+PyObject*
 Member__get__( Member* self, PyObject* object, PyObject* type )
 {
     if( !object )
@@ -749,7 +749,7 @@ Member__get__( Member* self, PyObject* object, PyObject* type )
 }
 
 
-static int
+int
 Member__set__( Member* self, PyObject* object, PyObject* value )
 {
     if( !CAtom::TypeCheck( object ) )
@@ -859,7 +859,7 @@ Member_methods[] = {
 };
 
 
-PyType_Slot Member_Type_slots[] = {
+static PyType_Slot Member_Type_slots[] = {
     { Py_tp_dealloc, void_cast( Member_dealloc ) },              /* tp_dealloc */
     { Py_tp_traverse, void_cast( Member_traverse ) },            /* tp_traverse */
     { Py_tp_clear, void_cast( Member_clear ) },                  /* tp_clear */

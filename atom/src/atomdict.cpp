@@ -195,7 +195,7 @@ PyObject* AtomDict_update( AtomDict* dict, PyObject* args, PyObject* kwargs )
 }
 
 
-PyMethodDef AtomDict_methods[] = {
+static PyMethodDef AtomDict_methods[] = {
 	{ "setdefault",
 		( PyCFunction )AtomDict_setdefault,
 		METH_VARARGS,
@@ -208,7 +208,7 @@ PyMethodDef AtomDict_methods[] = {
 };
 
 
-PyType_Slot AtomDict_Type_slots[] = {
+static PyType_Slot AtomDict_Type_slots[] = {
     { Py_tp_dealloc, void_cast( AtomDict_dealloc ) },              /* tp_dealloc */
     { Py_mp_ass_subscript, void_cast( AtomDict_ass_subscript ) },  /* mp_ass_subscript */
     { Py_tp_traverse, void_cast( AtomDict_traverse ) },            /* tp_traverse */

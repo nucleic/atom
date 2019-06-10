@@ -106,7 +106,7 @@ namespace ListMethods
 }  // namespace ListMethods
 
 
-static PyObject*
+PyObject*
 ListSubtype_New( PyTypeObject* subtype, Py_ssize_t size )
 {
     if( size < 0 )
@@ -290,7 +290,7 @@ private:
 };
 
 
-static PyObject*
+PyObject*
 AtomList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     cppy::ptr ptr( PyList_Type.tp_new( type, args, kwargs ) );
@@ -315,7 +315,7 @@ int AtomList_traverse( AtomList* self, visitproc visit, void* arg )
 	return PyList_Type.tp_traverse( pyobject_cast( self ), visit, arg );
 }
 
-static void
+void
 AtomList_dealloc( AtomList* self )
 {
     PyObject_GC_UnTrack( self );
@@ -326,28 +326,28 @@ AtomList_dealloc( AtomList* self )
 }
 
 
-static PyObject*
+PyObject*
 AtomList_append( AtomList* self, PyObject* value )
 {
     return AtomListHandler( self ).append( value );
 }
 
 
-static PyObject*
+PyObject*
 AtomList_insert( AtomList* self, PyObject* args )
 {
     return AtomListHandler( self ).insert( args );
 }
 
 
-static PyObject*
+PyObject*
 AtomList_extend( AtomList* self, PyObject* value )
 {
     return AtomListHandler( self ).extend( value );
 }
 
 
-static PyObject*
+PyObject*
 AtomList_reduce_ex( AtomList* self, PyObject* proto )
 {
     // An atomlist is pickled as a normal list. When the Atom class is
@@ -370,21 +370,21 @@ AtomList_reduce_ex( AtomList* self, PyObject* proto )
 }
 
 
-static int
+int
 AtomList_ass_item( AtomList* self, Py_ssize_t index, PyObject* value )
 {
     return AtomListHandler( self ).setitem( index, value );
 }
 
 
-static PyObject*
+PyObject*
 AtomList_inplace_concat( AtomList* self, PyObject* value )
 {
     return AtomListHandler( self ).iadd( value );
 }
 
 
-static int
+int
 AtomList_ass_subscript( AtomList* self, PyObject* key, PyObject* value )
 {
     return AtomListHandler( self ).setitem( key, value );
@@ -401,7 +401,7 @@ PyDoc_STRVAR( a_extend_doc,
 "L.extend(iterable) -- extend list by appending elements from the iterable" );
 
 
-PyMethodDef AtomList_methods[] = {
+static PyMethodDef AtomList_methods[] = {
     { "append", ( PyCFunction )AtomList_append, METH_O, a_append_doc },
     { "insert", ( PyCFunction )AtomList_insert, METH_VARARGS, a_insert_doc },
     { "extend", ( PyCFunction )AtomList_extend, METH_O, a_extend_doc },
@@ -411,7 +411,7 @@ PyMethodDef AtomList_methods[] = {
 
 
 
-PyType_Slot AtomList_Type_slots[] = {
+static PyType_Slot AtomList_Type_slots[] = {
     { Py_tp_base, void_cast( &PyList_Type ) },                      /* tp_base */
     { Py_tp_new, void_cast( AtomList_new ) },                       /* tp_new */
     { Py_tp_dealloc, void_cast( AtomList_dealloc ) },               /* tp_dealloc */
@@ -925,7 +925,7 @@ private:
 };
 
 
-static PyObject*
+PyObject*
 AtomCList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     return AtomList::TypeObject->tp_new( type, args, kwargs );
@@ -946,7 +946,7 @@ int AtomCList_traverse( AtomCList* self, visitproc visit, void* arg )
 }
 
 
-static void
+void
 AtomCList_dealloc( AtomCList* self )
 {
     PyObject_GC_UnTrack( self );
@@ -958,77 +958,77 @@ AtomCList_dealloc( AtomCList* self )
 }
 
 
-static PyObject*
+PyObject*
 AtomCList_append( AtomCList* self, PyObject* value )
 {
     return AtomCListHandler( self ).append( value );
 }
 
 
-static PyObject*
+PyObject*
 AtomCList_insert( AtomCList* self, PyObject* args )
 {
     return AtomCListHandler( self ).insert( args );
 }
 
 
-static PyObject*
+PyObject*
 AtomCList_extend( AtomCList* self, PyObject* value )
 {
     return AtomCListHandler( self ).extend( value );
 }
 
 
-static PyObject*
+PyObject*
 AtomCList_pop( AtomCList* self, PyObject* args )
 {
     return AtomCListHandler( self ).pop( args );
 }
 
 
-static PyObject*
+PyObject*
 AtomCList_remove( AtomCList* self, PyObject* value )
 {
     return AtomCListHandler( self ).remove( value );
 }
 
 
-static PyObject*
+PyObject*
 AtomCList_reverse( AtomCList* self )
 {
     return AtomCListHandler( self ).reverse();
 }
 
 
-static PyObject*
+PyObject*
 AtomCList_sort( AtomCList* self, PyObject* args, PyObject* kwargs )
 {
     return AtomCListHandler( self ).sort( args, kwargs );
 }
 
 
-static int
+int
 AtomCList_ass_item( AtomCList* self, Py_ssize_t index, PyObject* value )
 {
     return AtomCListHandler( self ).setitem( index, value );
 }
 
 
-static PyObject*
+PyObject*
 AtomCList_inplace_concat( AtomCList* self, PyObject* value )
 {
     return AtomCListHandler( self ).iadd( value );
 }
 
 
-static PyObject*
+PyObject*
 AtomCList_inplace_repeat( AtomCList* self, Py_ssize_t count )
 {
     return AtomCListHandler( self ).imul( count );
 }
 
 
-static int
+int
 AtomCList_ass_subscript( AtomCList* self, PyObject* key, PyObject* value )
 {
     return AtomCListHandler( self ).setitem( key, value );
@@ -1067,7 +1067,7 @@ AtomCList_methods[] = {
 };
 
 
-PyType_Slot AtomCList_Type_slots[] = {
+static PyType_Slot AtomCList_Type_slots[] = {
     { Py_tp_base, NULL },  // Set once the base type is created      /* tp_base */
     { Py_tp_new, void_cast( AtomCList_new ) },                       /* tp_new */
     { Py_tp_dealloc, void_cast( AtomCList_dealloc ) },               /* tp_dealloc */

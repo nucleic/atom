@@ -69,7 +69,7 @@ clear( CAtom* atom )
 namespace
 {
 
-static PyObject*
+PyObject*
 AtomRef_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     static char *kwlist[] = { "atom", 0 };
@@ -86,7 +86,7 @@ AtomRef_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-static void
+void
 AtomRef_dealloc( AtomRef* self )
 {
     // manual destructor since Python malloc'd and zero'd the struct
@@ -95,7 +95,7 @@ AtomRef_dealloc( AtomRef* self )
 }
 
 
-static PyObject*
+PyObject*
 AtomRef_call( AtomRef* self, PyObject* args, PyObject* kwargs )
 {
     static char *kwlist[] = { 0 };
@@ -108,7 +108,7 @@ AtomRef_call( AtomRef* self, PyObject* args, PyObject* kwargs )
 }
 
 
-static PyObject*
+PyObject*
 AtomRef_repr( AtomRef* self )
 {
     std::ostringstream ostr;
@@ -130,7 +130,7 @@ AtomRef_repr( AtomRef* self )
 }
 
 
-static PyObject*
+PyObject*
 AtomRef_sizeof( AtomRef* self, PyObject* args )
 {
     Py_ssize_t size = Py_TYPE(self)->tp_basicsize;
@@ -139,7 +139,7 @@ AtomRef_sizeof( AtomRef* self, PyObject* args )
 }
 
 
-static int
+int
 AtomRef__bool__( AtomRef* self )
 {
     return self->pointer.is_null() ? 0 : 1;
@@ -154,7 +154,7 @@ AtomRef_methods[] = {
 };
 
 
-PyType_Slot AtomRef_Type_slots[] = {
+static PyType_Slot AtomRef_Type_slots[] = {
     { Py_tp_dealloc, void_cast( AtomRef_dealloc ) },              /* tp_dealloc */
     { Py_tp_repr, void_cast( AtomRef_repr ) },                    /* tp_repr */
     { Py_tp_methods, void_cast( AtomRef_methods ) },              /* tp_methods */

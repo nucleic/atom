@@ -113,7 +113,7 @@ EventBinder_methods[] = {
     { 0 } // sentinel
 };
 
-PyType_Slot EventBinder_Type_slots[] = {
+static PyType_Slot EventBinder_Type_slots[] = {
     { Py_tp_dealloc, void_cast( EventBinder_dealloc ) },          /* tp_dealloc */
     { Py_tp_traverse, void_cast( EventBinder_traverse ) },        /* tp_traverse */
     { Py_tp_clear, void_cast( EventBinder_clear ) },              /* tp_clear */

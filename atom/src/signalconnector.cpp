@@ -116,7 +116,7 @@ SignalConnector_disconnect( SignalConnector* self, PyObject* callback )
 }
 
 
-PyMethodDef
+static PyMethodDef
 SignalConnector_methods[] = {
     { "emit", ( PyCFunction )SignalConnector_emit, METH_VARARGS | METH_KEYWORDS,
       "Emit the signal with positional and keywords arguments. This is equivalent to calling the signal." },
@@ -128,7 +128,7 @@ SignalConnector_methods[] = {
 };
 
 
-PyType_Slot SignalConnector_Type_slots[] = {
+static PyType_Slot SignalConnector_Type_slots[] = {
     { Py_tp_dealloc, void_cast( SignalConnector_dealloc ) },          /* tp_dealloc */
     { Py_tp_traverse, void_cast( SignalConnector_traverse ) },        /* tp_traverse */
     { Py_tp_clear, void_cast( SignalConnector_clear ) },              /* tp_clear */
