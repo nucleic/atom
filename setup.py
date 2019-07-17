@@ -104,7 +104,6 @@ setup(
           'Programming Language :: Python :: Implementation :: CPython',
       ],
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
-    install_requires=['setuptools'],
     setup_requires=['cppy'],
     packages=find_packages(exclude=['tests', 'tests.*']),
     ext_modules=ext_modules,
