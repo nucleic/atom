@@ -3,6 +3,10 @@ Atom Release Notes
 
 0.5.0 - unreleased
 ------------------
+- drop Python 2 support PR #83
+- use cppy to write the c++ extension PR #83
+- add c++ implememtation of AtomDict PR #93
+- add a Set member PR #93
 
 
 0.4.3 - 18/02/2019
