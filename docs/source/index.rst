@@ -17,6 +17,7 @@ for object attributes. It provides the default model binding behaviour for the
    Getting started <basis/index.rst>
    Advanced Features <advanced/index.rst>
    Examples <examples/index.rst>
+   Developer notes <developer_notes/index.rst>
    API Documentation <api/atom.rst>
 
 
