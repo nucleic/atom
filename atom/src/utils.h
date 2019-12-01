@@ -31,28 +31,6 @@ str_check( PyObject* obj )
     );
 }
 
-inline Py_ssize_t sys_getsizeof( PyObject* pyo )
-{
-	PyObject* sysdict = PyThreadState_GET()->interp->sysdict;
-	PyObject* getsizeof = PyDict_GetItemString( sysdict, "getsizeof" );
-	if( !getsizeof )
-	{
-		cppy::system_error( "failed to load sys.getsizeof" );
-		return -1;
-	}
-	cppy::ptr args( PyTuple_Pack( 1, pyo ) );
-	if( !args )
-	{
-		return -1;
-	}
-	cppy::ptr size( PyObject_Call( getsizeof, args.get(), 0 ) );
-	if( !size )
-	{
-		return -1;
-	}
-	return PyLong_AsSsize_t( size.get() );
-}
-
 
 inline bool is_type_or_tuple_of_types( PyObject* pyo )
 {
