@@ -517,7 +517,7 @@ typedef std::multimap<CAtom*, CAtom**> GuardMap;
 GLOBAL_STATIC( GuardMap, guard_map )
 
 
-static void CAtom::add_guard( CAtom** ptr )
+void CAtom::add_guard( CAtom** ptr )
 {
     if( !*ptr )
         return;
@@ -532,7 +532,7 @@ static void CAtom::add_guard( CAtom** ptr )
 }
 
 
-static void CAtom::remove_guard( CAtom** ptr )
+void CAtom::remove_guard( CAtom** ptr )
 {
     if( !*ptr )
         return;
@@ -562,7 +562,7 @@ static void CAtom::remove_guard( CAtom** ptr )
 }
 
 
-static void CAtom::change_guard( CAtom** ptr, CAtom* o )
+void CAtom::change_guard( CAtom** ptr, CAtom* o )
 {
     GuardMap* map = guard_map();
     if( !map )
@@ -580,7 +580,7 @@ static void CAtom::change_guard( CAtom** ptr, CAtom* o )
 }
 
 
-static void CAtom::clear_guards( CAtom* o )
+void CAtom::clear_guards( CAtom* o )
 {
     GuardMap* map = 0;
     try
