@@ -14,6 +14,9 @@ features such as dynamic initialization, validation, and change notification for
 object attributes. It provides the default model binding behaviour for the
 `Enaml <http://nucleic.github.io/enaml/docs>`_ UI framework.
 
+Version 0.4.3 will be the last version to support Python 2.  Moving forward
+support will be limited to Python 3.5+.
+
 Illustrative Example:
 
 .. code-block:: python

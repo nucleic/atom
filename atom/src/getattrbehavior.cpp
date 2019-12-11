@@ -1,18 +1,18 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Atom Development Team.
+| Copyright (c) 2013-2019, Atom Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <cppy/cppy.h>
 #include "eventbinder.h"
 #include "member.h"
 #include "memberchange.h"
 #include "signalconnector.h"
-#include "py23compat.h"
 
-
-using namespace PythonHelpers;
+namespace atom
+{
 
 
 bool
@@ -23,7 +23,7 @@ Member::check_context( GetAttr::Mode mode, PyObject* context )
         case GetAttr::Delegate:
             if( !Member::TypeCheck( context ) )
             {
-                py_expected_type_fail( context, "Member" );
+                cppy::type_error( context, "Member" );
                 return false;
             }
             break;
@@ -31,7 +31,7 @@ Member::check_context( GetAttr::Mode mode, PyObject* context )
         case GetAttr::CachedProperty:
             if( context != Py_None && !PyCallable_Check( context ) )
             {
-                py_expected_type_fail( context, "callable or None" );
+                cppy::type_error( context, "callable or None" );
                 return false;
             }
             break;
@@ -39,16 +39,16 @@ Member::check_context( GetAttr::Mode mode, PyObject* context )
         case GetAttr::CallObject_ObjectName:
             if( !PyCallable_Check( context ) )
             {
-                py_expected_type_fail( context, "callable" );
+                cppy::type_error( context, "callable" );
                 return false;
             }
             break;
         case GetAttr::ObjectMethod:
         case GetAttr::ObjectMethod_Name:
         case GetAttr::MemberMethod_Object:
-            if( !Py23Str_Check( context ) )
+            if( !PyUnicode_Check( context ) )
             {
-                py_expected_type_fail( context, "str" );
+                cppy::type_error( context, "str" );
                 return false;
             }
             break;
@@ -59,33 +59,37 @@ Member::check_context( GetAttr::Mode mode, PyObject* context )
 }
 
 
-static PyObject*
+namespace
+{
+
+
+PyObject*
 no_op_handler( Member* member, CAtom* atom )
 {
-    return newref( Py_None );
+    return cppy::incref( Py_None );
 }
 
 
-static PyObject*
+PyObject*
 created_args( CAtom* atom, Member* member, PyObject* value )
 {
-    PyTuplePtr argsptr( PyTuple_New( 1 ) );
+    cppy::ptr argsptr( PyTuple_New( 1 ) );
     if( !argsptr )
         return 0;
-    PyObjectPtr changeptr( MemberChange::created( atom, member, value ) );
-    if( !changeptr )
+    cppy::ptr change( MemberChange::created( atom, member, value ) );
+    if( !change )
         return 0;
-    argsptr.initialize( 0, changeptr );
+    PyTuple_SET_ITEM( argsptr.get(), 0, change.release() );
     return argsptr.release();
 }
 
 
-static PyObject*
+PyObject*
 slot_handler( Member* member, CAtom* atom )
 {
     if( member->index >= atom->get_slot_count() )
-        return py_no_attr_fail( pyobject_cast( atom ), (char const *)Py23Str_AS_STRING( member->name ) );
-    PyObjectPtr value( atom->get_slot( member->index ) );
+        return cppy::attribute_error( pyobject_cast( atom ), (char const *)PyUnicode_AsUTF8( member->name ) );
+    cppy::ptr value( atom->get_slot( member->index ) );
     if( value )
     {
         if( member->get_post_getattr_mode() )
@@ -101,7 +105,7 @@ slot_handler( Member* member, CAtom* atom )
     atom->set_slot( member->index, value.get() );
     if( atom->get_notifications_enabled() )
     {
-        PyObjectPtr argsptr;
+        cppy::ptr argsptr;
         if( member->has_observers() )
         {
             argsptr = created_args( atom, member, value.get() );
@@ -128,21 +132,21 @@ slot_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 event_handler( Member* member, CAtom* atom )
 {
-    return EventBinder_New( member, atom );
+    return EventBinder::New( member, atom );
 }
 
 
-static PyObject*
+PyObject*
 signal_handler( Member* member, CAtom* atom )
 {
-    return SignalConnector_New( member, atom );
+    return SignalConnector::New( member, atom );
 }
 
 
-static PyObject*
+PyObject*
 delegate_handler( Member* member, CAtom* atom )
 {
     Member* delegate = member_cast( member->getattr_context );
@@ -150,46 +154,46 @@ delegate_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 _mangled_property_handler( Member* member, CAtom* atom )
 {
-    char* suffix = (char *)Py23Str_AS_STRING( member->name );
-    PyObjectPtr name( Py23Str_FromFormat( "_get_%s", suffix ) );
+    char* suffix = (char *)PyUnicode_AsUTF8( member->name );
+    cppy::ptr name( PyUnicode_FromFormat( "_get_%s", suffix ) );
     if( !name )
         return 0;
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), name.get() ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), name.get() ) );
     if( !callable )
     {
         if( PyErr_ExceptionMatches( PyExc_AttributeError ) )
             PyErr_SetString( PyExc_AttributeError, "unreadable attribute" );
         return 0;
     }
-    PyObjectPtr args( PyTuple_New( 0 ) );
+    cppy::ptr args( PyTuple_New( 0 ) );
     if( !args )
         return 0;
-    return PyObject_Call( callable.get(), args.get(), 0 );
+    return callable.call( args );
 }
 
 
-static PyObject*
+PyObject*
 property_handler( Member* member, CAtom* atom )
 {
     if( member->getattr_context != Py_None )
     {
-        PyObjectPtr args( PyTuple_New( 1 ) );
+        cppy::ptr args( PyTuple_New( 1 ) );
         if( !args )
             return 0;
-        PyTuple_SET_ITEM( args.get(), 0, newref( pyobject_cast( atom ) ) );
+        PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
         return PyObject_Call( member->getattr_context, args.get(), 0 );
     }
     return _mangled_property_handler( member, atom );
 }
 
 
-static PyObject*
+PyObject*
 cached_property_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr value( atom->get_slot( member->index ) );
+    cppy::ptr value( atom->get_slot( member->index ) );
     if( value )
         return value.release();
     value = property_handler( member, atom );
@@ -198,81 +202,81 @@ cached_property_handler( Member* member, CAtom* atom )
 }
 
 
-static PyObject*
+PyObject*
 call_object_object_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( newref( member->getattr_context ) );
-    PyTuplePtr args( PyTuple_New( 1 ) );
+    cppy::ptr callable( cppy::incref( member->getattr_context ) );
+    cppy::ptr args( PyTuple_New( 1 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    PyObjectPtr result( callable( args ) );
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
+    cppy::ptr result( callable.call( args ) );
     if( !result )
         return 0;
     return member->full_validate( atom, Py_None, result.get() );
 }
 
 
-static PyObject*
+PyObject*
 call_object_object_name_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( newref( member->getattr_context ) );
-    PyTuplePtr args( PyTuple_New( 2 ) );
+    cppy::ptr callable( cppy::incref( member->getattr_context ) );
+    cppy::ptr args( PyTuple_New( 2 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    args.initialize( 1, newref( member->name ) );
-    PyObjectPtr result( callable( args ) );
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
+    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( member->name ) );
+    cppy::ptr result( callable.call( args ) );
     if( !result )
         return 0;
     return member->full_validate( atom, Py_None, result.get() );
 }
 
 
-static PyObject*
+PyObject*
 object_method_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->getattr_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->getattr_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 0 ) );
+    cppy::ptr args( PyTuple_New( 0 ) );
     if( !args )
         return 0;
-    PyObjectPtr result( callable( args ) );
+    cppy::ptr result( callable.call( args ) );
     if( !result )
         return 0;
     return member->full_validate( atom, Py_None, result.get() );
 }
 
 
-static PyObject*
+PyObject*
 object_method_name_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->getattr_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->getattr_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 1 ) );
+    cppy::ptr args( PyTuple_New( 1 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( member->name ) );
-    PyObjectPtr result( callable( args ) );
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( member->name ) );
+    cppy::ptr result( callable.call( args ) );
     if( !result )
         return 0;
     return member->full_validate( atom, Py_None, result.get() );
 }
 
 
-static PyObject*
+PyObject*
 member_method_object_handler( Member* member, CAtom* atom )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( member ), member->getattr_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->getattr_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 1 ) );
+    cppy::ptr args( PyTuple_New( 1 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    PyObjectPtr result( callable( args ) );
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
+    cppy::ptr result( callable.call( args ) );
     if( !result )
         return 0;
     return member->full_validate( atom, Py_None, result.get() );
@@ -299,6 +303,8 @@ handlers[] = {
     member_method_object_handler
 };
 
+}  // namespace
+
 
 PyObject*
 Member::getattr( CAtom* atom )
@@ -307,3 +313,5 @@ Member::getattr( CAtom* atom )
         return no_op_handler( this, atom );  // LCOV_EXCL_LINE
     return handlers[ get_getattr_mode() ]( this, atom );
 }
+
+}  // namespace atom

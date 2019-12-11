@@ -1,14 +1,16 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
-#include "py23compat.h"
-#include "pythonhelpers.h"
+#include <cppy/cppy.h>
 #include "behaviors.h"
+
+namespace atom
+{
 
 
 extern PyObject* PyGetAttr;
@@ -21,7 +23,7 @@ extern PyObject* PyValidate;
 extern PyObject* PyPostValidate;
 
 
-int import_enumtypes();
+bool init_enumtypes();
 
 
 namespace EnumTypes
@@ -30,10 +32,10 @@ namespace EnumTypes
 template<typename T> inline bool
 _from_py_enum( PyObject* value, PyObject* py_type, T& out )
 {
-    PyTypeObject* ob_type = reinterpret_cast<PyTypeObject*>( py_type );
+    PyTypeObject* ob_type = pytype_cast( py_type );
     if( !PyObject_TypeCheck( value, ob_type ) )
     {
-        PythonHelpers::py_expected_type_fail( value, ob_type->tp_name );
+        cppy::type_error( value, ob_type->tp_name );
         return false;
     }
     long lval = PyLong_AsLong( value );
@@ -107,13 +109,13 @@ from_py_enum( PyObject* value, PostValidate::Mode& out )
 template<typename T> inline PyObject*
 _to_py_enum( T value, PyObject* py_enum_class )
 {
-    PythonHelpers::PyObjectPtr py_int( Py23Int_FromLong( static_cast<long>( value ) ) );
+    cppy::ptr py_int( PyLong_FromLong( static_cast<long>( value ) ) );
     if( !py_int )
         return 0;
-    PythonHelpers::PyTuplePtr py_args( PyTuple_New( 1 ) );
+    cppy::ptr py_args( PyTuple_New( 1 ) );
     if( !py_args )
         return 0;
-    py_args.set_item( 0, py_int );
+    PyTuple_SET_ITEM( py_args.get(), 0, py_int.release() );
     return PyObject_Call( py_enum_class, py_args.get(), 0 );
 }
 
@@ -178,3 +180,5 @@ to_py_enum( PostValidate::Mode value )
 }
 
 }  // namespace EnumTypes
+
+}  // namespace atom

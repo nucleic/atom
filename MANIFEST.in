@@ -1,16 +1,20 @@
+include MANIFEST.in
 include *.txt
 include *.rst
 include *.md
 include Makefile
 include LICENSE
 recursive-include tests
-recursive-include docs *.rst
-recursive-include docs *.png
-recursive-include docs *.py
+recursive-include docs/source *.rst
+recursive-include docs/source *.png
+recursive-include docs/source *.py
+include docs/make.bat
+include docs/Makefile
 recursive-include examples *.py
 recursive-include licenses *.txt
 recursive-include atom/src *.cpp
 recursive-include atom/src *.h
+recursive-include tests *.py
 prune .git
 prune docs/build
 prune dist

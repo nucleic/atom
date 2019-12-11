@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -8,22 +8,25 @@
 #include "observerpool.h"
 
 
+namespace atom
+{
+
 namespace
 {
 
 struct BaseTask : public ModifyTask
 {
-    BaseTask( ObserverPool& pool, PyObjectPtr& topic, PyObjectPtr& observer ) :
+    BaseTask( ObserverPool& pool, cppy::ptr& topic, cppy::ptr& observer ) :
         m_pool( pool ), m_topic( topic ), m_observer( observer ) {}
     ObserverPool& m_pool;
-    PyObjectPtr m_topic;
-    PyObjectPtr m_observer;
+    cppy::ptr m_topic;
+    cppy::ptr m_observer;
 };
 
 
 struct AddTask : public BaseTask
 {
-    AddTask( ObserverPool& pool, PyObjectPtr& topic, PyObjectPtr& observer ) :
+    AddTask( ObserverPool& pool, cppy::ptr& topic, cppy::ptr& observer ) :
         BaseTask( pool, topic, observer ) {}
     void run() { m_pool.add( m_topic, m_observer ); }
 };
@@ -31,7 +34,7 @@ struct AddTask : public BaseTask
 
 struct RemoveTask : public BaseTask
 {
-    RemoveTask( ObserverPool& pool, PyObjectPtr& topic, PyObjectPtr& observer ) :
+    RemoveTask( ObserverPool& pool, cppy::ptr& topic, cppy::ptr& observer ) :
         BaseTask( pool, topic, observer ) {}
     void run() { m_pool.remove( m_topic, m_observer ); }
 };
@@ -39,18 +42,18 @@ struct RemoveTask : public BaseTask
 
 struct RemoveTopicTask : ModifyTask
 {
-    RemoveTopicTask( ObserverPool& pool, PyObjectPtr& topic ) :
+    RemoveTopicTask( ObserverPool& pool, cppy::ptr& topic ) :
         m_pool( pool ), m_topic( topic ) {}
     void run() { m_pool.remove( m_topic ); }
     ObserverPool& m_pool;
-    PyObjectPtr m_topic;
+    cppy::ptr m_topic;
 };
 
 } // namespace
 
 
 bool
-ObserverPool::has_topic( PyObjectPtr& topic )
+ObserverPool::has_topic( cppy::ptr& topic )
 {
     std::vector<Topic>::iterator topic_it;
     std::vector<Topic>::iterator topic_end = m_topics.end();
@@ -64,7 +67,7 @@ ObserverPool::has_topic( PyObjectPtr& topic )
 
 
 bool
-ObserverPool::has_observer( PyObjectPtr& topic, PyObjectPtr& observer )
+ObserverPool::has_observer( cppy::ptr& topic, cppy::ptr& observer )
 {
     uint32_t obs_offset = 0;
     std::vector<Topic>::iterator topic_it;
@@ -73,13 +76,13 @@ ObserverPool::has_observer( PyObjectPtr& topic, PyObjectPtr& observer )
     {
         if( topic_it->match( topic ) )
         {
-            std::vector<PyObjectPtr>::iterator obs_it;
-            std::vector<PyObjectPtr>::iterator obs_end;
+            std::vector<cppy::ptr>::iterator obs_it;
+            std::vector<cppy::ptr>::iterator obs_end;
             obs_it = m_observers.begin() + obs_offset;
             obs_end = obs_it + topic_it->m_count;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( *obs_it == observer || obs_it->richcompare( observer, Py_EQ ) )
+                if( *obs_it == observer || obs_it->richcmp( observer, Py_EQ ) )
                     return true;
             }
             return false;
@@ -91,7 +94,7 @@ ObserverPool::has_observer( PyObjectPtr& topic, PyObjectPtr& observer )
 
 
 void
-ObserverPool::add( PyObjectPtr& topic, PyObjectPtr& observer )
+ObserverPool::add( cppy::ptr& topic, cppy::ptr& observer )
 {
     if( m_modify_guard )
     {
@@ -106,17 +109,17 @@ ObserverPool::add( PyObjectPtr& topic, PyObjectPtr& observer )
     {
         if( topic_it->match( topic ) )
         {
-            std::vector<PyObjectPtr>::iterator obs_it;
-            std::vector<PyObjectPtr>::iterator obs_end;
-            std::vector<PyObjectPtr>::iterator obs_free;
+            std::vector<cppy::ptr>::iterator obs_it;
+            std::vector<cppy::ptr>::iterator obs_end;
+            std::vector<cppy::ptr>::iterator obs_free;
             obs_it = m_observers.begin() + obs_offset;
             obs_end = obs_it + topic_it->m_count;
             obs_free = obs_end;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( *obs_it == observer || obs_it->richcompare( observer, Py_EQ ) )
+                if( *obs_it == observer || obs_it->richcmp( observer, Py_EQ ) )
                     return;
-                if( !obs_it->is_true() )
+                if( !obs_it->is_truthy() )
                     obs_free = obs_it;
             }
             if( obs_free == obs_end )
@@ -136,7 +139,7 @@ ObserverPool::add( PyObjectPtr& topic, PyObjectPtr& observer )
 
 
 void
-ObserverPool::remove( PyObjectPtr& topic, PyObjectPtr& observer )
+ObserverPool::remove( cppy::ptr& topic, cppy::ptr& observer )
 {
     if( m_modify_guard )
     {
@@ -151,13 +154,13 @@ ObserverPool::remove( PyObjectPtr& topic, PyObjectPtr& observer )
     {
         if( topic_it->match( topic ) )
         {
-            std::vector<PyObjectPtr>::iterator obs_it;
-            std::vector<PyObjectPtr>::iterator obs_end;
+            std::vector<cppy::ptr>::iterator obs_it;
+            std::vector<cppy::ptr>::iterator obs_end;
             obs_it = m_observers.begin() + obs_offset;
             obs_end = obs_it + topic_it->m_count;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( *obs_it == observer || obs_it->richcompare( observer, Py_EQ ) )
+                if( *obs_it == observer || obs_it->richcmp( observer, Py_EQ ) )
                 {
                     m_observers.erase( obs_it );
                     if( ( --topic_it->m_count ) == 0 )
@@ -173,7 +176,7 @@ ObserverPool::remove( PyObjectPtr& topic, PyObjectPtr& observer )
 
 
 void
-ObserverPool::remove( PyObjectPtr& topic )
+ObserverPool::remove( cppy::ptr& topic )
 {
     if( m_modify_guard )
     {
@@ -201,7 +204,7 @@ ObserverPool::remove( PyObjectPtr& topic )
 
 
 bool
-ObserverPool::notify( PyObjectPtr& topic, PyObjectPtr& args, PyObjectPtr& kwargs )
+ObserverPool::notify( cppy::ptr& topic, cppy::ptr& args, cppy::ptr& kwargs )
 {
     ModifyGuard<ObserverPool> guard( *this );
     uint32_t obs_offset = 0;
@@ -211,15 +214,15 @@ ObserverPool::notify( PyObjectPtr& topic, PyObjectPtr& args, PyObjectPtr& kwargs
     {
         if( topic_it->match( topic ) )
         {
-            std::vector<PyObjectPtr>::iterator obs_it;
-            std::vector<PyObjectPtr>::iterator obs_end;
+            std::vector<cppy::ptr>::iterator obs_it;
+            std::vector<cppy::ptr>::iterator obs_end;
             obs_it = m_observers.begin() + obs_offset;
             obs_end = obs_it + topic_it->m_count;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( obs_it->is_true() )
+                if( obs_it->is_truthy() )
                 {
-                    if( !obs_it->operator()( args, kwargs ) )
+                    if( !obs_it->call( args, kwargs ) )
                         return false;
                 }
                 else
@@ -248,8 +251,8 @@ ObserverPool::py_traverse( visitproc visit, void* arg )
         if( vret )
             return vret;
     }
-    std::vector<PyObjectPtr>::iterator obs_it;
-    std::vector<PyObjectPtr>::iterator obs_end = m_observers.end();
+    std::vector<cppy::ptr>::iterator obs_it;
+    std::vector<cppy::ptr>::iterator obs_end = m_observers.end();
     for( obs_it = m_observers.begin(); obs_it != obs_end; ++obs_it )
     {
         vret = visit( obs_it->get(), arg );
@@ -258,3 +261,6 @@ ObserverPool::py_traverse( visitproc visit, void* arg )
     }
     return 0;
 }
+
+
+}  //namespace atom

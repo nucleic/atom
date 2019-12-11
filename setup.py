@@ -10,6 +10,8 @@ import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
 
+import cppy
+
 sys.path.insert(0, os.path.abspath('.'))
 from atom.version import __version__
 
@@ -18,6 +20,8 @@ ext_modules = [
         'atom.catom',
         [
             'atom/src/atomlist.cpp',
+            'atom/src/atomdict.cpp',
+            'atom/src/atomset.cpp',
             'atom/src/atomref.cpp',
             'atom/src/catom.cpp',
             'atom/src/catommodule.cpp',
@@ -38,11 +42,13 @@ ext_modules = [
             'atom/src/signalconnector.cpp',
             'atom/src/validatebehavior.cpp',
         ],
+        include_dirs=['src'],
         language='c++',
     ),
     Extension(
         'atom.datastructures.sortedmap',
         ['atom/src/sortedmap.cpp'],
+        include_dirs=['src'],
         language='c++',
     ),
 ]
@@ -53,7 +59,7 @@ class BuildExt(build_ext):
 
     """
     c_opts = {
-        'msvc': ['/EHsc']
+        'msvc': ['/EHsc'],
     }
 
     def initialize_options(self):
@@ -61,10 +67,18 @@ class BuildExt(build_ext):
         self.debug = False
 
     def build_extensions(self):
+
+        # Delayed import of cppy to let setup_requires install it if necessary
+        import cppy
+
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
         for ext in self.extensions:
+            ext.include_dirs.insert(0, cppy.get_include())
             ext.extra_compile_args = opts
+            if sys.platform == 'darwin':
+                ext.extra_compile_args += ['-stdlib=libc++']
+                ext.extra_link_args += ['-stdlib=libc++']
         build_ext.build_extensions(self)
 
 
@@ -90,7 +104,7 @@ setup(
           'Programming Language :: Python :: Implementation :: CPython',
       ],
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
-    install_requires=['setuptools'],
+    setup_requires=['cppy'],
     packages=find_packages(exclude=['tests', 'tests.*']),
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},

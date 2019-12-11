@@ -1,16 +1,17 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <cppy/cppy.h>
 #include "member.h"
 #include "memberchange.h"
-#include "py23compat.h"
 
 
-using namespace PythonHelpers;
+namespace atom
+{
 
 
 bool
@@ -21,14 +22,14 @@ Member::check_context( DelAttr::Mode mode, PyObject* context )
         case DelAttr::Delegate:
             if( !Member::TypeCheck( context ) )
             {
-                py_expected_type_fail( context, "Member" );
+                cppy::type_error( context, "Member" );
                 return false;
             }
             break;
         case DelAttr::Property:
             if( context != Py_None && !PyCallable_Check( context ) )
             {
-                py_expected_type_fail( context, "callable or None" );
+                cppy::type_error( context, "callable or None" );
                 return false;
             }
             break;
@@ -39,33 +40,36 @@ Member::check_context( DelAttr::Mode mode, PyObject* context )
 }
 
 
-static int
+namespace
+{
+
+int
 no_op_handler( Member* member, CAtom* atom )
 {
     return 0;
 }
 
 
-static PyObject*
+PyObject*
 deleted_args( CAtom* atom, Member* member, PyObject* value )
 {
-    PyTuplePtr argsptr( PyTuple_New( 1 ) );
+    cppy::ptr argsptr( PyTuple_New( 1 ) );
     if( !argsptr )
         return 0;
-    PyObjectPtr changeptr( MemberChange::deleted( atom, member, value ) );
-    if( !changeptr )
+    cppy::ptr change( MemberChange::deleted( atom, member, value ) );
+    if( !change )
         return 0;
-    argsptr.initialize( 0, changeptr );
+    PyTuple_SET_ITEM( argsptr.get(), 0, change.release() );
     return argsptr.release();
 }
 
 
-static int
+int
 slot_handler( Member* member, CAtom* atom )
 {
     if( member->index >= atom->get_slot_count() )
     {
-        py_no_attr_fail( pyobject_cast( atom ), (char const *)Py23Str_AS_STRING( member->name ) );
+        cppy::attribute_error( pyobject_cast( atom ), (char const *)PyUnicode_AsUTF8( member->name ) );
         return -1;
     }
     if( atom->is_frozen() )
@@ -73,13 +77,13 @@ slot_handler( Member* member, CAtom* atom )
         PyErr_SetString( PyExc_AttributeError, "can't delete attribute of frozen Atom" );
         return -1;
     }
-    PyObjectPtr valueptr( atom->get_slot( member->index ) );
+    cppy::ptr valueptr( atom->get_slot( member->index ) );
     if( !valueptr )
         return 0;
     atom->set_slot( member->index, 0 );
     if( atom->get_notifications_enabled() )
     {
-        PyObjectPtr argsptr;
+        cppy::ptr argsptr;
         if( member->has_observers() )
         {
             argsptr = deleted_args( atom, member, valueptr.get() );
@@ -104,39 +108,39 @@ slot_handler( Member* member, CAtom* atom )
 }
 
 
-static int
+int
 constant_handler( Member* member, CAtom* atom )
 {
-    py_type_fail( "cannot delete the value of a constant member" );
+    cppy::type_error( "cannot delete the value of a constant member" );
     return -1;
 }
 
 
-static int
+int
 read_only_handler( Member* member, CAtom* atom )
 {
-    py_type_fail( "cannot delete the value of a read only member" );
+    cppy::type_error( "cannot delete the value of a read only member" );
     return -1;
 }
 
 
-static int
+int
 event_handler( Member* member, CAtom* atom )
 {
-    py_type_fail( "cannot delete the value of an event" );
+    cppy::type_error( "cannot delete the value of an event" );
     return -1;
 }
 
 
-static int
+int
 signal_handler( Member* member, CAtom* atom )
 {
-    py_type_fail( "cannot delete the value of a signal" );
+    cppy::type_error( "cannot delete the value of a signal" );
     return -1;
 }
 
 
-static int
+int
 delegate_handler( Member* member, CAtom* atom )
 {
     Member* delegate = member_cast( member->delattr_context );
@@ -144,40 +148,40 @@ delegate_handler( Member* member, CAtom* atom )
 }
 
 
-static int
+int
 _mangled_property_handler( Member* member, CAtom* atom )
 {
-    char* suffix = (char *)Py23Str_AS_STRING( member->name );
-    PyObjectPtr name( Py23Str_FromFormat( "_del_%s", suffix ) );
+    char* suffix = (char *)PyUnicode_AsUTF8( member->name );
+    cppy::ptr name( PyUnicode_FromFormat( "_del_%s", suffix ) );
     if( !name )
         return -1;
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), name.get() ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), name.get() ) );
     if( !callable )
     {
         if( PyErr_ExceptionMatches( PyExc_AttributeError ) )
             PyErr_SetString( PyExc_AttributeError, "can't delete attribute" );
         return -1;
     }
-    PyObjectPtr args( PyTuple_New( 0 ) );
+    cppy::ptr args( PyTuple_New( 0 ) );
     if( !args )
         return -1;
-    PyObjectPtr ok( PyObject_Call( callable.get(), args.get(), 0 ) );
+    cppy::ptr ok( callable.call( args ) );
     if( !ok )
         return -1;
     return 0;
 }
 
 
-static int
+int
 property_handler( Member* member, CAtom* atom )
 {
     if( member->delattr_context != Py_None )
     {
-        PyObjectPtr args( PyTuple_New( 1 ) );
+        cppy::ptr args( PyTuple_New( 1 ) );
         if( !args )
             return -1;
-        PyTuple_SET_ITEM( args.get(), 0, newref( pyobject_cast( atom ) ) );
-        PyObjectPtr ok( PyObject_Call( member->delattr_context, args.get(), 0 ) );
+        PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
+        cppy::ptr ok( PyObject_Call( member->delattr_context, args.get(), 0 ) );
         if( !ok )
             return -1;
         return 0;
@@ -203,6 +207,9 @@ handlers[] = {
 };
 
 
+}  // namespace
+
+
 int
 Member::delattr( CAtom* atom )
 {
@@ -210,3 +217,6 @@ Member::delattr( CAtom* atom )
         return no_op_handler( this, atom );  // LCOV_EXCL_LINE
     return handlers[ get_delattr_mode() ]( this, atom );
 }
+
+
+}  // namespace atom

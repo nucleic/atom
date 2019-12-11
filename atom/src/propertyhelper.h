@@ -9,4 +9,11 @@
 #include <Python.h>
 
 
+namespace atom
+{
+
+
 PyObject* reset_property( PyObject* mod, PyObject* args );
+
+
+}  // namespace atom

@@ -294,7 +294,7 @@ def test_wrong_args_observe():
 
     with pytest.raises(TypeError) as excinfo:
         dt1.observe((1, 1), lambda change: change)
-    assert 'basestring' in excinfo.exconly()
+    assert 'str' in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         dt1.observe('val', 1)
@@ -401,12 +401,12 @@ def test_wrong_args_unobserve(observed_atom):
     # Non iterable fo string first arg
     with pytest.raises(TypeError) as excinfo:
         a.unobserve((1, 1))
-    assert 'basestring' in excinfo.exconly()
+    assert 'str' in excinfo.exconly()
 
     # Non iterable fo string first arg with callable
     with pytest.raises(TypeError) as excinfo:
         a.unobserve((1, 1), lambda change: change)
-    assert 'basestring' in excinfo.exconly()
+    assert 'str' in excinfo.exconly()
 
     # Non callable second arg
     with pytest.raises(TypeError) as excinfo:
@@ -425,7 +425,7 @@ def test_wrong_arg_to_has_observer(observed_atom):
 
     with pytest.raises(TypeError) as excinfo:
         a.has_observer(1, lambda x: x)
-    assert 'basestring' in excinfo.exconly()
+    assert 'str' in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         a.has_observer('val', 1)
@@ -672,7 +672,7 @@ def test_manually_notifying(sd_observed_atom):
 
     with pytest.raises(TypeError) as excinfo:
         nt.notify(1)
-    assert 'basestring' in excinfo.exconly()
+    assert 'str' in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         type(nt).val.notify(1)

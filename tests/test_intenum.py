@@ -16,7 +16,6 @@ if sys.version_info < (3,):
     from operator import div
 
 import pytest
-from atom.compat import with_metaclass
 from atom.intenum import IntEnum, _IntEnumMeta
 
 
@@ -33,11 +32,11 @@ def test_metaclass_safeties():
 
     """
     with pytest.raises(TypeError):
-        class FalseIntEnum(with_metaclass(_IntEnumMeta, object)):
+        class FalseIntEnum(object, metaclass=_IntEnumMeta):
             pass
 
     with pytest.raises(TypeError):
-        class TwoManyBases(with_metaclass(_IntEnumMeta, int, object)):
+        class TwoManyBases(int, object, metaclass=_IntEnumMeta):
             pass
 
 

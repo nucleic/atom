@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -13,25 +13,31 @@
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #endif
 
+#include <cppy/cppy.h>
 #include "member.h"
 #include "enumtypes.h"
 #include "packagenaming.h"
-#include "py23compat.h"
+#include "utils.h"
 
-using namespace PythonHelpers;
 
+namespace atom
+{
+
+
+namespace
+{
 
 static PyObject* undefined;
 
 
-static PyObject*
+PyObject*
 Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-    PyObjectPtr selfptr( PyType_GenericNew( type, args, kwargs ) );
+    cppy::ptr selfptr( PyType_GenericNew( type, args, kwargs ) );
     if( !selfptr )
         return 0;
     Member* member = member_cast( selfptr.get() );
-    member->name = newref( undefined );
+    member->name = cppy::incref( undefined );
     member->set_getattr_mode( GetAttr::Slot );
     member->set_setattr_mode( SetAttr::Slot );
     member->set_delattr_mode( DelAttr::Slot );
@@ -39,7 +45,7 @@ Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-static void
+void
 Member_clear( Member* self )
 {
     Py_CLEAR( self->name );
@@ -57,7 +63,7 @@ Member_clear( Member* self )
 }
 
 
-static int
+int
 Member_traverse( Member* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->name );
@@ -72,8 +78,8 @@ Member_traverse( Member* self, visitproc visit, void* arg )
     Py_VISIT( self->post_validate_context );
     if( self->static_observers )
     {
-        std::vector<PyObjectPtr>::iterator it;
-        std::vector<PyObjectPtr>::iterator end = self->static_observers->end();
+        std::vector<cppy::ptr>::iterator it;
+        std::vector<cppy::ptr>::iterator end = self->static_observers->end();
         for( it = self->static_observers->begin(); it != end; ++it )
             Py_VISIT( it->get() );
     }
@@ -81,7 +87,7 @@ Member_traverse( Member* self, visitproc visit, void* arg )
 }
 
 
-static void
+void
 Member_dealloc( Member* self )
 {
     PyObject_GC_UnTrack( self );
@@ -92,27 +98,27 @@ Member_dealloc( Member* self )
 }
 
 
-static PyObject*
+PyObject*
 Member_has_observers( Member* self )
 {
-    return py_bool( self->has_observers() );
+    return utils::py_bool( self->has_observers() );
 }
 
 
-static PyObject*
+PyObject*
 Member_has_observer( Member* self, PyObject* observer )
 {
-    if( !Py23Str_CheckExact( observer ) && !PyCallable_Check( observer ) )
-        return py_expected_type_fail( observer, "str or callable" );
-    return py_bool( self->has_observer( observer ) );
+    if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
+        return cppy::type_error( observer, "str or callable" );
+    return utils::py_bool( self->has_observer( observer ) );
 }
 
 
-static PyObject*
+PyObject*
 Member_copy_static_observers( Member* self, PyObject* other )
 {
     if( !Member::TypeCheck( other ) )
-        return py_expected_type_fail( other, "Member" );
+        return cppy::type_error( other, "Member" );
     Member* member = member_cast( other );
     if( self == member )
         Py_RETURN_NONE;
@@ -124,210 +130,210 @@ Member_copy_static_observers( Member* self, PyObject* other )
     else
     {
         if( !self->static_observers )
-            self->static_observers = new std::vector<PyObjectPtr>();
+            self->static_observers = new std::vector<cppy::ptr>();
         *self->static_observers = *member->static_observers;
     }
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_static_observers( Member* self )
 {
     if( !self->static_observers )
         return PyTuple_New( 0 );
-    std::vector<PyObjectPtr>& observers( *self->static_observers );
+    std::vector<cppy::ptr>& observers( *self->static_observers );
     size_t size = observers.size();
     PyObject* items = PyTuple_New( size );
     if( !items )
         return 0;
     for( size_t i = 0; i < size; ++i )
-        PyTuple_SET_ITEM( items, i, observers[ i ].newref() );
+        PyTuple_SET_ITEM( items, i, cppy::incref( observers[ i ].get() ) );
     return items;
 }
 
 
-static PyObject*
+PyObject*
 Member_add_static_observer( Member* self, PyObject* observer )
 {
-    if( !Py23Str_CheckExact( observer ) && !PyCallable_Check( observer ) )
-        return py_expected_type_fail( observer, "str or callable" );
+    if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
+        return cppy::type_error( observer, "str or callable" );
     self->add_observer( observer );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_remove_static_observer( Member* self, PyObject* observer )
 {
-    if( !Py23Str_CheckExact( observer ) && !PyCallable_Check( observer ) )
-        return py_expected_type_fail( observer, "str or callable" );
+    if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
+        return cppy::type_error( observer, "str or callable" );
     self->remove_observer( observer );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_get_slot( Member* self, PyObject* object )
 {
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     CAtom* atom = catom_cast( object );
     if( self->index >= atom->get_slot_count() )
-        return py_no_attr_fail( object, (char *)Py23Str_AS_STRING( self->name ) );
-    PyObjectPtr value( atom->get_slot( self->index ) );
+        return cppy::attribute_error( object, (char *)PyUnicode_AsUTF8( self->name ) );
+    cppy::ptr value( atom->get_slot( self->index ) );
     if( value )
         return value.release();
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_set_slot( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 2 )
-        return py_type_fail( "set_slot() takes exactly 2 arguments" );
+        return cppy::type_error( "set_slot() takes exactly 2 arguments" );
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* value = PyTuple_GET_ITEM( args, 1 );
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     CAtom* atom = catom_cast( object );
     if( self->index >= atom->get_slot_count() )
-        return py_no_attr_fail( object, (char *)Py23Str_AS_STRING( self->name ) );
+        return cppy::attribute_error( object, (char *)PyUnicode_AsUTF8( self->name ) );
     atom->set_slot( self->index, value );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_del_slot( Member* self, PyObject* object )
 {
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     CAtom* atom = catom_cast( object );
     if( self->index >= atom->get_slot_count() )
-        return py_no_attr_fail( object, (char *)Py23Str_AS_STRING( self->name ) );
+        return cppy::attribute_error( object, (char *)PyUnicode_AsUTF8( self->name ) );
     atom->set_slot( self->index, 0 );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_do_getattr( Member* self, PyObject* object )
 {
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     return self->getattr( catom_cast( object ) );
 }
 
 
-static PyObject*
+PyObject*
 Member_do_setattr( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 2 )
-        return py_type_fail( "do_setattr() takes exactly 2 arguments" );
+        return cppy::type_error( "do_setattr() takes exactly 2 arguments" );
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* value = PyTuple_GET_ITEM( args, 1 );
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     if( self->setattr( catom_cast( object ), value ) < 0 )
         return 0;
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_do_delattr( Member* self, PyObject* object )
 {
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     if( self->delattr( catom_cast( object ) ) < 0 )
         return 0;
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_do_post_getattr( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 2 )
-        return py_type_fail( "do_post_getattr() takes exactly 2 arguments" );
+        return cppy::type_error( "do_post_getattr() takes exactly 2 arguments" );
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* value = PyTuple_GET_ITEM( args, 1 );
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     return self->post_getattr( catom_cast( object ), value );
 }
 
 
-static PyObject*
+PyObject*
 Member_do_post_setattr( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 3 )
-        return py_type_fail( "do_post_setattr() takes exactly 3 arguments" );
+        return cppy::type_error( "do_post_setattr() takes exactly 3 arguments" );
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
     PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     if( self->post_setattr( catom_cast( object ), oldvalue, newvalue ) < 0 )
         return 0;
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_do_default_value( Member* self, PyObject* object )
 {
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     return self->default_value( catom_cast( object ) );
 }
 
 
-static PyObject*
+PyObject*
 Member_do_validate( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 3 )
-        return py_type_fail( "do_validate() takes exactly 3 arguments" );
+        return cppy::type_error( "do_validate() takes exactly 3 arguments" );
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
     PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     return self->validate( catom_cast( object ), oldvalue, newvalue );
 }
 
 
-static PyObject*
+PyObject*
 Member_do_post_validate( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 3 )
-        return py_type_fail( "do_post_validate() takes exactly 3 arguments" );
+        return cppy::type_error( "do_post_validate() takes exactly 3 arguments" );
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
     PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     return self->post_validate( catom_cast( object ), oldvalue, newvalue );
 }
 
 
-static PyObject*
+PyObject*
 Member_do_full_validate( Member* self, PyObject* args )
 {
     if( PyTuple_GET_SIZE( args ) != 3 )
-        return py_type_fail( "do_full_validate() takes exactly 3 arguments" );
+        return cppy::type_error( "do_full_validate() takes exactly 3 arguments" );
     PyObject* object = PyTuple_GET_ITEM( args, 0 );
     PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
     PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     return self->full_validate( catom_cast( object ), oldvalue, newvalue );
 }
 
 
-static PyObject*
+PyObject*
 Member_clone( Member* self )
 {
     // reimplement in a subclass to clone additional Python state
@@ -337,60 +343,60 @@ Member_clone( Member* self )
     Member* clone = member_cast( pyclone );
     clone->modes = self->modes;
     clone->index = self->index;
-    clone->name = newref( self->name );
+    clone->name = cppy::incref( self->name );
     if( self->metadata )
         clone->metadata = PyDict_Copy( self->metadata );
-    clone->getattr_context = xnewref( self->getattr_context );
-    clone->setattr_context = xnewref( self->setattr_context );
-    clone->delattr_context = xnewref( self->delattr_context );
-    clone->validate_context = xnewref( self->validate_context );
-    clone->post_getattr_context = xnewref( self->post_getattr_context );
-    clone->post_setattr_context = xnewref( self->post_setattr_context );
-    clone->default_value_context = xnewref( self->default_value_context );
-    clone->post_validate_context = xnewref( self->post_validate_context );
+    clone->getattr_context = cppy::xincref( self->getattr_context );
+    clone->setattr_context = cppy::xincref( self->setattr_context );
+    clone->delattr_context = cppy::xincref( self->delattr_context );
+    clone->validate_context = cppy::xincref( self->validate_context );
+    clone->post_getattr_context = cppy::xincref( self->post_getattr_context );
+    clone->post_setattr_context = cppy::xincref( self->post_setattr_context );
+    clone->default_value_context = cppy::xincref( self->default_value_context );
+    clone->post_validate_context = cppy::xincref( self->post_validate_context );
     if( self->static_observers )
     {
-        clone->static_observers = new std::vector<PyObjectPtr>();
+        clone->static_observers = new std::vector<cppy::ptr>();
         *clone->static_observers = *self->static_observers;
     }
     return pyclone;
 }
 
 
-static PyObject*
+PyObject*
 Member_get_name( Member* self, void* context )
 {
-    return newref( self->name );
+    return cppy::incref( self->name );
 }
 
 
-static PyObject*
+PyObject*
 Member_set_name( Member* self, PyObject* value )
 {
-    if( !Py23Str_CheckExact( value ) )
-        return py_expected_type_fail( value, "str" );
-    Py_INCREF( value ); // incref before interning or segfault!
-    Py23Str_InternInPlace( &value );
+    if( !PyUnicode_CheckExact( value ) )
+        return cppy::type_error( value, "str" );
+    cppy::incref( value ); // incref before interning or segfault!
+    PyUnicode_InternInPlace( &value );
     PyObject* old = self->name;
     self->name = value;
-    Py_DECREF( old );
+    cppy::decref( old );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_get_index( Member* self, void* context )
 {
-    return Py23Int_FromSsize_t( static_cast<Py_ssize_t>( self->index ) );
+    return PyLong_FromSsize_t( static_cast<Py_ssize_t>( self->index ) );
 }
 
 
-static PyObject*
+PyObject*
 Member_set_index( Member* self, PyObject* value )
 {
-    if( !Py23Int_Check( value ) )
-        return py_expected_type_fail( value, "int" );
-    Py_ssize_t index = Py23Int_AsSsize_t( value );
+    if( !PyLong_Check( value ) )
+        return cppy::type_error( value, "int" );
+    Py_ssize_t index = PyLong_AsSsize_t( value );
     if( index < 0 && PyErr_Occurred() )
         return 0;
     self->index = static_cast<uint32_t>( index < 0 ? 0 : index );
@@ -412,23 +418,23 @@ parse_mode_and_context( PyObject* args, PyObject** context, T& mode )
 }
 
 
-static PyObject*
+PyObject*
 Member_get_getattr_mode( Member* self, void* ctxt )
 {
-    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    cppy::ptr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_getattr_mode() ) );
+    cppy::ptr py_enum( EnumTypes::to_py_enum( self->get_getattr_mode() ) );
     if( !py_enum )
         return 0;
-    tuple.set_item( 0, py_enum );
+    PyTuple_SET_ITEM( tuple.get(), 0, py_enum.release() );
     PyObject* context = self->getattr_context;
-    tuple.set_item( 1, newref( context ? context : Py_None ) );
+    PyTuple_SET_ITEM( tuple.get(), 1, cppy::incref( context ? context : Py_None ) );
     return tuple.release();
 }
 
 
-static PyObject*
+PyObject*
 Member_set_getattr_mode( Member* self, PyObject* args )
 {
     GetAttr::Mode mode;
@@ -438,29 +444,29 @@ Member_set_getattr_mode( Member* self, PyObject* args )
     self->set_getattr_mode( mode );
     PyObject* old = self->getattr_context;
     self->getattr_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_get_setattr_mode( Member* self, void* ctxt )
 {
-    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    cppy::ptr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_setattr_mode() ) );
+    cppy::ptr py_enum( EnumTypes::to_py_enum( self->get_setattr_mode() ) );
     if( !py_enum )
         return 0;
-    tuple.set_item( 0, py_enum );
+    PyTuple_SET_ITEM( tuple.get(), 0, py_enum.release() );
     PyObject* context = self->setattr_context;
-    tuple.set_item( 1, newref( context ? context : Py_None ) );
+    PyTuple_SET_ITEM( tuple.get(), 1, cppy::incref( context ? context : Py_None ) );
     return tuple.release();
 }
 
 
-static PyObject*
+PyObject*
 Member_set_setattr_mode( Member* self, PyObject* args )
 {
     SetAttr::Mode mode;
@@ -470,29 +476,29 @@ Member_set_setattr_mode( Member* self, PyObject* args )
     self->set_setattr_mode( mode );
     PyObject* old = self->setattr_context;
     self->setattr_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_get_delattr_mode( Member* self, void* ctxt )
 {
-    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    cppy::ptr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_delattr_mode() ) );
+    cppy::ptr py_enum( EnumTypes::to_py_enum( self->get_delattr_mode() ) );
     if( !py_enum )
         return 0;
-    tuple.set_item( 0, py_enum );
+    PyTuple_SET_ITEM( tuple.get(), 0, py_enum.release() );
     PyObject* context = self->delattr_context;
-    tuple.set_item( 1, newref( context ? context : Py_None ) );
+    PyTuple_SET_ITEM( tuple.get(), 1, cppy::incref( context ? context : Py_None ) );
     return tuple.release();
 }
 
 
-static PyObject*
+PyObject*
 Member_set_delattr_mode( Member* self, PyObject* args )
 {
     DelAttr::Mode mode;
@@ -502,29 +508,29 @@ Member_set_delattr_mode( Member* self, PyObject* args )
     self->set_delattr_mode( mode );
     PyObject* old = self->delattr_context;
     self->delattr_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_get_post_getattr_mode( Member* self, void* ctxt )
 {
-    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    cppy::ptr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_post_getattr_mode() ) );
+    cppy::ptr py_enum( EnumTypes::to_py_enum( self->get_post_getattr_mode() ) );
     if( !py_enum )
         return 0;
-    tuple.set_item( 0, py_enum );
+    PyTuple_SET_ITEM( tuple.get(), 0, py_enum.release() );
     PyObject* context = self->post_getattr_context;
-    tuple.set_item( 1, newref( context ? context : Py_None ) );
+    PyTuple_SET_ITEM( tuple.get(), 1, cppy::incref( context ? context : Py_None ) );
     return tuple.release();
 }
 
 
-static PyObject*
+PyObject*
 Member_set_post_getattr_mode( Member* self, PyObject* args )
 {
     PostGetAttr::Mode mode;
@@ -534,29 +540,29 @@ Member_set_post_getattr_mode( Member* self, PyObject* args )
     self->set_post_getattr_mode( mode );
     PyObject* old = self->post_getattr_context;
     self->post_getattr_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_get_post_setattr_mode( Member* self, void* ctxt )
 {
-    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    cppy::ptr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_post_setattr_mode() ) );
+    cppy::ptr py_enum( EnumTypes::to_py_enum( self->get_post_setattr_mode() ) );
     if( !py_enum )
         return 0;
-    tuple.set_item( 0, py_enum );
+    PyTuple_SET_ITEM( tuple.get(), 0, py_enum.release() );
     PyObject* context = self->post_setattr_context;
-    tuple.set_item( 1, newref( context ? context : Py_None ) );
+    PyTuple_SET_ITEM( tuple.get(), 1, cppy::incref( context ? context : Py_None ) );
     return tuple.release();
 }
 
 
-static PyObject*
+PyObject*
 Member_set_post_setattr_mode( Member* self, PyObject* args )
 {
     PostSetAttr::Mode mode;
@@ -566,29 +572,29 @@ Member_set_post_setattr_mode( Member* self, PyObject* args )
     self->set_post_setattr_mode( mode );
     PyObject* old = self->post_setattr_context;
     self->post_setattr_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_get_default_value_mode( Member* self, void* ctxt )
 {
-    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    cppy::ptr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_default_value_mode() ) );
+    cppy::ptr py_enum( EnumTypes::to_py_enum( self->get_default_value_mode() ) );
     if( !py_enum )
         return 0;
-    tuple.set_item( 0, py_enum );
+    PyTuple_SET_ITEM( tuple.get(), 0, py_enum.release() );
     PyObject* context = self->default_value_context;
-    tuple.set_item( 1, newref( context ? context : Py_None ) );
+    PyTuple_SET_ITEM( tuple.get(), 1, cppy::incref( context ? context : Py_None ) );
     return tuple.release();
 }
 
 
-static PyObject*
+PyObject*
 Member_set_default_value_mode( Member* self, PyObject* args )
 {
     DefaultValue::Mode mode;
@@ -598,29 +604,29 @@ Member_set_default_value_mode( Member* self, PyObject* args )
     self->set_default_value_mode( mode );
     PyObject* old = self->default_value_context;
     self->default_value_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_get_validate_mode( Member* self, void* ctxt )
 {
-    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    cppy::ptr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_validate_mode() ) );
+    cppy::ptr py_enum( EnumTypes::to_py_enum( self->get_validate_mode() ) );
     if( !py_enum )
         return 0;
-    tuple.set_item( 0, py_enum );
+    PyTuple_SET_ITEM( tuple.get(), 0, py_enum.release() );
     PyObject* context = self->validate_context;
-    tuple.set_item( 1, newref( context ? context : Py_None ) );
+    PyTuple_SET_ITEM( tuple.get(), 1, cppy::incref( context ? context : Py_None ) );
     return tuple.release();
 }
 
 
-static PyObject*
+PyObject*
 Member_set_validate_mode( Member* self, PyObject* args )
 {
     Validate::Mode mode;
@@ -630,29 +636,29 @@ Member_set_validate_mode( Member* self, PyObject* args )
     self->set_validate_mode( mode );
     PyObject* old = self->validate_context;
     self->validate_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_get_post_validate_mode( Member* self, void* ctxt )
 {
-    PyTuplePtr tuple( PyTuple_New( 2 ) );
+    cppy::ptr tuple( PyTuple_New( 2 ) );
     if( !tuple )
         return 0;
-    PyObjectPtr py_enum( EnumTypes::to_py_enum( self->get_post_validate_mode() ) );
+    cppy::ptr py_enum( EnumTypes::to_py_enum( self->get_post_validate_mode() ) );
     if( !py_enum )
         return 0;
-    tuple.set_item( 0, py_enum );
+    PyTuple_SET_ITEM( tuple.get(), 0, py_enum.release() );
     PyObject* context = self->post_validate_context;
-    tuple.set_item( 1, newref( context ? context : Py_None ) );
+    PyTuple_SET_ITEM( tuple.get(), 1, cppy::incref( context ? context : Py_None ) );
     return tuple.release();
 }
 
 
-static PyObject*
+PyObject*
 Member_set_post_validate_mode( Member* self, PyObject* args )
 {
     PostValidate::Mode mode;
@@ -662,21 +668,21 @@ Member_set_post_validate_mode( Member* self, PyObject* args )
     self->set_post_validate_mode( mode );
     PyObject* old = self->post_validate_context;
     self->post_validate_context = context;
-    Py_INCREF( context );
-    Py_XDECREF( old );
+    cppy::incref( context );
+    cppy::xdecref( old );
     Py_RETURN_NONE;
 }
 
 
-static PyObject*
+PyObject*
 Member_notify( Member* self, PyObject* args, PyObject* kwargs )
 {
     if( PyTuple_GET_SIZE( args ) < 1 )
-        return py_type_fail( "notify() requires at least 1 argument" );
+        return cppy::type_error( "notify() requires at least 1 argument" );
     PyObject* owner = PyTuple_GET_ITEM( args, 0 );
     if( !CAtom::TypeCheck( owner ) )
-        return py_expected_type_fail( owner, "CAtom" );
-    PyObjectPtr argsptr( PyTuple_GetSlice( args, 1, PyTuple_GET_SIZE( args ) ) );
+        return cppy::type_error( owner, "CAtom" );
+    cppy::ptr argsptr( PyTuple_GetSlice( args, 1, PyTuple_GET_SIZE( args ) ) );
     if( !argsptr )
         return 0;
     if( !self->notify( catom_cast( owner ), argsptr.get(), kwargs ) )
@@ -685,13 +691,13 @@ Member_notify( Member* self, PyObject* args, PyObject* kwargs )
 }
 
 
-static PyObject*
+PyObject*
 Member_tag( Member* self, PyObject* args, PyObject* kwargs )
 {
     if( PyTuple_GET_SIZE( args ) != 0 )
-        return py_type_fail( "tag() takes no positional arguments" );
+        return cppy::type_error( "tag() takes no positional arguments" );
     if( !kwargs )
-        return py_type_fail( "tag() requires keyword arguments" );
+        return cppy::type_error( "tag() requires keyword arguments" );
     if( !self->metadata )
     {
         self->metadata = PyDict_New();
@@ -700,55 +706,55 @@ Member_tag( Member* self, PyObject* args, PyObject* kwargs )
     }
     if( PyDict_Update( self->metadata, kwargs ) < 0 )
         return 0;
-    return newref( pyobject_cast( self ) );
+    return cppy::incref( pyobject_cast( self ) );
 }
 
 
-static PyObject*
+PyObject*
 Member_get_metadata( Member* self, void* ctxt )
 {
     if( !self->metadata )
         Py_RETURN_NONE;
-    Py_INCREF( self->metadata );
+    cppy::incref( self->metadata );
     return self->metadata;
 }
 
 
-static int
+int
 Member_set_metadata( Member* self, PyObject* value, void* ctxt )
 {
     if( value && value != Py_None && !PyDict_Check( value ) )
     {
-        py_expected_type_fail( value, "dict or None" );
+        cppy::type_error( value, "dict or None" );
         return -1;
     }
     if( value == Py_None )
         value = 0;
     PyObject* old = self->metadata;
     self->metadata = value;
-    Py_XINCREF( value );
-    Py_XDECREF( old );
+    cppy::xincref( value );
+    cppy::xdecref( old );
     return 0;
 }
 
 
-static PyObject*
+PyObject*
 Member__get__( Member* self, PyObject* object, PyObject* type )
 {
     if( !object )
-        return newref( pyobject_cast( self ) );
+        return cppy::incref( pyobject_cast( self ) );
     if( !CAtom::TypeCheck( object ) )
-        return py_expected_type_fail( object, "CAtom" );
+        return cppy::type_error( object, "CAtom" );
     return self->getattr( catom_cast( object ) );
 }
 
 
-static int
+int
 Member__set__( Member* self, PyObject* object, PyObject* value )
 {
     if( !CAtom::TypeCheck( object ) )
     {
-        py_expected_type_fail( object, "CAtom" );
+        cppy::type_error( object, "CAtom" );
         return -1;
     }
     if( value )
@@ -853,78 +859,43 @@ Member_methods[] = {
 };
 
 
-PyTypeObject Member_Type = {
-    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-    PACKAGE_TYPENAME( "Member" ),           /* tp_name */
-    sizeof( Member ),                       /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    (destructor)Member_dealloc,             /* tp_dealloc */
-    (printfunc)0,                           /* tp_print */
-    (getattrfunc)0,                         /* tp_getattr */
-    (setattrfunc)0,                         /* tp_setattr */
-#if PY_VERSION_HEX >= 0x03050000
-	( PyAsyncMethods* )0,                   /* tp_as_async */
-#elif PY_VERSION_HEX >= 0x03000000
-	( void* ) 0,                            /* tp_reserved */
-#else
-	( cmpfunc )0,                           /* tp_compare */
-#endif
-    (reprfunc)0,                            /* tp_repr */
-    (PyNumberMethods*)0,                    /* tp_as_number */
-    (PySequenceMethods*)0,                  /* tp_as_sequence */
-    (PyMappingMethods*)0,                   /* tp_as_mapping */
-    (hashfunc)0,                            /* tp_hash */
-    (ternaryfunc)0,                         /* tp_call */
-    (reprfunc)0,                            /* tp_str */
-    (getattrofunc)0,                        /* tp_getattro */
-    (setattrofunc)0,                        /* tp_setattro */
-    (PyBufferProcs*)0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /* tp_flags */
-    0,                                      /* Documentation string */
-    (traverseproc)Member_traverse,          /* tp_traverse */
-    (inquiry)Member_clear,                  /* tp_clear */
-    (richcmpfunc)0,                         /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    (getiterfunc)0,                         /* tp_iter */
-    (iternextfunc)0,                        /* tp_iternext */
-    (struct PyMethodDef*)Member_methods,    /* tp_methods */
-    (struct PyMemberDef*)0,                 /* tp_members */
-    Member_getset,                          /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    (descrgetfunc)Member__get__,            /* tp_descr_get */
-    (descrsetfunc)Member__set__,            /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)0,                            /* tp_init */
-    (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-    (newfunc)Member_new,                    /* tp_new */
-    (freefunc)PyObject_GC_Del,              /* tp_free */
-    (inquiry)0,                             /* tp_is_gc */
-    0,                                      /* tp_bases */
-    0,                                      /* tp_mro */
-    0,                                      /* tp_cache */
-    0,                                      /* tp_subclasses */
-    0,                                      /* tp_weaklist */
-    (destructor)0                           /* tp_del */
+static PyType_Slot Member_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( Member_dealloc ) },              /* tp_dealloc */
+    { Py_tp_traverse, void_cast( Member_traverse ) },            /* tp_traverse */
+    { Py_tp_clear, void_cast( Member_clear ) },                  /* tp_clear */
+    { Py_tp_methods, void_cast( Member_methods ) },              /* tp_methods */
+    { Py_tp_getset, void_cast( Member_getset ) },                /* tp_getset */
+    { Py_tp_descr_get, void_cast( Member__get__ ) },             /* tp_descr_get */
+    { Py_tp_descr_set, void_cast( Member__set__ ) },             /* tp_descr_get */
+    { Py_tp_new, void_cast( Member_new ) },                      /* tp_new */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },           /* tp_new */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },                /* tp_new */
+    { 0, 0 },
 };
 
 
-int
-import_member()
-{
-    if( PyType_Ready( &Member_Type ) < 0 )
-        return -1;
-    undefined = Py23Str_FromString( "<undefined>" );
-    if( !undefined )
-        return -1;
-    return 0;
-}
+}  // namespace
+
+
+// Initialize static variables (otherwise the compiler eliminate them)
+PyTypeObject* Member::TypeObject = NULL;
+
+
+PyType_Spec Member::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "Member" ),               /* tp_name */
+	sizeof( Member ),                           /* tp_basicsize */
+	0,                                          /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT
+    |Py_TPFLAGS_BASETYPE
+    |Py_TPFLAGS_HAVE_GC,                        /* tp_flags */
+    Member_Type_slots                         /* slots */
+};
 
 
 PyObject*
 Member::full_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    PyObjectPtr result( newref( newvalue ) );
+    cppy::ptr result( cppy::incref( newvalue ) );
     if( get_validate_mode() )
     {
         result = validate( atom, oldvalue, result.get() );
@@ -947,10 +918,10 @@ namespace
 struct BaseTask : public ModifyTask
 {
     BaseTask( Member* member, PyObject* observer ) :
-        m_member( newref( pyobject_cast( member ) ) ),
-        m_observer( newref( observer ) ) {}
-    PyObjectPtr m_member;
-    PyObjectPtr m_observer;
+        m_member( cppy::incref( pyobject_cast( member ) ) ),
+        m_observer( cppy::incref( observer ) ) {}
+    cppy::ptr m_member;
+    cppy::ptr m_observer;
 };
 
 
@@ -990,13 +961,13 @@ Member::add_observer( PyObject* observer )
         return;
     }
     if( !static_observers )
-        static_observers = new std::vector<PyObjectPtr>();
-    PyObjectPtr obptr( newref( observer ) );
-    std::vector<PyObjectPtr>::iterator it;
-    std::vector<PyObjectPtr>::iterator end = static_observers->end();
+        static_observers = new std::vector<cppy::ptr>();
+    cppy::ptr obptr( cppy::incref( observer ) );
+    std::vector<cppy::ptr>::iterator it;
+    std::vector<cppy::ptr>::iterator end = static_observers->end();
     for( it = static_observers->begin(); it != end; ++it )
     {
-        if( *it == obptr || it->richcompare( obptr, Py_EQ ) )
+        if( *it == obptr || it->richcmp( obptr, Py_EQ ) )
             return;
     }
     static_observers->push_back( obptr );
@@ -1015,12 +986,12 @@ Member::remove_observer( PyObject* observer )
     }
     if( static_observers )
     {
-        PyObjectPtr obptr( newref( observer ) );
-        std::vector<PyObjectPtr>::iterator it;
-        std::vector<PyObjectPtr>::iterator end = static_observers->end();
+        cppy::ptr obptr( cppy::incref( observer ) );
+        std::vector<cppy::ptr>::iterator it;
+        std::vector<cppy::ptr>::iterator end = static_observers->end();
         for( it = static_observers->begin(); it != end; ++it )
         {
-            if( *it == obptr || it->richcompare( obptr, Py_EQ ) )
+            if( *it == obptr || it->richcmp( obptr, Py_EQ ) )
             {
                 static_observers->erase( it );
                 if( static_observers->size() == 0 )
@@ -1040,12 +1011,12 @@ Member::has_observer( PyObject* observer )
 {
     if( !static_observers )
         return false;
-    PyObjectPtr obptr( newref( observer ) );
-    std::vector<PyObjectPtr>::iterator it;
-    std::vector<PyObjectPtr>::iterator end = static_observers->end();
+    cppy::ptr obptr( cppy::incref( observer ) );
+    std::vector<cppy::ptr>::iterator it;
+    std::vector<cppy::ptr>::iterator end = static_observers->end();
     for( it = static_observers->begin(); it != end; ++it )
     {
-        if( *it == obptr || it->richcompare( obptr, Py_EQ ) )
+        if( *it == obptr || it->richcmp( obptr, Py_EQ ) )
             return true;
     }
     return false;
@@ -1058,15 +1029,15 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
     if( static_observers && atom->get_notifications_enabled() )
     {
         ModifyGuard<Member> guard( *this );
-        PyObjectPtr argsptr( newref( args ) );
-        PyObjectPtr kwargsptr( xnewref( kwargs ) );
-        PyObjectPtr objectptr( newref( pyobject_cast( atom ) ) );
-        PyObjectPtr callable;
-        std::vector<PyObjectPtr>::iterator it;
-        std::vector<PyObjectPtr>::iterator end = static_observers->end();
+        cppy::ptr argsptr( cppy::incref( args ) );
+        cppy::ptr kwargsptr( cppy::xincref( kwargs ) );
+        cppy::ptr objectptr( cppy::incref( pyobject_cast( atom ) ) );
+        cppy::ptr callable;
+        std::vector<cppy::ptr>::iterator it;
+        std::vector<cppy::ptr>::iterator end = static_observers->end();
         for( it = static_observers->begin(); it != end; ++it )
         {
-            if( Py23Str_CheckExact( it->get() ) )
+            if( PyUnicode_CheckExact( it->get() ) )
             {
                 callable = objectptr.getattr( *it );
                 if( !callable )
@@ -1076,9 +1047,29 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
             {
                 callable = *it;
             }
-            if( !callable( argsptr, kwargsptr ) )
+            if( !callable.call( argsptr, kwargsptr ) )
                 return false;
         }
     }
     return true;
 }
+
+bool Member::Ready()
+{
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+
+    undefined = PyUnicode_FromString( "<undefined>" );
+    if( !undefined )
+    {
+        return false;
+    }
+
+    return true;
+}
+
+}  // namespace atom

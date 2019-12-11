@@ -1,18 +1,40 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
-#include "pythonhelpers.h"
+#include <cppy/cppy.h>
 #include "catom.h"
 #include "member.h"
 
 
-PyObject*
-SignalConnector_New( Member* member, CAtom* atom );
+namespace atom
+{
+
+// POD struct - all member fields are considered private
+struct SignalConnector
+{
+	PyObject_HEAD
+    Member* member;
+    CAtom* atom;
+
+	static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+    static bool Ready();
+
+    static PyObject* New( Member* member, CAtom* atom );
+
+    static bool TypeCheck( PyObject* ob )
+	{
+		return PyObject_TypeCheck( ob, TypeObject ) != 0;
+	}
+
+};
 
 
-int import_signalconnector();
+}

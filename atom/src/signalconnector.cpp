@@ -1,21 +1,20 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "signalconnector.h"
+#include "packagenaming.h"
 
 
-using namespace PythonHelpers;
+namespace atom
+{
 
 
-typedef struct {
-    PyObject_HEAD
-    Member* member;
-    CAtom* atom;
-} SignalConnector;
+namespace
+{
 
 
 #define FREELIST_MAX 128
@@ -23,11 +22,7 @@ static int numfree = 0;
 static SignalConnector* freelist[ FREELIST_MAX ];
 
 
-static int
-SignalConnector_Check( PyObject* object );
-
-
-static void
+void
 SignalConnector_clear( SignalConnector* self )
 {
     Py_CLEAR( self->member );
@@ -35,7 +30,7 @@ SignalConnector_clear( SignalConnector* self )
 }
 
 
-static int
+int
 SignalConnector_traverse( SignalConnector* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->member );
@@ -44,7 +39,7 @@ SignalConnector_traverse( SignalConnector* self, visitproc visit, void* arg )
 }
 
 
-static void
+void
 SignalConnector_dealloc( SignalConnector* self )
 {
     PyObject_GC_UnTrack( self );
@@ -56,12 +51,12 @@ SignalConnector_dealloc( SignalConnector* self )
 }
 
 
-static PyObject*
+PyObject*
 SignalConnector_richcompare( SignalConnector* self, PyObject* other, int op )
 {
     if( op == Py_EQ )
     {
-        if( SignalConnector_Check( other ) )
+        if( SignalConnector::TypeCheck( other ) )
         {
             SignalConnector* connector = reinterpret_cast<SignalConnector*>( other );
             if( self->member == connector->member && self->atom == connector->atom )
@@ -75,7 +70,7 @@ SignalConnector_richcompare( SignalConnector* self, PyObject* other, int op )
 }
 
 
-static PyObject*
+PyObject*
 SignalConnector__call__( SignalConnector* self, PyObject* args, PyObject* kwargs )
 {
     // XXX validate the Signal args and kwargs?
@@ -96,14 +91,14 @@ SignalConnector__call__( SignalConnector* self, PyObject* args, PyObject* kwargs
 }
 
 
-static PyObject*
+PyObject*
 SignalConnector_emit( SignalConnector* self, PyObject* args, PyObject* kwargs )
 {
     return SignalConnector__call__( self, args, kwargs );
 }
 
 
-static PyObject*
+PyObject*
 SignalConnector_connect( SignalConnector* self, PyObject* callback )
 {
     if( !self->atom->observe( self->member->name, callback ) )
@@ -112,7 +107,7 @@ SignalConnector_connect( SignalConnector* self, PyObject* callback )
 }
 
 
-static PyObject*
+PyObject*
 SignalConnector_disconnect( SignalConnector* self, PyObject* callback )
 {
     if( !self->atom->unobserve( self->member->name, callback ) )
@@ -133,71 +128,50 @@ SignalConnector_methods[] = {
 };
 
 
-PyTypeObject SignalConnector_Type = {
-    PyVarObject_HEAD_INIT( NULL, 0 )
-    "SignalConnector",                      /* tp_name */
-    sizeof( SignalConnector ),              /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    (destructor)SignalConnector_dealloc,    /* tp_dealloc */
-    (printfunc)0,                           /* tp_print */
-    (getattrfunc)0,                         /* tp_getattr */
-    (setattrfunc)0,                         /* tp_setattr */
-#if PY_VERSION_HEX >= 0x03050000
-	( PyAsyncMethods* )0,                   /* tp_as_async */
-#elif PY_VERSION_HEX >= 0x03000000
-	( void* ) 0,                            /* tp_reserved */
-#else
-	( cmpfunc )0,                           /* tp_compare */
-#endif
-    (reprfunc)0,                            /* tp_repr */
-    (PyNumberMethods*)0,                    /* tp_as_number */
-    (PySequenceMethods*)0,                  /* tp_as_sequence */
-    (PyMappingMethods*)0,                   /* tp_as_mapping */
-    (hashfunc)0,                            /* tp_hash */
-    (ternaryfunc)SignalConnector__call__,   /* tp_call */
-    (reprfunc)0,                            /* tp_str */
-    (getattrofunc)0,                        /* tp_getattro */
-    (setattrofunc)0,                        /* tp_setattro */
-    (PyBufferProcs*)0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC,  /* tp_flags */
-    0,                                      /* Documentation string */
-    (traverseproc)SignalConnector_traverse, /* tp_traverse */
-    (inquiry)SignalConnector_clear,         /* tp_clear */
-    (richcmpfunc)SignalConnector_richcompare, /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    (getiterfunc)0,                         /* tp_iter */
-    (iternextfunc)0,                        /* tp_iternext */
-    (struct PyMethodDef*)SignalConnector_methods, /* tp_methods */
-    (struct PyMemberDef*)0,                 /* tp_members */
-    0,                                      /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    (descrgetfunc)0,                        /* tp_descr_get */
-    (descrsetfunc)0,                        /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)0,                            /* tp_init */
-    (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-    (newfunc)0,                             /* tp_new */
-    (freefunc)PyObject_GC_Del,              /* tp_free */
-    (inquiry)0,                             /* tp_is_gc */
-    0,                                      /* tp_bases */
-    0,                                      /* tp_mro */
-    0,                                      /* tp_cache */
-    0,                                      /* tp_subclasses */
-    0,                                      /* tp_weaklist */
-    (destructor)0                           /* tp_del */
+static PyType_Slot SignalConnector_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( SignalConnector_dealloc ) },          /* tp_dealloc */
+    { Py_tp_traverse, void_cast( SignalConnector_traverse ) },        /* tp_traverse */
+    { Py_tp_clear, void_cast( SignalConnector_clear ) },              /* tp_clear */
+    { Py_tp_methods, void_cast( SignalConnector_methods ) },          /* tp_methods */
+    { Py_tp_call, void_cast( SignalConnector__call__ ) },             /* tp_call */
+    { Py_tp_richcompare, void_cast( SignalConnector_richcompare ) },  /* tp_richcompare */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },                /* tp_alloc */
+    { Py_tp_free, void_cast( PyObject_GC_Del ) },                     /* tp_free */
+    { 0, 0 },
+};
+
+}  // namespace
+
+
+// Initialize static variables (otherwise the compiler eliminates them)
+PyTypeObject* SignalConnector::TypeObject = NULL;
+
+
+PyType_Spec SignalConnector::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "SignalConnector" ),             /* tp_name */
+	sizeof( SignalConnector ),                         /* tp_basicsize */
+	0,                                             /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT|
+    Py_TPFLAGS_HAVE_GC,                            /* tp_flags */
+    SignalConnector_Type_slots                         /* slots */
 };
 
 
-static int
-SignalConnector_Check( PyObject* object )
+bool
+SignalConnector::Ready()
 {
-    return PyObject_TypeCheck( object, &SignalConnector_Type );
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
 }
 
 
 PyObject*
-SignalConnector_New( Member* member, CAtom* atom )
+SignalConnector::New( atom::Member* member, atom::CAtom* atom )
 {
     PyObject* pyconnector;
     if( numfree > 0 )
@@ -207,7 +181,7 @@ SignalConnector_New( Member* member, CAtom* atom )
     }
     else
     {
-        pyconnector = PyType_GenericAlloc( &SignalConnector_Type, 0 );
+        pyconnector = PyType_GenericAlloc( SignalConnector::TypeObject, 0 );
         if( !pyconnector )
             return 0;
     }
@@ -220,10 +194,4 @@ SignalConnector_New( Member* member, CAtom* atom )
 }
 
 
-int
-import_signalconnector( void )
-{
-    if( PyType_Ready( &SignalConnector_Type ) < 0 )
-        return -1;
-    return 0;
-}
+}  // namespace atom

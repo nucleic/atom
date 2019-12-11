@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -8,8 +8,8 @@
 #pragma once
 
 #include <vector>
+#include <cppy/cppy.h>
 #include "inttypes.h"
-#include "pythonhelpers.h"
 #include "behaviors.h"
 #include "catom.h"
 #include "modifyguard.h"
@@ -21,7 +21,8 @@
 #define member_cast( o ) ( reinterpret_cast<Member*>( o ) )
 
 
-extern PyTypeObject Member_Type;
+namespace atom
+{
 
 
 struct Member
@@ -40,7 +41,13 @@ struct Member
     PyObject* default_value_context;
     PyObject* post_validate_context;
     ModifyGuard<Member>* modify_guard;
-    std::vector<PythonHelpers::PyObjectPtr>* static_observers;
+    std::vector<cppy::ptr>* static_observers;
+
+    static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
 
     // ModifyGuard template interface
     ModifyGuard<Member>* get_modify_guard() { return modify_guard; }
@@ -183,10 +190,8 @@ struct Member
 
     static int TypeCheck( PyObject* object )
     {
-        return PyObject_TypeCheck( object, &Member_Type );
+        return PyObject_TypeCheck( object, TypeObject );
     }
 };
 
-
-int
-import_member();
+}  // namespace atom

@@ -9,6 +9,9 @@
 #include "catom.h"
 
 
+namespace atom
+{
+
 // Shamelessly derived from qpointer.h
 class CAtomPointer
 {
@@ -75,3 +78,5 @@ private:
 
     CAtom* o;
 };
+
+}  // namespace atom

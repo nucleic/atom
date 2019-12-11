@@ -1,40 +1,30 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <cppy/cppy.h>
 #include "methodwrapper.h"
 #include "catom.h"
 #include "catompointer.h"
+#include "packagenaming.h"
 
 
-using namespace PythonHelpers;
+namespace atom
+{
 
 
-typedef struct {
-    PyObject_HEAD
-    PyObject* im_func;
-    PyObject* im_selfref;
-} MethodWrapper;
-
-
-typedef struct {
-    PyObject_HEAD
-    PyObject* im_func;
-    CAtomPointer pointer;  // constructed with placement new
-} AtomMethodWrapper;
+namespace
+{
 
 
 /*-----------------------------------------------------------------------------
 | MethodWrapper
 |----------------------------------------------------------------------------*/
-static int
-MethodWrapper_Check( PyObject* obj );
 
-
-static void
+void
 MethodWrapper_dealloc( MethodWrapper* self )
 {
     Py_CLEAR( self->im_selfref );
@@ -43,18 +33,13 @@ MethodWrapper_dealloc( MethodWrapper* self )
 }
 
 
-static PyObject*
+PyObject*
 MethodWrapper__call__( MethodWrapper* self, PyObject* args, PyObject* kwargs )
 {
     PyObject* im_self = PyWeakref_GET_OBJECT( self->im_selfref );
     if( im_self != Py_None )
     {
-#if PY_MAJOR_VERSION < 3
-        PyObject* type = pyobject_cast( im_self->ob_type );
-        PyObjectPtr method( PyMethod_New( self->im_func, im_self, type ) );
-#else
-        PyObjectPtr method( PyMethod_New( self->im_func, im_self ) );
-#endif
+        cppy::ptr method( PyMethod_New( self->im_func, im_self ) );
         if( !method )
             return 0;
         return PyObject_Call( method.get(), args, kwargs );
@@ -63,7 +48,7 @@ MethodWrapper__call__( MethodWrapper* self, PyObject* args, PyObject* kwargs )
 }
 
 
-static PyObject*
+PyObject*
 MethodWrapper_richcompare( MethodWrapper* self, PyObject* other, int op )
 {
     if( op == Py_EQ )
@@ -75,7 +60,7 @@ MethodWrapper_richcompare( MethodWrapper* self, PyObject* other, int op )
                 Py_RETURN_TRUE;
             Py_RETURN_FALSE;
         }
-        else if( MethodWrapper_Check( other ) )
+        else if( MethodWrapper::TypeCheck( other ) )
         {
             MethodWrapper* wrapper = reinterpret_cast<MethodWrapper*>( other );
             if( ( self->im_func == wrapper->im_func ) &&
@@ -90,8 +75,8 @@ MethodWrapper_richcompare( MethodWrapper* self, PyObject* other, int op )
 }
 
 
-static int
-MethodWrapper__nonzero__( MethodWrapper* self )
+int
+MethodWrapper__bool__( MethodWrapper* self )
 {
     if( PyWeakref_GET_OBJECT( self->im_selfref ) != Py_None )
         return 1;
@@ -99,94 +84,53 @@ MethodWrapper__nonzero__( MethodWrapper* self )
 }
 
 
-PyNumberMethods MethodWrapper_as_number = {
-     ( binaryfunc )0,                       /* nb_add */
-     ( binaryfunc )0,                       /* nb_subtract */
-     ( binaryfunc )0,                       /* nb_multiply */
-#if PY_MAJOR_VERSION < 3
-     ( binaryfunc )0,                       /* nb_divide */
-#endif
-     ( binaryfunc )0,                       /* nb_remainder */
-     ( binaryfunc )0,                       /* nb_divmod */
-     ( ternaryfunc )0,                      /* nb_power */
-     ( unaryfunc )0,                        /* nb_negative */
-     ( unaryfunc )0,                        /* nb_positive */
-     ( unaryfunc )0,                        /* nb_absolute */
-     ( inquiry )MethodWrapper__nonzero__    /* nb_nonzero */
+static PyType_Slot MethodWrapper_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( MethodWrapper_dealloc ) },          /* tp_dealloc */
+    { Py_tp_call, void_cast( MethodWrapper__call__ ) },             /* tp_call */
+    { Py_tp_richcompare, void_cast( MethodWrapper_richcompare ) },  /* tp_richcompare */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },              /* tp_alloc */
+    { Py_tp_free, void_cast( PyObject_Del ) },                      /* tp_free */
+    { Py_nb_bool, void_cast( MethodWrapper__bool__ ) },             /* nb_bool */
+    { 0, 0 },
 };
 
 
-PyTypeObject MethodWrapper_Type = {
-    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-    "MethodWrapper",                        /* tp_name */
-    sizeof( MethodWrapper ),                /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    (destructor)MethodWrapper_dealloc,      /* tp_dealloc */
-    (printfunc)0,                           /* tp_print */
-    (getattrfunc)0,                         /* tp_getattr */
-    (setattrfunc)0,                         /* tp_setattr */
-#if PY_VERSION_HEX >= 0x03050000
-	( PyAsyncMethods* )0,                   /* tp_as_async */
-#elif PY_VERSION_HEX >= 0x03000000
-	( void* ) 0,                            /* tp_reserved */
-#else
-	( cmpfunc )0,                           /* tp_compare */
-#endif
-    (reprfunc)0,                            /* tp_repr */
-    (PyNumberMethods*)&MethodWrapper_as_number, /* tp_as_number */
-    (PySequenceMethods*)0,                  /* tp_as_sequence */
-    (PyMappingMethods*)0,                   /* tp_as_mapping */
-    (hashfunc)0,                            /* tp_hash */
-    (ternaryfunc)MethodWrapper__call__,     /* tp_call */
-    (reprfunc)0,                            /* tp_str */
-    (getattrofunc)0,                        /* tp_getattro */
-    (setattrofunc)0,                        /* tp_setattro */
-    (PyBufferProcs*)0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                     /* tp_flags */
-    0,                                      /* Documentation string */
-    (traverseproc)0,                        /* tp_traverse */
-    (inquiry)0,                             /* tp_clear */
-    (richcmpfunc)MethodWrapper_richcompare, /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    (getiterfunc)0,                         /* tp_iter */
-    (iternextfunc)0,                        /* tp_iternext */
-    (struct PyMethodDef*)0,                 /* tp_methods */
-    (struct PyMemberDef*)0,                 /* tp_members */
-    0,                                      /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    (descrgetfunc)0,                        /* tp_descr_get */
-    (descrsetfunc)0,                        /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)0,                            /* tp_init */
-    (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-    (newfunc)0,                             /* tp_new */
-    (freefunc)PyObject_Del,                 /* tp_free */
-    (inquiry)0,                             /* tp_is_gc */
-    0,                                      /* tp_bases */
-    0,                                      /* tp_mro */
-    0,                                      /* tp_cache */
-    0,                                      /* tp_subclasses */
-    0,                                      /* tp_weaklist */
-    (destructor)0                           /* tp_del */
+}  // namespace
+
+
+// Initialize static variables (otherwise the compiler eliminates them)
+PyTypeObject* MethodWrapper::TypeObject = NULL;
+
+
+PyType_Spec MethodWrapper::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "MethodWrapper" ),             /* tp_name */
+	sizeof( MethodWrapper ),                         /* tp_basicsize */
+	0,                                               /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    MethodWrapper_Type_slots                           /* slots */
 };
 
-
-static int
-MethodWrapper_Check( PyObject* obj )
+bool
+MethodWrapper::Ready()
 {
-    return PyObject_TypeCheck( obj, &MethodWrapper_Type );
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
 }
 
 
 /*-----------------------------------------------------------------------------
 | AtomMethodWrapper
 |----------------------------------------------------------------------------*/
-static int
-AtomMethodWrapper_Check( PyObject* obj );
 
+namespace
+{
 
-static void
+void
 AtomMethodWrapper_dealloc( AtomMethodWrapper* self )
 {
     Py_CLEAR( self->im_func );
@@ -196,18 +140,13 @@ AtomMethodWrapper_dealloc( AtomMethodWrapper* self )
 }
 
 
-static PyObject*
+PyObject*
 AtomMethodWrapper__call__( AtomMethodWrapper* self, PyObject* args, PyObject* kwargs )
 {
     if( self->pointer.data() )
     {
         PyObject* im_self = pyobject_cast( self->pointer.data() );
-#if PY_MAJOR_VERSION < 3
-        PyObject* type = pyobject_cast( im_self->ob_type );
-        PyObjectPtr method( PyMethod_New( self->im_func, im_self, type ) );
-#else
-        PyObjectPtr method( PyMethod_New( self->im_func, im_self ) );
-#endif
+        cppy::ptr method( PyMethod_New( self->im_func, im_self ) );
         if( !method )
             return 0;
         return PyObject_Call( method.get(), args, kwargs );
@@ -216,7 +155,7 @@ AtomMethodWrapper__call__( AtomMethodWrapper* self, PyObject* args, PyObject* kw
 }
 
 
-static PyObject*
+PyObject*
 AtomMethodWrapper_richcompare( AtomMethodWrapper* self, PyObject* other, int op )
 {
     if( op == Py_EQ )
@@ -228,7 +167,7 @@ AtomMethodWrapper_richcompare( AtomMethodWrapper* self, PyObject* other, int op 
                 Py_RETURN_TRUE;
             Py_RETURN_FALSE;
         }
-        else if( AtomMethodWrapper_Check( other ) )
+        else if( AtomMethodWrapper::TypeCheck( other ) )
         {
             AtomMethodWrapper* wrapper = reinterpret_cast<AtomMethodWrapper*>( other );
             if( ( self->im_func == wrapper->im_func ) &&
@@ -243,8 +182,8 @@ AtomMethodWrapper_richcompare( AtomMethodWrapper* self, PyObject* other, int op 
 }
 
 
-static int
-AtomMethodWrapper__nonzero__( AtomMethodWrapper* self )
+int
+AtomMethodWrapper__bool__( AtomMethodWrapper* self )
 {
     if( self->pointer.data() )
         return 1;
@@ -252,83 +191,42 @@ AtomMethodWrapper__nonzero__( AtomMethodWrapper* self )
 }
 
 
-PyNumberMethods AtomMethodWrapper_as_number = {
-     ( binaryfunc )0,                       /* nb_add */
-     ( binaryfunc )0,                       /* nb_subtract */
-     ( binaryfunc )0,                       /* nb_multiply */
-#if PY_MAJOR_VERSION < 3
-     ( binaryfunc )0,                       /* nb_divide */
-#endif
-     ( binaryfunc )0,                       /* nb_remainder */
-     ( binaryfunc )0,                       /* nb_divmod */
-     ( ternaryfunc )0,                      /* nb_power */
-     ( unaryfunc )0,                        /* nb_negative */
-     ( unaryfunc )0,                        /* nb_positive */
-     ( unaryfunc )0,                        /* nb_absolute */
-     ( inquiry )AtomMethodWrapper__nonzero__ /* nb_nonzero */
+static PyType_Slot AtomMethodWrapper_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( AtomMethodWrapper_dealloc ) },          /* tp_dealloc */
+    { Py_tp_call, void_cast( AtomMethodWrapper__call__ ) },             /* tp_call */
+    { Py_tp_richcompare, void_cast( AtomMethodWrapper_richcompare ) },  /* tp_richcompare */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },                  /* tp_alloc */
+    { Py_tp_free, void_cast( PyObject_Del ) },                          /* tp_free */
+    { Py_nb_bool, void_cast( AtomMethodWrapper__bool__ ) },             /* nb_bool */
+    { 0, 0 },
+};
+
+}  // namespace
+
+
+// Initialize static variables (otherwise the compiler eliminates them)
+PyTypeObject* AtomMethodWrapper::TypeObject = NULL;
+
+
+PyType_Spec AtomMethodWrapper::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "AtomMethodWrapper" ),             /* tp_name */
+	sizeof( MethodWrapper ),                         /* tp_basicsize */
+	0,                                               /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    AtomMethodWrapper_Type_slots                           /* slots */
 };
 
 
-PyTypeObject AtomMethodWrapper_Type = {
-    PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-    "AtomMethodWrapper",                    /* tp_name */
-    sizeof( AtomMethodWrapper ),            /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    (destructor)AtomMethodWrapper_dealloc,  /* tp_dealloc */
-    (printfunc)0,                           /* tp_print */
-    (getattrfunc)0,                         /* tp_getattr */
-    (setattrfunc)0,                         /* tp_setattr */
-#if PY_VERSION_HEX >= 0x03050000
-	( PyAsyncMethods* )0,                   /* tp_as_async */
-#elif PY_VERSION_HEX >= 0x03000000
-	( void* ) 0,                            /* tp_reserved */
-#else
-	( cmpfunc )0,                           /* tp_compare */
-#endif
-    (reprfunc)0,                            /* tp_repr */
-    (PyNumberMethods*)&AtomMethodWrapper_as_number, /* tp_as_number */
-    (PySequenceMethods*)0,                  /* tp_as_sequence */
-    (PyMappingMethods*)0,                   /* tp_as_mapping */
-    (hashfunc)0,                            /* tp_hash */
-    (ternaryfunc)AtomMethodWrapper__call__, /* tp_call */
-    (reprfunc)0,                            /* tp_str */
-    (getattrofunc)0,                        /* tp_getattro */
-    (setattrofunc)0,                        /* tp_setattro */
-    (PyBufferProcs*)0,                      /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                     /* tp_flags */
-    0,                                      /* Documentation string */
-    (traverseproc)0,                        /* tp_traverse */
-    (inquiry)0,                             /* tp_clear */
-    (richcmpfunc)AtomMethodWrapper_richcompare, /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    (getiterfunc)0,                         /* tp_iter */
-    (iternextfunc)0,                        /* tp_iternext */
-    (struct PyMethodDef*)0,                 /* tp_methods */
-    (struct PyMemberDef*)0,                 /* tp_members */
-    0,                                      /* tp_getset */
-    0,                                      /* tp_base */
-    0,                                      /* tp_dict */
-    (descrgetfunc)0,                        /* tp_descr_get */
-    (descrsetfunc)0,                        /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)0,                            /* tp_init */
-    (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-    (newfunc)0,                             /* tp_new */
-    (freefunc)PyObject_Del,                 /* tp_free */
-    (inquiry)0,                             /* tp_is_gc */
-    0,                                      /* tp_bases */
-    0,                                      /* tp_mro */
-    0,                                      /* tp_cache */
-    0,                                      /* tp_subclasses */
-    0,                                      /* tp_weaklist */
-    (destructor)0                           /* tp_del */
-};
-
-
-static int
-AtomMethodWrapper_Check( PyObject* obj )
+bool
+AtomMethodWrapper::Ready()
 {
-    return PyObject_TypeCheck( obj, &AtomMethodWrapper_Type );
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
 }
 
 
@@ -336,42 +234,37 @@ AtomMethodWrapper_Check( PyObject* obj )
 | External API
 |----------------------------------------------------------------------------*/
 PyObject*
-MethodWrapper_New( PyObject* method )
+MethodWrapper::New( PyObject* method )
 {
     if( !PyMethod_Check( method ) )
-        return py_expected_type_fail( method, "MethodType" );  // LCOV_EXCL_LINE
+        return cppy::type_error( method, "MethodType" );
     if( !PyMethod_GET_SELF( method ) )
-        return py_type_fail( "cannot wrap unbound method" );
-    PyObjectPtr pywrapper;
+        return cppy::type_error( "cannot wrap unbound method" );
+    cppy::ptr pywrapper;
     if( CAtom::TypeCheck( PyMethod_GET_SELF( method ) ) )
     {
-        pywrapper = PyType_GenericNew( &AtomMethodWrapper_Type, 0, 0 );
+        pywrapper = PyType_GenericNew( AtomMethodWrapper::TypeObject, 0, 0 );
         if( !pywrapper )
             return 0;
         AtomMethodWrapper* wrapper = reinterpret_cast<AtomMethodWrapper*>( pywrapper.get() );
-        wrapper->im_func = newref( PyMethod_GET_FUNCTION( method ) );
+        wrapper->im_func = cppy::incref( PyMethod_GET_FUNCTION( method ) );
         // placement new since Python malloc'd and zero'd the struct
         new( &wrapper->pointer ) CAtomPointer( catom_cast( PyMethod_GET_SELF( method ) ) );
     }
     else
     {
-        PyObjectPtr wr( PyWeakref_NewRef( PyMethod_GET_SELF( method ), 0 ) );
+        cppy::ptr wr( PyWeakref_NewRef( PyMethod_GET_SELF( method ), 0 ) );
         if( !wr )
             return 0;
-        pywrapper = PyType_GenericNew( &MethodWrapper_Type, 0, 0 );
+        pywrapper = PyType_GenericNew( MethodWrapper::TypeObject, 0, 0 );
         if( !pywrapper )
             return 0;
         MethodWrapper* wrapper = reinterpret_cast<MethodWrapper*>( pywrapper.get() );
-        wrapper->im_func = newref( PyMethod_GET_FUNCTION( method ) );
+        wrapper->im_func = cppy::incref( PyMethod_GET_FUNCTION( method ) );
         wrapper->im_selfref = wr.release();
     }
     return pywrapper.release();
 }
 
 
-int import_methodwrapper()
-{
-    if( PyType_Ready( &MethodWrapper_Type ) < 0 )
-        return -1;
-    return 0;
-}
+}  // namespace atom

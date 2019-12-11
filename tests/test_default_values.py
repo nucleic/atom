@@ -24,8 +24,7 @@ import pytest
 
 from atom.api import (Atom, Coerced, DefaultValue, Dict, FloatRange,
                       ForwardInstance, ForwardSubclass, ForwardTyped, Instance,
-                      List, Member, Range, Subclass, Typed, Value)
-from atom.compat import int
+                      List, Member, Range, Set, Subclass, Typed, Value)
 
 
 def test_no_op_handler():
@@ -96,6 +95,23 @@ def test_dict_handler():
     default_value = DictTest.default.default_value_mode[1]
     assert DictTest().default == default_value
     assert DictTest().default is not default_value
+
+
+def test_set_handler():
+    """Test that the set handler properly copies the default value.
+
+    """
+    class SetTest(Atom):
+        no_default = Set()
+        default = Set(default={'a'})
+
+    assert SetTest.no_default.default_value_mode[0] == DefaultValue.Set
+    assert SetTest().no_default == set()
+
+    assert SetTest.default.default_value_mode[0] == DefaultValue.Set
+    default_value = SetTest.default.default_value_mode[1]
+    assert SetTest().default == default_value
+    assert SetTest().default is not default_value
 
 
 @pytest.mark.parametrize("member, expected, mode",

@@ -121,6 +121,8 @@ def test_list_traversal(model, kind):
     ref = atomref(m)
     del m, l, referents
     gc.collect()
+    if ref():
+        print(gc.get_referents(ref()))
     assert not ref()
 
 

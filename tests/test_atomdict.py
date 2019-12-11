@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, Nucleic Development Team.
+# Copyright (c) 2018-2019, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -12,7 +12,7 @@
 import sys
 import pytest
 
-from atom.api import Atom, Dict, Int
+from atom.api import Atom, Dict, Int, atomdict
 
 
 @pytest.fixture
@@ -25,33 +25,52 @@ def atom_dict():
         keytyped = Dict(Int())
         valuetyped = Dict(value=Int())
         fullytyped = Dict(Int(), Int())
+        untyped_default = Dict(default={1: 1})
+        keytyped_default = Dict(Int(), default={1: 1})
+        valuetyped_default = Dict(value=Int(), default={1: 1})
+        fullytyped_default = Dict(Int(), Int(), default={1: 1})
 
     return DictAtom()
 
-@pytest.mark.parametrize('member',
-                         ['untyped', 'keytyped', 'valuetyped', 'fullytyped'])
+
+MEMBERS = ['untyped', 'keytyped', 'valuetyped', 'fullytyped',
+           'untyped_default', 'keytyped_default', 'valuetyped_default',
+           'fullytyped_default']
+
+
+@pytest.mark.parametrize('member', MEMBERS)
+def test_instance(atom_dict, member):
+    """Test the repr.
+
+    """
+    assert isinstance(getattr(atom_dict, member), atomdict)
+
+
+@pytest.mark.parametrize('member', MEMBERS)
 def test_repr(atom_dict, member):
     """Test the repr.
 
     """
-    d = {i: i**2 for i in range(10)}
-    setattr(atom_dict, member, d)
+    d = getattr(atom_dict.__class__, member).default_value_mode[1]
+    if not d:
+        d = {i: i**2 for i in range(10)}
+        setattr(atom_dict, member, d)
     assert repr(getattr(atom_dict, member)) == repr(d)
 
 
-@pytest.mark.parametrize('member',
-                         ['untyped', 'keytyped', 'valuetyped', 'fullytyped'])
+@pytest.mark.parametrize('member', MEMBERS)
 def test_len(atom_dict, member):
     """Test the len.
 
     """
-    d = {i: i**2 for i in range(10)}
-    setattr(atom_dict, member, d)
+    d = getattr(atom_dict.__class__, member).default_value_mode[1]
+    if not d:
+        d = {i: i**2 for i in range(10)}
+        setattr(atom_dict, member, d)
     assert len(getattr(atom_dict, member)) == len(d)
 
 
-@pytest.mark.parametrize('member',
-                         ['untyped', 'keytyped', 'valuetyped', 'fullytyped'])
+@pytest.mark.parametrize('member', MEMBERS)
 def test_contains(atom_dict, member):
     """Test __contains__.
 
@@ -62,37 +81,28 @@ def test_contains(atom_dict, member):
     del getattr(atom_dict, member)[5]
     assert 5 not in getattr(atom_dict, member)
 
-@pytest.mark.parametrize('member',
-                         ['untyped', 'keytyped', 'valuetyped', 'fullytyped'])
+@pytest.mark.parametrize('member', MEMBERS)
 def test_keys(atom_dict, member):
     """Test the keys.
 
     """
-    d = {i: i**2 for i in range(10)}
-    setattr(atom_dict, member, d)
+    d = getattr(atom_dict.__class__, member).default_value_mode[1]
+    if not d:
+        d = {i: i**2 for i in range(10)}
+        setattr(atom_dict, member, d)
     assert getattr(atom_dict, member).keys() == d.keys()
 
 
-@pytest.mark.parametrize('member',
-                         ['untyped', 'keytyped', 'valuetyped', 'fullytyped'])
+@pytest.mark.parametrize('member', MEMBERS)
 def test_copy(atom_dict, member):
     """Test copy.
 
     """
-    d = {i: i**2 for i in range(10)}
-    setattr(atom_dict, member, d)
+    d = getattr(atom_dict.__class__, member).default_value_mode[1]
+    if not d:
+        d = {i: i**2 for i in range(10)}
+        setattr(atom_dict, member, d)
     assert getattr(atom_dict, member).copy() == d
-
-@pytest.mark.skipif(sys.version_info > (3,), reason='Meaningful only on Python 2')
-@pytest.mark.parametrize('member',
-                         ['untyped', 'keytyped', 'valuetyped', 'fullytyped'])
-def test_has_key(atom_dict, member):
-    """Test has_key.
-
-    """
-    d = {i: i**2 for i in range(10)}
-    setattr(atom_dict, member, d)
-    assert getattr(atom_dict, member).has_key(5)
 
 
 def test_setitem(atom_dict):
@@ -100,17 +110,83 @@ def test_setitem(atom_dict):
 
     """
     atom_dict.untyped[''] = 1
+    assert atom_dict.untyped[''] == 1
 
     atom_dict.keytyped[1] = ''
+    assert atom_dict.keytyped[1] == ''
     with pytest.raises(TypeError):
         atom_dict.keytyped[''] = 1
 
     atom_dict.valuetyped[1] = 1
+    assert atom_dict.valuetyped[1] == 1
     with pytest.raises(TypeError):
         atom_dict.valuetyped[''] = ''
 
     atom_dict.fullytyped[1] = 1
+    assert atom_dict.fullytyped[1] == 1
     with pytest.raises(TypeError):
         atom_dict.fullytyped[''] = 1
     with pytest.raises(TypeError):
         atom_dict.fullytyped[1] = ''
+
+
+def test_setdefault(atom_dict):
+    """Test using setdefault.
+
+    """
+
+    assert atom_dict.untyped.setdefault('',  1) == 1
+    assert atom_dict.untyped.setdefault('',  2) == 1
+    assert atom_dict.untyped[''] == 1
+
+    assert atom_dict.keytyped.setdefault(1, '') == ''
+    assert atom_dict.keytyped[1] == ''
+    with pytest.raises(TypeError):
+        atom_dict.keytyped.setdefault('', 1)
+
+    assert atom_dict.valuetyped.setdefault(1, 1) == 1
+    assert atom_dict.valuetyped.setdefault(1, '') == 1
+    assert atom_dict.valuetyped[1] == 1
+    with pytest.raises(TypeError):
+        atom_dict.valuetyped.setdefault(2, '')
+
+    assert atom_dict.fullytyped.setdefault(1, 1) == 1
+    assert atom_dict.fullytyped.setdefault(1, '') == 1
+    assert atom_dict.fullytyped[1] == 1
+    with pytest.raises(TypeError):
+        atom_dict.fullytyped.setdefault('', 1)
+    with pytest.raises(TypeError):
+        atom_dict.fullytyped.setdefault(2, '')
+
+
+def test_update(atom_dict):
+    """Test update a dict.
+
+    """
+    atom_dict.untyped.update({'': 1})
+    assert atom_dict.untyped[''] == 1
+    atom_dict.untyped.update([('1', 1)])
+    assert atom_dict.untyped['1'] == 1
+
+    atom_dict.keytyped.update({1: 1})
+    assert atom_dict.keytyped[1] == 1
+    atom_dict.keytyped.update([(2, 1)])
+    assert atom_dict.keytyped[1] == 1
+    with pytest.raises(TypeError):
+        atom_dict.keytyped.update({'': 1})
+
+    atom_dict.valuetyped.update({1: 1})
+    assert atom_dict.valuetyped[1] == 1
+    atom_dict.valuetyped.update([(2, 1)])
+    assert atom_dict.valuetyped[1] == 1
+    with pytest.raises(TypeError):
+        atom_dict.valuetyped.update({'': ''})
+
+    atom_dict.fullytyped.update({1: 1})
+    assert atom_dict.fullytyped[1] == 1
+    atom_dict.fullytyped.update([(2, 1)])
+    assert atom_dict.fullytyped[1] == 1
+    with pytest.raises(TypeError):
+        atom_dict.fullytyped.update({'': 1})
+    with pytest.raises(TypeError):
+        atom_dict.fullytyped.update({'': ''})

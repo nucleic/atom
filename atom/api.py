@@ -11,7 +11,8 @@
 from .atom import AtomMeta, Atom, observe, set_default
 from .catom import (
     CAtom, Member, GetAttr, SetAttr, PostGetAttr, PostSetAttr,
-    DefaultValue, Validate, PostValidate, atomref, atomlist, atomclist
+    DefaultValue, Validate, PostValidate, atomref, atomlist, atomclist,
+    atomdict, atomset
 )
 from .coerced import Coerced
 from .containerlist import ContainerList
@@ -27,6 +28,7 @@ from .scalars import (
     Value, ReadOnly, Constant, Callable, Bool, Int, Long, Range, Float, Bytes,
     Str, Unicode, FloatRange
 )
+from .set import Set
 from .signal import Signal
 from .subclass import Subclass, ForwardSubclass
 from .tuple import Tuple

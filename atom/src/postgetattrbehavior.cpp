@@ -1,15 +1,16 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <cppy/cppy.h>
 #include "member.h"
-#include "py23compat.h"
 
 
-using namespace PythonHelpers;
+namespace atom
+{
 
 
 bool
@@ -20,16 +21,16 @@ Member::check_context( PostGetAttr::Mode mode, PyObject* context )
         case PostGetAttr::Delegate:
             if( !Member::TypeCheck( context ) )
             {
-                py_expected_type_fail( context, "Member" );
+                cppy::type_error( context, "Member" );
                 return false;
             }
             break;
         case PostGetAttr::ObjectMethod_Value:
         case PostGetAttr::ObjectMethod_NameValue:
         case PostGetAttr::MemberMethod_ObjectValue:
-            if( !Py23Str_Check( context ) )
+            if( !PyUnicode_Check( context ) )
             {
-                py_expected_type_fail( context, "str" );
+                cppy::type_error( context, "str" );
                 return false;
             }
             break;
@@ -40,14 +41,18 @@ Member::check_context( PostGetAttr::Mode mode, PyObject* context )
 }
 
 
-static PyObject*
+namespace
+{
+
+
+PyObject*
 no_op_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    return newref( value );
+    return cppy::incref( value );
 }
 
 
-static PyObject*
+PyObject*
 delegate_handler( Member* member, CAtom* atom, PyObject* value )
 {
     Member* delegate = member_cast( member->post_getattr_context );
@@ -55,47 +60,47 @@ delegate_handler( Member* member, CAtom* atom, PyObject* value )
 }
 
 
-static PyObject*
+PyObject*
 object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_getattr_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_getattr_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 1 ) );
+    cppy::ptr args( PyTuple_New( 1 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( value ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( value ) );
+    return callable.call( args );
 }
 
 
-static PyObject*
+PyObject*
 object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_getattr_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_getattr_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 2 ) );
+    cppy::ptr args( PyTuple_New( 2 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( member->name ) );
-    args.initialize( 1, newref( value ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( member->name ) );
+    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( value ) );
+    return callable.call( args );
 }
 
 
-static PyObject*
+PyObject*
 member_method_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    PyObjectPtr callable( PyObject_GetAttr( pyobject_cast( member ), member->post_getattr_context ) );
+    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->post_getattr_context ) );
     if( !callable )
         return 0;
-    PyTuplePtr args( PyTuple_New( 2 ) );
+    cppy::ptr args( PyTuple_New( 2 ) );
     if( !args )
         return 0;
-    args.initialize( 0, newref( pyobject_cast( atom ) ) );
-    args.initialize( 1, newref( value ) );
-    return callable( args ).release();
+    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
+    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( value ) );
+    return callable.call( args );
 }
 
 
@@ -113,6 +118,9 @@ handlers[] = {
 };
 
 
+}  // namespace
+
+
 PyObject*
 Member::post_getattr( CAtom* atom, PyObject* value )
 {
@@ -120,3 +128,6 @@ Member::post_getattr( CAtom* atom, PyObject* value )
         return no_op_handler( this, atom, value );  // LCOV_EXCL_LINE
     return handlers[ get_post_getattr_mode() ]( this, atom, value );
 }
+
+
+}  // namespace atom

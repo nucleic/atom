@@ -1,11 +1,14 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
 | The full license is in the file COPYING.txt, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
+
+namespace atom
+{
 
 
 namespace GetAttr
@@ -84,6 +87,7 @@ enum Mode
     Last // sentinel
 };
 
+
 } // namespace PostSetAttr
 
 
@@ -95,6 +99,7 @@ enum Mode
     NoOp,
     Static,
     List,
+    Set,
     Dict,
     Delegate,
     CallObject,
@@ -124,13 +129,14 @@ enum Mode
     FloatPromote,
     Bytes,
     BytesPromote,
-    String,
-    StringPromote,
+    Str,
+    StrPromote,
     Unicode,
     UnicodePromote,
     Tuple,
     List,
     ContainerList,
+    Set,
     Dict,
     Instance,
     Typed,
@@ -183,3 +189,5 @@ enum Mode
 };
 
 } // namespace DelAttr
+
+}  // namespace atom
