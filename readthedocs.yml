@@ -1,6 +1,14 @@
-formats:
-    - epub
-    - pdf
+# .readthedocs.yml
 
-conda:
-    file: docs/environment.yml
+version: 2
+
+formats:
+  - epub
+  - pdf
+
+python:
+  version: 3.7
+  install:
+     - requirements: docs/requirements.txt
+     - method: pip
+       path: .
