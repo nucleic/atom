@@ -1,11 +1,11 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2019, Nucleic Development Team.
+# Copyright (c) 2013-2020, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 #------------------------------------------------------------------------------
-from collections import MutableMapping
+from collections.abc import MutableMapping
 
 from .catom import Member, PostGetAttr, DefaultValue, Validate
 from .instance import Instance
