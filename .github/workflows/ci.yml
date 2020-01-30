@@ -36,7 +36,7 @@ jobs:
           pytest tests --cov atom --cov-report xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-        if: ${{ runner.os }} == "Windows"
+        if: runner.os == "Windows"
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
@@ -46,7 +46,7 @@ jobs:
           fail_ci_if_error: true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-        if: ${{ runner.os }} != "Windows"
+        if: runner.os != "Windows"
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittests
