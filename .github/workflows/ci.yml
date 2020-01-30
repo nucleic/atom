@@ -21,7 +21,7 @@ jobs:
           pip install https://github.com/nucleic/cppy/tarball/master
       - name: Install project
         env:
-          CPPFLAGS=--coverage
+          CPPFLAGS: --coverage
         run: |
           python setup.py develop
       - name: Test with pytest
