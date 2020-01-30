@@ -58,6 +58,8 @@ jobs:
       - name: Install project
         run: |
           python setup.py develop
+      - name: Install graphviz
+        uses: kamiazya/setup-graphviz@v1
       - name: Install doc building tools
         uses: kamiazya/setup-graphviz@v1
         run: |
