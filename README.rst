@@ -1,8 +1,10 @@
 Welcome to Atom
 ===============
 
-.. image:: https://travis-ci.org/nucleic/atom.svg?branch=master
-    :target: https://travis-ci.org/nucleic/atom
+.. image:: https://github.com/nucleic/atom/workflows/Continuous%20Integration/badge.svg
+    :target: https://github.com/nucleic/atom/actions
+.. image:: https://github.com/nucleic/atom/workflows/Documentation%20building/badge.svg
+    :target: https://github.com/nucleic/atom/actions
 .. image:: https://codecov.io/gh/nucleic/atom/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/nucleic/atom
 .. image:: https://readthedocs.org/projects/atom/badge/?version=latest
