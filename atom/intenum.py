@@ -3,7 +3,7 @@
 #
 # Distributed under the terms of the Modified BSD License.
 #
-# The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
 # Note: This module is imported by 'atom.catom' module from code defined in
 # the 'enumtypes.cpp' file. This module must therefore not import atom.
