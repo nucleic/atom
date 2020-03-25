@@ -10,8 +10,6 @@ import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
 
-import cppy
-
 sys.path.insert(0, os.path.abspath('.'))
 from atom.version import __version__
 
