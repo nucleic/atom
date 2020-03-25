@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2019, Nucleic Development Team.
+# Copyright (c) 2013-2020, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -102,7 +102,7 @@ setup(
           'Programming Language :: Python :: Implementation :: CPython',
       ],
     python_requires='>=3.5',
-    setup_requires=['cppy'],
+    setup_requires=['cppy>=1.1.0'],
     packages=find_packages(exclude=['tests', 'tests.*']),
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
