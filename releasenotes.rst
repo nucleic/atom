@@ -1,7 +1,7 @@
 Atom Release Notes
 ==================
 
-0.5.1 - unreleased
+0.5.1 - 03-06-2020
 ------------------
 - fix bug in using atomlist from C PR #102
 - clarify Unicode deprecation warning PR #102
