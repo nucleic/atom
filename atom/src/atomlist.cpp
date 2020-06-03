@@ -794,7 +794,7 @@ public:
         bool obs = observer_check();
         if( obs )
         {
-            olditem = PyList_GetItem( m_list.get(), index );
+            olditem = cppy::xincref(PyList_GetItem( m_list.get(), index ));
             if( !olditem )
                 return -1;
         }

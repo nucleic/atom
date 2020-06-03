@@ -223,7 +223,8 @@ class Unicode(Value):
     __slots__ = ()
 
     def __init__(self, default=u'', factory=None, strict=False):
-        msg = 'Unicode is deprecated and will be removed in atom 0.6.0'
+        msg = ('Unicode is deprecated and will be removed in atom 0.6.0, '
+               'use Str instead.')
         warnings.warn(FutureWarning(msg))
         super(Unicode, self).__init__(default, factory)
         if strict:
