@@ -92,6 +92,61 @@ fallback_3way_compare( PyObject* first, PyObject* second ) {
 }
 
 
+/**
+ * A safe richcomparison that will never fail and fallback to 3way compare
+ * if the conventional rich compare fails.
+ */
+inline bool safe_richcompare( PyObject* first, PyObject* second, int opid )
+{
+    // Start with Python's rich compare.
+    int r = PyObject_RichCompareBool( first, second, opid );
+
+    // Handle a successful comparison.
+    if( r == 1 )
+        return true;
+    if( r == 0 )
+        return false;
+
+    // Clear the error if one happened because we attempted an invalid
+    // comparison.
+    if( PyErr_Occurred() )
+        PyErr_Clear();
+
+    // Fallback to the Python 2 default 3 way compare.
+    int c = fallback_3way_compare( first, second );
+
+    // Convert the 3way comparison result based on the `opid`.
+    switch (opid) {
+    case Py_EQ: return c == 0;
+    case Py_NE: return c != 0;
+    case Py_LE: return c <= 0;
+    case Py_GE: return c >= 0;
+    case Py_LT: return c < 0;
+    case Py_GT: return c > 0;
+    }
+
+    // Return `false` if the `opid` is not handled.
+    return false;
+}
+
+inline bool safe_richcompare( cppy::ptr first, PyObject* second, int opid )
+{
+    return safe_richcompare( first.get(), second, opid );
+}
+
+
+inline bool safe_richcompare( PyObject* first, cppy::ptr second, int opid )
+{
+    return safe_richcompare( first, second.get(), opid );
+}
+
+
+inline bool safe_richcompare( cppy::ptr first, cppy::ptr second, int opid )
+{
+    return safe_richcompare( first.get(), second.get(), opid );
+}
+
+
 } // namespace utils
 
 } // namespace atom

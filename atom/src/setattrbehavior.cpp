@@ -8,6 +8,7 @@
 #include <cppy/cppy.h>
 #include "member.h"
 #include "memberchange.h"
+#include "utils.h"
 
 
 namespace atom
@@ -130,7 +131,7 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
         cppy::ptr argsptr;
         if( member->has_observers() )
         {
-            if( valid_old && oldptr.richcmp( newptr, Py_EQ ) )
+            if( valid_old && utils::safe_richcompare( oldptr, newptr, Py_EQ ) )
                 return 0;
             if( valid_old )
                 argsptr = updated_args( atom, member, oldptr.get(), newptr.get() );
@@ -145,7 +146,7 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
         {
             if( !argsptr )
             {
-                if( valid_old && oldptr.richcmp( newptr, Py_EQ ) )
+                if( valid_old && utils::safe_richcompare( oldptr, newptr, Py_EQ ) )
                     return 0;
                 if( valid_old )
                     argsptr = updated_args( atom, member, oldptr.get(), newptr.get() );
