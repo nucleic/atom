@@ -11,6 +11,13 @@
 import pytest
 from atom.api import Atom, Int, List, Value, Event, Signal, observe
 
+
+class NonComparableObject:
+
+    def __eq__(self, other):
+        raise ValueError()
+
+
 # --- Static observer manipulations
 
 @pytest.fixture
@@ -66,8 +73,15 @@ def test_manual_static_observers(static_atom):
     """Test manually managing static observers.
 
     """
-    def react(change):
-        change['object'].changes.append(change['name'])
+    # Force the use of safe comparison (error cleaning and fallback)
+    class Observer:
+        def __eq__(self, other):
+            raise ValueError()
+
+        def __call__(self, change):
+            change['object'].changes.append(change['name'])
+
+    react = Observer()
 
     # We have 2 static observers hence 2 removals
     member = static_atom.get_member('val2')
@@ -235,6 +249,11 @@ class Observer(object):
 
     def react(self, change):
         self.count += 1
+
+    # Force the use of safe equality comparison (ie clean error and fallback
+    # on pointer comparison)
+    def __eq__(self, other):
+        raise ValueError()
 
 
 class DynamicAtom(Atom):
@@ -559,11 +578,12 @@ def sd_observed_atom():
             self.count = 0
 
         def react(self, change):
+            print(change)
             self.count += 1
 
     class NotifTest(Atom):
 
-        val = Int()
+        val = Value()
 
         count = Int()
 
@@ -575,6 +595,7 @@ def sd_observed_atom():
             self.observe('val', self.observer.react)
 
         def _observe_val(self, change):
+            print(change)
             self.count += 1
 
     return NotifTest()
@@ -617,8 +638,43 @@ def test_notification_on_setting(sd_observed_atom):
     assert sd_observed_atom.observer.count == 2
 
 
+def test_notification_on_setting_non_comparable_value(sd_observed_atom):
+    """Test that notifiers are called when setting a value.
+
+    """
+    o1 = NonComparableObject()
+    sd_observed_atom.val = 0
+
+    assert sd_observed_atom.count == 1
+    assert sd_observed_atom.observer.count == 1
+
+    # And also test update of values
+    sd_observed_atom.val = 1
+
+    assert sd_observed_atom.count == 2
+    assert sd_observed_atom.observer.count == 2
+
+    # No notification on equal assignment
+    sd_observed_atom.val = 1
+
+    assert sd_observed_atom.count == 2
+    assert sd_observed_atom.observer.count == 2
+
+    # Check notification on invalid comparison
+    sd_observed_atom.val = o1
+
+    assert sd_observed_atom.count == 3
+    assert sd_observed_atom.observer.count == 3
+
+     # Check no notification on equal value assignment
+    sd_observed_atom.val = o1
+
+    assert sd_observed_atom.count == 3
+    assert sd_observed_atom.observer.count == 3
+
+
 def test_enabling_disabling_notifications(sd_observed_atom):
-    """Test enabling/disabling motification on an atom.
+    """Test enabling/disabling notification on an atom.
 
     """
     assert sd_observed_atom.notifications_enabled()

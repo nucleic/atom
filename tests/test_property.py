@@ -9,8 +9,8 @@
 
 """
 import pytest
-from atom.api import (Atom, Int, Property, GetAttr, SetAttr,
-                      observe, cached_property)
+from atom.api import (Atom, GetAttr, Int, Property, SetAttr, Value,
+                      cached_property, observe)
 from atom.catom import DelAttr, reset_property
 
 
@@ -167,9 +167,17 @@ def test_observed_property():
     """Test observing a property.
 
     """
+    class NonComparableObject:
+
+        def __eq__(self, other):
+            raise ValueError()
+
+        def __add__(self, other):
+            return other + 5
+
     class PropertyTest(Atom):
 
-        i = Int()
+        i = Value(0)
 
         counter = Int()
 
@@ -188,9 +196,11 @@ def test_observed_property():
     assert pt.prop == 1
     assert pt.prop == 2
 
+    pt.i = NonComparableObject()
     pt.observe('prop', pt.observe_cp)
     pt.get_member('prop').reset(pt)
     assert pt.counter == 2
+    assert pt.prop == 7
 
 
 def test_wrong_reset_arguments():
