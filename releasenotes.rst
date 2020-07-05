@@ -1,6 +1,10 @@
 Atom Release Notes
 ==================
 
+0.5.2 - unreleased
+------------------
+- make comparison used in C safe (fix bug introduced in 0.5.0) PR #107
+
 0.5.1 - 03-06-2020
 ------------------
 - fix bug in using atomlist from C PR #102

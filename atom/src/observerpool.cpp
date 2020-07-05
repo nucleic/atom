@@ -6,6 +6,7 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include "observerpool.h"
+#include "utils.h"
 
 
 namespace atom
@@ -82,7 +83,7 @@ ObserverPool::has_observer( cppy::ptr& topic, cppy::ptr& observer )
             obs_end = obs_it + topic_it->m_count;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( *obs_it == observer || obs_it->richcmp( observer, Py_EQ ) )
+                if( *obs_it == observer || utils::safe_richcompare( obs_it->get(), observer, Py_EQ ) )
                     return true;
             }
             return false;
@@ -117,7 +118,7 @@ ObserverPool::add( cppy::ptr& topic, cppy::ptr& observer )
             obs_free = obs_end;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( *obs_it == observer || obs_it->richcmp( observer, Py_EQ ) )
+                if( *obs_it == observer || utils::safe_richcompare( obs_it->get(), observer, Py_EQ ) )
                     return;
                 if( !obs_it->is_truthy() )
                     obs_free = obs_it;
@@ -160,7 +161,7 @@ ObserverPool::remove( cppy::ptr& topic, cppy::ptr& observer )
             obs_end = obs_it + topic_it->m_count;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( *obs_it == observer || obs_it->richcmp( observer, Py_EQ ) )
+                if( *obs_it == observer || utils::safe_richcompare( obs_it->get(), observer, Py_EQ ) )
                 {
                     m_observers.erase( obs_it );
                     if( ( --topic_it->m_count ) == 0 )

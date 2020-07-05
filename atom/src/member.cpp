@@ -967,7 +967,7 @@ Member::add_observer( PyObject* observer )
     std::vector<cppy::ptr>::iterator end = static_observers->end();
     for( it = static_observers->begin(); it != end; ++it )
     {
-        if( *it == obptr || it->richcmp( obptr, Py_EQ ) )
+        if( *it == obptr || utils::safe_richcompare( it->get(), obptr, Py_EQ ) )
             return;
     }
     static_observers->push_back( obptr );
@@ -991,7 +991,7 @@ Member::remove_observer( PyObject* observer )
         std::vector<cppy::ptr>::iterator end = static_observers->end();
         for( it = static_observers->begin(); it != end; ++it )
         {
-            if( *it == obptr || it->richcmp( obptr, Py_EQ ) )
+            if( *it == obptr || utils::safe_richcompare( it->get(), obptr, Py_EQ ) )
             {
                 static_observers->erase( it );
                 if( static_observers->size() == 0 )
@@ -1016,7 +1016,7 @@ Member::has_observer( PyObject* observer )
     std::vector<cppy::ptr>::iterator end = static_observers->end();
     for( it = static_observers->begin(); it != end; ++it )
     {
-        if( *it == obptr || it->richcmp( obptr, Py_EQ ) )
+        if( *it == obptr || utils::safe_richcompare( it->get(), obptr, Py_EQ ) )
             return true;
     }
     return false;

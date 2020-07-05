@@ -11,6 +11,8 @@
 #include <cppy/cppy.h>
 #include "platstdint.h"
 #include "modifyguard.h"
+#include "utils.h"
+
 
 namespace atom
 {
@@ -26,7 +28,7 @@ class ObserverPool
         ~Topic() {}
         bool match( cppy::ptr& topic )
         {
-            return m_topic == topic || m_topic.richcmp( topic, Py_EQ );
+            return m_topic == topic || utils::safe_richcompare( m_topic, topic, Py_EQ );
         }
         cppy::ptr m_topic;
         uint32_t m_count;

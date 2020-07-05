@@ -10,6 +10,7 @@
 #include "catom.h"
 #include "member.h"
 #include "memberchange.h"
+#include "utils.h"
 
 
 namespace atom
@@ -80,7 +81,7 @@ reset_property( PyObject* mod, PyObject* args )
             return 0;
         }
         bool cached = member->get_getattr_mode() == GetAttr::CachedProperty;
-        if( !cached || !oldptr.richcmp( newptr, Py_EQ ) )
+        if( !cached || !utils::safe_richcompare( oldptr, newptr, Py_EQ ) )
         {
             cppy::ptr argsptr( property_args( atom, member, oldptr.get(), newptr.get() ) );
             if( !argsptr )
