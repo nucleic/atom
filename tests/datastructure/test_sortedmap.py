@@ -161,6 +161,27 @@ def test_ordering_with_inhomogeneous(smap):
     smap[1] = 4
     assert [k for k in smap.keys()] == [1, '0', 'a', 'b', 'c', 'd']
 
+    # Test ordering None, which is smaller than anything
+    s = sortedmap()
+    s[1] = 1
+    s[None] = 1
+    assert [k for k in s.keys()] == [None, 1]
+
+    s = sortedmap()
+    s[None] = 1
+    s[1] = 1
+    assert [k for k in s.keys()] == [None, 1]
+
+    # Test ordering classes that cannot be ordered through the usual mean
+    class T:
+        pass
+    t1 = T()
+    t2 = T()
+    s = sortedmap()
+    s[t1] = 1
+    s[t2] = 1
+    assert [k for k in s.keys()] == [t1, t2] if id(t1) < id(t2) else [t2, t1]
+
 
 def test_deleting_keys(smap):
     """Test deleting items.
