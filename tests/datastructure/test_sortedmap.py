@@ -177,15 +177,16 @@ def test_ordering_with_inhomogeneous(smap):
         pass
     t1 = T()
     t2 = T()
-    class U:
+    oT = T
+    class T:
         pass
-    u = U()
+    u = T()
     s = sortedmap()
     s[t1] = 1
     s[t2] = 1
     assert [k for k in s.keys()] == [t1, t2] if id(t1) < id(t2) else [t2, t1]
     s[u] = 1
-    assert [k for k in s.keys()][0] is u if id(U) < id(T) else [k for k in s.keys()][-1] is u
+    assert [k for k in s.keys()][0] is u if id(T) < id(oT) else [k for k in s.keys()][-1] is u
 
 
 def test_deleting_keys(smap):
