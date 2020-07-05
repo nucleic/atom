@@ -172,15 +172,20 @@ def test_ordering_with_inhomogeneous(smap):
     s[1] = 1
     assert [k for k in s.keys()] == [None, 1]
 
-    # Test ordering classes that cannot be ordered through the usual mean
+    # Test ordering class that cannot be ordered through the usual mean
     class T:
         pass
     t1 = T()
     t2 = T()
+    class U:
+        pass
+    u = U()
     s = sortedmap()
     s[t1] = 1
     s[t2] = 1
     assert [k for k in s.keys()] == [t1, t2] if id(t1) < id(t2) else [t2, t1]
+    s[u] = 1
+    assert [k for k in s.keys()][0] is u if id(U) < id(T) else [k for k in s.keys()][-1] is u
 
 
 def test_deleting_keys(smap):
