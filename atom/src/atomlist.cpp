@@ -37,11 +37,6 @@ namespace ListMethods
     static pycfunc pop = 0;
     #endif
     static pycfunc remove = 0;
-    #if PY_VERSION_HEX >= 0x03070000
-    static pycfunc_fkw sort = 0;
-    #else
-    static pycfunc_kw sort = 0;
-    #endif
 
     inline PyCFunction
     lookup_method( PyTypeObject* type, const char* name )
@@ -84,19 +79,6 @@ namespace ListMethods
         {
     // LCOV_EXCL_START
             cppy::system_error( "failed to load list 'remove' method" );
-            return false;
-    // LCOV_EXCL_STOP
-        }
-    #if PY_VERSION_HEX >= 0x03070000
-        sort = reinterpret_cast<pycfunc_fkw>( lookup_method( &PyList_Type, "sort" ) );
-    #else
-        sort = reinterpret_cast<pycfunc_kw>( lookup_method( &PyList_Type, "sort" ) );
-    #endif
-
-        if( !sort )
-        {
-    // LCOV_EXCL_START
-            cppy::system_error( "failed to load list 'sort' method" );
             return false;
     // LCOV_EXCL_STOP
         }
@@ -312,6 +294,11 @@ int AtomList_clear( AtomList* self )
 int AtomList_traverse( AtomList* self, visitproc visit, void* arg )
 {
 	Py_VISIT( self->validator );
+#if PY_VERSION_HEX >= 0x03090000
+    // This was not needed before Python 3.9 (Python issue 35810 and 40217)
+    Py_VISIT(Py_TYPE(self));
+#endif
+    // PyList_type is not heap allocated so it does visit the type
 	return PyList_Type.tp_traverse( pyobject_cast( self ), visit, arg );
 }
 
@@ -702,26 +689,21 @@ public:
     PyObject* sort( PyObject* args, PyObject* kwargs )
     {
         static char *kwlist[] = { "key", "reverse", 0 };
-#if PY_VERSION_HEX >= 0x03070000
-        int nargs = (int)PyTuple_GET_SIZE( args );
-        PyObject **stack = &PyTuple_GET_ITEM( args, 0 );
+        // Get a reference to builtins (borrowed ref hence the incref)
+        cppy::ptr builtins( cppy::incref( PyImport_AddModule("builtins") ) );
+        cppy::ptr super_type( builtins.getattr( "super" ) );
+        // Create super args (tuple steals references)
+        cppy::ptr super_args( PyTuple_New(2) );
+        PyTuple_SET_ITEM( super_args.get(), 0, cppy::incref( pyobject_cast( m_list.get()->ob_type ) ) );
+        PyTuple_SET_ITEM( super_args.get(), 1, cppy::incref( m_list.get() ) );
 
-        PyObject *const *stackbis;
-        PyObject *kwnames;
-        if (_PyStack_UnpackDict(stack, nargs, kwargs, &stackbis, &kwnames) < 0) {
-            return 0;
-        }
-
-        cppy::ptr res( ListMethods::sort( m_list.get(), stackbis, nargs, kwnames ) );
-        if (stackbis != stack) {
-            PyMem_Free((PyObject **)stackbis);
-        }
-        Py_XDECREF(kwnames);
-#else
-        cppy::ptr res( ListMethods::sort( m_list.get(), args, kwargs ) );
-#endif
+        // Get and call super method
+        cppy::ptr super( super_type.call( super_args ) );
+        cppy::ptr meth( super.getattr( "sort" ) );
+        cppy::ptr res( meth.call(args, kwargs) );
         if( !res )
             return 0;
+
         if( observer_check() )
         {
             cppy::ptr c( prepare_change() );

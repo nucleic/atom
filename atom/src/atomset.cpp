@@ -84,6 +84,11 @@ int AtomSet_clear( AtomSet* self )
 int AtomSet_traverse( AtomSet* self, visitproc visit, void* arg )
 {
 	Py_VISIT( self->m_value_validator );
+#if PY_VERSION_HEX >= 0x03090000
+    // This was not needed before Python 3.9 (Python issue 35810 and 40217)
+    Py_VISIT(Py_TYPE(self));
+#endif
+    // PySet_type is not heap allocated so it does visit the type
 	return PySet_Type.tp_traverse( pyobject_cast( self ), visit, arg );
 }
 

@@ -116,10 +116,15 @@ CAtom_traverse( CAtom* self, visitproc visit, void* arg )
     {
         Py_VISIT( self->slots[ i ] );
     }
+#if PY_VERSION_HEX >= 0x03090000
+    // This was not needed before Python 3.9 (Python issue 35810 and 40217)
+    Py_VISIT(Py_TYPE(self));
+#endif
     if( self->observers )
     {
         return self->observers->py_traverse( visit, arg );
     }
+
     return 0;
 }
 
