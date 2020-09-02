@@ -8,3 +8,4 @@ atom.egg-info/
 .eggs
 
 .vscode
+.mypy_cache
