@@ -123,7 +123,7 @@ def test_list_traversal(model, kind):
             if model is CyclicContainerModel else
             atomlist)
 
-    assert gc.get_referents(l) == referents
+    assert Counter(gc.get_referents(l)) == Counter(referents)
 
     ref = atomref(m)
     del m, l, referents
