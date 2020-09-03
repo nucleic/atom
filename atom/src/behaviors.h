@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2019, Nucleic Development Team.
+| Copyright (c) 2013-2020, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -123,16 +123,12 @@ enum Mode
     Bool,
     Int,
     IntPromote,
-    Long,
-    LongPromote,
     Float,
     FloatPromote,
     Bytes,
     BytesPromote,
     Str,
     StrPromote,
-    Unicode,
-    UnicodePromote,
     Tuple,
     List,
     ContainerList,
