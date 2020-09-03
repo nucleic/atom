@@ -105,25 +105,6 @@ class Int(Value):
             self.set_validate_mode(Validate.IntPromote, None)
 
 
-class Long(Value):
-    """ A value of type `long`.
-
-    By default, ints are promoted to longs. Pass strict=True to the
-    constructor to enable strict long checking.
-
-    """
-    __slots__ = ()
-
-    def __init__(self, default=0, factory=None, strict=False):
-        msg = 'Long is deprecated and will be removed in atom 0.6.0'
-        warnings.warn(FutureWarning(msg))
-        super(Long, self).__init__(default, factory)
-        if strict:
-            self.set_validate_mode(Validate.Long, None)
-        else:
-            self.set_validate_mode(Validate.LongPromote, None)
-
-
 class FloatRange(Value):
     """ A float value clipped to a range.
 
@@ -207,26 +188,6 @@ class Str(Value):
     """
     def __init__(self, default='', factory=None, strict=False):
         super(Str, self).__init__(default, factory)
-        if strict:
-            self.set_validate_mode(Validate.Str, None)
-        else:
-            self.set_validate_mode(Validate.StrPromote, None)
-
-
-class Unicode(Value):
-    """ A value of type `str`.
-
-    By default, bytes strings will be promoted to unicode strings. Pass
-    strict=True to the constructor to enable strict unicode checking.
-
-    """
-    __slots__ = ()
-
-    def __init__(self, default=u'', factory=None, strict=False):
-        msg = ('Unicode is deprecated and will be removed in atom 0.6.0, '
-               'use Str instead.')
-        warnings.warn(FutureWarning(msg))
-        super(Unicode, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Str, None)
         else:

@@ -13,7 +13,7 @@ from __future__ import (division, unicode_literals, print_function,
 
 import sys
 
-from atom.api import Atom, Unicode, Int
+from atom.api import Atom, Str, Int
 
 
 def get_last_name():
@@ -27,11 +27,11 @@ class Person(Atom):
     """ A simple class representing a person object.
 
     """
-    first_name = Unicode('Bob').tag(pref=True)
+    first_name = Str('Bob').tag(pref=True)
 
     age = Int(default=40).tag(pref=False)
 
-    last_name = Unicode()
+    last_name = Str()
 
     def _default_last_name(self):
         return get_last_name()

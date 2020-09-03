@@ -25,8 +25,8 @@ from .intenum import IntEnum
 from .list import List
 from .property import Property, cached_property
 from .scalars import (
-    Value, ReadOnly, Constant, Callable, Bool, Int, Long, Range, Float, Bytes,
-    Str, Unicode, FloatRange
+    Value, ReadOnly, Constant, Callable, Bool, Int, Range, Float, Bytes,
+    Str, FloatRange
 )
 from .set import Set
 from .signal import Signal

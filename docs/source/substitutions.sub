@@ -29,15 +29,11 @@
 
 .. |Int| replace:: :py:class:`~atom.scalars.Int`
 
-.. |Long| replace:: :py:class:`~atom.scalars.Long`
-
 .. |Float| replace:: :py:class:`~atom.scalars.Float`
 
 .. |Str| replace:: :py:class:`~atom.scalars.Str`
 
 .. |Bytes| replace:: :py:class:`~atom.scalars.Bytes`
-
-.. |Unicode| replace:: :py:class:`~atom.scalars.Unicode`
 
 .. |Enum| replace:: :py:class:`~atom.enum.Enum`
 

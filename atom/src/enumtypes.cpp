@@ -260,16 +260,12 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( Bool ) );
         add_long( dict_ptr, expand_enum( Int ) );
         add_long( dict_ptr, expand_enum( IntPromote ) );
-        add_long( dict_ptr, expand_enum( Long ) );
-        add_long( dict_ptr, expand_enum( LongPromote ) );
         add_long( dict_ptr, expand_enum( Float ) );
         add_long( dict_ptr, expand_enum( FloatPromote ) );
         add_long( dict_ptr, expand_enum( Bytes ) );
         add_long( dict_ptr, expand_enum( BytesPromote ) );
         add_long( dict_ptr, expand_enum( Str ) );
         add_long( dict_ptr, expand_enum( StrPromote ) );
-        add_long( dict_ptr, expand_enum( Unicode ) );
-        add_long( dict_ptr, expand_enum( UnicodePromote ) );
         add_long( dict_ptr, expand_enum( Tuple ) );
         add_long( dict_ptr, expand_enum( List ) );
         add_long( dict_ptr, expand_enum( ContainerList ) );

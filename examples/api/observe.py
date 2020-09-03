@@ -11,19 +11,19 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, Unicode, Range, Typed, observe
+from atom.api import Atom, Str, Range, Typed, observe
 
 
 class Dog(Atom):
 
-    name = Unicode()
+    name = Str()
 
 
 class Person(Atom):
     """ A simple class representing a person object.
 
     """
-    name = Unicode()
+    name = Str()
 
     age = Range(low=0)
 

@@ -11,14 +11,14 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, Unicode, Property, Int
+from atom.api import Atom, Str, Property, Int
 
 
 class Person(Atom):
     """ A simple class representing a person object.
 
     """
-    first_name = Unicode()
+    first_name = Str()
 
     age = Property()
     _age = Int(40)

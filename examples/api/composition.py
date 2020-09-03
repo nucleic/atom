@@ -19,12 +19,12 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, Typed, ForwardTyped, Unicode
+from atom.api import Atom, Typed, ForwardTyped, Str
 
 
 class Dog(Atom):
 
-    name = Unicode()
+    name = Str()
 
     # note the use of lambda, because Person has not been defined
     owner = ForwardTyped(lambda: Person)
@@ -32,7 +32,7 @@ class Dog(Atom):
 
 class Person(Atom):
 
-    name = Unicode()
+    name = Str()
 
     # uses static constructor
     fido = Typed(Dog)
