@@ -115,6 +115,10 @@ def test_list_traversal(model, kind):
     if kind == 'typed':
         referents.append(getattr(model, kind).item)
     referents.append(m)
+    # Under Python 3.9+ heap allocated type instance keep a reference to the
+    # type
+    if version_info >= (3, 9):
+        referents.append(type(l))
 
     assert gc.get_referents(l) == referents
 

@@ -34,7 +34,13 @@ def test_eventbinder_lifecycle():
 
     atom = EventAtom()
     eb = atom.e
-    assert gc.get_referents(eb) == [EventAtom.e, atom]
+    # Under Python 3.9+ heap allocated type instance keep a reference to the
+    # type
+    if version_info >= (3, 9):
+        referents.append(type(l))
+    assert gc.get_referents(eb) == ([EventAtom.e, atom] +
+                                    [type(eb)] if version_info >= (3, 9) else
+                                    [])
 
 
 def test_eventbinder_call():

@@ -34,7 +34,11 @@ def test_signalconnector_lifecycle():
 
     atom = SignalAtom()
     sc = atom.s
-    assert gc.get_referents(sc) == [SignalAtom.s, atom]
+    # Under Python 3.9+ heap allocated type instance keep a reference to the
+    # type
+    assert gc.get_referents(sc) == ([SignalAtom.s, atom] +
+                                    [type(eb)] if version_info >= (3, 9) else
+                                    [])
 
 
 def test_signalconnector_cmp():
