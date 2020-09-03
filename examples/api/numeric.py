@@ -13,14 +13,14 @@ from __future__ import (division, unicode_literals, print_function,
 
 import sys
 
-from atom.api import Atom, Int, Long, Float, Bool
+from atom.api import Atom, Int, Float, Bool
 
 
 class Data(Atom):
 
     ival = Int(1)
 
-    lval = Long(sys.maxsize + 1)
+    lval = Int(sys.maxsize + 1)
 
     fval = Float(1.5e6)
 
