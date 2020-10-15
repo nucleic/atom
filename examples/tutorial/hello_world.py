@@ -11,12 +11,12 @@
 from __future__ import (division, unicode_literals, print_function,
                         absolute_import)
 
-from atom.api import Atom, Unicode
+from atom.api import Atom, Str
 
 
 class Hello(Atom):
 
-    message = Unicode('Hello')
+    message = Str('Hello')
 
 
 if __name__ == "__main__":

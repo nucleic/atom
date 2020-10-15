@@ -11,6 +11,7 @@
 import gc
 import operator
 import sys
+from collections import Counter
 
 import pytest
 from atom.api import Atom, Event, Int
@@ -34,7 +35,12 @@ def test_eventbinder_lifecycle():
 
     atom = EventAtom()
     eb = atom.e
-    assert gc.get_referents(eb) == [EventAtom.e, atom]
+    # Under Python 3.9+ heap allocated type instance keep a reference to the
+    # type
+    referents = [EventAtom.e, atom]
+    if sys.version_info >= (3, 9):
+        referents.append(type(eb))
+    assert Counter(gc.get_referents(eb)) == Counter(referents)
 
 
 def test_eventbinder_call():

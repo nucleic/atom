@@ -35,6 +35,10 @@ SignalConnector_traverse( SignalConnector* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->member );
     Py_VISIT( self->atom );
+#if PY_VERSION_HEX >= 0x03090000
+    // This was not needed before Python 3.9 (Python issue 35810 and 40217)
+    Py_VISIT(Py_TYPE(self));
+#endif
     return 0;
 }
 

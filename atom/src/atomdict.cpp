@@ -101,6 +101,11 @@ int AtomDict_traverse( AtomDict* self, visitproc visit, void* arg )
 {
 	Py_VISIT( self->m_key_validator );
 	Py_VISIT( self->m_value_validator );
+#if PY_VERSION_HEX >= 0x03090000
+    // This was not needed before Python 3.9 (Python issue 35810 and 40217)
+    Py_VISIT(Py_TYPE(self));
+#endif
+    // PyDict_type is not heap allocated so it does visit the type
 	return PyDict_Type.tp_traverse( pyobject_cast( self ), visit, arg );
 }
 

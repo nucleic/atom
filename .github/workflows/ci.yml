@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -41,12 +41,12 @@ jobs:
         if: matrix.python-version == '3.6'
         run: |
           pip install pytest-cov
-          python -m pytest tests --cov atom --cov-report xml
+          python -m pytest tests --cov atom --cov-report xml -vs
       - name: Test with pytest
         if: matrix.python-version != '3.6'
         run: |
           pip install pytest-cov
-          python -X dev -m pytest tests --cov atom --cov-report xml
+          python -X dev -m pytest tests --cov atom --cov-report xml -v
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         if: matrix.os == 'windows-latest'

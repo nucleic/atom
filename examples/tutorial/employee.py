@@ -14,7 +14,7 @@ from __future__ import (division, unicode_literals, print_function,
 import datetime
 
 from atom.api import (
-    Atom, Unicode, Range, Bool, Value, Int, Tuple, Typed, observe
+    Atom, Str, Range, Bool, Value, Int, Tuple, Typed, observe
 )
 
 
@@ -22,9 +22,9 @@ class Person(Atom):
     """ A simple class representing a person object.
 
     """
-    last_name = Unicode()
+    last_name = Str()
 
-    first_name = Unicode()
+    first_name = Str()
 
     age = Range(low=0)
 
@@ -50,7 +50,7 @@ class Employer(Person):
 
     """
     # The name of the company
-    company_name = Unicode()
+    company_name = Str()
 
 
 class Employee(Person):

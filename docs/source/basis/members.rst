@@ -123,14 +123,12 @@ Members for simple values
 Atom provides the following members for basic scalars types:
 
 - |Value|: a member that can receives any value, no validation is performed
-- |Int|, |Long|: an integer value (only Python 2 makes a difference between int
-  and long). One can choose if it is allowed to cast the assigned values (
-  float to int, int to long), teh default is true.
+- |Int|: an integer value. One can choose if it is allowed to cast the assigned
+  values (float to int), the default is true.
 - |Float|: a floating point value. One can choose if it is allowed to cast the
   assigned values (int to float, ...), the default is true.
-- |Bytes|, |Str|, |Unicode|: bytes and unicode strings (|Str| is the native
-  format of the Python version). One can choose if it is allowed to cast the
-  assigned values (unicode to str, ...), the default is false.
+- |Bytes|, |Str|: bytes and unicode strings. One can choose if it is allowed to cast the
+  assigned values (str to bytes, ...), the default is false.
 - |Enum|: a value that can only take a finite set of values. Note that this is
   unrelated to the enum module.
 

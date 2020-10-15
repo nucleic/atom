@@ -45,8 +45,8 @@ import pytest
 from atom.api import (Atom, Bool, Bytes, Callable, CAtom, Coerced,
                       ContainerList, Delegator, Dict, Enum, Event, Float,
                       FloatRange, ForwardInstance, ForwardSubclass,
-                      ForwardTyped, Instance, Int, List, Long, Range, Set, Str,
-                      Subclass, Tuple, Typed, Unicode, Validate, Value)
+                      ForwardTyped, Instance, Int, List, Range, Set, Str,
+                      Subclass, Tuple, Typed, Str, Validate, Value)
 
 
 def test_no_op_validation():
@@ -64,13 +64,8 @@ def test_no_op_validation():
 @pytest.mark.parametrize("member, set_values, values, raising_values",
                          [(Value(), ['a', 1, None], ['a', 1, None], []),
                           (Bool(), [True, False], [True, False], 'r'),
-                          (Int(strict=True), [1], [1],
-                           [1.0, long(1)] if sys.version_info < (3,) else [1.0]
-                           ),
+                          (Int(strict=True), [1], [1], [1.0]),
                           (Int(strict=False), [1, 1.0, int(1)], 3*[1], ['a']),
-                          (Long(strict=True), [1], [1],
-                           [1.0, 1] if sys.version_info < (3,) else [0.1]),
-                          (Long(strict=False), [1, 1.0, int(1)], 3*[1], ['a']),
                           (Range(0, 2), [0, 2], [0, 2], [-1, 3, '']),
                           (Range(2, 0), [0, 2], [0, 2], [-1, 3]),
                           (Range(0), [0, 3], [0, 3], [-1]),
@@ -87,12 +82,7 @@ def test_no_op_validation():
                           (Bytes(), [b'a', u'a'], [b'a']*2, [1]),
                           (Bytes(strict=True), [b'a'], [b'a'], [u'a']),
                           (Str(), [b'a', u'a'], ['a']*2, [1]),
-                          (Str(strict=True),
-                           [b'a'] if sys.version_info < (3,) else [u'a'],
-                           ['a'],
-                           [u'a'] if sys.version_info < (3,) else [b'a']),
-                          (Unicode(), [b'a', u'a'], [u'a']*2, [1]),
-                          (Unicode(strict=True), [u'a'], [u'a'], [b'a']),
+                          (Str(strict=True), [u'a'], ['a'], [b'a']),
                           (Enum(1, 2, 'a'), [1, 2, 'a'], [1, 2, 'a'], [3]),
                           (Callable(), [int, None], [int, None], [1]),
                           (Coerced(set), [{1}, [1], (1,)], [{1}]*3, [1]),
@@ -101,8 +91,7 @@ def test_no_op_validation():
                           (Coerced((int, float),
                                    coercer=lambda x: int(str(x), 2)),
                            ['101'], [5], []),
-                          (Coerced(int, coercer=lambda x: []),
-                           [], [], ['']),
+                          (Coerced(int, coercer=lambda x: []), [], [], ['']),
                           (Tuple(), [(1,)], [(1,)], [[1]]),
                           (Tuple(Int()), [(1,)], [(1,)], [(1.0,)]),
                           (Tuple(int), [(1,)], [(1,)], [(1.0,)]),

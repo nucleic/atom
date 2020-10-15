@@ -11,6 +11,7 @@
 import gc
 import operator
 import sys
+from collections import Counter
 
 import pytest
 from atom.api import Atom, Signal, Int
@@ -34,7 +35,12 @@ def test_signalconnector_lifecycle():
 
     atom = SignalAtom()
     sc = atom.s
-    assert gc.get_referents(sc) == [SignalAtom.s, atom]
+    # Under Python 3.9+ heap allocated type instance keep a reference to the
+    # type
+    referents = [SignalAtom.s, atom]
+    if sys.version_info >= (3, 9):
+        referents.append(type(sc))
+    assert Counter(gc.get_referents(sc)) == Counter(referents)
 
 
 def test_signalconnector_cmp():
