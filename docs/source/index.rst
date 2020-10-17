@@ -9,7 +9,7 @@ Welcome to atom's documentation!
 Atom is a framework for creating memory efficient Python objects with enhanced
 features such as dynamic initialization, validation, and change notification
 for object attributes. It provides the default model binding behaviour for the
-`Enaml <http://nucleic.github.io/enaml/docs>`_ UI framework.
+`Enaml <https://enaml.readthedocs.io/en/latest/>`_ UI framework.
 
 .. toctree::
    :maxdepth: 2
