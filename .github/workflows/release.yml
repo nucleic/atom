@@ -55,6 +55,8 @@ jobs:
         run: |
           cd ..
           python -m cibuildwheel atom --output-dir ~/dist
+          cd ~/dist
+          ls
       - name: Test wheel
         run: |
           pip install --upgrade pip
