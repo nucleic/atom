@@ -27,12 +27,12 @@ jobs:
           CIBW_BUILD: cp${{ matrix.python }}-*
         run: |
           cd ..
-          python -m cibuildwheel atom --output-dir wheelhouse
+          python -m cibuildwheel atom --output-dir ~/wheelhouse
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
           name: wheels
-          path: ../wheelhouse/*.whl
+          path: ~/wheelhouse/*.whl
 
   release_upload:
     name: Create Release and Upload Release Asset
