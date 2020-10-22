@@ -62,7 +62,7 @@ jobs:
           pip install pytest
           pip install --no-index --find-links ~/dist atom
           cd ..
-          python -m atom/pytest tests
+          python -m pytest atom/tests
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
