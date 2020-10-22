@@ -15,8 +15,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          submodules: true
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -28,6 +26,7 @@ jobs:
         env:
           CIBW_BUILD: cp${{ matrix.python }}-*
         run: |
+          cd ..
           python -m cibuildwheel atom --output-dir wheelhouse
       - name: Store artifacts
         uses: actions/upload-artifact@v2
