@@ -21,7 +21,7 @@ jobs:
           python-version: '3.7'
       - name: Install cibuildwheel
         run: |
-          python -m pip install cibuildwheel==1.6.3
+          python -m pip install cibuildwheel
       - name: Build wheels
         env:
           CIBW_BUILD: cp${{ matrix.python }}-*
@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: wheels
-          path: wheelhouse/*.whl
+          path: ../wheelhouse/*.whl
 
   release_upload:
     name: Create Release and Upload Release Asset
