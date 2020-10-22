@@ -54,7 +54,7 @@ jobs:
         env:
           CIBW_BUILD: cp${{ matrix.python }}-*
           CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: python -m pytest atom/tests -v
+          CIBW_TEST_COMMAND: python -m pytest {package}/tests -v
         run: |
           cd ..
           python -m cibuildwheel atom --output-dir ~/dist
