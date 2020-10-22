@@ -1,7 +1,9 @@
 name: Build and upload wheels
 
 on:
-  push: [tags]
+  push:
+    tags:
+      - *
 
 jobs:
   build_wheels:
