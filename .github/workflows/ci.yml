@@ -41,12 +41,14 @@ jobs:
         if: matrix.python-version == '3.6'
         run: |
           pip install pytest-cov
-          python -m pytest tests --cov atom --cov-report xml -vs
+          cd ..
+          python -m atom/pytest tests --cov atom --cov-report xml -vs
       - name: Test with pytest
         if: matrix.python-version != '3.6'
         run: |
           pip install pytest-cov
-          python -X dev -m pytest tests --cov atom --cov-report xml -v
+          cd ..
+          python -X dev -m atom/pytest tests --cov atom --cov-report xml -v
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         if: matrix.os == 'windows-latest'

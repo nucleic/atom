@@ -17,13 +17,15 @@ jobs:
           python-version: '3.7'
       - name: Build sdist
         run: |
+          pip install --upgrade pip
           pip install wheel
           python setup.py sdist
       - name: Test sdist
         run: |
           pip install pytest
           pip install --no-index --find-links dist atom
-          python -m pytest tests
+          cd ..
+          python -m pytest atom/tests
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -55,9 +57,12 @@ jobs:
           python -m cibuildwheel atom --output-dir ~/dist
       - name: Test wheel
         run: |
+          pip install --upgrade pip
+          pip install wheel
           pip install pytest
           pip install --no-index --find-links ~/dist atom
-          python -m pytest tests
+          cd ..
+          python -m atom/pytest tests
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
