@@ -28,7 +28,7 @@ jobs:
         env:
           CIBW_BUILD: cp${{ matrix.python }}-*
         run: |
-          python -m cibuildwheel kiwi --output-dir wheelhouse
+          python -m cibuildwheel atom --output-dir wheelhouse
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
