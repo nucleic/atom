@@ -60,7 +60,7 @@ jobs:
           pip install --upgrade pip
           pip install wheel
           pip install pytest
-          pip install --no-index --find-links ~/dist atom
+          pip install --no-index --find-links=~/dist atom
           cd ..
           python -m pytest atom/tests
       - name: Store artifacts
