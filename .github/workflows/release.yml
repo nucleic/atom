@@ -81,7 +81,7 @@ jobs:
           prerelease: ${{ contains(github.ref, 'rc') || contains(github.ref, 'a') || contains(github.ref, 'b')}}
       - uses: actions/download-artifact@v2
         with:
-          name: dist
+          name: artifact
           path: dist
       - name: Upload Release Asset
         id: upload-release-asset
@@ -103,7 +103,7 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@master
         with:
-          user: ${{ secrets.pypi_username }}
+          user: __token__
           password: ${{ secrets.pypi_password }}
           # To test:
           repository_url: https://test.pypi.org/legacy/
