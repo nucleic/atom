@@ -16,6 +16,7 @@ jobs:
         with:
           python-version: '3.7'
       - name: Build sdist
+        run: |
           python setup.py sdist
       - name: Test sdist
         run: |
