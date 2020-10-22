@@ -14,7 +14,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8'
       - name: Build sdist
         run: |
           pip install --upgrade pip
@@ -38,32 +38,26 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
-        python: [3.6, 3.7, 3.8, 3.9]
+        python: [36, 37, 38, 39]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python }}
+          python-version: '3.8'
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
           python -m pip install wheel cibuildwheel
       - name: Build wheels
+        env:
+          CIBW_BUILD: cp${{ matrix.python }}-*
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: python -m pytest atom/tests -v
         run: |
           cd ..
           python -m cibuildwheel atom --output-dir ~/dist
-      - name: Verify wheels presence
-        run: |
-          cd ~/dist
-          ls
-      - name: Test wheel
-        run: |
-          pip install pytest
-          pip install --no-index --find-links=~/dist atom
-          cd ..
-          python -m pytest atom/tests
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
