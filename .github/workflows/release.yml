@@ -17,7 +17,7 @@ jobs:
           python-version: '3.7'
       - name: Build sdist
         run: |
-          pip install wheels
+          pip install wheel
           python setup.py sdist
       - name: Test sdist
         run: |
