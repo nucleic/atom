@@ -57,12 +57,12 @@ jobs:
           CIBW_TEST_COMMAND: python -m pytest {package}/tests -v
         run: |
           cd ..
-          python -m cibuildwheel atom --output-dir ~/dist
+          python -m cibuildwheel atom --output-dir dist
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
           name: artifact
-          path: ~/dist/*.whl
+          path: ../dist/*.whl
 
   release_upload:
     name: Create Release and Upload Release Asset
