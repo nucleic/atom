@@ -1,9 +1,16 @@
 Atom Release Notes
 ==================
 
+0.6.0 - unreleased
+------------------
+- remove deprecated members Long and Unicode PR #108
+- add support for Python 3.9 PR #108
+
+
 0.5.2 - 04/07/2020
 ------------------
 - make comparison used in C safe (fix bug introduced in 0.5.0) PR #107
+
 
 0.5.1 - 03/06/2020
 ------------------
