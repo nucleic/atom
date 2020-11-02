@@ -41,20 +41,17 @@ jobs:
         if: matrix.python-version == '3.6'
         run: |
           pip install pytest-cov
-          cd ..
-          python -m pytest atom/tests --cov atom --cov-report xml -vs
+          python -m pytest tests --cov atom --cov-report xml -v
       - name: Test with pytest
         if: matrix.python-version != '3.6'
         run: |
           pip install pytest-cov
-          cd ..
-          python -X dev -m pytest atom/tests --cov atom --cov-report xml -v
+          python -X dev -m pytest tests --cov atom --cov-report xml -v
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         if: matrix.os == 'windows-latest'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true
@@ -63,7 +60,6 @@ jobs:
         if: matrix.os != 'windows-latest'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true
