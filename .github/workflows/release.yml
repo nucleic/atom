@@ -61,13 +61,12 @@ jobs:
           # Disable FH4 to avoid linking against VC2014_1
           ATOM_DISABLE_FH4: 1
         run: |
-          cd ..
-          python -m cibuildwheel atom --output-dir dist
+          python -m cibuildwheel ./atom --output-dir dist
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
           name: artifact
-          path: ../dist/*.whl
+          path: dist/*.whl
 
   release_upload:
     name: Create Release and Upload Release Asset
