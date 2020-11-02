@@ -54,7 +54,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
+          directory: .
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true
@@ -63,6 +63,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          directory: .
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true
