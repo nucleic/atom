@@ -1,7 +1,7 @@
 name: Continuous Integration
 on:
   schedule:
-    - cron: '0 0 * * 2'
+    - cron: '0 0 * * 3'
   push:
     branches:
       - master
@@ -41,7 +41,7 @@ jobs:
         if: matrix.python-version == '3.6'
         run: |
           pip install pytest-cov
-          python -m pytest tests --cov atom --cov-report xml -vs
+          python -m pytest tests --cov atom --cov-report xml -v
       - name: Test with pytest
         if: matrix.python-version != '3.6'
         run: |
@@ -52,7 +52,6 @@ jobs:
         if: matrix.os == 'windows-latest'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true
