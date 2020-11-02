@@ -1,5 +1,7 @@
 name: Build and upload wheels
 on:
+  schedule:
+    - cron: '0 0 * * 3'
   push:
     tags:
       - '*'
@@ -69,6 +71,7 @@ jobs:
   release_upload:
     name: Create Release and Upload Release Asset
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     needs: [build_wheels, build_sdist]
     steps:
       - name: Create Release
@@ -95,6 +98,7 @@ jobs:
           asset_path: dist/*
 
   upload_pypi:
+    if: github.event_name == 'push'
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     steps:
