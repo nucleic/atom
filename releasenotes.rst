@@ -1,7 +1,7 @@
 Atom Release Notes
 ==================
 
-0.6.0 - unreleased
+0.6.0 - 02/11/2020
 ------------------
 - remove deprecated members Long and Unicode PR #108
 - add support for Python 3.9 PR #108
