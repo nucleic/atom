@@ -23,7 +23,7 @@ Illustrative Example:
 
 .. code-block:: python
 
-    from atom.api import Atom, Unicode, Range, Bool, observe
+    from atom.api import Atom, Str, Range, Bool, observe
 
 
     class Person(Atom):
