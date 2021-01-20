@@ -5,7 +5,7 @@ Welcome to Atom
     :target: https://github.com/nucleic/atom/actions
 .. image:: https://github.com/nucleic/atom/workflows/Documentation%20building/badge.svg
     :target: https://github.com/nucleic/atom/actions
-.. image:: https://codecov.io/gh/nucleic/atom/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/nucleic/atom/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/nucleic/atom
 .. image:: https://readthedocs.org/projects/atom/badge/?version=latest
     :target: https://atom.readthedocs.io/en/latest/?badge=latest
@@ -59,4 +59,4 @@ Illustrative Example:
     john.age = 43  # prints message
     john.age = 'forty three'   # raises TypeError
 
-For version information, see `the Revision History <https://github.com/nucleic/atom/blob/master/releasenotes.rst>`_.
+For version information, see `the Revision History <https://github.com/nucleic/atom/blob/main/releasenotes.rst>`_.
