@@ -274,7 +274,7 @@ provided, but that can be used to fire notifications:
     obj.e = 2
     obj.e(1)
     obj.s(2)
-    obj.emit(1)
+    obj.s.emit(1)
 
 
 |Delegator|
