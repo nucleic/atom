@@ -55,7 +55,7 @@ you should import from `atom.api`.
 
 Here we import several things:
 
-- |Atom|: This is the base class to use for all object relying on Atom. It
+- |Atom|: This is the base class to use for all objects relying on Atom. It
   provides the some basic methods that will be described later on or in the
   API documentation. (This class inherits from a more basic class CAtom)
 
@@ -63,13 +63,13 @@ Here we import several things:
   properties (ie they are descriptors). They define the attributes that are
   available on the instances of the class. They also provide type validation.
 
-- |observe|: This is a decorator. As we will see later it can be used to call
+- |observe|: This is a decorator. As we will see later, it can be used to call
   the decorated method when a member value 'change'.
 
 - |set_default|: Members can have a default value and this object is used to
   alter it when subclassing an Atom object.
 
-Now that the imports are hopefully clear (or at least clearer), let's move to
+Now, that the imports are hopefully clear (or at least clearer), let's move to
 the beginning of the first class definition.
 
 .. code-block:: python
@@ -84,28 +84,28 @@ the beginning of the first class definition.
 
         list_value = List().tag(pref=True)
 
-Here we define a class and add it three members. Those three members will be
-the attributes that can be manipulated on the class instances. In particular
-it means the following will crash while it would work for a usual object:
+Here we define a class and add to it three members. Those three members will be
+the attributes, that can be manipulated on the class instances. In particular,
+the following will crash while it would work for a usual python object:
 
 .. code-block:: python
 
     obj = CompactObject()
     obj.non_defined = 0
 
-This may be surprising since on usual Python object one can define new
+This may be surprising, since on usual Python objects one can define new
 attributes on instances. This limitation is the price to pay for the compacity
 of Atom objects.
 
 .. note::
 
     This limitation should rarely be an issue and if it is one can get dynamic
-    attributes back by adding teh following line to the class definition::
+    attributes back by adding the following line to the class definition::
 
         __slots__ = ('__dict__',)
 
-Ok, so each member will be one instance attribute. Now let's look at them in
-more details. Our first member is a simple |Value|, this member actaully does
+Ok, so each member will be one instance attribute. Now, let's look at them in
+more details. Our first member is a simple |Value|. This member actaully does
 not perform any type validation and can be used when the attributes can really
 store anything. Our second member is an |Int|. This member will validate that
 the assigned value is actually an integer and the default value is 10 instead
@@ -119,7 +119,7 @@ members when filtering them. Refer to the
 
     All the available members are described in details in :ref:`basis-members`
 
-Coming back to the class definition, we reached the methods definition.
+Coming back to the class definition, we now reached the methods definitions.
 
 .. code-block:: python
 
@@ -133,11 +133,11 @@ Coming back to the class definition, we reached the methods definition.
         def notify_change(self, change):
             print(change)
 
-Here we define three methods of which none are meant to be called directly by
-the user code but will be called by the framework at appropriate time.
+Here we define three methods. None of these are meant to be called directly by
+the user-code but will be called by the framework at appropriate times.
 
 - ``_post_setattr_int_value``:
-  This function will be called right after setting the value of ``int_value``
+  This function will be called right after setting the value of ``int_value``,
   as its name indicates. It will get both the value of the member before the
   setting operation (old) and the value that was just set (set).
 
@@ -150,8 +150,8 @@ the user code but will be called by the framework at appropriate time.
 
 - ``notify_changes``:
   Because this function is decorated with the observe decorator, it will be
-  called each time ``list_value``. Note however that changes to the container
-  through ``append`` for example will not be caught.
+  called each time ``list_value``. Note however, that changes to the container
+  or its content, e.g. through ``append`` will not be caught.
 
 .. note::
 
@@ -160,16 +160,16 @@ the user code but will be called by the framework at appropriate time.
 
 .. note::
 
-    Here we have only seen observer definition from within a class. It IS
+    Here, we have only seen observer definition from within a class. It IS
     possible to define observers on instances and this will be discussed in
     :ref:`basis-observation`.
 
-Now we can look at the second class definition and discuss a bit more default
-values.
+Now we can look at the second class definition and discuss default
+values a bit more.
 
 .. code-block:: python
 
-    class NewCompactObject(Atom):
+    class NewCompactObject(CompactObject):
         """Subclass with different default values.
 
         """
@@ -178,8 +178,8 @@ values.
         def _default_int_value(self):
             return 1
 
-In this subclass, we simply alter the default values of two of the members, and
-we do that in two ways:
+In this subclass, we simply alter the default values of two of the members. 
+We do that in two ways:
 
 - using |set_default| which indicates to the framework that it should create
   a copy of the member existing of the base class and change the default value.
@@ -187,7 +187,7 @@ we do that in two ways:
 - using a specially named method starting with ``_default_`` followed by the
   member name.
 
-To clarify, what this does we can look at what happens after we create
+To clarify what this does, we look at what happens after we create
 instances of each of our classes.
 
 .. code-block:: python
@@ -214,8 +214,8 @@ The output of this block will be:
 
 .. note::
 
-    First note that even though we did not define an ``__init__`` methods, we
-    can pass as keyword argument any of the member of the class in which case
+    First note, that even though we did not define ``__init__`` methods, we
+    can pass any of the members of the class as a keyword argument, in which case
     the argument will be used to set the value of the corresponding member.
 
     .. code-block:: python
@@ -225,7 +225,7 @@ The output of this block will be:
 .. note::
 
     Atom objects can be frozen using |Atom.freeze| at any time of their
-    lifetime to forbid further modifications. At a later time the object can
+    lifetime to forbid further modifications. At a later time, the object can
     unfrozen using |Atom.unfreeze|.
 
 
