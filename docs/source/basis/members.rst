@@ -7,16 +7,16 @@ Introducing the members
 
 As we have seen in the introduction, members are used in the class definition
 of an atom object to define the fields that will exist on each instance of that
-class. As such members are central to atom.
+class. As such, members are central to atom.
 
 The following sections will shed some lights on the different members that come
 with atom and also how they work which will come handy when we will discuss
 how you can customize the behaviors of members later in this guide.
 
-Member working
---------------
+Member workings
+---------------
 
-From a technical point of view, members are descriptors like property and they
+From a technical point of view, members are descriptors like properties and they
 can do different things when you try to access or set the attribute.
 
 Member reading
@@ -67,18 +67,18 @@ To summarize:
 .. digraph:: getattr
 
     a [label="A value was previously set?"];
-    a->b[label="No"];
-    a->c[label="Yes"];
-    b[label="get the default value"];
+    a->b[label="Yes"];
+    a->c[label="No"];
+    b[label="get the value"];
     c[label="retrieve the default value"];
     c->d;
     d[label="validate the value"];
     d->e;
     e[label="run post-validation"];
     e->f;
-    f[label="call observers"];
-    f->g;
-    g[label="store the value"];
+    f[label="store the value"];
+    f->g;    
+    g[label="call observers"];
     g->i;
     c->i;
     i[label="run post-getattr"];
@@ -274,7 +274,7 @@ provided, but that can be used to fire notifications:
     obj.e = 2
     obj.e(1)
     obj.s(2)
-    obj.emit(1)
+    obj.s.emit(1)
 
 
 |Delegator|
