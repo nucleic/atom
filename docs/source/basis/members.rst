@@ -67,8 +67,8 @@ To summarize:
 .. digraph:: getattr
 
     a [label="A value was previously set?"];
-    a->b[label="No"];
-    a->c[label="Yes"];
+    a->b[label="Yes"];
+    a->c[label="No"];
     b[label="get the value"];
     c[label="retrieve the default value"];
     c->d;
@@ -76,9 +76,9 @@ To summarize:
     d->e;
     e[label="run post-validation"];
     e->f;
-    f[label="call observers"];
-    f->g;
-    g[label="store the value"];
+    f[label="store the value"];
+    f->g;    
+    g[label="call observers"];
     g->i;
     c->i;
     i[label="run post-getattr"];
