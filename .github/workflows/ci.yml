@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9, 3.10]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -38,12 +38,6 @@ jobs:
         run: |
           python setup.py develop
       - name: Test with pytest
-        if: matrix.python-version == '3.6'
-        run: |
-          pip install pytest-cov
-          python -m pytest tests --cov atom --cov-report xml -v
-      - name: Test with pytest
-        if: matrix.python-version != '3.6'
         run: |
           pip install pytest-cov
           python -X dev -W error -m pytest tests --cov atom --cov-report xml -v
