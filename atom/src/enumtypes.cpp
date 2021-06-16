@@ -27,11 +27,6 @@ PyObject* PyPostValidate = 0;
 
 namespace {
 
-
-static PyObject* PyIntEnumMeta = 0;
-static PyObject* PyIntEnum = 0;
-
-
 template<typename T> inline bool
 add_long( cppy::ptr& dict_ptr, const char* name, T value )
 {
@@ -50,15 +45,10 @@ add_long( cppy::ptr& dict_ptr, const char* name, T value )
 
 
 inline PyObject*
-make_enum( const char* name, cppy::ptr& dict_ptr )
+make_enum( cppy::ptr& enum_cls, const char* name, cppy::ptr& dict_ptr )
 {
     cppy::ptr pyname( PyUnicode_FromString( name ) );
     if( !pyname )
-    {
-        return 0;
-    }
-    cppy::ptr pybases( PyTuple_Pack( 1, PyIntEnum ) );
-    if( !pybases )
     {
         return 0;
     }
@@ -72,16 +62,21 @@ make_enum( const char* name, cppy::ptr& dict_ptr )
     {
         return 0;
     }
-    if( PyDict_SetItemString( pydict.get(), "__module__", modname.get() ) != 0 )
+    cppy::ptr kwargs( PyDict_New() );
+    if( !kwargs )
     {
         return 0;
     }
-    cppy::ptr callargs( PyTuple_Pack( 3, pyname.get(), pybases.get(), pydict.get() ) );
+    if( PyDict_SetItemString( kwargs.get(), "module", modname.get() ) != 0 )
+    {
+        return 0;
+    }
+    cppy::ptr callargs( PyTuple_Pack( 2, pyname.get(), pydict.get() ) );
     if( !callargs )
     {
         return 0;
     }
-    cppy::ptr enumclass( PyObject_CallObject( PyIntEnumMeta, callargs.get() ) );
+    cppy::ptr enumclass( enum_cls.call( callargs, kwargs ) );
     if( !enumclass )
     {
         return 0;
@@ -94,18 +89,13 @@ make_enum( const char* name, cppy::ptr& dict_ptr )
 
 bool init_enumtypes()
 {
-    cppy::ptr intenum_mod( PyImport_ImportModule( "atom.intenum" ) );
+    cppy::ptr intenum_mod( PyImport_ImportModule( "enum" ) );
     if( !intenum_mod )
     {
         return false;
     }
-    PyIntEnumMeta = intenum_mod.getattr( "_IntEnumMeta" );
-    if( !PyIntEnumMeta )
-    {
-        return false;
-    }
-    PyIntEnum = intenum_mod.getattr( "IntEnum" );
-    if( !PyIntEnum )
+    cppy::ptr enum_cls( intenum_mod.getattr( "IntEnum" ) );
+    if( !enum_cls )
     {
         return false;
     }
@@ -129,7 +119,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( ObjectMethod ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_Name ) );
         add_long( dict_ptr, expand_enum( MemberMethod_Object ) );
-        PyGetAttr = make_enum( "GetAttr", dict_ptr );
+        PyGetAttr = make_enum( enum_cls, "GetAttr", dict_ptr );
         if( !PyGetAttr )
         {
                return false;
@@ -156,7 +146,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( ObjectMethod_Value ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_NameValue ) );
         add_long( dict_ptr, expand_enum( MemberMethod_ObjectValue ) );
-        PySetAttr = make_enum( "SetAttr", dict_ptr );
+        PySetAttr = make_enum( enum_cls, "SetAttr", dict_ptr );
         if( !PySetAttr )
         {
                return false;
@@ -178,7 +168,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( Signal ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
         add_long( dict_ptr, expand_enum( Property ) );
-        PyDelAttr = make_enum( "DelAttr", dict_ptr );
+        PyDelAttr = make_enum( enum_cls, "DelAttr", dict_ptr );
         if( !PyDelAttr )
         {
                return false;
@@ -197,7 +187,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( ObjectMethod_Value ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_NameValue ) );
         add_long( dict_ptr, expand_enum( MemberMethod_ObjectValue ) );
-        PyPostGetAttr = make_enum( "PostGetAttr", dict_ptr );
+        PyPostGetAttr = make_enum( enum_cls, "PostGetAttr", dict_ptr );
         if( !PyPostGetAttr )
         {
                return false;
@@ -216,7 +206,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( ObjectMethod_OldNew ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_NameOldNew ) );
         add_long( dict_ptr, expand_enum( MemberMethod_ObjectOldNew ) );
-        PyPostSetAttr = make_enum( "PostSetAttr", dict_ptr );
+        PyPostSetAttr = make_enum( enum_cls, "PostSetAttr", dict_ptr );
         if( !PyPostSetAttr )
         {
                return false;
@@ -243,7 +233,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( ObjectMethod ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_Name ) );
         add_long( dict_ptr, expand_enum( MemberMethod_Object ) );
-        PyDefaultValue = make_enum( "DefaultValue", dict_ptr );
+        PyDefaultValue = make_enum( enum_cls, "DefaultValue", dict_ptr );
         if( !PyDefaultValue )
         {
                return false;
@@ -287,7 +277,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( ObjectMethod_OldNew ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_NameOldNew ) );
         add_long( dict_ptr, expand_enum( MemberMethod_ObjectOldNew ) );
-        PyValidate = make_enum( "Validate", dict_ptr );
+        PyValidate = make_enum( enum_cls, "Validate", dict_ptr );
         if( !PyValidate )
         {
                return false;
@@ -306,7 +296,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( ObjectMethod_OldNew ) );
         add_long( dict_ptr, expand_enum( ObjectMethod_NameOldNew ) );
         add_long( dict_ptr, expand_enum( MemberMethod_ObjectOldNew ) );
-        PyPostValidate = make_enum( "PostValidate", dict_ptr );
+        PyPostValidate = make_enum( enum_cls, "PostValidate", dict_ptr );
         if( !PyPostValidate )
         {
             return false;
