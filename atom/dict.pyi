@@ -16,7 +16,7 @@ from typing import (
     Union,
 )
 
-from .catom import Member, atomdict
+from .catom import Member
 
 T = TypeVar("T")
 
@@ -27,7 +27,7 @@ VT1 = TypeVar("VT1")
 KT2 = TypeVar("KT2")
 VT2 = TypeVar("VT2")
 
-class Dict(Member[atomdict[KT, VT], atomdict[KT, VT]]):
+class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     # Untyped
     @overload
     def __new__(
@@ -68,7 +68,7 @@ class Dict(Member[atomdict[KT, VT], atomdict[KT, VT]]):
     @overload
     def __new__(
         cls,
-        key: Member[KT, _],
+        key: Member[KT, Any],
         value: None = None,
         default: Optional[TDict[KT, Any]] = None,
     ) -> Dict[KT, Any]: ...
@@ -105,7 +105,7 @@ class Dict(Member[atomdict[KT, VT], atomdict[KT, VT]]):
     def __new__(
         cls,
         key: None,
-        value: Member[VT, _] = None,
+        value: Member[VT, Any] = None,
         default: Optional[TDict[Any, VT]] = None,
     ) -> Dict[Any, VT]: ...
     @overload
@@ -145,7 +145,7 @@ class Dict(Member[atomdict[KT, VT], atomdict[KT, VT]]):
         cls,
         key: None = None,
         *,
-        value: Member[VT, _] = None,
+        value: Member[VT, Any] = None,
         default: Optional[TDict[Any, VT]] = None,
     ) -> Dict[Any, VT]: ...
     # Typed key and value
@@ -181,7 +181,7 @@ class Dict(Member[atomdict[KT, VT], atomdict[KT, VT]]):
     @overload
     def __new__(
         cls,
-        key: Member[KT, _],
+        key: Member[KT, Any],
         value: Type[VT],
         default: Optional[TDict[KT, VT]] = None,
     ) -> Dict[KT, VT]: ...
@@ -217,7 +217,7 @@ class Dict(Member[atomdict[KT, VT], atomdict[KT, VT]]):
     @overload
     def __new__(
         cls,
-        key: Member[KT, _],
+        key: Member[KT, Any],
         value: Tuple[Type[VT]],
         default: Optional[TDict[KT, VT]] = None,
     ) -> Dict[KT, VT]: ...
@@ -253,11 +253,11 @@ class Dict(Member[atomdict[KT, VT], atomdict[KT, VT]]):
     @overload
     def __new__(
         cls,
-        key: Member[KT, _],
+        key: Member[KT, Any],
         value: Tuple[Type[VT], Type[VT1]],
         default: Optional[TDict[KT, Union[VT, VT1]]] = None,
     ) -> Dict[KT, Union[VT, VT1]]: ...
-    # Value as 2-tuple
+    # Value as 3-tuple
     @overload
     def __new__(
         cls,
@@ -289,7 +289,43 @@ class Dict(Member[atomdict[KT, VT], atomdict[KT, VT]]):
     @overload
     def __new__(
         cls,
-        key: Member[KT, _],
+        key: Member[KT, Any],
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
         default: Optional[TDict[KT, Union[VT, VT1, VT2]]] = None,
     ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    # value as member
+    @overload
+    def __new__(
+        cls,
+        key: Type[KT],
+        value: Member[VT, Any],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[KT, VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT]],
+        value: Member[VT, Any],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[KT, Any]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Member[VT, Any],
+        default: Optional[TDict[Union[KT, KT1], VT]] = None,
+    ) -> Dict[Union[KT, KT1], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Member[VT, Any],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Member[KT, Any],
+        value: Member[VT, Any],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[KT, VT]: ...

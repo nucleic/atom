@@ -5,7 +5,15 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Any, Callable as TCallable, Optional, TypeVar, Union, overload
+from typing import (
+    Any,
+    Callable as TCallable,
+    NoReturn,
+    Optional,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from .catom import Member
 
@@ -17,8 +25,8 @@ class Value(Member[Any, Any]):
         cls, default: Any = None, factory: Optional[TCallable[[], None]] = None
     ) -> Value: ...
 
-class ReadOnly(Value): ...
-class Constant(Value): ...  # XXX over-write set del ?
+class ReadOnly(Member[T, T]): ...
+class Constant(Member[T, NoReturn]): ...  # XXX over-write set del ?
 
 class Callable(Member[TCallable, TCallable]):
     def __init__(

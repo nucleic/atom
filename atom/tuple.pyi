@@ -23,20 +23,32 @@ T = TypeVar("T")
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 
-class Tuple(Member[T, T]):
-    @overload
-    def __new__(self, kind: Type[T], default: TTuple[T, ...]) -> Tuple[T]: ...
-    @overload
-    def __new__(self, kind: TTuple[Type[T]], default: TTuple[T, ...]) -> Tuple[T]: ...
+class Tuple(Member[TTuple[T, ...], TTuple[T, ...]]):
     @overload
     def __new__(
-        self, kind: TTuple[Type[T], Type[T1]], default: TTuple[Union[T, T1], ...]
+        cls, kind: None = None, default: Optional[TTuple] = None
+    ) -> Tuple[Any]: ...
+    @overload
+    def __new__(
+        self, kind: Type[T], default: Optional[TTuple[T, ...]] = None
+    ) -> Tuple[T]: ...
+    @overload
+    def __new__(
+        self, kind: TTuple[Type[T]], default: Optional[TTuple[T, ...]] = None
+    ) -> Tuple[T]: ...
+    @overload
+    def __new__(
+        self,
+        kind: TTuple[Type[T], Type[T1]],
+        default: Optional[TTuple[Union[T, T1], ...]] = None,
     ) -> Tuple[Union[T, T1]]: ...
     @overload
     def __new__(
         self,
         kind: TTuple[Type[T], Type[T1], Type[T2]],
-        default: TTuple[Union[T, T1, T2]],
+        default: Optional[TTuple[Union[T, T1, T2]]] = None,
     ) -> Tuple[Union[T, T1, T2]]: ...
     @overload
-    def __new__(self, kind: Member[T], default: TTuple[T]) -> Tuple[T]: ...
+    def __new__(
+        self, kind: Member[T], default: Optional[TTuple[T]] = None
+    ) -> Tuple[T]: ...
