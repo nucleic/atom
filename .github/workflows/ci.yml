@@ -49,7 +49,7 @@ jobs:
           python -X dev -m pytest tests --cov atom --cov-report xml -v
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-        if: matrix.os == 'windows-latest'
+        if: (github.event_name != 'schedule' && matrix.os == 'windows-latest')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittests
@@ -57,7 +57,7 @@ jobs:
           fail_ci_if_error: true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-        if: matrix.os != 'windows-latest'
+        if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittests
