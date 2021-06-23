@@ -4,7 +4,6 @@ include *.rst
 include *.md
 include Makefile
 include LICENSE
-recursive-include tests
 recursive-include docs/source *.rst
 recursive-include docs/source *.png
 recursive-include docs/source *.py
@@ -12,6 +11,9 @@ include docs/make.bat
 include docs/Makefile
 recursive-include examples *.py
 recursive-include licenses *.txt
+include atom/py.typed
+recursive-include atom *.py
+recursive-include atom *.pyi
 recursive-include atom/src *.cpp
 recursive-include atom/src *.h
 recursive-include tests *.py
