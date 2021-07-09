@@ -119,7 +119,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
-        key: None,
+        key: None = None,
         *,
         value: Tuple[Type[VT]],
         default: Optional[TDict[Any, VT]] = None,

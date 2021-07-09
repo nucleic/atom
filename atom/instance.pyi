@@ -88,7 +88,7 @@ class Instance(Member[T, T]):
         args: None = None,
         *,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None = None,
     ) -> Instance[T]: ...
     @overload
     def __new__(
@@ -97,7 +97,7 @@ class Instance(Member[T, T]):
         args: None = None,
         *,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None = None,
     ) -> Instance[T]: ...
     @overload
     def __new__(
@@ -106,7 +106,7 @@ class Instance(Member[T, T]):
         args: None = None,
         *,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None = None,
     ) -> Instance[Union[T, T1]]: ...
     @overload
     def __new__(
@@ -115,7 +115,40 @@ class Instance(Member[T, T]):
         args: None = None,
         *,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None = None,
+    ) -> Instance[Union[T, T1, T2]]: ...
+    # Default with kwargs as pos
+    @overload
+    def __new__(
+        cls,
+        kind: Type[T],
+        args: None,
+        kwargs: Dict[str, Any],
+        factory: None = None,
+    ) -> Instance[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T]],
+        args: None,
+        kwargs: Dict[str, Any],
+        factory: None = None,
+    ) -> Instance[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1]],
+        args: None,
+        kwargs: Dict[str, Any],
+        factory: None = None,
+    ) -> Instance[Union[T, T1]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        args: None,
+        kwargs: Dict[str, Any],
+        factory: None = None,
     ) -> Instance[Union[T, T1, T2]]: ...
     # Default with factory
     @overload
@@ -154,8 +187,41 @@ class Instance(Member[T, T]):
         *,
         factory: Callable[[], Union[T, T1, T2]],
     ) -> Instance[Union[T, T1, T2]]: ...
+    # Default with factory as pos arg
+    @overload
+    def __new__(
+        cls,
+        kind: Type[T],
+        args: None,
+        kwargs: None,
+        factory: Callable[[], T],
+    ) -> Instance[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T]],
+        args: None,
+        kwargs: None,
+        factory: Callable[[], T],
+    ) -> Instance[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1]],
+        args: None,
+        kwargs: None,
+        factory: Callable[[], Union[T, T1]],
+    ) -> Instance[Union[T, T1]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        args: None,
+        kwargs: None,
+        factory: Callable[[], Union[T, T1, T2]],
+    ) -> Instance[Union[T, T1, T2]]: ...
 
-class ForwardInstance(Member[T]):
+class ForwardInstance(Member[T, T]):
     # No default
     @overload
     def __new__(
@@ -230,7 +296,7 @@ class ForwardInstance(Member[T]):
         args: None = None,
         *,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None = None,
     ) -> ForwardInstance[T]: ...
     @overload
     def __new__(
@@ -239,7 +305,7 @@ class ForwardInstance(Member[T]):
         args: None = None,
         *,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None = None,
     ) -> ForwardInstance[T]: ...
     @overload
     def __new__(
@@ -248,7 +314,7 @@ class ForwardInstance(Member[T]):
         args: None = None,
         *,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None = None,
     ) -> ForwardInstance[Union[T, T1]]: ...
     @overload
     def __new__(
@@ -257,9 +323,42 @@ class ForwardInstance(Member[T]):
         args: None = None,
         *,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None = None,
     ) -> ForwardInstance[Union[T, T1, T2]]: ...
-    # Default factory
+    # Default kwargs only as positional
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Type[T]],
+        args: None,
+        kwargs: Dict[str, Any],
+        factory: None = None,
+    ) -> ForwardInstance[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Tuple[Type[T]]],
+        args: None,
+        kwargs: Dict[str, Any],
+        factory: None = None,
+    ) -> ForwardInstance[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Tuple[Type[T], Type[T1]]],
+        args: None,
+        kwargs: Dict[str, Any],
+        factory: None = None,
+    ) -> ForwardInstance[Union[T, T1]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
+        args: None,
+        kwargs: Dict[str, Any],
+        factory: None = None,
+    ) -> ForwardInstance[Union[T, T1, T2]]: ...
+    # Default factory as keyword
     @overload
     def __new__(
         cls,
@@ -294,5 +393,38 @@ class ForwardInstance(Member[T]):
         args: None = None,
         kwargs: None = None,
         *,
+        factory: Callable[[], Union[T, T1, T2]],
+    ) -> ForwardInstance[Union[T, T1, T2]]: ...
+    # Default factory as pos arg
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Type[T]],
+        args: None,
+        kwargs: None ,
+        factory: Callable[[], T],
+    ) -> ForwardInstance[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Tuple[Type[T]]],
+        args: None,
+        kwargs: None,
+        factory: Callable[[], T],
+    ) -> ForwardInstance[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Tuple[Type[T], Type[T1]]],
+        args: None,
+        kwargs: None,
+        factory: Callable[[], Union[T, T1]],
+    ) -> ForwardInstance[Union[T, T1]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
+        args: None,
+        kwargs: None,
         factory: Callable[[], Union[T, T1, T2]],
     ) -> ForwardInstance[Union[T, T1, T2]]: ...

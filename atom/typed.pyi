@@ -32,10 +32,26 @@ class Typed(Member[T, T]):
     def __new__(
         cls,
         kind: Type[T],
+        args: None,
+        kwargs: Dict[str, Any],
+        factory: None = None,
+    ) -> Typed[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Type[T],
         args: None = None,
         *,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None = None,
+    ) -> Typed[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Type[T],
+        args: None,
+        kwargs: None,
+        factory: Callable[[], T],
     ) -> Typed[T]: ...
     @overload
     def __new__(
@@ -47,7 +63,7 @@ class Typed(Member[T, T]):
         factory: Callable[[], T],
     ) -> Typed[T]: ...
 
-class ForwardTyped(Member[T]):
+class ForwardTyped(Member[T, T]):
     @overload
     def __new__(
         cls,
@@ -68,9 +84,9 @@ class ForwardTyped(Member[T]):
     def __new__(
         cls,
         kind: Callable[[], Type[T]],
-        args: tuple,
+        args: None,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None=None,
     ) -> ForwardTyped[T]: ...
     @overload
     def __new__(
@@ -79,7 +95,15 @@ class ForwardTyped(Member[T]):
         args: None = None,
         *,
         kwargs: Dict[str, Any],
-        factory: None,
+        factory: None=None,
+    ) -> ForwardTyped[T]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Type[T]],
+        args: None,
+        kwargs: None,
+        factory: Callable[[], T],
     ) -> ForwardTyped[T]: ...
     @overload
     def __new__(

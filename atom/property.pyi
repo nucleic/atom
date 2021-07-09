@@ -13,7 +13,7 @@ from .catom import Member
 T = TypeVar("T")
 S = TypeVar("S")
 
-class Property(Member):
+class Property(Member[T, S]):
     def __new__(
         self,
         fget: Optional[Callable[[Atom], T]] = None,

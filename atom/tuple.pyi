@@ -50,5 +50,5 @@ class Tuple(Member[TTuple[T, ...], TTuple[T, ...]]):
     ) -> Tuple[Union[T, T1, T2]]: ...
     @overload
     def __new__(
-        self, kind: Member[T], default: Optional[TTuple[T]] = None
+        self, kind: Member[T, Any], default: Optional[TTuple[T]] = None
     ) -> Tuple[T]: ...

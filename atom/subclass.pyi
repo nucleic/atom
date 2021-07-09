@@ -23,7 +23,7 @@ T = TypeVar("T")
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 
-class Subclass(Member[T]):
+class Subclass(Member[T, T]):
     # No default
     @overload
     def __new__(
@@ -59,16 +59,16 @@ class Subclass(Member[T]):
 
 class ForwardSubclass(Subclass[T]):
     @overload
-    def __new__(cls, resolve: Callable[[], Type[T]]) -> Subclass[Optional[Type[T]]]: ...
+    def __new__(cls, resolve: Callable[[], Type[T]]) -> ForwardSubclass[Optional[Type[T]]]: ...
     @overload
     def __new__(
         cls, resolve: Callable[[], Tuple[Type[T]]]
-    ) -> Subclass[Optional[Type[T]]]: ...
+    ) -> ForwardSubclass[Optional[Type[T]]]: ...
     @overload
     def __new__(
         cls, resolve: Callable[[], Tuple[Type[T], Type[T1]]]
-    ) -> Subclass[Union[Type[T], Type[T1], None]]: ...
+    ) -> ForwardSubclass[Union[Type[T], Type[T1], None]]: ...
     @overload
     def __new__(
         cls, resolve: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]]
-    ) -> Subclass[Union[Type[T], Type[T1], Type[T2], None]]: ...
+    ) -> ForwardSubclass[Union[Type[T], Type[T1], Type[T2], None]]: ...
