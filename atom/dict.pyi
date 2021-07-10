@@ -37,6 +37,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         default: Optional[TDict] = None,
     ) -> Dict[Any, Any]: ...
     # Typed keys
+    # - type
     @overload
     def __new__(
         cls,
@@ -44,6 +45,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: None = None,
         default: Optional[TDict[KT, Any]] = None,
     ) -> Dict[KT, Any]: ...
+    # - 1-tuple
     @overload
     def __new__(
         cls,
@@ -51,6 +53,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: None = None,
         default: Optional[TDict[KT, Any]] = None,
     ) -> Dict[KT, Any]: ...
+    # - 2-tuple
     @overload
     def __new__(
         cls,
@@ -61,10 +64,68 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: None = None,
+        default: Optional[TDict[KT, Any]] = None,
+    ) -> Dict[Union[KT, KT1], Any]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: None = None,
+        default: Optional[TDict[KT1, Any]] = None,
+    ) -> Dict[Union[KT, KT1], Any]: ...
+    # - 3-tuple
+    @overload
+    def __new__(
+        cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: None = None,
         default: Optional[TDict[Union[KT, KT1, KT2], Any]] = None,
     ) -> Dict[Union[KT, KT1, KT2], Any]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: None = None,
+        default: Optional[TDict[Union[KT, KT1], Any]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Any]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: None = None,
+        default: Optional[TDict[Union[KT1, KT2], Any]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Any]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: None = None,
+        default: Optional[TDict[Union[KT, KT2], Any]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Any]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: None = None,
+        default: Optional[TDict[KT, Any]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Any]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: None = None,
+        default: Optional[TDict[KT1, Any]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Any]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: None = None,
+        default: Optional[TDict[KT2, Any]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Any]: ...
+    # - member
     @overload
     def __new__(
         cls,
@@ -73,6 +134,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         default: Optional[TDict[KT, Any]] = None,
     ) -> Dict[KT, Any]: ...
     # Typed values
+    # - type
     @overload
     def __new__(
         cls,
@@ -80,6 +142,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: Type[VT],
         default: Optional[TDict[Any, VT]] = None,
     ) -> Dict[Any, VT]: ...
+    # - 1-tuple
     @overload
     def __new__(
         cls,
@@ -87,6 +150,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: Tuple[Type[VT]],
         default: Optional[TDict[Any, VT]] = None,
     ) -> Dict[Any, VT]: ...
+    # - 2-tuple
     @overload
     def __new__(
         cls,
@@ -98,9 +162,67 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     def __new__(
         cls,
         key: None,
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Any, VT]] = None,
+    ) -> Dict[Any, Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None,
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Any, VT1]] = None,
+    ) -> Dict[Any, Union[VT, VT1]]: ...
+    # - 3-tuple
+    @overload
+    def __new__(
+        cls,
+        key: None,
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
         default: Optional[TDict[Any, Union[VT, VT1, VT2]]] = None,
     ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, Union[VT, VT1]]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, Union[VT, VT2]]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, Union[VT1, VT2]]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, VT]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, VT1]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, VT2]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    # - member
     @overload
     def __new__(
         cls,
@@ -108,6 +230,8 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: Member[VT, Any] = None,
         default: Optional[TDict[Any, VT]] = None,
     ) -> Dict[Any, VT]: ...
+    # Typed value through keyword
+    # - type
     @overload
     def __new__(
         cls,
@@ -116,6 +240,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: Type[VT],
         default: Optional[TDict[Any, VT]] = None,
     ) -> Dict[Any, VT]: ...
+    # - 1-tuple
     @overload
     def __new__(
         cls,
@@ -124,6 +249,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: Tuple[Type[VT]],
         default: Optional[TDict[Any, VT]] = None,
     ) -> Dict[Any, VT]: ...
+    # - 2-tuple
     @overload
     def __new__(
         cls,
@@ -137,9 +263,75 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: None = None,
         *,
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Any, VT]] = None,
+    ) -> Dict[Any, Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None = None,
+        *,
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Any, VT1]] = None,
+    ) -> Dict[Any, Union[VT, VT1]]: ...
+    # - 3-tuple
+    @overload
+    def __new__(
+        cls,
+        key: None = None,
+        *,
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
         default: Optional[TDict[Any, Union[VT, VT1, VT2]]] = None,
     ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None = None,
+        *,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, Union[VT, VT1]]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None = None,
+        *,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, Union[VT1, VT2]]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None = None,
+        *,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, Union[VT, VT2]]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None = None,
+        *,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, VT]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None = None,
+        *,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, VT1]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: None = None,
+        *,
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Any, VT2]] = None,
+    ) -> Dict[Any, Union[VT, VT1, VT2]]: ...
+    # - member
     @overload
     def __new__(
         cls,
@@ -149,7 +341,8 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         default: Optional[TDict[Any, VT]] = None,
     ) -> Dict[Any, VT]: ...
     # Typed key and value
-    # value simple type
+    # - value simple type
+    #    - key type
     @overload
     def __new__(
         cls,
@@ -157,13 +350,15 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: Type[VT],
         default: Optional[TDict[KT, VT]] = None,
     ) -> Dict[KT, VT]: ...
+    #    - key 1-tuple
     @overload
     def __new__(
         cls,
         key: Tuple[Type[KT]],
         value: Type[VT],
         default: Optional[TDict[KT, VT]] = None,
-    ) -> Dict[KT, Any]: ...
+    ) -> Dict[KT, VT]: ...
+    #    - key 2-tuple
     @overload
     def __new__(
         cls,
@@ -174,6 +369,21 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Type[VT],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[Union[KT, KT1], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Type[VT],
+        default: Optional[TDict[KT1, VT]] = None,
+    ) -> Dict[Union[KT, KT1], VT]: ...
+    #    - key 3-tuple
+    @overload
+    def __new__(
+        cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: Type[VT],
         default: Optional[TDict[Union[KT, KT1, KT2], VT]] = None,
@@ -181,11 +391,55 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Type[VT],
+        default: Optional[TDict[Union[KT, KT1], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Type[VT],
+        default: Optional[TDict[Union[KT, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Type[VT],
+        default: Optional[TDict[Union[KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Type[VT],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Type[VT],
+        default: Optional[TDict[KT1, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Type[VT],
+        default: Optional[TDict[KT2, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    #    - key member
+    @overload
+    def __new__(
+        cls,
         key: Member[KT, Any],
         value: Type[VT],
         default: Optional[TDict[KT, VT]] = None,
     ) -> Dict[KT, VT]: ...
-    # Value as single element tuple
+    # - Value as single element tuple
+    #    - key type
     @overload
     def __new__(
         cls,
@@ -193,6 +447,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: Tuple[Type[VT]],
         default: Optional[TDict[KT, VT]] = None,
     ) -> Dict[KT, VT]: ...
+    #    - key 1-tuple
     @overload
     def __new__(
         cls,
@@ -200,6 +455,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: Tuple[Type[VT]],
         default: Optional[TDict[KT, VT]] = None,
     ) -> Dict[KT, VT]: ...
+    #    - key 2-tuple
     @overload
     def __new__(
         cls,
@@ -210,6 +466,21 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[Union[KT, KT1], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[KT1, VT]] = None,
+    ) -> Dict[Union[KT, KT1], VT]: ...
+    #    - key 3-tuple
+    @overload
+    def __new__(
+        cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: Tuple[Type[VT]],
         default: Optional[TDict[Union[KT, KT1, KT2], VT]] = None,
@@ -217,11 +488,55 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[Union[KT, KT1], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[Union[KT, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[Union[KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[KT1, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[KT2, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    #    - key member
+    @overload
+    def __new__(
+        cls,
         key: Member[KT, Any],
         value: Tuple[Type[VT]],
         default: Optional[TDict[KT, VT]] = None,
     ) -> Dict[KT, VT]: ...
-    # Value as 2-tuple
+    # - Value as 2-tuple
+    #    - key type
     @overload
     def __new__(
         cls,
@@ -232,10 +547,40 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Type[KT],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[KT, Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Type[KT],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, VT1]] = None,
+    ) -> Dict[KT, Union[VT, VT1]]: ...
+    #    - key 1-tuple
+    @overload
+    def __new__(
+        cls,
         key: Tuple[Type[KT]],
         value: Tuple[Type[VT], Type[VT1]],
         default: Optional[TDict[KT, Union[VT, VT1]]] = None,
     ) -> Dict[KT, Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[KT, Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, VT1]] = None,
+    ) -> Dict[KT, Union[VT, VT1]]: ...
+    #    - key 2-tuple
     @overload
     def __new__(
         cls,
@@ -246,6 +591,63 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1], VT]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1], VT1]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, VT1]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT1, Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT1, VT]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT1, VT1]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1]]: ...
+    #    - key 3-tuple
+    @overload
+    def __new__(
+        cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: Tuple[Type[VT], Type[VT1]],
         default: Optional[TDict[Union[KT, KT1, KT2], Union[VT, VT1]]] = None,
@@ -253,11 +655,251 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT1, KT2], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT1, KT2], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT2], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT2], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT1, Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT1, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT1, VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT2, Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT2, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT2, VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1]]: ...
+    #    - key member
+    @overload
+    def __new__(
+        cls,
         key: Member[KT, Any],
         value: Tuple[Type[VT], Type[VT1]],
         default: Optional[TDict[KT, Union[VT, VT1]]] = None,
     ) -> Dict[KT, Union[VT, VT1]]: ...
-    # Value as 3-tuple
+    @overload
+    def __new__(
+        cls,
+        key: Member[KT, Any],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[KT, Union[VT, VT1]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Member[KT, Any],
+        value: Tuple[Type[VT], Type[VT1]],
+        default: Optional[TDict[KT, VT1]] = None,
+    ) -> Dict[KT, Union[VT, VT1]]: ...
+    # - Value as 3-tuple
+    #   - key type
     @overload
     def __new__(
         cls,
@@ -268,10 +910,96 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Type[KT],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT1]]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Type[KT],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT1, VT2]]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Type[KT],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT2]]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Type[KT],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Type[KT],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT1]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Type[KT],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT2]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    #   - key 1-tuple
+    @overload
+    def __new__(
+        cls,
         key: Tuple[Type[KT]],
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
         default: Optional[TDict[KT, Union[VT, VT1, VT2]]] = None,
     ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT1]]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT1, VT2]]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT2]]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT1]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT2]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    #   - key 2-tuple
     @overload
     def __new__(
         cls,
@@ -282,6 +1010,147 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, Union[VT, VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], Union[VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, Union[VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], Union[VT, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, Union[VT, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], VT]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, VT]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], VT1]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT1]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, VT1]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], VT2]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT2]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, VT2]] = None,
+    ) -> Dict[Union[KT, KT1], Union[VT, VT1, VT2]]: ...
+    #   - key 3-tuple
+    @overload
+    def __new__(
+        cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
         default: Optional[TDict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]] = None,
@@ -289,11 +1158,391 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], Union[VT, VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT1, KT2], Union[VT, VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT2], Union[VT, VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, Union[VT, VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT2, Union[VT, VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1, KT2], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT1, KT2], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT2], Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT2, Union[VT, VT1]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1, KT2], Union[VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], Union[VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT1, KT2], Union[VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT2], Union[VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, Union[VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT2, Union[VT1, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1, KT2], Union[VT, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], Union[VT, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT1, KT2], Union[VT, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT2], Union[VT, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, Union[VT, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT2, Union[VT, VT2]]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT2, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT1, KT2], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT2], VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT2, VT1]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1, KT2], VT2]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT1], VT2]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT1, KT2], VT2]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[Union[KT, KT2], VT2]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT2]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT1, VT2]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT2, VT2]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], Union[VT, VT1, VT2]]: ...
+    #   - key member
+    @overload
+    def __new__(
+        cls,
         key: Member[KT, Any],
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
         default: Optional[TDict[KT, Union[VT, VT1, VT2]]] = None,
     ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
-    # value as member
+    @overload
+    def __new__(
+        cls,
+        key: Member[KT, Any],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT1]]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Member[KT, Any],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT1, VT2]]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Member[KT, Any],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, Union[VT, VT2]]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Member[KT, Any],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Member[KT, Any],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT1]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Member[KT, Any],
+        value: Tuple[Type[VT], Type[VT1], Type[VT2]],
+        default: Optional[TDict[KT, VT2]] = None,
+    ) -> Dict[KT, Union[VT, VT1, VT2]]: ...
+    # - value as member
+    #   - key type
     @overload
     def __new__(
         cls,
@@ -301,13 +1550,15 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         value: Member[VT, Any],
         default: Optional[TDict[KT, VT]] = None,
     ) -> Dict[KT, VT]: ...
+    #   - key 1-tuple
     @overload
     def __new__(
         cls,
         key: Tuple[Type[KT]],
         value: Member[VT, Any],
         default: Optional[TDict[KT, VT]] = None,
-    ) -> Dict[KT, Any]: ...
+    ) -> Dict[KT, VT]: ...
+    #   - key 2-tuple
     @overload
     def __new__(
         cls,
@@ -318,10 +1569,68 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     @overload
     def __new__(
         cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Member[VT, Any],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[Union[KT, KT1], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1]],
+        value: Member[VT, Any],
+        default: Optional[TDict[KT1, VT]] = None,
+    ) -> Dict[Union[KT, KT1], VT]: ...
+    #   - key 3-tuple
+    @overload
+    def __new__(
+        cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: Member[VT, Any],
         default: Optional[TDict[Union[KT, KT1, KT2], VT]] = None,
     ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Member[VT, Any],
+        default: Optional[TDict[Union[KT, KT1], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Member[VT, Any],
+        default: Optional[TDict[Union[KT1, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Member[VT, Any],
+        default: Optional[TDict[Union[KT, KT2], VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Member[VT, Any],
+        default: Optional[TDict[KT, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Member[VT, Any],
+        default: Optional[TDict[KT1, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    @overload
+    def __new__(
+        cls,
+        key: Tuple[Type[KT], Type[KT1], Type[KT2]],
+        value: Member[VT, Any],
+        default: Optional[TDict[KT2, VT]] = None,
+    ) -> Dict[Union[KT, KT1, KT2], VT]: ...
+    #   - key member
     @overload
     def __new__(
         cls,
