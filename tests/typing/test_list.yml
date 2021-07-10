@@ -1,0 +1,206 @@
+- case: list
+  parametrized:
+  # List with no defaults
+  - member: List
+    member_instance: List()
+    member_type: atom.list.List[Any]
+    member_value_type: builtins.list*[Any]
+  - member: List
+    member_instance: List(int)
+    member_type: atom.list.List[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  - member: List
+    member_instance: List((int,))
+    member_type: atom.list.List[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  - member: List
+    member_instance: List((int, float))
+    member_type: atom.list.List[builtins.float]
+    member_value_type: builtins.list*[builtins.float*]
+  - member: List
+    member_instance: List((int, float, str))
+    member_type: atom.list.List[Union[builtins.float, builtins.str]]
+    member_value_type: builtins.list*[Union[builtins.float*, builtins.str*]]
+  - member: List, Int
+    member_instance: List(Int())
+    member_type: atom.list.List[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  # List with defaults
+  - member: List
+    member_instance: List(default=[1])
+    member_type: atom.list.List[Any]
+    member_value_type: builtins.list*[Any]
+  - member: List
+    member_instance: List(int, default=[3])
+    member_type: atom.list.List[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  - member: List
+    member_instance: List((int,), default=[1,2])
+    member_type: atom.list.List[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  # Ensure that for tuple of types any valid default works
+  - member: List
+    member_instance: List((int, str), default=[1])
+    member_type: atom.list.List[Union[builtins.int, builtins.str]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*]]
+  - member: List
+    member_instance: List((int, str), default=[str(1)])
+    member_type: atom.list.List[Union[builtins.int, builtins.str]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*]]
+  - member: List
+    member_instance: List((int, str), default=[1, str(1)])
+    member_type: atom.list.List[Union[builtins.int, builtins.str]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*]]
+  - member: List
+    member_instance: List((int, str, bytes), default=[1])
+    member_type: atom.list.List[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: List
+    member_instance: List((int, str, bytes), default=[str(1)])
+    member_type: atom.list.List[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: List
+    member_instance: List((int, str, bytes), default=[bytes(1)])
+    member_type: atom.list.List[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: List
+    member_instance: List((int, str, bytes), default=[1, str(1)])
+    member_type: atom.list.List[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: List
+    member_instance: List((int, str, bytes), default=[1, bytes(1)])
+    member_type: atom.list.List[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: List
+    member_instance: List((int, str, bytes), default=[str(1), bytes(1)])
+    member_type: atom.list.List[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: List
+    member_instance: List((int, str, bytes), default=[1, str(1), bytes(1)])
+    member_type: atom.list.List[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: List, Int
+    member_instance: List(Int(), default=[2])
+    member_type: atom.list.List[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  main: |
+    from atom.api import Atom, {{ member }}
+
+    class X:
+      pass
+
+    class Y:
+      pass
+
+    class Z:
+      pass
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
+
+
+- case: container-list
+  parametrized:
+  # List with no defaults
+  - member: ContainerList
+    member_instance: ContainerList()
+    member_type: atom.containerlist.ContainerList[Any]
+    member_value_type: builtins.list*[Any]
+  - member: ContainerList
+    member_instance: ContainerList(int)
+    member_type: atom.containerlist.ContainerList[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  - member: ContainerList
+    member_instance: ContainerList((int,))
+    member_type: atom.containerlist.ContainerList[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  - member: ContainerList
+    member_instance: ContainerList((int, float))
+    member_type: atom.containerlist.ContainerList[builtins.float]
+    member_value_type: builtins.list*[builtins.float*]
+  - member: ContainerList
+    member_instance: ContainerList((int, float, str))
+    member_type: atom.containerlist.ContainerList[Union[builtins.float, builtins.str]]
+    member_value_type: builtins.list*[Union[builtins.float*, builtins.str*]]
+  - member: ContainerList, Int
+    member_instance: ContainerList(Int())
+    member_type: atom.containerlist.ContainerList[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  # ContainerList with defaults
+  - member: ContainerList
+    member_instance: ContainerList(default=[1])
+    member_type: atom.containerlist.ContainerList[Any]
+    member_value_type: builtins.list*[Any]
+  - member: ContainerList
+    member_instance: ContainerList(int, default=[3])
+    member_type: atom.containerlist.ContainerList[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  - member: ContainerList
+    member_instance: ContainerList((int,), default=[1,2])
+    member_type: atom.containerlist.ContainerList[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  # Ensure that for tuple of types any valid default works
+  - member: ContainerList
+    member_instance: ContainerList((int, str), default=[1])
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.str]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*]]
+  - member: ContainerList
+    member_instance: ContainerList((int, str), default=[str(1)])
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.str]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*]]
+  - member: ContainerList
+    member_instance: ContainerList((int, str), default=[1, str(1)])
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.str]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*]]
+  - member: ContainerList
+    member_instance: ContainerList((int, str, bytes), default=[1])
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: ContainerList
+    member_instance: ContainerList((int, str, bytes), default=[str(1)])
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: ContainerList
+    member_instance: ContainerList((int, str, bytes), default=[bytes(1)])
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: ContainerList
+    member_instance: ContainerList((int, str, bytes), default=[1, str(1)])
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: ContainerList
+    member_instance: ContainerList((int, str, bytes), default=[1, bytes(1)])
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: ContainerList
+    member_instance: ContainerList((int, str, bytes), default=[str(1), bytes(1)])
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: ContainerList
+    member_instance: ContainerList((int, str, bytes), default=[1, str(1), bytes(1)])
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.list*[Union[builtins.int*, builtins.str*, builtins.bytes*]]
+  - member: ContainerList, Int
+    member_instance: ContainerList(Int(), default=[2])
+    member_type: atom.containerlist.ContainerList[builtins.int]
+    member_value_type: builtins.list*[builtins.int*]
+  main: |
+    from atom.api import Atom, {{ member }}
+
+    class X:
+      pass
+
+    class Y:
+      pass
+
+    class Z:
+      pass
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"

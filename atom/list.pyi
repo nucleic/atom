@@ -33,8 +33,56 @@ class List(Member[TList[T], TList[T]]):
     @overload
     def __new__(
         cls,
+        kind: Tuple[Type[T], Type[T1]],
+        default: Optional[TList[T]] = None,
+    ) -> List[Union[T, T1]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1]],
+        default: Optional[TList[T1]] = None,
+    ) -> List[Union[T, T1]]: ...
+    @overload
+    def __new__(
+        cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
         default: Optional[TList[Union[T, T1, T2]]] = None,
+    ) -> List[Union[T, T1, T2]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        default: Optional[TList[Union[T, T1]]] = None,
+    ) -> List[Union[T, T1, T2]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        default: Optional[TList[Union[T1, T2]]] = None,
+    ) -> List[Union[T, T1, T2]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        default: Optional[TList[Union[T, T2]]] = None,
+    ) -> List[Union[T, T1, T2]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        default: Optional[TList[T]] = None,
+    ) -> List[Union[T, T1, T2]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        default: Optional[TList[T1]] = None,
+    ) -> List[Union[T, T1, T2]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        default: Optional[TList[T2]] = None,
     ) -> List[Union[T, T1, T2]]: ...
     @overload
     def __new__(
