@@ -86,15 +86,6 @@
   main: |
     from atom.api import Atom, {{ member }}
 
-    class X:
-      pass
-
-    class Y:
-      pass
-
-    class Z:
-      pass
-
     class A(Atom):
       m = {{ member_instance }}
 
@@ -189,15 +180,6 @@
     member_value_type: builtins.list*[builtins.int*]
   main: |
     from atom.api import Atom, {{ member }}
-
-    class X:
-      pass
-
-    class Y:
-      pass
-
-    class Z:
-      pass
 
     class A(Atom):
       m = {{ member_instance }}
