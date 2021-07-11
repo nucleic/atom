@@ -1,4 +1,4 @@
-- case: set
+- case: tuple
   parametrized:
   # Tuple with no defaults
   - member: Tuple
