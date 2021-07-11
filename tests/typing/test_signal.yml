@@ -1,0 +1,10 @@
+- case: signal
+  main: |
+    from atom.api import Atom, Signal
+
+    class A(Atom):
+      m = Signal()
+
+    reveal_type(A.m)  # N: Revealed type is "atom.signal.Signal"
+    reveal_type(A().m)  # N: Revealed type is "atom.catom.SignalConnector*"
+    A().m()

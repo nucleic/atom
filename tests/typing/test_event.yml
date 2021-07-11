@@ -1,4 +1,3 @@
-# XXX to complete
 - case: event
   parametrized:
   - member: Event
@@ -26,5 +25,5 @@
       m = {{ member_instance }}
 
     reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
-    reveal_type(A().m)  # N: Revealed type is "<nothing>"
+    reveal_type(A().m)  # N: Revealed type is "atom.catom.EventBinder*"
     A().m = 1

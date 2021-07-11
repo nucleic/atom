@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from .catom import Member, GetAttr, SetAttr, DelAttr
+from typing import NoReturn
+from .catom import Member, SignalConnector
 
-class Signal(Member):  # XXX should we disallow get, set, delete
-    def __call__(cls, *args, **kwargs) -> None: ...
+class Signal(Member[SignalConnector, NoReturn]): ...
