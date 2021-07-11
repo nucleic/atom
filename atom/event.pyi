@@ -5,15 +5,15 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Any, NoReturn, Tuple, Type, TypeVar, Union, overload
+from typing import Any, Tuple, Type, TypeVar, Union, overload
 
-from .catom import Member
+from .catom import EventBinder, Member
 
 T = TypeVar("T")
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 
-class Event(Member[NoReturn, T]):
+class Event(Member[EventBinder, T]):
     @overload
     def __new__(self, kind: None=None) -> Event[Any]: ...
     @overload
