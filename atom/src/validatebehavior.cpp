@@ -34,7 +34,7 @@ bool validate_type_tuple_types( PyObject* type_tuple_types )
                 PyErr_Format(
                     PyExc_TypeError,
                     "Expected type or tuple of types. Got a tuple containing an instance of `%s` instead.",
-                    PyTuple_GET_ITEM( type_tuple_types, i )->ob_type->tp_name
+                    Py_TYPE( PyTuple_GET_ITEM( type_tuple_types, i ) )->tp_name
                 );
                 return false;
             }
@@ -256,9 +256,9 @@ validate_type_fail( Member* member, CAtom* atom, PyObject* newvalue, const char*
         "The '%s' member on the '%s' object must be of type '%s'. "
         "Got object of type '%s' instead.",
         PyUnicode_AsUTF8( member->name ),
-        pyobject_cast( atom )->ob_type->tp_name,
+        Py_TYPE( pyobject_cast( atom ) )->tp_name,
         type,
-        newvalue->ob_type->tp_name
+        Py_TYPE( newvalue )->tp_name
     );
     return 0;
 }
@@ -606,9 +606,9 @@ subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
             "The '%s' member on the '%s' object must be a subclass of '%s'. "
             "Got instance of '%s' instead.",
             PyUnicode_AsUTF8( member->name ),
-            pyobject_cast( atom )->ob_type->tp_name,
+            Py_TYPE( pyobject_cast( atom ) )->tp_name,
             name_from_type_tuple_types( member->validate_context ).c_str(),
-            newvalue->ob_type->tp_name
+            Py_TYPE( newvalue )->tp_name
         );
         return 0;
     }
@@ -627,7 +627,7 @@ subclass_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
             "The '%s' member on the '%s' object must be a subclass of '%s'. "
             "Got class '%s' instead.",
             PyUnicode_AsUTF8( member->name ),
-            pyobject_cast( atom )->ob_type->tp_name,
+            Py_TYPE( pyobject_cast( atom ) )->tp_name,
             name_from_type_tuple_types( member->validate_context ).c_str(),
             type->tp_name
         );
