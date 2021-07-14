@@ -694,7 +694,7 @@ public:
         cppy::ptr super_type( builtins.getattr( "super" ) );
         // Create super args (tuple steals references)
         cppy::ptr super_args( PyTuple_New(2) );
-        PyTuple_SET_ITEM( super_args.get(), 0, cppy::incref( pyobject_cast( m_list.get()->ob_type ) ) );
+        PyTuple_SET_ITEM( super_args.get(), 0, cppy::incref( pyobject_cast( Py_TYPE(m_list.get()) ) ) );
         PyTuple_SET_ITEM( super_args.get(), 1, cppy::incref( m_list.get() ) );
 
         // Get and call super method

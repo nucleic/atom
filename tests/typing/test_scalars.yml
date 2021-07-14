@@ -1,0 +1,129 @@
+- case: scalars-no-annotations
+  parametrized:
+    - member: Value
+      member_instance: Value()
+      member_type: atom.scalars.Value[Any]
+      member_value_type: Any
+    - member: ReadOnly
+      member_instance: ReadOnly()
+      member_type: atom.scalars.ReadOnly[Any]
+      member_value_type: Any
+    - member: ReadOnly
+      member_instance: ReadOnly(0)
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int*
+    - member: ReadOnly
+      member_instance: ReadOnly(factory=g)
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int*
+    - member: ReadOnly
+      member_instance: ReadOnly(None, g)
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int*
+    - member: Constant
+      member_instance: Constant()
+      member_type: atom.scalars.Constant[Any]
+      member_value_type: Any
+    - member: Constant
+      member_instance: Constant(0)
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type: builtins.int*
+    - member: Constant
+      member_instance: Constant(factory=g)
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type:  builtins.int*
+    - member: Constant
+      member_instance: Constant(None, g)
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type:  builtins.int*
+    - member: Bool
+      member_instance: Bool()
+      member_type: atom.scalars.Bool[builtins.bool]
+      member_value_type: builtins.bool*
+    - member: Int
+      member_instance: Int()
+      member_type: atom.scalars.Int[builtins.int]
+      member_value_type: builtins.int*
+    - member: Int
+      member_instance: Int(strict=False)
+      member_type: atom.scalars.Int[builtins.float]
+      member_value_type: builtins.int*
+    - member: Int
+      member_instance: Int(0, f, False)
+      member_type: atom.scalars.Int[builtins.float]
+      member_value_type: builtins.int*
+    - member: FloatRange
+      member_instance: FloatRange()
+      member_type: atom.scalars.FloatRange[builtins.float]
+      member_value_type: builtins.float*
+    - member: Range
+      member_instance: Range()
+      member_type: atom.scalars.Range[builtins.int]
+      member_value_type: builtins.int*
+    - member: Float
+      member_instance: Float()
+      member_type: atom.scalars.Float[builtins.float]
+      member_value_type: builtins.float*
+    - member: Bytes
+      member_instance: Bytes()
+      member_type: atom.scalars.Bytes[Union[builtins.bytes, builtins.str]]
+      member_value_type: builtins.bytes*
+    - member: Bytes
+      member_instance: Bytes(strict=True)
+      member_type: atom.scalars.Bytes[builtins.bytes]
+      member_value_type: builtins.bytes*
+    - member: Str
+      member_instance: Str()
+      member_type: atom.scalars.Str[Union[builtins.str, builtins.bytes]]
+      member_value_type: builtins.str*
+    - member: Str
+      member_instance: Str(strict=True)
+      member_type: atom.scalars.Str[builtins.str]
+      member_value_type: builtins.str*
+  main: |
+    from atom.api import Atom, {{ member }}
+
+    def f():
+      pass
+
+    def g() -> int:
+      pass
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
+
+- case: callable
+  main: |
+    from atom.api import Atom, Callable
+
+    class A(Atom):
+      m = Callable()
+
+    reveal_type(A.m)  # N: Revealed type is "atom.scalars.Callable[def (*Any, **Any) -> Any]"
+    reveal_type(A().m)  # N: Revealed type is "def (*Any, **Any) -> Any"
+
+- case: str-with-default
+  main: |
+    from atom.api import Atom, Str
+
+    class A(Atom):
+      m = Str('', None, True)
+
+    reveal_type(A.m)  # N: Revealed type is "atom.scalars.Str[builtins.str]"
+    reveal_type(A().m)  # N: Revealed type is "builtins.str*"
+
+- case: bytes-with-default
+  main: |
+    from atom.api import Atom, Bytes
+
+    class A(Atom):
+      m = Bytes(b"", None, True)
+
+    reveal_type(A.m)  # N: Revealed type is "atom.scalars.Bytes[builtins.bytes]"
+    reveal_type(A().m)  # N: Revealed type is "builtins.bytes*"
+
+
+# XXX add tests with explicit annotations

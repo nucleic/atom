@@ -21,7 +21,6 @@ from .dict import Dict
 from .enum import Enum
 from .event import Event
 from .instance import Instance, ForwardInstance
-from .intenum import IntEnum
 from .list import List
 from .property import Property, cached_property
 from .scalars import (

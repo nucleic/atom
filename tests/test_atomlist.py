@@ -11,7 +11,6 @@ from __future__ import (division, unicode_literals, print_function,
 import gc
 from sys import version_info
 from pickle import dumps, loads
-from functools import wraps
 from collections import Counter
 
 import pytest
@@ -34,7 +33,7 @@ class CyclicStandardModel(StandardModel):
     """ A model class to test the handling of reference cycles.
 
     """
-    typed = List(StandardModel)
+    typed = List(StandardModel)  # type: ignore
 
 
 class ContainerModel(Atom):
@@ -75,7 +74,7 @@ class CyclicContainerModel(ContainerModel):
     """ A model class to test the handling of reference cycles.
 
     """
-    typed = ContainerList(ContainerModel)
+    typed = ContainerList(ContainerModel)  # type: ignore
 
 
 class Indexer(object):
@@ -475,7 +474,7 @@ class TestContainerList(TestStandardList):
         assert type(self.model.typed) == atomclist
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def container_model():
     """ Create the typed model and setup the observers.
 
