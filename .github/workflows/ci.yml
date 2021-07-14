@@ -33,7 +33,7 @@ jobs:
           python setup.py develop
       - name: Run Mypy
         run: |
-          pip install mypy
+          pip install mypy pytest
           mypy atom tests
       - name: Test with pytest
         run: |
