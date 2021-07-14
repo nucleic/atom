@@ -386,26 +386,6 @@ class Coerced(Member[T, S]):
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], T],
-    ) -> Coerced[Union[T, T1], Union[T, T1, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], T1],
-    ) -> Coerced[Union[T, T1], Union[T, T1, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1]],
         args: None,
         kwargs: Dict[str, Any],
         *,
@@ -428,46 +408,8 @@ class Coerced(Member[T, S]):
         kind: Tuple[Type[T], Type[T1]],
         args: None,
         kwargs: Dict[str, Any],
-        *,
-        factory: None,
-        coercer: Callable[[S], T],
-    ) -> Coerced[Union[T, T1], Union[T, T1, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1]],
-        args: None,
-        kwargs: Dict[str, Any],
-        *,
-        factory: None,
-        coercer: Callable[[S], T1],
-    ) -> Coerced[Union[T, T1], Union[T, T1, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1]],
-        args: None,
-        kwargs: Dict[str, Any],
         factory: None,
         coercer: Callable[[S], Union[T, T1]],
-    ) -> Coerced[Union[T, T1], Union[T, T1, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], T],
-    ) -> Coerced[Union[T, T1], Union[T, T1, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], T1],
     ) -> Coerced[Union[T, T1], Union[T, T1, S]]: ...
     # - 3-tuple
     @overload
@@ -494,66 +436,6 @@ class Coerced(Member[T, S]):
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], Union[T, T1]],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], Union[T1, T2]],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], Union[T, T2]],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], T],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], T1],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], T2],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
         args: None,
         kwargs: Dict[str, Any],
         *,
@@ -576,122 +458,8 @@ class Coerced(Member[T, S]):
         kind: Tuple[Type[T], Type[T1], Type[T2]],
         args: None,
         kwargs: Dict[str, Any],
-        *,
-        factory: None,
-        coercer: Callable[[S], Union[T, T1]],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        *,
-        factory: None,
-        coercer: Callable[[S], Union[T1, T2]],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        *,
-        factory: None,
-        coercer: Callable[[S], Union[T, T2]],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        *,
-        factory: None,
-        coercer: Callable[[S], T],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        *,
-        factory: None,
-        coercer: Callable[[S], T1],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        *,
-        factory: None,
-        coercer: Callable[[S], T2],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
         factory: None,
         coercer: Callable[[S], Union[T, T1, T2]],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], Union[T, T1]],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], Union[T1, T2]],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], Union[T, T2]],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], T],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], T1],
-    ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None,
-        coercer: Callable[[S], T2],
     ) -> Coerced[Union[T, T1, T2], Union[T, T1, T2, S]]: ...
     # Default with factory
     # - type
