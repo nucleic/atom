@@ -60,6 +60,10 @@ def test_no_op_validation():
         assert m.do_validate(a, None, value) == value
 
 
+def c(x: object) -> int:
+    return int(str(x), 2)
+
+
 @pytest.mark.parametrize("member, set_values, values, raising_values",
                          [(Value(), ['a', 1, None], ['a', 1, None], []),
                           (ReadOnly(int), [1], [1], [1.0]),
@@ -88,12 +92,10 @@ def test_no_op_validation():
                           (Enum(1, 2, 'a'), [1, 2, 'a'], [1, 2, 'a'], [3]),
                           (Callable(), [int, None], [int, None], [1]),
                           (Coerced(set), [{1}, [1], (1,)], [{1}]*3, [1]),
-                          (Coerced(int, coercer=lambda x: int(str(x), 2)),
+                          (Coerced(int, coercer=c), ['101'], [5], []),
+                          (Coerced((int, float), coercer=c),
                            ['101'], [5], []),
-                          (Coerced((int, float),
-                                   coercer=lambda x: int(str(x), 2)),
-                           ['101'], [5], []),
-                          (Coerced(int, coercer=lambda x: []), [], [], ['']),
+                          (Coerced(int, coercer=lambda x: []), [], [], ['']),  # type: ignore
                           (Tuple(), [(1,)], [(1,)], [[1]]),
                           (Tuple(Int()), [(1,)], [(1,)], [(1.0,)]),
                           (Tuple(int), [(1,)], [(1,)], [(1.0,), (None,)]),
