@@ -34,7 +34,7 @@ class CyclicStandardModel(StandardModel):
     """ A model class to test the handling of reference cycles.
 
     """
-    typed = List(StandardModel)
+    typed = List(StandardModel)  # type: ignore
 
 
 class ContainerModel(Atom):
@@ -75,7 +75,7 @@ class CyclicContainerModel(ContainerModel):
     """ A model class to test the handling of reference cycles.
 
     """
-    typed = ContainerList(ContainerModel)
+    typed = ContainerList(ContainerModel)  # type: ignore
 
 
 class Indexer(object):

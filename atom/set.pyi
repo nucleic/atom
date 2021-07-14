@@ -15,74 +15,74 @@ T2 = TypeVar("T2")
 
 class Set(Member[TSet[T], TSet[T]]):
     @overload
-    def __new__(cls, kind: None = None, default: Optional[TSet] = None) -> Set[Any]: ...
+    def __new__(cls, item: None = None, default: Optional[TSet] = None) -> Set[Any]: ...
     @overload
-    def __new__(cls, kind: Type[T], default: Optional[TSet[T]] = None) -> Set[T]: ...
+    def __new__(cls, item: Type[T], default: Optional[TSet[T]] = None) -> Set[T]: ...
     @overload
     def __new__(
-        cls, kind: Tuple[Type[T]], default: Optional[TSet[T]] = None
+        cls, item: Tuple[Type[T]], default: Optional[TSet[T]] = None
     ) -> Set[T]: ...
     @overload
     def __new__(
         cls,
-        kind: Tuple[Type[T], Type[T1]],
+        item: Tuple[Type[T], Type[T1]],
         default: Optional[TSet[Union[T, T1]]] = None,
     ) -> Set[Union[T, T1]]: ...
     @overload
     def __new__(
         cls,
-        kind: Tuple[Type[T], Type[T1]],
+        item: Tuple[Type[T], Type[T1]],
         default: Optional[TSet[T]] = None,
     ) -> Set[Union[T, T1]]: ...
     @overload
     def __new__(
         cls,
-        kind: Tuple[Type[T], Type[T1]],
+        item: Tuple[Type[T], Type[T1]],
         default: Optional[TSet[T1]] = None,
     ) -> Set[Union[T, T1]]: ...
     @overload
     def __new__(
         cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        item: Tuple[Type[T], Type[T1], Type[T2]],
         default: Optional[TSet[Union[T, T1, T2]]] = None,
     ) -> Set[Union[T, T1, T2]]: ...
     @overload
     def __new__(
         cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        item: Tuple[Type[T], Type[T1], Type[T2]],
         default: Optional[TSet[Union[T, T1]]] = None,
     ) -> Set[Union[T, T1, T2]]: ...
     @overload
     def __new__(
         cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        item: Tuple[Type[T], Type[T1], Type[T2]],
         default: Optional[TSet[Union[T1, T2]]] = None,
     ) -> Set[Union[T, T1, T2]]: ...
     @overload
     def __new__(
         cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        item: Tuple[Type[T], Type[T1], Type[T2]],
         default: Optional[TSet[Union[T, T2]]] = None,
     ) -> Set[Union[T, T1, T2]]: ...
     @overload
     def __new__(
         cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        item: Tuple[Type[T], Type[T1], Type[T2]],
         default: Optional[TSet[T]] = None,
     ) -> Set[Union[T, T1, T2]]: ...
     @overload
     def __new__(
         cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        item: Tuple[Type[T], Type[T1], Type[T2]],
         default: Optional[TSet[T1]] = None,
     ) -> Set[Union[T, T1, T2]]: ...
     @overload
     def __new__(
         cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
+        item: Tuple[Type[T], Type[T1], Type[T2]],
         default: Optional[TSet[T2]] = None,
     ) -> Set[Union[T, T1, T2]]: ...
     @overload
     def __new__(
-        cls, kind: Member[T, Any], default: Optional[TSet[T]] = None
+        cls, item: Member[T, Any], default: Optional[TSet[T]] = None
     ) -> Set[T]: ...
