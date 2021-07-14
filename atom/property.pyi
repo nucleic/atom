@@ -5,33 +5,60 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Callable, Optional, TypeVar, NoReturn
+from typing import Callable, Optional, TypeVar, NoReturn, overload
 
 from .atom import Atom
 from .catom import Member
 
+
+A = TypeVar("A", bound=Atom)
 T = TypeVar("T")
 S = TypeVar("S")
 
 class Property(Member[T, S]):
+    @overload
     def __new__(
-        self,
-        fget: Optional[Callable[[Atom], T]] = None,
-        fset: Optional[Callable[[Atom, S], None]] = None,
-        fdel: Optional[Callable[[Atom], None]] = None,
-        cached=False,
+        cls,
+        fget: None = None,
+        fset: None = None,
+        fdel: Optional[Callable[[A], None]] = None,
+        cached: bool=False,
+    ) -> Property[NoReturn, NoReturn]: ...
+    @overload
+    def __new__(
+        cls,
+        fget: None,
+        fset: Callable[[A, S], None],
+        fdel: Optional[Callable[[A], None]] = None,
+        cached: bool=False,
+    ) -> Property[NoReturn, S]: ...
+    @overload
+    def __new__(
+        cls,
+        fget: Callable[[A], T],
+        fset: None = None,
+        fdel: Optional[Callable[[A], None]] = None,
+        cached: bool=False,
+    ) -> Property[T, NoReturn]: ...
+    @overload
+    def __new__(
+        cls,
+        fget: Callable[[A], T],
+        fset: Callable[[A, S], None],
+        fdel: Optional[Callable[[A], None]] = None,
+        cached: bool=False,
     ) -> Property[T, S]: ...
     @property
-    def fget(self) -> Optional[Callable[[Atom], T]]: ...
+    def fget(self) -> Optional[Callable[[A], T]]: ...
     @property
-    def fset(self) -> Optional[Callable[[Atom, S], None]]: ...
+    def fset(self) -> Optional[Callable[[A, S], None]]: ...
     @property
-    def fdel(self) -> Optional[Callable[[Atom], None]]: ...
+    def fdel(self) -> Optional[Callable[[A], None]]: ...
     @property
     def cached(self) -> bool: ...
-    def getter(self, func: Callable[[Atom], T]) -> Callable[[Atom], T]: ...
-    def setter(self, func: Callable[[Atom, S], None]) -> Callable[[Atom, S], None]: ...
-    def deleter(self, func: Callable[[Atom], None]) -> Callable[[Atom], None]: ...
+    def getter(self, func: Callable[[A], T]) -> Callable[[A], T]: ...
+    def setter(self, func: Callable[[A, S], None]) -> Callable[[A, S], None]: ...
+    def deleter(self, func: Callable[[A], None]) -> Callable[[A], None]: ...
     def reset(self, owner: Atom) -> None: ...
 
-def cached_property(fget: Callable[[Atom], T]) -> Property[T, NoReturn]: ...
+def cached_property(fget: Callable[[A], T]) -> Property[T, NoReturn]: ...
