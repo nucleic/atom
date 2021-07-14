@@ -11,7 +11,6 @@ from __future__ import (division, unicode_literals, print_function,
 import gc
 from sys import version_info
 from pickle import dumps, loads
-from functools import wraps
 from collections import Counter
 
 import pytest
