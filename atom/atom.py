@@ -7,8 +7,8 @@
 #------------------------------------------------------------------------------
 import copyreg
 from contextlib import contextmanager
-
 from types import FunctionType
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from .catom import (
     CAtom, Member, DefaultValue, PostGetAttr, PostSetAttr, Validate,
@@ -24,7 +24,7 @@ POST_SETATTR_PREFIX = '_post_setattr_'
 POST_VALIDATE_PREFIX = '_post_validate_'
 
 
-def observe(*names):
+def observe(*names: str):
     """ A decorator which can be used to observe members on a class.
 
     Parameters
@@ -60,7 +60,7 @@ class ObserveHandler(object):
     """
     __slots__ = ('pairs', 'func', 'funcname')
 
-    def __init__(self, pairs):
+    def __init__(self, pairs: List[Tuple[str, str]]):
         """ Initialize an ObserveHandler.
 
         Parameters
@@ -71,10 +71,10 @@ class ObserveHandler(object):
 
         """
         self.pairs = pairs
-        self.func = None        # set by the __call__ method
-        self.funcname = None    # storage for the metaclass
+        self.func: Optional[Callable] = None        # set by the __call__ method
+        self.funcname: Optional[str] = None    # storage for the metaclass
 
-    def __call__(self, func):
+    def __call__(self, func: Callable) -> "ObserveHandler":
         """ Called to decorate the function.
 
         """
@@ -82,7 +82,7 @@ class ObserveHandler(object):
         self.func = func
         return self
 
-    def clone(self):
+    def clone(self) -> "ObserveHandler":
         """ Create a clone of the sentinel.
 
         """
@@ -97,11 +97,11 @@ class set_default(object):
     """
     __slots__ = ('value', 'name')
 
-    def __init__(self, value):
+    def __init__(self, value: Any) -> None:
         self.value = value
         self.name = None    # storage for the metaclass
 
-    def clone(self):
+    def clone(self) -> "set_default":
         """ Create a clone of the sentinel.
 
         """
@@ -114,7 +114,7 @@ class ExtendedObserver(object):
     """
     __slots__ = ('funcname', 'attr')
 
-    def __init__(self, funcname, attr):
+    def __init__(self, funcname: str, attr: str) -> None:
         """ Initialize an ExtendedObserver.
 
         Parameters
@@ -131,7 +131,7 @@ class ExtendedObserver(object):
         self.funcname = funcname
         self.attr = attr
 
-    def __call__(self, change):
+    def __call__(self, change: Dict[str, Any]) -> None:
         """ Handle a change of the target object.
 
         This handler will remove the old observer and attach a new
@@ -406,7 +406,7 @@ class Atom(CAtom, metaclass=AtomMeta):
     """
 
     @classmethod
-    def members(cls):
+    def members(cls) -> Dict[str, Member]:
         """ Get the members dictionary for the type.
 
         Returns
