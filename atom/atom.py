@@ -8,7 +8,7 @@
 import copyreg
 from contextlib import contextmanager
 from types import FunctionType
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple
 
 from .catom import (
     CAtom, Member, DefaultValue, PostGetAttr, PostSetAttr, Validate,
@@ -37,7 +37,7 @@ def observe(*names: str):
     # backwards compatibility for a single tuple or list argument
     if len(names) == 1 and isinstance(names[0], (tuple, list)):
         names = names[0]
-    pairs = []
+    pairs: List[Tuple[str, Optional[str]]] = []
     for name in names:
         if not isinstance(name, str):
             msg = "observe attribute name must be a string, got '%s' instead"
@@ -60,7 +60,7 @@ class ObserveHandler(object):
     """
     __slots__ = ('pairs', 'func', 'funcname')
 
-    def __init__(self, pairs: List[Tuple[str, str]]):
+    def __init__(self, pairs: List[Tuple[str, Optional[str]]]):
         """ Initialize an ObserveHandler.
 
         Parameters
@@ -404,6 +404,8 @@ class Atom(CAtom, metaclass=AtomMeta):
     than normal objects depending on the number of attributes.
 
     """
+
+    __atom_members__: ClassVar[Dict[str, Member]]
 
     @classmethod
     def members(cls) -> Dict[str, Member]:
