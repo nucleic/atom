@@ -8,7 +8,7 @@
 import copyreg
 from contextlib import contextmanager
 from types import FunctionType
-from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple
+from typing import Any, Callable, ClassVar, Dict, Iterator, List, Optional, Tuple
 
 from .catom import (
     CAtom, Member, DefaultValue, PostGetAttr, PostSetAttr, Validate,
@@ -421,7 +421,7 @@ class Atom(CAtom, metaclass=AtomMeta):
         return cls.__atom_members__
 
     @contextmanager
-    def suppress_notifications(self):
+    def suppress_notifications(self) -> Iterator[None]:
         """ Disable member notifications within in a context.
 
         Returns
