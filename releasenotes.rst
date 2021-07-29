@@ -19,6 +19,10 @@ Atom Release Notes
   the validation behavior for the member with optional=False have been added. PR #123
 - consistently use Instance to wrap types passed to containers. PR #123
 - add strict argument to FloatRange. PR #124
+- use python stdlib IntEnum instead of the custom one in atom  PR #122
+- remove the custom atom.IntEnum  PR #122
+- add type hints to atom  PR #122
+  This allow mypy to resolve the values behind a member.
 
 
 0.6.0 - 02/11/2020
