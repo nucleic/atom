@@ -20,3 +20,4 @@ shed lights on the following points:
     Members <members.rst>
     Observation and notifications <observation.rst>
     Basic customization <mangled_methods.rst>
+    Static typing <typing.rst>

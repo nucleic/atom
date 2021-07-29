@@ -13,6 +13,12 @@ The following sections will shed some lights on the different members that come
 with atom and also how they work which will come handy when we will discuss
 how you can customize the behaviors of members later in this guide.
 
+.. note::
+
+    Starting with atom 0.7, atom ships with type hints allowing type checkers to
+    resolve the values behind a member. More details about how typing works in
+    atom and how to add custom type hints can be found in :ref:`basis-typing`
+
 Member workings
 ---------------
 
