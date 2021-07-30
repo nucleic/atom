@@ -5,15 +5,12 @@ Typing with Atom
 
 .. include:: ../substitutions.sub
 
-Since a member is a Python descriptor it is logically generic over 2 types:
+Since an atom member is a Python descriptor in which the validation step is allowed to perform a type conversion (ex with `Coerced`), the types may be different when reading and writing the member value. Therefore, the type hint is logically generic over 2 types:
 
-- the type that will be returned when accessing the member which we will refer to as T
-  in the following
-- the type member can be set to which is not necessarily T since the validation step
-  of a member is allowed to perform generic conversion. We will refer to this type as s
-  in the following.
+- the type that will be returned when accessing the member, which we will refer to as the getter or read type `T`
+ 
+- the type that the member can be set to, which we will refer to as the setter or write type `S`
 
-In the type hints file, the |Member| base class is defined as a generic over T and S.
 
 In general, the type hints shipped with Atom are sufficient to narrow down the type
 of the members without requiring any manual annotation. For example:
