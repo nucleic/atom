@@ -41,6 +41,10 @@ jobs:
         run: |
           pip install pytest-cov
           python -X dev -W error -m pytest tests --cov atom --cov-report xml -v
+      - name: Generate C++ coverage reports
+        if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
+        run: |
+          bash -c "find . -type f -name '*.gcno' -exec gcov -pb --all-blocks {} +" || true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         if: (github.event_name != 'schedule' && matrix.os == 'windows-latest')
