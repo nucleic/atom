@@ -93,14 +93,14 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             break;
         }
+        case Validate::OptionalInstance:
         case Validate::Instance:
-        case Validate::NonOptionalInstance:
         case Validate::Subclass:
         {
             return validate_type_tuple_types( context );
         }
+        case Validate::OptionalTyped:
         case Validate::Typed:
-        case Validate::NonOptionalTyped:
             if( !PyType_Check( context ) )
             {
                 cppy::type_error( context, "type" );

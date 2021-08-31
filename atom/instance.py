@@ -15,8 +15,8 @@ class Instance(Member):
     This call is equivalent to `isinstance(value, kind)` and all the
     same rules apply.
 
-    The value of an Instance may be set to None  if optional is True,
-    otherwise None won't be considered as a valid value.
+    If optional is True, the value of an Instance may be set to None,
+    otherwise None is not considered as a valid value.
 
     """
     __slots__ = ()
@@ -61,9 +61,9 @@ class Instance(Member):
             self.set_default_value_mode(DefaultValue.NonOptional, None)
 
         if optional:
-            self.set_validate_mode(Validate.Instance, kind)
+            self.set_validate_mode(Validate.OptionalInstance, kind)
         else:
-            self.set_validate_mode(Validate.NonOptionalInstance, kind)
+            self.set_validate_mode(Validate.Instance, kind)
 
 
 class ForwardInstance(Instance):
@@ -143,9 +143,9 @@ class ForwardInstance(Instance):
         """
         kind = self.resolve()
         if self.optional:
-            self.set_validate_mode(Validate.Instance, kind)
+            self.set_validate_mode(Validate.OptionalInstance, kind)
         else:
-            self.set_validate_mode(Validate.NonOptionalInstance, kind)
+            self.set_validate_mode(Validate.Instance, kind)
         return self.do_validate(owner, old, new)
 
     def clone(self):

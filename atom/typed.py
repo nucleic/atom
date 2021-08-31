@@ -14,11 +14,11 @@ class Typed(Member):
     Values will be tested using the `PyObject_TypeCheck` C API call.
     This call is equivalent to `type(obj) in cls.mro()`. It is less
     flexible but faster than Instance. Use Instance when allowing
-    heterogenous values or (abstract) types relying on custom
-    __isinstancecheck__and Typed when the value type is explicit.
+    you need a tuple of types or (abstract) types relying on custom
+    __isinstancecheck__ and Typed when the value type is explicit.
 
-    The value of a Typed may be set to None if optional is True,
-    otherwise None won't be considered as a valid value.
+    If optional is True, the value of a Typed may be set to None,
+    otherwise None is not considered as a valid value.
 
     """
     __slots__ = ()
@@ -63,9 +63,9 @@ class Typed(Member):
             self.set_default_value_mode(DefaultValue.NonOptional, None)
 
         if optional:
-            self.set_validate_mode(Validate.Typed, kind)
+            self.set_validate_mode(Validate.OptionalTyped, kind)
         else:
-            self.set_validate_mode(Validate.NonOptionalTyped, kind)
+            self.set_validate_mode(Validate.Typed, kind)
 
 
 class ForwardTyped(Typed):
@@ -76,7 +76,7 @@ class ForwardTyped(Typed):
     normal typed.
 
     """
-    __slots__ = ('resolve', 'args', 'kwargs', "optional")
+    __slots__ = ('resolve', 'args', 'kwargs', 'optional')
 
     def __init__(self, resolve, args=None, kwargs=None, *, factory=None, optional=True):
         """ Initialize a ForwardTyped.
@@ -145,9 +145,9 @@ class ForwardTyped(Typed):
         """
         kind = self.resolve()
         if self.optional:
-            self.set_validate_mode(Validate.Typed, kind)
+            self.set_validate_mode(Validate.OptionalTyped, kind)
         else:
-            self.set_validate_mode(Validate.NonOptionalTyped, kind)
+            self.set_validate_mode(Validate.Typed, kind)
         return self.do_validate(owner, old, new)
 
     def clone(self):
