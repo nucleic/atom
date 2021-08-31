@@ -29,7 +29,11 @@
 
 .. |Int| replace:: :py:class:`~atom.scalars.Int`
 
+.. |Range| replace:: :py:class:`~atom.scalars.Range`
+
 .. |Float| replace:: :py:class:`~atom.scalars.Float`
+
+.. |FloatRange| replace:: :py:class:`~atom.scalars.FloatRange`
 
 .. |Str| replace:: :py:class:`~atom.scalars.Str`
 

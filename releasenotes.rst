@@ -13,6 +13,7 @@ Atom Release Notes
   OptionalInstance, OptionalTyped and new Instance and Typed variant describing
   the validation behavior for the member with optional=False have been added.
 - consistently use Instance to wrap types passed to containers. PR #123
+- add strict argument to FloatRange. PR #124
 
 
 0.6.0 - 02/11/2020

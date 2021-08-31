@@ -20,6 +20,8 @@ class Experiment(Atom):
 
     gain = Range(0, 100, 10)
 
+    scale = FloatRange(0.0, 2.0, 1.0, strict=True)
+
 
 if __name__ == '__main__':
     exp = Experiment()
@@ -31,3 +33,11 @@ if __name__ == '__main__':
     print(exp.gain)
     exp.gain = 99
     print(exp.gain)
+
+    print(exp.scale)
+    try:
+        exp.scale = 2  # strict=False prevents assigning int/long
+    except TypeError as e:
+        print(e)
+        exp.scale = 2.0
+    print(exp.scale)

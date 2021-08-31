@@ -699,6 +699,23 @@ float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
 
 
 PyObject*
+float_range_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( PyFloat_Check( newvalue ) )
+        return float_range_handler( member, atom, oldvalue, newvalue );
+    if( PyLong_Check( newvalue ) )
+    {
+        double value = PyLong_AsDouble( newvalue );
+        if( value == -1.0 && PyErr_Occurred() )
+            return 0;
+        cppy::ptr convertedvalue( PyFloat_FromDouble( value ) );
+        return float_range_handler( member, atom, oldvalue, convertedvalue.get() );
+    }
+    return validate_type_fail( member, atom, newvalue, "float" );
+}
+
+
+PyObject*
 range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( !PyLong_Check( newvalue ) )
@@ -833,6 +850,7 @@ handlers[] = {
     enum_handler,
     callable_handler,
     float_range_handler,
+    float_range_promote_handler,
     range_handler,
     coerced_handler,
     delegate_handler,
