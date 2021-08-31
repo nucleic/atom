@@ -79,6 +79,8 @@ def test_no_op_validation():
                           (FloatRange(0.0), [0.0, 0.6], [0.0, 0.6], [-0.1, '']),
                           (FloatRange(high=0.5), [-0.3, 0.5], [-0.3, 0.5],
                            [0.6]),
+                          (FloatRange(1.0, 10.0, strict=True), [1.0, 3.7],
+                           [1.0, 3.7], [2, 4, 0, -11]),
                           (Bytes(), [b'a', u'a'], [b'a']*2, [1]),
                           (Bytes(strict=True), [b'a'], [b'a'], [u'a']),
                           (Str(), [b'a', u'a'], ['a']*2, [1]),

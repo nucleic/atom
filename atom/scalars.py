@@ -108,10 +108,13 @@ class Int(Value):
 class FloatRange(Value):
     """ A float value clipped to a range.
 
+    By default, ints and longs will be promoted to floats. Pass
+    strict=True to the constructor to enable strict float checking.
+
     """
     __slots__ = ()
 
-    def __init__(self, low=None, high=None, value=None):
+    def __init__(self, low=None, high=None, value=None, strict=False):
         if low is not None and high is not None and low > high:
             low, high = high, low
         default = 0.0
@@ -122,7 +125,10 @@ class FloatRange(Value):
         elif high is not None:
             default = high
         super(FloatRange, self).__init__(default)
-        self.set_validate_mode(Validate.FloatRange, (low, high))
+        if strict:
+            self.set_validate_mode(Validate.FloatRange, (low, high))
+        else:
+            self.set_validate_mode(Validate.FloatRangePromote, (low, high))
 
 
 class Range(Value):
