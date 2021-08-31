@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2020, Nucleic Development Team.
+| Copyright (c) 2013-2021, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -235,6 +235,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( List ) );
         add_long( dict_ptr, expand_enum( Set ) );
         add_long( dict_ptr, expand_enum( Dict ) );
+        add_long( dict_ptr, expand_enum( NonOptional ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
         add_long( dict_ptr, expand_enum( CallObject ) );
         add_long( dict_ptr, expand_enum( CallObject_Object ) );
@@ -271,7 +272,9 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( ContainerList ) );
         add_long( dict_ptr, expand_enum( Set ) );
         add_long( dict_ptr, expand_enum( Dict ) );
+        add_long( dict_ptr, expand_enum( OptionalInstance ) );
         add_long( dict_ptr, expand_enum( Instance ) );
+        add_long( dict_ptr, expand_enum( OptionalTyped ) );
         add_long( dict_ptr, expand_enum( Typed ) );
         add_long( dict_ptr, expand_enum( Subclass ) );
         add_long( dict_ptr, expand_enum( Enum ) );

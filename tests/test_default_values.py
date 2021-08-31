@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2018, Nucleic Development Team.
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -61,6 +61,45 @@ def test_static_handler(member, expected):
     assert StaticTest.v.default_value_mode[0] == mode
     assert StaticTest().v == expected
     assert StaticTest.v.default_value_mode[0] == DefaultValue.Static
+
+
+@pytest.mark.parametrize(
+    "member, expect_error",
+    [
+        (Typed(int), False),
+        (Typed(int, (), optional=False), False),
+        (Typed(int, factory=lambda: 1, optional=False), False),
+        (Instance(int), False),
+        (Instance(int, (), optional=False), False),
+        (Instance(int, factory=lambda: 1,optional=False), False),
+        (Instance(int, optional=False), True),
+        (ForwardTyped(lambda: int), False),
+        (ForwardTyped(lambda: int, (), optional=False), False),
+        (ForwardTyped(lambda: int, factory=lambda: 1, optional=False), False),
+        (ForwardTyped(lambda: int, optional=False), True),
+        (ForwardInstance(lambda: int), False),
+        (ForwardInstance(lambda: int, (), optional=False), False),
+        (ForwardInstance(lambda: int, factory=lambda: 1, optional=False), False),
+        (ForwardInstance(lambda: int, optional=False), True),
+    ]
+)
+def test_non_optional_handler(member, expect_error):
+    """Test a static handler.
+
+    """
+    class NonOptionalTest(Atom):
+        v = member
+
+    if expect_error:
+        assert NonOptionalTest.v.default_value_mode[0] == DefaultValue.NonOptional
+        with pytest.raises(ValueError) as e:
+            NonOptionalTest().v
+        assert "is not optional but no default value" in str(e)
+    else:
+        NonOptionalTest().v
+
+    if not expect_error:
+        assert NonOptionalTest.v.default_value_mode[0] != DefaultValue.NonOptional
 
 
 def test_list_handler():

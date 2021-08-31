@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2019, Nucleic Development Team.
+| Copyright (c) 2013-2021, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -126,6 +126,20 @@ delegate_handler( Member* member, CAtom* atom )
 
 
 PyObject*
+non_optional_handler( Member* member, CAtom* atom )
+{
+    PyErr_Format(
+        PyExc_ValueError,
+        "The '%s' member on the '%s' object is not optional but no default value "
+        "was provided and the member was not set before being accessed.",
+        PyUnicode_AsUTF8( member->name ),
+        Py_TYPE( pyobject_cast( atom ) )->tp_name
+    );
+    return 0;
+}
+
+
+PyObject*
 call_object_handler( Member* member, CAtom* atom )
 {
     cppy::ptr callable( cppy::incref( member->default_value_context ) );
@@ -213,6 +227,7 @@ handlers[] = {
     list_handler,
     set_handler,
     dict_handler,
+    non_optional_handler,
     delegate_handler,
     call_object_handler,
     call_object_object_handler,

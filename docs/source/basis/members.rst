@@ -77,7 +77,7 @@ To summarize:
     e[label="run post-validation"];
     e->f;
     f[label="store the value"];
-    f->g;    
+    f->g;
     g[label="call observers"];
     g->i;
     c->i;
@@ -168,27 +168,43 @@ wrapped in an |Instance| member that will be introduced in the next section.
     In order to enforce type validation of container, atom has to use custom
     subclass. As a consequence, when assigning to a member, the original
     container is copied. This copy on assignment behavior can cause some
-    surprises if you modifiy the original container after assigning it.
+    surprises if you modify the original container after assigning it.
 
 One additional important point, atom does not track the content of the
-container is not tracked. As a consequence, in place modification of the
-container do not trigger any notifications. One workaround can be to copy the
-container, modify it and re-assign it. Another option for lists is to use a
-|ContainerList| member, which uses a special list subclass sending
-notifications when the list is modified.
+container. As a consequence, in place modifications of the container do not
+trigger any notifications. One workaround can be to copy the container, modify
+it and re-assign it. Another option for lists is to use a |ContainerList|
+member, which uses a special list subclass sending notifications when the list
+is modified.
 
 Enforcing custom types
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Sticking to simple types can quickly be limitating and this is why atom
+Sticking to simple types can quickly be limiting and this is why atom
 provides member to enforce that the value is simply of a certain type or a
 subclass:
 
-- |Typed|: the value must of the specified type or a subtypes. Only one type
-  can be specified.
 - |Instance|: the value must pass ``isinstance(value, types))``. Using
   |Instance| once can specify a tuple of types.
+- |Typed|: the value must of the specified type or a subtypes. Only one type
+  can be specified. This check is equivalent to `type(obj) in cls.mro()`. It is
+  less flexible but faster than |Instance|. Use |Instance| when allowing you
+  need a tuple of types or (abstract) types relying on custom
+  __isinstancecheck__and |Typed| when the value type is explicit.
 - |Subclass|: the value must be a class and a subclass of the specified type.
+
+.. note ::
+
+    By default, |Typed| and |Instance| consider ``None`` to be a valid value.
+    One can opt out of this behavior by passing ``optional=False`` at member
+    creation.
+
+.. note::
+
+    If a |Typed| or |Instance| member is created with ``optional=False`` and no
+    mean of creating a default value (no ``args``, ``kwargs`` or ``factory``),
+    trying to access the member value before setting it will result in a
+    ValueError.
 
 In some cases, the type is not accessible when the member is instantiated
 (because it will be created later in the same file for example), atom also
@@ -208,7 +224,7 @@ callable taking no argument and returning the type(s) to use for validation.
 
         leaves = List(Typed(Leaf))
 
-In some cases, the same information may be convienently represented either by
+In some cases, the same information may be conveniently represented either by
 a custom class or something simpler, like a tuple. One example of such a use
 case is a color: a color can be easily represented by the four components
 (red, green, blue, alpha) but in a library may be represented by a custom

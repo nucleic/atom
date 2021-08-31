@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -15,12 +15,13 @@ class Instance(Member):
     This call is equivalent to `isinstance(value, kind)` and all the
     same rules apply.
 
-    The value of an Instance may be set to None.
+    If optional is True, the value of an Instance may be set to None,
+    otherwise None is not considered as a valid value.
 
     """
     __slots__ = ()
 
-    def __init__(self, kind, args=None, kwargs=None, factory=None):
+    def __init__(self, kind, args=None, kwargs=None, *, factory=None, optional=True):
         """ Initialize an Instance.
 
         Parameters
@@ -41,7 +42,12 @@ class Instance(Member):
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be None.
+            then the default value will be None, which will raised if
+            accessed when optional is False.
+
+        optional : bool, optional
+            Boolean indicating if None is a valid value for the member.
+            True by default.
 
         """
         if factory is not None:
@@ -51,7 +57,13 @@ class Instance(Member):
             kwargs = kwargs or {}
             factory = lambda: kind(*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
-        self.set_validate_mode(Validate.Instance, kind)
+        elif not optional:
+            self.set_default_value_mode(DefaultValue.NonOptional, None)
+
+        if optional:
+            self.set_validate_mode(Validate.OptionalInstance, kind)
+        else:
+            self.set_validate_mode(Validate.Instance, kind)
 
 
 class ForwardInstance(Instance):
@@ -62,9 +74,9 @@ class ForwardInstance(Instance):
     a normal instance.
 
     """
-    __slots__ = ('resolve', 'args', 'kwargs')
+    __slots__ = ('resolve', 'args', 'kwargs', 'optional')
 
-    def __init__(self, resolve, args=None, kwargs=None, factory=None):
+    def __init__(self, resolve, args=None, kwargs=None, *, factory=None, optional=True):
         """ Initialize a ForwardInstance.
 
         resolve : callable
@@ -84,17 +96,26 @@ class ForwardInstance(Instance):
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be None.
+            then the default value will be None, which will raised if
+            accessed when optional is False.
+
+        optional : bool, optional
+            Boolean indicating if None is a valid value for the member.
+            True by default.
 
         """
         self.resolve = resolve
         self.args = args
         self.kwargs = kwargs
+        self.optional = optional
         if factory is not None:
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif args is not None or kwargs is not None:
             mode = DefaultValue.MemberMethod_Object
             self.set_default_value_mode(mode, "default")
+        elif not optional:
+            self.set_default_value_mode(DefaultValue.NonOptional, None)
+
         self.set_validate_mode(Validate.MemberMethod_ObjectOldNew, "validate")
 
     def default(self, owner):
@@ -121,7 +142,10 @@ class ForwardInstance(Instance):
 
         """
         kind = self.resolve()
-        self.set_validate_mode(Validate.Instance, kind)
+        if self.optional:
+            self.set_validate_mode(Validate.OptionalInstance, kind)
+        else:
+            self.set_validate_mode(Validate.Instance, kind)
         return self.do_validate(owner, old, new)
 
     def clone(self):

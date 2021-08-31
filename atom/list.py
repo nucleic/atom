@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -28,8 +28,8 @@ class List(Member):
         item : Member, type, or tuple of types, optional
             A member to use for validating the types of items allowed in
             the list. This can also be a type object or a tuple of types,
-            in which case it will be wrapped with an Instance member. If
-            this is not given, no item validation is performed.
+            in which case it will be wrapped with an non-optional Instance
+            member. If this is not given, no item validation is performed.
 
         default : list, optional
             The default list of values. A new copy of this list will be
@@ -37,7 +37,7 @@ class List(Member):
 
         """
         if item is not None and not isinstance(item, Member):
-            item = Typed(item) if isinstance(item, type) else Instance(item)
+            item = Instance(item, optional=False)
         self.item = item
         self.set_default_value_mode(DefaultValue.List, default)
         self.set_validate_mode(Validate.List, item)

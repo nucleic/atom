@@ -1,6 +1,20 @@
 Atom Release Notes
 ==================
 
+
+0.7.0 - unreleased
+------------------
+- make the factory argument of Typed, Instance and their forwarded version
+  keyword only. PR #123
+- add an optional keyword-only argument to Typed, Instance and their forwarded
+  version. When set to False, this will cause those members to reject None as
+  a valid value. The default value is True. PR #123
+- the Instance and Typed variants of the Validate enum have been renamed to
+  OptionalInstance, OptionalTyped and new Instance and Typed variant describing
+  the validation behavior for the member with optional=False have been added.
+- consistently use Instance to wrap types passed to containers. PR #123
+
+
 0.6.0 - 02/11/2020
 ------------------
 - remove deprecated members Long and Unicode PR #108

@@ -475,7 +475,7 @@ class TestContainerList(TestStandardList):
         assert type(self.model.typed) == atomclist
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def container_model():
     """ Create the typed model and setup the observers.
 
