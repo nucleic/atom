@@ -572,20 +572,6 @@ dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 
 
 PyObject*
-instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
-{
-    if( newvalue == Py_None )
-        return cppy::incref( newvalue );
-    int res = PyObject_IsInstance( newvalue, member->validate_context );
-    if( res < 0 )
-        return 0;
-    if( res == 1 )
-        return cppy::incref( newvalue );
-    return validate_type_fail( member, atom, newvalue, name_from_type_tuple_types( member->validate_context ).c_str() );
-}
-
-
-PyObject*
 non_optional_instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     int res = PyObject_IsInstance( newvalue, member->validate_context );
@@ -598,15 +584,13 @@ non_optional_instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, 
 
 
 PyObject*
-typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_None )
         return cppy::incref( newvalue );
-    PyTypeObject* type = pytype_cast( member->validate_context );
-    if( PyObject_TypeCheck( newvalue, type ) )
-        return cppy::incref( newvalue );
-    return validate_type_fail( member, atom, newvalue, type->tp_name );
+    return non_optional_instance_handler( member, atom, oldvalue, newvalue );
 }
+
 
 PyObject*
 non_optional_typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
@@ -615,6 +599,15 @@ non_optional_typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyO
     if( PyObject_TypeCheck( newvalue, type ) )
         return cppy::incref( newvalue );
     return validate_type_fail( member, atom, newvalue, type->tp_name );
+}
+
+
+PyObject*
+typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( newvalue == Py_None )
+        return cppy::incref( newvalue );
+    return non_optional_typed_handler( member, atom, oldvalue, newvalue );
 }
 
 
