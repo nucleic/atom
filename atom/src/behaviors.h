@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2020, Nucleic Development Team.
+| Copyright (c) 2013-2021, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -101,6 +101,7 @@ enum Mode
     List,
     Set,
     Dict,
+    NonOptional,
     Delegate,
     CallObject,
     CallObject_Object,
@@ -135,7 +136,9 @@ enum Mode
     Set,
     Dict,
     Instance,
+    NonOptionalInstance,
     Typed,
+    NonOptionalTyped,
     Subclass,
     Enum,
     Callable,

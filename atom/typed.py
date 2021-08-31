@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -14,14 +14,16 @@ class Typed(Member):
     Values will be tested using the `PyObject_TypeCheck` C API call.
     This call is equivalent to `type(obj) in cls.mro()`. It is less
     flexible but faster than Instance. Use Instance when allowing
-    heterogenous values and Typed when the value type is explicit.
+    heterogenous values or (abstract) types relying on custom
+    __isinstancecheck__and Typed when the value type is explicit.
 
-    The value of a Typed may be set to None
+    The value of a Typed may be set to None if optional is True,
+    otherwise None won't be considered as a valid value.
 
     """
     __slots__ = ()
 
-    def __init__(self, kind, args=None, kwargs=None, factory=None):
+    def __init__(self, kind, args=None, kwargs=None, *, factory=None, optional=True):
         """ Initialize an Typed.
 
         Parameters
@@ -42,7 +44,12 @@ class Typed(Member):
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be None.
+            then the default value will be None, which will raised if
+            accessed when optional is False.
+
+        optional : bool, optional
+            Boolean indicating if None is a valid value for the member.
+            True by default.
 
         """
         if factory is not None:
@@ -52,7 +59,13 @@ class Typed(Member):
             kwargs = kwargs or {}
             factory = lambda: kind(*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
-        self.set_validate_mode(Validate.Typed, kind)
+        elif not optional:
+            self.set_default_value_mode(DefaultValue.NonOptional, None)
+
+        if optional:
+            self.set_validate_mode(Validate.Typed, kind)
+        else:
+            self.set_validate_mode(Validate.NonOptionalTyped, kind)
 
 
 class ForwardTyped(Typed):
@@ -63,9 +76,9 @@ class ForwardTyped(Typed):
     normal typed.
 
     """
-    __slots__ = ('resolve', 'args', 'kwargs')
+    __slots__ = ('resolve', 'args', 'kwargs', "optional")
 
-    def __init__(self, resolve, args=None, kwargs=None, factory=None):
+    def __init__(self, resolve, args=None, kwargs=None, *, factory=None, optional=True):
         """ Initialize a ForwardTyped.
 
         resolve : callable
@@ -85,17 +98,26 @@ class ForwardTyped(Typed):
         factory : callable, optional
             An optional factory to use for creating the default value.
             If this is not provided and 'args' and 'kwargs' is None,
-            then the default value will be None.
+            then the default value will be None, which will raised if
+            accessed when optional is False.
+
+        optional : bool, optional
+            Boolean indicating if None is a valid value for the member.
+            True by default.
 
         """
         self.resolve = resolve
         self.args = args
         self.kwargs = kwargs
+        self.optional = optional
         if factory is not None:
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif args is not None or kwargs is not None:
             mode = DefaultValue.MemberMethod_Object
             self.set_default_value_mode(mode, "default")
+        elif not optional:
+            self.set_default_value_mode(DefaultValue.NonOptional, None)
+
         self.set_validate_mode(Validate.MemberMethod_ObjectOldNew, "validate")
 
     def default(self, owner):
@@ -122,7 +144,10 @@ class ForwardTyped(Typed):
 
         """
         kind = self.resolve()
-        self.set_validate_mode(Validate.Typed, kind)
+        if self.optional:
+            self.set_validate_mode(Validate.Typed, kind)
+        else:
+            self.set_validate_mode(Validate.NonOptionalTyped, kind)
         return self.do_validate(owner, old, new)
 
     def clone(self):

@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2019, Nucleic Development Team.
+| Copyright (c) 2013-2021, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -94,11 +94,13 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             break;
         }
         case Validate::Instance:
+        case Validate::NonOptionalInstance:
         case Validate::Subclass:
         {
             return validate_type_tuple_types( context );
         }
         case Validate::Typed:
+        case Validate::NonOptionalTyped:
             if( !PyType_Check( context ) )
             {
                 cppy::type_error( context, "type" );
@@ -584,10 +586,31 @@ instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* new
 
 
 PyObject*
+non_optional_instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    int res = PyObject_IsInstance( newvalue, member->validate_context );
+    if( res < 0 )
+        return 0;
+    if( res == 1 )
+        return cppy::incref( newvalue );
+    return validate_type_fail( member, atom, newvalue, name_from_type_tuple_types( member->validate_context ).c_str() );
+}
+
+
+PyObject*
 typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     if( newvalue == Py_None )
         return cppy::incref( newvalue );
+    PyTypeObject* type = pytype_cast( member->validate_context );
+    if( PyObject_TypeCheck( newvalue, type ) )
+        return cppy::incref( newvalue );
+    return validate_type_fail( member, atom, newvalue, type->tp_name );
+}
+
+PyObject*
+non_optional_typed_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
     PyTypeObject* type = pytype_cast( member->validate_context );
     if( PyObject_TypeCheck( newvalue, type ) )
         return cppy::incref( newvalue );
@@ -810,7 +833,9 @@ handlers[] = {
     set_handler,
     dict_handler,
     instance_handler,
+    non_optional_instance_handler,
     typed_handler,
+    non_optional_typed_handler,
     subclass_handler,
     enum_handler,
     callable_handler,
