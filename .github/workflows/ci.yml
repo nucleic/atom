@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: ['3.7', '3.8', '3.9', '3.10.0-rc.1']
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -38,17 +38,15 @@ jobs:
         run: |
           python setup.py develop
       - name: Test with pytest
-        if: matrix.python-version == '3.6'
-        run: |
-          pip install pytest-cov
-          python -m pytest tests --cov atom --cov-report xml -v
-      - name: Test with pytest
-        if: matrix.python-version != '3.6'
         run: |
           pip install pytest-cov
           python -X dev -W error -m pytest tests --cov atom --cov-report xml -v
+      - name: Generate C++ coverage reports
+        if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
+        run: |
+          bash -c "find . -type f -name '*.gcno' -exec gcov -pb --all-blocks {} +" || true
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         if: (github.event_name != 'schedule' && matrix.os == 'windows-latest')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -56,7 +54,7 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: true
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
