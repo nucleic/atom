@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2020, Nucleic Development Team.
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -41,9 +41,9 @@ class Dict(Member):
         """
         self.set_default_value_mode(DefaultValue.Dict, default)
         if key is not None and not isinstance(key, Member):
-            key = Instance(key)
+            key = Instance(key, optional=False)
         if value is not None and not isinstance(value, Member):
-            value = Instance(value)
+            value = Instance(value, optional=False)
         self.set_validate_mode(Validate.Dict, (key, value))
 
     def set_name(self, name):

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2019, Nucleic Development Team.
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -35,7 +35,7 @@ class Tuple(Member):
 
         """
         if item is not None and not isinstance(item, Member):
-            item = Instance(item)
+            item = Instance(item, optional=False)
         self.item = item
         self.set_default_value_mode(DefaultValue.Static, default)
         self.set_validate_mode(Validate.Tuple, item)

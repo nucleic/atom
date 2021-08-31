@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, Nucleic Development Team.
+# Copyright (c) 2019-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -38,7 +38,7 @@ class Set(Member):
         """
         self.set_default_value_mode(DefaultValue.Set, default)
         if item is not None and not isinstance(item, Member):
-            item = Instance(item)
+            item = Instance(item, optional=False)
         self.item = item
         self.set_validate_mode(Validate.Set, item)
 
