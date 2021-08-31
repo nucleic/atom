@@ -46,7 +46,7 @@ jobs:
         if: matrix.python-version != '3.6'
         run: |
           pip install pytest-cov
-          python -X dev -m pytest tests --cov atom --cov-report xml -v
+          python -X dev -W error -m pytest tests --cov atom --cov-report xml -v
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         if: (github.event_name != 'schedule' && matrix.os == 'windows-latest')
