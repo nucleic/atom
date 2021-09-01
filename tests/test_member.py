@@ -330,3 +330,27 @@ def test_cloning_forward(member, cloned_attributes):
     assert clone.index == member.index
     for attr in cloned_attributes:
         assert getattr(clone, attr) is getattr(member, attr)
+
+
+@pytest.mark.parametrize('ForwardedMember, optional', (
+    (ForwardInstance, True),
+    (ForwardTyped, False),
+))
+def test_cloned_forward_validator(ForwardedMember, optional):
+    """ Test a cloned forwarded member
+
+    """
+
+    class AbtractItem(Atom):
+        view = ForwardedMember(lambda: View, optional=optional)
+
+    class Item(AbtractItem):
+
+        def _default_view(self):
+            return View()
+
+    class View(Atom):
+        pass
+
+    Item().view  # Test validate
+    assert Item.view.optional == optional

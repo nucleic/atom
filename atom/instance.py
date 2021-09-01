@@ -156,4 +156,5 @@ class ForwardInstance(Instance):
         clone.resolve = self.resolve
         clone.args = self.args
         clone.kwargs = self.kwargs
+        clone.optional = self.optional
         return clone
