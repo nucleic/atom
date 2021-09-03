@@ -16,10 +16,6 @@
       member_instance: ReadOnly(factory=g)
       member_type: atom.scalars.ReadOnly[builtins.int]
       member_value_type: builtins.int*
-    - member: ReadOnly
-      member_instance: ReadOnly(None, g)
-      member_type: atom.scalars.ReadOnly[builtins.int]
-      member_value_type: builtins.int*
     - member: Constant
       member_instance: Constant()
       member_type: atom.scalars.Constant[Any]
@@ -30,10 +26,6 @@
       member_value_type: builtins.int*
     - member: Constant
       member_instance: Constant(factory=g)
-      member_type: atom.scalars.Constant[builtins.int]
-      member_value_type:  builtins.int*
-    - member: Constant
-      member_instance: Constant(None, g)
       member_type: atom.scalars.Constant[builtins.int]
       member_value_type:  builtins.int*
     - member: Bool
@@ -49,9 +41,10 @@
       member_type: atom.scalars.Int[builtins.float]
       member_value_type: builtins.int*
     - member: Int
-      member_instance: Int(0, f, False)
+      member_instance: Int(factory=f, strict=False)
       member_type: atom.scalars.Int[builtins.float]
       member_value_type: builtins.int*
+    # XXX add strict cases
     - member: FloatRange
       member_instance: FloatRange()
       member_type: atom.scalars.FloatRange[builtins.float]
@@ -65,19 +58,19 @@
       member_type: atom.scalars.Float[builtins.float]
       member_value_type: builtins.float*
     - member: Bytes
-      member_instance: Bytes()
+      member_instance: Bytes(strict=False)
       member_type: atom.scalars.Bytes[Union[builtins.bytes, builtins.str]]
       member_value_type: builtins.bytes*
     - member: Bytes
-      member_instance: Bytes(strict=True)
+      member_instance: Bytes()
       member_type: atom.scalars.Bytes[builtins.bytes]
       member_value_type: builtins.bytes*
     - member: Str
-      member_instance: Str()
+      member_instance: Str(strict=False)
       member_type: atom.scalars.Str[Union[builtins.str, builtins.bytes]]
       member_value_type: builtins.str*
     - member: Str
-      member_instance: Str(strict=True)
+      member_instance: Str()
       member_type: atom.scalars.Str[builtins.str]
       member_value_type: builtins.str*
   main: |
@@ -110,7 +103,7 @@
     from atom.api import Atom, Str
 
     class A(Atom):
-      m = Str('', None, True)
+      m = Str('', strict=True)
 
     reveal_type(A.m)  # N: Revealed type is "atom.scalars.Str[builtins.str]"
     reveal_type(A().m)  # N: Revealed type is "builtins.str*"
@@ -120,7 +113,7 @@
     from atom.api import Atom, Bytes
 
     class A(Atom):
-      m = Bytes(b"", None, True)
+      m = Bytes(b"", strict=True)
 
     reveal_type(A.m)  # N: Revealed type is "atom.scalars.Bytes[builtins.bytes]"
     reveal_type(A().m)  # N: Revealed type is "builtins.bytes*"

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -20,8 +20,8 @@ class Value(Member):
     """
     __slots__ = ()
 
-    def __init__(self, default=None, factory=None):
-        """ Initialize a Value.
+    def __init__(self, default=None, *, factory=None):
+        """Initialize a Value.
 
         Parameters
         ----------
@@ -76,7 +76,7 @@ class Callable(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=None, factory=None):
+    def __init__(self, default=None, *, factory=None):
         super(Callable, self).__init__(default, factory)
         self.set_validate_mode(Validate.Callable, None)
 
@@ -87,7 +87,7 @@ class Bool(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=False, factory=None):
+    def __init__(self, default=False, *, factory=None):
         super(Bool, self).__init__(default, factory)
         self.set_validate_mode(Validate.Bool, None)
 
@@ -101,7 +101,7 @@ class Int(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=0, factory=None, strict=True):
+    def __init__(self, default=0, *, factory=None, strict=True):
         super(Int, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Int, None)
@@ -118,7 +118,7 @@ class FloatRange(Value):
     """
     __slots__ = ()
 
-    def __init__(self, low=None, high=None, value=None, strict=False):
+    def __init__(self, low=None, high=None, value=None, *, strict=False):
         if low is not None and high is not None and low > high:
             low, high = high, low
         default = 0.0
@@ -164,7 +164,7 @@ class Float(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=0.0, factory=None, strict=False):
+    def __init__(self, default=0.0, *, factory=None, strict=False):
         super(Float, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Float, None)
@@ -173,15 +173,15 @@ class Float(Value):
 
 
 class Bytes(Value):
-    """ A value of type `bytes`.
+    """A value of type `bytes`.
 
-    By default, unicode strings will be promoted to byte strings. Pass
-    strict=True to the constructor to enable strict byte sting checking.
+    By default, strings will NOT be promoted to bytes. Pass strict=False to the
+    constructor to enable loose byte checking.
 
     """
     __slots__ = ()
 
-    def __init__(self, default=b'', factory=None, strict=False):
+    def __init__(self, default=b"", *, factory=None, strict=True):
         super(Bytes, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Bytes, None)
@@ -190,13 +190,14 @@ class Bytes(Value):
 
 
 class Str(Value):
-    """ A value of type `str`.
+    """A value of type `str`.
 
-    By default, bytes strings will be promoted to unicode strings. Pass
-    strict=True to the constructor to enable strict unicode checking.
+    By default, bytes will NOT be promoted to strings. Pass strict=False to the
+    constructor to enable loose string checking.
 
     """
-    def __init__(self, default='', factory=None, strict=False):
+
+    def __init__(self, default="", *, factory=None, strict=True):
         super(Str, self).__init__(default, factory)
         if strict:
             self.set_validate_mode(Validate.Str, None)

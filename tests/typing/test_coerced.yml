@@ -2,8 +2,8 @@
   parametrized:
     - member: Coerced
       member_instance: Coerced(int)
-      member_type: atom.coerced.Coerced[Union[builtins.int, None], builtins.int]
-      member_value_type: Union[builtins.int*, None]
+      member_type: atom.coerced.Coerced[builtins.int, builtins.int]
+      member_value_type: builtins.int*
     - member: Coerced
       member_instance: Coerced(int, ())
       member_type: atom.coerced.Coerced[builtins.int, builtins.int]
@@ -14,10 +14,6 @@
       member_value_type: io.StringIO*
     - member: Coerced
       member_instance: Coerced(io.StringIO, kwargs=dict(initial_value=str(1)))
-      member_type: atom.coerced.Coerced[io.StringIO, io.StringIO]
-      member_value_type: io.StringIO*
-    - member: Coerced
-      member_instance: Coerced(io.StringIO, None, None, g)
       member_type: atom.coerced.Coerced[io.StringIO, io.StringIO]
       member_value_type: io.StringIO*
     - member: Coerced
@@ -43,18 +39,10 @@
   parametrized:
     - member: Coerced
       member_instance: Coerced(io.StringIO, coercer=coercer)
-      member_type: atom.coerced.Coerced[Union[io.StringIO, None], Union[io.StringIO, builtins.str]]
-      member_value_type: Union[io.StringIO, None]
-    - member: Coerced
-      member_instance: Coerced(io.StringIO, None, None, None, coercer)
-      member_type: atom.coerced.Coerced[Union[io.StringIO, None], Union[io.StringIO, builtins.str]]
-      member_value_type: Union[io.StringIO, None]
-    - member: Coerced
-      member_instance: Coerced(io.StringIO, (), coercer=coercer)
       member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
       member_value_type: io.StringIO*
     - member: Coerced
-      member_instance: Coerced(io.StringIO, (), None, None, coercer)
+      member_instance: Coerced(io.StringIO, (), coercer=coercer)
       member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
       member_value_type: io.StringIO*
     - member: Coerced
@@ -62,15 +50,7 @@
       member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
       member_value_type: io.StringIO*
     - member: Coerced
-      member_instance: Coerced(io.StringIO, None, dict(initial_value=str(1)), None, coercer)
-      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
-      member_value_type: io.StringIO*
-    - member: Coerced
       member_instance: Coerced(io.StringIO, kwargs=dict(initial_value=str(1)), coercer=coercer)
-      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
-      member_value_type: io.StringIO*
-    - member: Coerced
-      member_instance: Coerced(io.StringIO, None, None, g, coercer)
       member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
       member_value_type: io.StringIO*
     - member: Coerced
