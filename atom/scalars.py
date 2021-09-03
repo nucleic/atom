@@ -77,7 +77,7 @@ class Callable(Value):
     __slots__ = ()
 
     def __init__(self, default=None, *, factory=None):
-        super(Callable, self).__init__(default, factory)
+        super(Callable, self).__init__(default, factory=factory)
         self.set_validate_mode(Validate.Callable, None)
 
 
@@ -88,7 +88,7 @@ class Bool(Value):
     __slots__ = ()
 
     def __init__(self, default=False, *, factory=None):
-        super(Bool, self).__init__(default, factory)
+        super(Bool, self).__init__(default, factory=factory)
         self.set_validate_mode(Validate.Bool, None)
 
 
@@ -102,7 +102,7 @@ class Int(Value):
     __slots__ = ()
 
     def __init__(self, default=0, *, factory=None, strict=True):
-        super(Int, self).__init__(default, factory)
+        super(Int, self).__init__(default, factory=factory)
         if strict:
             self.set_validate_mode(Validate.Int, None)
         else:
@@ -165,7 +165,7 @@ class Float(Value):
     __slots__ = ()
 
     def __init__(self, default=0.0, *, factory=None, strict=False):
-        super(Float, self).__init__(default, factory)
+        super(Float, self).__init__(default, factory=factory)
         if strict:
             self.set_validate_mode(Validate.Float, None)
         else:
@@ -182,7 +182,7 @@ class Bytes(Value):
     __slots__ = ()
 
     def __init__(self, default=b"", *, factory=None, strict=True):
-        super(Bytes, self).__init__(default, factory)
+        super(Bytes, self).__init__(default, factory=factory)
         if strict:
             self.set_validate_mode(Validate.Bytes, None)
         else:
@@ -198,7 +198,7 @@ class Str(Value):
     """
 
     def __init__(self, default="", *, factory=None, strict=True):
-        super(Str, self).__init__(default, factory)
+        super(Str, self).__init__(default, factory=factory)
         if strict:
             self.set_validate_mode(Validate.Str, None)
         else:
