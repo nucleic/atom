@@ -5,7 +5,16 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Any, Callable, Dict, Optional, Tuple, Type, TypeVar, Union, overload
+from typing import (
+    Any,
+    Callable,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    overload,
+)
 
 from .catom import Member
 
@@ -14,417 +23,213 @@ T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 
 class Instance(Member[T, T]):
-    # No default
+    # Single Type
     @overload
     def __new__(
         cls,
         kind: Type[T],
-        args: None = None,
-        kwargs: None = None,
-        factory: None = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[True] = True,
+    ) -> Instance[Optional[T]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Type[T],
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[False],
+    ) -> Instance[T]: ...
+    # 1-tuple
+    @overload
+    def __new__(
+        cls,
+        kind: Tuple[Type[T]],
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[True] = True,
     ) -> Instance[Optional[T]]: ...
     @overload
     def __new__(
         cls,
         kind: Tuple[Type[T]],
-        args: None = None,
-        kwargs: None = None,
-        factory: None = None,
-    ) -> Instance[Optional[T]]: ...
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[False],
+    ) -> Instance[T]: ...
+    # 2-tuple
     @overload
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1]],
-        args: None = None,
-        kwargs: None = None,
-        factory: None = None,
-    ) -> Instance[Optional[Union[T, T1]]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None = None,
-        kwargs: None = None,
-        factory: None = None,
-    ) -> Instance[Optional[Union[T, T1, T2]]]: ...
-    # Default with args
-    @overload
-    def __new__(
-        cls,
-        kind: Type[T],
-        args: tuple,
-        kwargs: Optional[Dict[str, Any]] = None,
-        factory: None = None,
-    ) -> Instance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T]],
-        args: tuple,
-        kwargs: Optional[Dict[str, Any]] = None,
-        factory: None = None,
-    ) -> Instance[T]: ...
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[
+            Callable[[], T] | Callable[[], T1] | Callable[[], T | T1]
+        ] = None,
+        optional: Literal[True] = True,
+    ) -> Instance[Optional[T | T1]]: ...
     @overload
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1]],
-        args: tuple,
-        kwargs: Optional[Dict[str, Any]] = None,
-        factory: None = None,
-    ) -> Instance[Union[T, T1]]: ...
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[
+            Callable[[], T] | Callable[[], T1] | Callable[[], T | T1]
+        ] = None,
+        optional: Literal[False],
+    ) -> Instance[T | T1]: ...
+    # 3-tuple
     @overload
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: tuple,
-        kwargs: Optional[Dict[str, Any]] = None,
-        factory: None = None,
-    ) -> Instance[Union[T, T1, T2]]: ...
-    # Default with kwargs
-    @overload
-    def __new__(
-        cls,
-        kind: Type[T],
-        args: None = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
         *,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> Instance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> Instance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> Instance[Union[T, T1]]: ...
+        factory: Optional[
+            Callable[[], T]
+            | Callable[[], T1]
+            | Callable[[], T2]
+            | Callable[[], T | T1]
+            | Callable[[], T | T2]
+            | Callable[[], T1 | T2]
+            | Callable[[], T | T1 | T2]
+        ] = None,
+        optional: Literal[True] = True,
+    ) -> Instance[Optional[T | T1 | T2]]: ...
     @overload
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
         *,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> Instance[Union[T, T1, T2]]: ...
-    # Default with kwargs as pos
-    @overload
-    def __new__(
-        cls,
-        kind: Type[T],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> Instance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> Instance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> Instance[Union[T, T1]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> Instance[Union[T, T1, T2]]: ...
-    # Default with factory
-    @overload
-    def __new__(
-        cls,
-        kind: Type[T],
-        args: None = None,
-        kwargs: None = None,
-        *,
-        factory: Callable[[], T],
-    ) -> Instance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T]],
-        args: None = None,
-        kwargs: None = None,
-        *,
-        factory: Callable[[], T],
-    ) -> Instance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1]],
-        args: None = None,
-        kwargs: None = None,
-        *,
-        factory: Callable[[], Union[T, T1]],
-    ) -> Instance[Union[T, T1]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None = None,
-        kwargs: None = None,
-        *,
-        factory: Callable[[], Union[T, T1, T2]],
-    ) -> Instance[Union[T, T1, T2]]: ...
-    # Default with factory as pos arg
-    @overload
-    def __new__(
-        cls,
-        kind: Type[T],
-        args: None,
-        kwargs: None,
-        factory: Callable[[], T],
-    ) -> Instance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T]],
-        args: None,
-        kwargs: None,
-        factory: Callable[[], T],
-    ) -> Instance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1]],
-        args: None,
-        kwargs: None,
-        factory: Callable[[], Union[T, T1]],
-    ) -> Instance[Union[T, T1]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: None,
-        kwargs: None,
-        factory: Callable[[], Union[T, T1, T2]],
-    ) -> Instance[Union[T, T1, T2]]: ...
+        factory: Optional[
+            Callable[[], T]
+            | Callable[[], T1]
+            | Callable[[], T2]
+            | Callable[[], T | T1]
+            | Callable[[], T | T2]
+            | Callable[[], T1 | T2]
+            | Callable[[], T | T1 | T2]
+        ] = None,
+        optional: Literal[False],
+    ) -> Instance[T | T1 | T2]: ...
 
 class ForwardInstance(Member[T, T]):
-    # No default
+    # Single Type
     @overload
     def __new__(
         cls,
         kind: Callable[[], Type[T]],
-        args: None = None,
-        kwargs: None = None,
-        factory: None = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[True] = True,
+    ) -> ForwardInstance[Optional[T]]: ...
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Type[T]],
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[False],
+    ) -> ForwardInstance[T]: ...
+    # 1-tuple
+    @overload
+    def __new__(
+        cls,
+        kind: Callable[[], Tuple[Type[T]]],
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[True] = True,
     ) -> ForwardInstance[Optional[T]]: ...
     @overload
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T]]],
-        args: None = None,
-        kwargs: None = None,
-        factory: None = None,
-    ) -> ForwardInstance[Optional[T]]: ...
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[False],
+    ) -> ForwardInstance[T]: ...
+    # 2-tuple
     @overload
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1]]],
-        args: None = None,
-        kwargs: None = None,
-        factory: None = None,
-    ) -> ForwardInstance[Optional[Union[T, T1]]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
-        args: None = None,
-        kwargs: None = None,
-        factory: None = None,
-    ) -> ForwardInstance[Optional[Union[T, T1, T2]]]: ...
-    # Default with args
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Type[T]],
-        args: tuple,
-        kwargs: Optional[Dict[str, Any]] = None,
-        factory: None = None,
-    ) -> ForwardInstance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T]]],
-        args: tuple,
-        kwargs: Optional[Dict[str, Any]] = None,
-        factory: None = None,
-    ) -> ForwardInstance[T]: ...
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[
+            Callable[[], T] | Callable[[], T1] | Callable[[], T | T1]
+        ] = None,
+        optional: Literal[True] = True,
+    ) -> ForwardInstance[Optional[T | T1]]: ...
     @overload
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1]]],
-        args: tuple,
-        kwargs: Optional[Dict[str, Any]] = None,
-        factory: None = None,
-    ) -> ForwardInstance[Union[T, T1]]: ...
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[
+            Callable[[], T] | Callable[[], T1] | Callable[[], T | T1]
+        ] = None,
+        optional: Literal[False],
+    ) -> ForwardInstance[T | T1]: ...
+    # 3-tuple
     @overload
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
-        args: tuple,
-        kwargs: Optional[Dict[str, Any]] = None,
-        factory: None = None,
-    ) -> ForwardInstance[Union[T, T1, T2]]: ...
-    # Default kwargs only
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Type[T]],
-        args: None = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
         *,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> ForwardInstance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T]]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> ForwardInstance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T], Type[T1]]],
-        args: None = None,
-        *,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> ForwardInstance[Union[T, T1]]: ...
+        factory: Optional[
+            Callable[[], T]
+            | Callable[[], T1]
+            | Callable[[], T2]
+            | Callable[[], T | T1]
+            | Callable[[], T | T2]
+            | Callable[[], T1 | T2]
+            | Callable[[], T | T1 | T2]
+        ] = None,
+        optional: Literal[True] = True,
+    ) -> ForwardInstance[Optional[T | T1 | T2]]: ...
     @overload
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
-        args: None = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
         *,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> ForwardInstance[Union[T, T1, T2]]: ...
-    # Default kwargs only as positional
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Type[T]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> ForwardInstance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T]]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> ForwardInstance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T], Type[T1]]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> ForwardInstance[Union[T, T1]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> ForwardInstance[Union[T, T1, T2]]: ...
-    # Default factory as keyword
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Type[T]],
-        args: None = None,
-        kwargs: None = None,
-        *,
-        factory: Callable[[], T],
-    ) -> ForwardInstance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T]]],
-        args: None = None,
-        kwargs: None = None,
-        *,
-        factory: Callable[[], T],
-    ) -> ForwardInstance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T], Type[T1]]],
-        args: None = None,
-        kwargs: None = None,
-        *,
-        factory: Callable[[], Union[T, T1]],
-    ) -> ForwardInstance[Union[T, T1]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
-        args: None = None,
-        kwargs: None = None,
-        *,
-        factory: Callable[[], Union[T, T1, T2]],
-    ) -> ForwardInstance[Union[T, T1, T2]]: ...
-    # Default factory as pos arg
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Type[T]],
-        args: None,
-        kwargs: None ,
-        factory: Callable[[], T],
-    ) -> ForwardInstance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T]]],
-        args: None,
-        kwargs: None,
-        factory: Callable[[], T],
-    ) -> ForwardInstance[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T], Type[T1]]],
-        args: None,
-        kwargs: None,
-        factory: Callable[[], Union[T, T1]],
-    ) -> ForwardInstance[Union[T, T1]]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
-        args: None,
-        kwargs: None,
-        factory: Callable[[], Union[T, T1, T2]],
-    ) -> ForwardInstance[Union[T, T1, T2]]: ...
+        factory: Optional[
+            Callable[[], T]
+            | Callable[[], T1]
+            | Callable[[], T2]
+            | Callable[[], T | T1]
+            | Callable[[], T | T2]
+            | Callable[[], T1 | T2]
+            | Callable[[], T | T1 | T2]
+        ] = None,
+        optional: Literal[False],
+    ) -> ForwardInstance[T | T1 | T2]: ...

@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Any, Callable, Dict, Optional, Type, TypeVar, overload
+from typing import Any, Callable, Literal, Optional, Type, TypeVar, overload
 
 from .catom import Member
 
@@ -16,101 +16,42 @@ class Typed(Member[T, T]):
     def __new__(
         cls,
         kind: Type[T],
-        args: None = None,
-        kwargs: None = None,
-        factory: None = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[True] = True
     ) -> Typed[Optional[T]]: ...
     @overload
     def __new__(
         cls,
         kind: Type[T],
-        args: tuple,
-        kwargs: Optional[Dict[str, Any]] = None,
-        factory: None = None,
-    ) -> Typed[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Type[T],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> Typed[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Type[T],
-        args: None = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
         *,
-        kwargs: Dict[str, Any],
-        factory: None = None,
-    ) -> Typed[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Type[T],
-        args: None,
-        kwargs: None,
-        factory: Callable[[], T],
-    ) -> Typed[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Type[T],
-        args: None = None,
-        kwargs: None = None,
-        *,
-        factory: Callable[[], T],
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[False]
     ) -> Typed[T]: ...
 
 class ForwardTyped(Member[T, T]):
+    # No default
     @overload
     def __new__(
         cls,
         kind: Callable[[], Type[T]],
-        args: None = None,
-        kwargs: None = None,
-        factory: None = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
+        *,
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[True] = True
     ) -> ForwardTyped[Optional[T]]: ...
     @overload
     def __new__(
         cls,
         kind: Callable[[], Type[T]],
-        args: tuple,
-        kwargs: Optional[Dict[str, Any]] = None,
-        factory: None = None,
-    ) -> ForwardTyped[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Type[T]],
-        args: None,
-        kwargs: Dict[str, Any],
-        factory: None=None,
-    ) -> ForwardTyped[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Type[T]],
-        args: None = None,
+        args: Optional[tuple] = None,
+        kwargs: Optional[dict[str, Any]] = None,
         *,
-        kwargs: Dict[str, Any],
-        factory: None=None,
-    ) -> ForwardTyped[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Type[T]],
-        args: None,
-        kwargs: None,
-        factory: Callable[[], T],
-    ) -> ForwardTyped[T]: ...
-    @overload
-    def __new__(
-        cls,
-        kind: Callable[[], Type[T]],
-        args: None = None,
-        kwargs: None = None,
-        *,
-        factory: Callable[[], T],
+        factory: Optional[Callable[[], T]] = None,
+        optional: Literal[False]
     ) -> ForwardTyped[T]: ...

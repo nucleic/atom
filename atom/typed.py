@@ -13,7 +13,7 @@ class Typed(Member):
 
     Values will be tested using the `PyObject_TypeCheck` C API call.
     This call is equivalent to `type(obj) in cls.mro()`. It is less
-    flexible but faster than Instance. Use Instance when allowing
+    flexible but can be faster than Instance. Use Instance when allowing
     you need a tuple of types or (abstract) types relying on custom
     __isinstancecheck__ and Typed when the value type is explicit.
 

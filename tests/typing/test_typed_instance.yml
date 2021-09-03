@@ -1,51 +1,87 @@
 - case: typed-no-annotations
   parametrized:
+    # Optional typed
     - member: Typed
       member_instance: Typed(int)
       member_type: atom.typed.Typed[Union[builtins.int, None]]
       member_value_type: Union[builtins.int*, None]
     - member: Typed
       member_instance: Typed(int, ())
-      member_type: atom.typed.Typed[builtins.int]
-      member_value_type: builtins.int*
+      member_type: atom.typed.Typed[Union[builtins.int, None]]
+      member_value_type: Union[builtins.int*, None]
     - member: Typed
       member_instance: Typed(io.StringIO, None, dict(initial_value=str(1)))
-      member_type: atom.typed.Typed[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.typed.Typed[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: Typed
       member_instance: Typed(io.StringIO, kwargs=dict(initial_value=str(1)))
-      member_type: atom.typed.Typed[io.StringIO]
-      member_value_type: io.StringIO*
-    - member: Typed
-      member_instance: Typed(io.StringIO, None, None, g)
-      member_type: atom.typed.Typed[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.typed.Typed[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: Typed
       member_instance: Typed(io.StringIO, factory=g)
-      member_type: atom.typed.Typed[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.typed.Typed[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO, None]
+    # Optional forward typed
     - member: ForwardTyped
       member_instance: ForwardTyped(resolver)
       member_type: atom.typed.ForwardTyped[Union[io.StringIO, None]]
       member_value_type: Union[io.StringIO*, None]
     - member: ForwardTyped
       member_instance: ForwardTyped(resolver, ())
-      member_type: atom.typed.ForwardTyped[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.typed.ForwardTyped[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: ForwardTyped
       member_instance: ForwardTyped(resolver, None, dict(initial_value=str(1)))
-      member_type: atom.typed.ForwardTyped[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.typed.ForwardTyped[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: ForwardTyped
       member_instance: ForwardTyped(resolver, kwargs=dict(initial_value=str(1)))
-      member_type: atom.typed.ForwardTyped[io.StringIO]
-      member_value_type: io.StringIO*
-    - member: ForwardTyped
-      member_instance: ForwardTyped(resolver, None, None, g)
-      member_type: atom.typed.ForwardTyped[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.typed.ForwardTyped[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: ForwardTyped
       member_instance: ForwardTyped(resolver, factory=g)
+      member_type: atom.typed.ForwardTyped[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
+    # Non optional typed
+    - member: Typed
+      member_instance: Typed(int, optional=False)
+      member_type: atom.typed.Typed[builtins.int]
+      member_value_type: builtins.int*
+    - member: Typed
+      member_instance: Typed(int, (), optional=False)
+      member_type: atom.typed.Typed[builtins.int]
+      member_value_type: builtins.int*
+    - member: Typed
+      member_instance: Typed(io.StringIO, None, dict(initial_value=str(1)), optional=False)
+      member_type: atom.typed.Typed[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: Typed
+      member_instance: Typed(io.StringIO, kwargs=dict(initial_value=str(1)), optional=False)
+      member_type: atom.typed.Typed[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: Typed
+      member_instance: Typed(io.StringIO, factory=g, optional=False)
+      member_type: atom.typed.Typed[io.StringIO]
+      member_value_type: io.StringIO*
+    # Non optional forward typed
+    - member: ForwardTyped
+      member_instance: ForwardTyped(resolver, optional=False)
+      member_type: atom.typed.ForwardTyped[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardTyped
+      member_instance: ForwardTyped(resolver, (), optional=False)
+      member_type: atom.typed.ForwardTyped[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardTyped
+      member_instance: ForwardTyped(resolver, None, dict(initial_value=str(1)), optional=False)
+      member_type: atom.typed.ForwardTyped[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardTyped
+      member_instance: ForwardTyped(resolver, kwargs=dict(initial_value=str(1)), optional=False)
+      member_type: atom.typed.ForwardTyped[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardTyped
+      member_instance: ForwardTyped(resolver, factory=g, optional=False)
       member_type: atom.typed.ForwardTyped[io.StringIO]
       member_value_type: io.StringIO*
   main: |
@@ -68,6 +104,7 @@
 
 - case: instance-no-annotations
   parametrized:
+    # optional instance
     - member: Instance
       member_instance: Instance(int)
       member_type: atom.instance.Instance[Union[builtins.int, None]]
@@ -86,76 +123,61 @@
       member_value_type: Union[builtins.float*, builtins.str*, None]
     - member: Instance
       member_instance: Instance(int, ())
-      member_type: atom.instance.Instance[builtins.int]
-      member_value_type: builtins.int*
+      member_type: atom.instance.Instance[Union[builtins.int, None]]
+      member_value_type: Union[builtins.int*, None]
     - member: Instance
       member_instance: Instance((int,), ())
-      member_type: atom.instance.Instance[builtins.int]
-      member_value_type: builtins.int*
+      member_type: atom.instance.Instance[Union[builtins.int, None]]
+      member_value_type: Union[builtins.int*, None]
     - member: Instance
       member_instance: Instance((int, float), ())
-      member_type: atom.instance.Instance[builtins.float]
-      member_value_type: builtins.float*
+      member_type: atom.instance.Instance[Union[builtins.float, None]]
+      member_value_type: Union[builtins.float*, None]
     - member: Instance
       member_instance: Instance((int, float, str), ())
-      member_type: atom.instance.Instance[Union[builtins.float, builtins.str]]
-      member_value_type: Union[builtins.float*, builtins.str*]
+      member_type: atom.instance.Instance[Union[builtins.float, builtins.str, None]]
+      member_value_type: Union[builtins.float*, builtins.str*, None]
     - member: Instance
       member_instance: Instance(io.StringIO, None, dict(initial_value=str(1)))
-      member_type: atom.instance.Instance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.Instance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: Instance
       member_instance: Instance((io.StringIO,), None, dict(initial_value=str(1)))
-      member_type: atom.instance.Instance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.Instance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: Instance
       member_instance: Instance(io.StringIO, kwargs=dict(initial_value=str(1)))
-      member_type: atom.instance.Instance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.Instance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: Instance
       member_instance: Instance((io.StringIO,), kwargs=dict(initial_value=str(1)))
-      member_type: atom.instance.Instance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.Instance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: Instance
       member_instance: Instance((io.StringIO, str), kwargs=dict(initial_value=str(1)))
-      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str]]
-      member_value_type: Union[io.StringIO*, builtins.str*]
+      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str, None]]
+      member_value_type: Union[io.StringIO*, builtins.str*, None]
     - member: Instance
       member_instance: Instance((io.StringIO, str, bytes), kwargs=dict(initial_value=str(1)))
-      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str, builtins.bytes]]
-      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
-    - member: Instance
-      member_instance: Instance(io.StringIO, None, None, g)
-      member_type: atom.instance.Instance[io.StringIO]
-      member_value_type: io.StringIO*
-    - member: Instance
-      member_instance: Instance((io.StringIO,), None, None, g)
-      member_type: atom.instance.Instance[io.StringIO]
-      member_value_type: io.StringIO*
-    - member: Instance
-      member_instance: Instance((io.StringIO, str), None, None, g)
-      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str]]
-      member_value_type: Union[io.StringIO, builtins.str]
-    - member: Instance
-      member_instance: Instance((io.StringIO, str, bytes), None, None, g)
-      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str, builtins.bytes]]
-      member_value_type: Union[io.StringIO, builtins.str, builtins.bytes]
+      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str, builtins.bytes, None]]
+      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*, None]
     - member: Instance
       member_instance: Instance(io.StringIO, factory=g)
-      member_type: atom.instance.Instance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.Instance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO, None]
     - member: Instance
       member_instance: Instance((io.StringIO,), factory=g)
-      member_type: atom.instance.Instance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.Instance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO, None]
     - member: Instance
       member_instance: Instance((io.StringIO, str), factory=g)
-      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str]]
-      member_value_type: Union[io.StringIO, builtins.str]
+      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str, None]]
+      member_value_type: Union[io.StringIO, builtins.str, None]
     - member: Instance
       member_instance: Instance((io.StringIO, str, bytes), factory=g)
-      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str, builtins.bytes]]
-      member_value_type: Union[io.StringIO, builtins.str, builtins.bytes]
+      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str, builtins.bytes, None]]
+      member_value_type: Union[io.StringIO, builtins.str, builtins.bytes, None]
+    # optional forward instance
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver)
       member_type: atom.instance.ForwardInstance[Union[io.StringIO, None]]
@@ -174,82 +196,220 @@
       member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver, ())
-      member_type: atom.instance.ForwardInstance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver1, ())
-      member_type: atom.instance.ForwardInstance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver2, ())
-      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str]]
-      member_value_type: Union[io.StringIO*, builtins.str*]
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, None]]
+      member_value_type: Union[io.StringIO*, builtins.str*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver3, ())
-      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes]]
-      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes, None]]
+      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver, None, dict(initial_value=str(1)))
-      member_type: atom.instance.ForwardInstance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver1, None, dict(initial_value=str(1)))
-      member_type: atom.instance.ForwardInstance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver2, None, dict(initial_value=str(1)))
-      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str]]
-      member_value_type: Union[io.StringIO*, builtins.str*]
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, None]]
+      member_value_type: Union[io.StringIO*, builtins.str*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver3, None, dict(initial_value=str(1)))
-      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes]]
-      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes, None]]
+      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver, kwargs=dict(initial_value=str(1)))
-      member_type: atom.instance.ForwardInstance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver1, kwargs=dict(initial_value=str(1)))
-      member_type: atom.instance.ForwardInstance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver2, kwargs=dict(initial_value=str(1)))
-      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str]]
-      member_value_type: Union[io.StringIO*, builtins.str*]
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, None]]
+      member_value_type: Union[io.StringIO*, builtins.str*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver3, kwargs=dict(initial_value=str(1)))
-      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes]]
-      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
-    - member: ForwardInstance
-      member_instance: ForwardInstance(resolver, None, None, g)
-      member_type: atom.instance.ForwardInstance[io.StringIO]
-      member_value_type: io.StringIO*
-    - member: ForwardInstance
-      member_instance: ForwardInstance(resolver1, None, None, g)
-      member_type: atom.instance.ForwardInstance[io.StringIO]
-      member_value_type: io.StringIO*
-    - member: ForwardInstance
-      member_instance: ForwardInstance(resolver2, None, None, g)
-      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str]]
-      member_value_type: Union[io.StringIO*, builtins.str*]
-    - member: ForwardInstance
-      member_instance: ForwardInstance(resolver3, None, None, g)
-      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes]]
-      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes, None]]
+      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver, factory=g)
-      member_type: atom.instance.ForwardInstance[io.StringIO]
-      member_value_type: io.StringIO*
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
     - member: ForwardInstance
       member_instance: ForwardInstance(resolver1, factory=g)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, None]]
+      member_value_type: Union[io.StringIO*, None]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver2, factory=g)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, None]]
+      member_value_type: Union[io.StringIO*, builtins.str*, None]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver3, factory=g)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes, None]]
+      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*, None]
+    # non optional instance
+    - member: Instance
+      member_instance: Instance(int, optional=False)
+      member_type: atom.instance.Instance[builtins.int]
+      member_value_type: builtins.int*
+    - member: Instance
+      member_instance: Instance((int,), optional=False)
+      member_type: atom.instance.Instance[builtins.int]
+      member_value_type: builtins.int*
+    - member: Instance
+      member_instance: Instance((int, float), optional=False)
+      member_type: atom.instance.Instance[builtins.float]
+      member_value_type: builtins.float*
+    - member: Instance
+      member_instance: Instance((int, float, str), optional=False)
+      member_type: atom.instance.Instance[Union[builtins.float, builtins.str]]
+      member_value_type: Union[builtins.float*, builtins.str*]
+    - member: Instance
+      member_instance: Instance(int, (), optional=False)
+      member_type: atom.instance.Instance[builtins.int]
+      member_value_type: builtins.int*
+    - member: Instance
+      member_instance: Instance((int,), (), optional=False)
+      member_type: atom.instance.Instance[builtins.int]
+      member_value_type: builtins.int*
+    - member: Instance
+      member_instance: Instance((int, float), (), optional=False)
+      member_type: atom.instance.Instance[builtins.float]
+      member_value_type: builtins.float*
+    - member: Instance
+      member_instance: Instance((int, float, str), (), optional=False)
+      member_type: atom.instance.Instance[Union[builtins.float, builtins.str]]
+      member_value_type: Union[builtins.float*, builtins.str*]
+    - member: Instance
+      member_instance: Instance(io.StringIO, None, dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.Instance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: Instance
+      member_instance: Instance((io.StringIO,), None, dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.Instance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: Instance
+      member_instance: Instance(io.StringIO, kwargs=dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.Instance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: Instance
+      member_instance: Instance((io.StringIO,), kwargs=dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.Instance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: Instance
+      member_instance: Instance((io.StringIO, str), kwargs=dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str]]
+      member_value_type: Union[io.StringIO*, builtins.str*]
+    - member: Instance
+      member_instance: Instance((io.StringIO, str, bytes), kwargs=dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str, builtins.bytes]]
+      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
+    - member: Instance
+      member_instance: Instance(io.StringIO, factory=g, optional=False)
+      member_type: atom.instance.Instance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: Instance
+      member_instance: Instance((io.StringIO,), factory=g, optional=False)
+      member_type: atom.instance.Instance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: Instance
+      member_instance: Instance((io.StringIO, str), factory=g, optional=False)
+      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str]]
+      member_value_type: Union[io.StringIO, builtins.str]
+    - member: Instance
+      member_instance: Instance((io.StringIO, str, bytes), factory=g, optional=False)
+      member_type: atom.instance.Instance[Union[io.StringIO, builtins.str, builtins.bytes]]
+      member_value_type: Union[io.StringIO, builtins.str, builtins.bytes]
+    # optional forward instance
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver, optional=False)
       member_type: atom.instance.ForwardInstance[io.StringIO]
       member_value_type: io.StringIO*
     - member: ForwardInstance
-      member_instance: ForwardInstance(resolver2, factory=g)
+      member_instance: ForwardInstance(resolver1, optional=False)
+      member_type: atom.instance.ForwardInstance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver2, optional=False)
       member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str]]
       member_value_type: Union[io.StringIO*, builtins.str*]
     - member: ForwardInstance
-      member_instance: ForwardInstance(resolver3, factory=g)
+      member_instance: ForwardInstance(resolver3, optional=False)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes]]
+      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver, (), optional=False)
+      member_type: atom.instance.ForwardInstance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver1, (), optional=False)
+      member_type: atom.instance.ForwardInstance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver2, (), optional=False)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str]]
+      member_value_type: Union[io.StringIO*, builtins.str*]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver3, (), optional=False)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes]]
+      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver, None, dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.ForwardInstance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver1, None, dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.ForwardInstance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver2, None, dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str]]
+      member_value_type: Union[io.StringIO*, builtins.str*]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver3, None, dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes]]
+      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver, kwargs=dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.ForwardInstance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver1, kwargs=dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.ForwardInstance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver2, kwargs=dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str]]
+      member_value_type: Union[io.StringIO*, builtins.str*]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver3, kwargs=dict(initial_value=str(1)), optional=False)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes]]
+      member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver, factory=g, optional=False)
+      member_type: atom.instance.ForwardInstance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver1, factory=g, optional=False)
+      member_type: atom.instance.ForwardInstance[io.StringIO]
+      member_value_type: io.StringIO*
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver2, factory=g, optional=False)
+      member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str]]
+      member_value_type: Union[io.StringIO*, builtins.str*]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(resolver3, factory=g, optional=False)
       member_type: atom.instance.ForwardInstance[Union[io.StringIO, builtins.str, builtins.bytes]]
       member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
   main: |
