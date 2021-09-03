@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Any, Set as TSet, Tuple, Type, TypeVar, Optional, Union, overload
+from typing import Any, Tuple, Type, TypeVar, Optional, overload
 
 from .catom import Member
 
@@ -13,76 +13,56 @@ T = TypeVar("T")
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 
-class Set(Member[TSet[T], TSet[T]]):
+class Set(Member[set[T], set[T]]):
     @overload
-    def __new__(cls, item: None = None, default: Optional[TSet] = None) -> Set[Any]: ...
+    def __new__(cls, item: None = None, default: Optional[set] = None) -> Set[Any]: ...
     @overload
-    def __new__(cls, item: Type[T], default: Optional[TSet[T]] = None) -> Set[T]: ...
+    def __new__(cls, item: Type[T], default: None = None) -> Set[T]: ...
     @overload
-    def __new__(
-        cls, item: Tuple[Type[T]], default: Optional[TSet[T]] = None
-    ) -> Set[T]: ...
+    def __new__(cls, item: Tuple[Type[T]], default: None = None) -> Set[T]: ...
     @overload
     def __new__(
-        cls,
-        item: Tuple[Type[T], Type[T1]],
-        default: Optional[TSet[Union[T, T1]]] = None,
-    ) -> Set[Union[T, T1]]: ...
-    @overload
-    def __new__(
-        cls,
-        item: Tuple[Type[T], Type[T1]],
-        default: Optional[TSet[T]] = None,
-    ) -> Set[Union[T, T1]]: ...
-    @overload
-    def __new__(
-        cls,
-        item: Tuple[Type[T], Type[T1]],
-        default: Optional[TSet[T1]] = None,
-    ) -> Set[Union[T, T1]]: ...
+        cls, item: Tuple[Type[T], Type[T1]], default: None = None
+    ) -> Set[T | T1]: ...
     @overload
     def __new__(
         cls,
         item: Tuple[Type[T], Type[T1], Type[T2]],
-        default: Optional[TSet[Union[T, T1, T2]]] = None,
-    ) -> Set[Union[T, T1, T2]]: ...
+        default: None = None,
+    ) -> Set[T | T1 | T2]: ...
+    # With default
+    # The splitting is necessary otherwise Mypy type inference fails
+    @overload
+    def __new__(cls, item: Type[T], default: set[T]) -> Set[T]: ...
+    @overload
+    def __new__(cls, item: Tuple[Type[T]], default: set[T]) -> Set[T]: ...
+    @overload
+    def __new__(
+        cls, item: Tuple[Type[T], Type[T1]], default: set[T | T1]
+    ) -> Set[T | T1]: ...
+    @overload
+    def __new__(
+        cls, item: Tuple[Type[T], Type[T1]], default: set[T] | set[T1]
+    ) -> Set[T | T1]: ...
     @overload
     def __new__(
         cls,
         item: Tuple[Type[T], Type[T1], Type[T2]],
-        default: Optional[TSet[Union[T, T1]]] = None,
-    ) -> Set[Union[T, T1, T2]]: ...
+        default: set[T | T1 | T2],
+    ) -> Set[T | T1 | T2]: ...
     @overload
     def __new__(
         cls,
         item: Tuple[Type[T], Type[T1], Type[T2]],
-        default: Optional[TSet[Union[T1, T2]]] = None,
-    ) -> Set[Union[T, T1, T2]]: ...
+        default: set[T | T1] | set[T | T2] | set[T1 | T2],
+    ) -> Set[T | T1 | T2]: ...
     @overload
     def __new__(
         cls,
         item: Tuple[Type[T], Type[T1], Type[T2]],
-        default: Optional[TSet[Union[T, T2]]] = None,
-    ) -> Set[Union[T, T1, T2]]: ...
+        default: set[T] | set[T1] | set[T2],
+    ) -> Set[T | T1 | T2]: ...
     @overload
-    def __new__(
-        cls,
-        item: Tuple[Type[T], Type[T1], Type[T2]],
-        default: Optional[TSet[T]] = None,
-    ) -> Set[Union[T, T1, T2]]: ...
+    def __new__(cls, item: Member[T, Any], default: None = None) -> Set[T]: ...
     @overload
-    def __new__(
-        cls,
-        item: Tuple[Type[T], Type[T1], Type[T2]],
-        default: Optional[TSet[T1]] = None,
-    ) -> Set[Union[T, T1, T2]]: ...
-    @overload
-    def __new__(
-        cls,
-        item: Tuple[Type[T], Type[T1], Type[T2]],
-        default: Optional[TSet[T2]] = None,
-    ) -> Set[Union[T, T1, T2]]: ...
-    @overload
-    def __new__(
-        cls, item: Member[T, Any], default: Optional[TSet[T]] = None
-    ) -> Set[T]: ...
+    def __new__(cls, item: Member[T, Any], default: set[T]) -> Set[T]: ...

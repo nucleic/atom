@@ -9,17 +9,13 @@ from enum import IntEnum
 from typing import (
     Any,
     Callable,
-    Dict as TDict,
     Generic,
-    List as TList,
     Literal,
     Optional,
     Sequence,
-    Set as TSet,
     Tuple,
     Type,
     TypeVar,
-    Union,
     overload,
 )
 
@@ -32,15 +28,15 @@ class CAtom:
     def freeze(self) -> None: ...
     def get_member(self, member: str) -> Member: ...
     def has_observer(
-        self, member: str, func: Callable[[TDict[str, Any]], None]
+        self, member: str, func: Callable[[dict[str, Any]], None]
     ) -> bool: ...
     def has_observers(self, member: str) -> bool: ...
     def notifications_enabled(self) -> bool: ...
     def notify(self, member_name: str, *args, **kwargs) -> None: ...
-    def observe(self, member: str, func: Callable[[TDict[str, Any]], None]) -> None: ...
+    def observe(self, member: str, func: Callable[[dict[str, Any]], None]) -> None: ...
     def set_notifications_enabled(self, enabled: bool) -> bool: ...
     def unobserve(
-        self, member: str, func: Callable[[TDict[str, Any]], None]
+        self, member: str, func: Callable[[dict[str, Any]], None]
     ) -> None: ...
     def __sizeof__(self) -> int: ...
 
@@ -53,7 +49,7 @@ class Member(Generic[T, S]):
     delattr_mode: DelAttr = ...
     getattr_mode: GetAttr = ...
     index: int = ...
-    metadata: Optional[TDict[str, Any]] = ...
+    metadata: Optional[dict[str, Any]] = ...
     name: str = ...
     post_getattr_mode: PostGetAttr = ...
     post_setattr_mode: PostSetAttr = ...
@@ -69,12 +65,10 @@ class Member(Generic[T, S]):
     def __delete__(self, instance: Atom) -> None: ...
     def tag(self: M, **kwargs) -> M: ...
     def clone(self: M) -> M: ...
-    def add_static_observer(self, observer: Union[str, Callable[..., None]]) -> Any: ...
-    def remove_static_observer(
-        self, observer: Union[str, Callable[..., None]]
-    ) -> Any: ...
-    def static_observers(self) -> Tuple[Union[str, Callable[..., None]], ...]: ...
-    def has_observer(self, observer: Union[str, Callable[..., None]]) -> Any: ...
+    def add_static_observer(self, observer: str | Callable[..., None]) -> Any: ...
+    def remove_static_observer(self, observer: str | Callable[..., None]) -> Any: ...
+    def static_observers(self) -> Tuple[str | Callable[..., None], ...]: ...
+    def has_observer(self, observer: str | Callable[..., None]) -> Any: ...
     def has_observers(self) -> bool: ...
     def copy_static_observers(self, other: Member) -> None: ...
     def notify(self, owner: CAtom, *args, **kwargs) -> None: ...
@@ -130,11 +124,9 @@ class Member(Generic[T, S]):
     @overload
     def set_default_value_mode(
         self,
-        mode: Union[
-            Literal[DefaultValue.ObjectMethod],
-            Literal[DefaultValue.ObjectMethod_Name],
-            Literal[DefaultValue.MemberMethod_Object],
-        ],
+        mode: Literal[DefaultValue.ObjectMethod]
+        | Literal[DefaultValue.ObjectMethod_Name]
+        | Literal[DefaultValue.MemberMethod_Object],
         context: str,
     ) -> None: ...
     @overload
@@ -163,23 +155,23 @@ class Member(Generic[T, S]):
     @overload
     def set_delattr_mode(
         self,
-        mode: Union[
-            Literal[DelAttr.Constant],
-            Literal[DelAttr.Event],
-            Literal[DelAttr.NoOp],
-            Literal[DelAttr.ReadOnly],
-            Literal[DelAttr.Signal],
-            Literal[DelAttr.Slot],
-        ],
+        mode: Literal[DelAttr.Constant]
+        | Literal[DelAttr.Event]
+        | Literal[DelAttr.NoOp]
+        | Literal[DelAttr.ReadOnly]
+        | Literal[DelAttr.Signal]
+        | Literal[DelAttr.Slot],
         context: None,
     ) -> None: ...
     # Getattr mode
     @overload
-    def set_getattr_mode(self, mode: Literal[GetAttr.Delegate], context: Member) -> None: ...
+    def set_getattr_mode(
+        self, mode: Literal[GetAttr.Delegate], context: Member
+    ) -> None: ...
     @overload
     def set_getattr_mode(
         self,
-        mode: Union[Literal[GetAttr.Property], Literal[GetAttr.CachedProperty]],
+        mode: Literal[GetAttr.Property] | Literal[GetAttr.CachedProperty],
         context: Optional[Callable[[CAtom], Any]],
     ) -> None: ...
     @overload
@@ -195,22 +187,18 @@ class Member(Generic[T, S]):
     @overload
     def set_getattr_mode(
         self,
-        mode: Union[
-            Literal[GetAttr.ObjectMethod],
-            Literal[GetAttr.ObjectMethod_Name],
-            Literal[GetAttr.MemberMethod_Object],
-        ],
+        mode: Literal[GetAttr.ObjectMethod]
+        | Literal[GetAttr.ObjectMethod_Name]
+        | Literal[GetAttr.MemberMethod_Object],
         context: str,
     ) -> None: ...
     @overload
     def set_getattr_mode(
         self,
-        mode: Union[
-            Literal[GetAttr.Event],
-            Literal[GetAttr.NoOp],
-            Literal[GetAttr.Signal],
-            Literal[GetAttr.Slot],
-        ],
+        mode: Literal[GetAttr.Event]
+        | Literal[GetAttr.NoOp]
+        | Literal[GetAttr.Signal]
+        | Literal[GetAttr.Slot],
         context: str,
     ) -> None: ...
     # Post getattr mode
@@ -225,11 +213,9 @@ class Member(Generic[T, S]):
     @overload
     def set_post_getattr_mode(
         self,
-        mode: Union[
-            Literal[PostGetAttr.ObjectMethod_Value],
-            Literal[PostGetAttr.ObjectMethod_NameValue],
-            Literal[PostGetAttr.MemberMethod_ObjectValue],
-        ],
+        mode: Literal[PostGetAttr.ObjectMethod_Value]
+        | Literal[PostGetAttr.ObjectMethod_NameValue]
+        | Literal[PostGetAttr.MemberMethod_ObjectValue],
         context: Member,
     ) -> None: ...
     # Post setattr mode
@@ -244,11 +230,9 @@ class Member(Generic[T, S]):
     @overload
     def set_post_setattr_mode(
         self,
-        mode: Union[
-            Literal[PostSetAttr.ObjectMethod_OldNew],
-            Literal[PostSetAttr.ObjectMethod_NameOldNew],
-            Literal[PostSetAttr.MemberMethod_ObjectOldNew],
-        ],
+        mode: Literal[PostSetAttr.ObjectMethod_OldNew]
+        | Literal[PostSetAttr.ObjectMethod_NameOldNew]
+        | Literal[PostSetAttr.MemberMethod_ObjectOldNew],
         context: str,
     ) -> None: ...
     # Post validate mode
@@ -263,25 +247,21 @@ class Member(Generic[T, S]):
     @overload
     def set_post_validate_mode(
         self,
-        mode: Union[
-            Literal[PostValidate.ObjectMethod_OldNew],
-            Literal[PostValidate.ObjectMethod_NameOldNew],
-            Literal[PostValidate.MemberMethod_ObjectOldNew],
-        ],
+        mode: Literal[PostValidate.ObjectMethod_OldNew]
+        | Literal[PostValidate.ObjectMethod_NameOldNew]
+        | Literal[PostValidate.MemberMethod_ObjectOldNew],
         context: str,
     ) -> None: ...
     # Setattr mode
     @overload
     def set_setattr_mode(
         self,
-        mode: Union[
-            Literal[SetAttr.Constant],
-            Literal[SetAttr.Event],
-            Literal[SetAttr.NoOp],
-            Literal[SetAttr.ReadOnly],
-            Literal[SetAttr.Signal],
-            Literal[SetAttr.Slot],
-        ],
+        mode: Literal[SetAttr.Constant]
+        | Literal[SetAttr.Event]
+        | Literal[SetAttr.NoOp]
+        | Literal[SetAttr.ReadOnly]
+        | Literal[SetAttr.Signal]
+        | Literal[SetAttr.Slot],
         context: None,
     ) -> None: ...
     @overload
@@ -309,41 +289,35 @@ class Member(Generic[T, S]):
     @overload
     def set_setattr_mode(
         self,
-        mode: Union[
-            Literal[SetAttr.ObjectMethod_Value],
-            Literal[SetAttr.ObjectMethod_NameValue],
-            Literal[SetAttr.MemberMethod_ObjectValue],
-        ],
+        mode: Literal[SetAttr.ObjectMethod_Value]
+        | Literal[SetAttr.ObjectMethod_NameValue]
+        | Literal[SetAttr.MemberMethod_ObjectValue],
         context: str,
     ) -> None: ...
     # Validate mode
     @overload
     def set_validate_mode(
         self,
-        mode: Union[
-            Literal[Validate.Bool],
-            Literal[Validate.Bytes],
-            Literal[Validate.BytesPromote],
-            Literal[Validate.Callable],
-            Literal[Validate.Float],
-            Literal[Validate.FloatPromote],
-            Literal[Validate.Int],
-            Literal[Validate.IntPromote],
-            Literal[Validate.NoOp],
-            Literal[Validate.Str],
-            Literal[Validate.StrPromote],
-        ],
+        mode: Literal[Validate.Bool]
+        | Literal[Validate.Bytes]
+        | Literal[Validate.BytesPromote]
+        | Literal[Validate.Callable]
+        | Literal[Validate.Float]
+        | Literal[Validate.FloatPromote]
+        | Literal[Validate.Int]
+        | Literal[Validate.IntPromote]
+        | Literal[Validate.NoOp]
+        | Literal[Validate.Str]
+        | Literal[Validate.StrPromote],
         context: None,
     ) -> None: ...
     @overload
     def set_validate_mode(
         self,
-        mode: Union[
-            Literal[Validate.Tuple],
-            Literal[Validate.List],
-            Literal[Validate.ContainerList],
-            Literal[Validate.Set],
-        ],
+        mode: Literal[Validate.Tuple]
+        | Literal[Validate.List]
+        | Literal[Validate.ContainerList]
+        | Literal[Validate.Set],
         context: Optional[Member],
     ) -> None: ...
     @overload
@@ -355,8 +329,8 @@ class Member(Generic[T, S]):
     @overload
     def set_validate_mode(
         self,
-        mode: Union[Literal[Validate.Instance], Literal[Validate.Subclass]],
-        context: Union[type, Tuple[type, ...]],
+        mode: Literal[Validate.Instance] | Literal[Validate.Subclass],
+        context: type | Tuple[type, ...],
     ) -> None: ...
     @overload
     def set_validate_mode(
@@ -391,30 +365,27 @@ class Member(Generic[T, S]):
     @overload
     def set_validate_mode(
         self,
-        mode: Union[
-            Literal[Validate.ObjectMethod_OldNew],
-            Literal[Validate.ObjectMethod_NameOldNew],
-            Literal[Validate.MemberMethod_ObjectOldNew],
-        ],
+        mode: Literal[Validate.ObjectMethod_OldNew]
+        | Literal[Validate.ObjectMethod_NameOldNew]
+        | Literal[Validate.MemberMethod_ObjectOldNew],
         context: str,
     ) -> None: ...
 
 KT = TypeVar("KT")
 VT = TypeVar("VT")
 
-class atomdict(TDict[KT, VT]): ...
-class atomlist(TList[T]): ...
+class atomlist(list[T]): ...
 class atomclist(atomlist[T]): ...
-class atomset(TSet[T]): ...
+class atomset(set[T]): ...
+class atomdict(dict[KT, VT]): ...
 
 A = TypeVar("A", bound=CAtom)
 
-class atomref(Generic[T]):
+class atomref(Generic[A]):
     def __new__(cls, atom: A) -> atomref[A]: ...
     def __bool__(self) -> bool: ...
     def __call__(self) -> Optional[A]: ...
     def __sizeof__(self) -> int: ...
-
 
 class SignalConnector:
     def __call__(self, *args, **kwargs) -> None: ...
@@ -422,11 +393,9 @@ class SignalConnector:
     def connect(self, slot: Callable) -> None: ...
     def disconnect(self, slot: Callable) -> None: ...
 
-
 class EventBinder:
-    def bind(self, observer: Callable[[TDict[str, Any]], None]) -> None: ...
-    def unbind(self, observer: Callable[[TDict[str, Any]], None]) -> None: ...
-
+    def bind(self, observer: Callable[[dict[str, Any]], None]) -> None: ...
+    def unbind(self, observer: Callable[[dict[str, Any]], None]) -> None: ...
 
 class DefaultValue(IntEnum):
     CallObject = ...

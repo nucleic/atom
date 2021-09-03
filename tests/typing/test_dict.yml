@@ -74,7 +74,7 @@
     member_instance: Dict(value=Int())
     member_type: atom.dict.Dict[Any, builtins.int]
     member_value_type: builtins.dict*[Any, builtins.int*]
-  # Typed key ad value
+  # Typed key and value
   #   simple type as key
   - member: Dict
     member_instance: Dict(int, int)
