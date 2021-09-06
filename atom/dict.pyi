@@ -5,14 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import (
-    Any,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    overload,
-)
+from typing import Any, Dict as TDict, Optional, Tuple, Type, TypeVar, overload
 
 from .catom import Member
 
@@ -25,7 +18,7 @@ VT1 = TypeVar("VT1")
 KT2 = TypeVar("KT2")
 VT2 = TypeVar("VT2")
 
-class Dict(Member[dict[KT, VT], dict[KT, VT]]):
+class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     # Untyped
     @overload
     def __new__(

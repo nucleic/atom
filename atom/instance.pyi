@@ -8,6 +8,7 @@
 from typing import (
     Any,
     Callable,
+    Dict,
     Literal,
     Optional,
     Tuple,
@@ -29,7 +30,7 @@ class Instance(Member[T, T]):
         cls,
         kind: Type[T],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[True] = True,
@@ -39,7 +40,7 @@ class Instance(Member[T, T]):
         cls,
         kind: Type[T],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[False],
@@ -50,7 +51,7 @@ class Instance(Member[T, T]):
         cls,
         kind: Tuple[Type[T]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[True] = True,
@@ -60,7 +61,7 @@ class Instance(Member[T, T]):
         cls,
         kind: Tuple[Type[T]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[False],
@@ -71,7 +72,7 @@ class Instance(Member[T, T]):
         cls,
         kind: Tuple[Type[T], Type[T1]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
             Callable[[], T] | Callable[[], T1] | Callable[[], T | T1]
@@ -83,7 +84,7 @@ class Instance(Member[T, T]):
         cls,
         kind: Tuple[Type[T], Type[T1]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
             Callable[[], T] | Callable[[], T1] | Callable[[], T | T1]
@@ -96,7 +97,7 @@ class Instance(Member[T, T]):
         cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
             Callable[[], T]
@@ -114,7 +115,7 @@ class Instance(Member[T, T]):
         cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
             Callable[[], T]
@@ -135,7 +136,7 @@ class ForwardInstance(Member[T, T]):
         cls,
         kind: Callable[[], Type[T]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[True] = True,
@@ -145,7 +146,7 @@ class ForwardInstance(Member[T, T]):
         cls,
         kind: Callable[[], Type[T]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[False],
@@ -156,7 +157,7 @@ class ForwardInstance(Member[T, T]):
         cls,
         kind: Callable[[], Tuple[Type[T]]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[True] = True,
@@ -166,7 +167,7 @@ class ForwardInstance(Member[T, T]):
         cls,
         kind: Callable[[], Tuple[Type[T]]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[False],
@@ -177,7 +178,7 @@ class ForwardInstance(Member[T, T]):
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1]]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
             Callable[[], T] | Callable[[], T1] | Callable[[], T | T1]
@@ -189,7 +190,7 @@ class ForwardInstance(Member[T, T]):
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1]]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
             Callable[[], T] | Callable[[], T1] | Callable[[], T | T1]
@@ -202,7 +203,7 @@ class ForwardInstance(Member[T, T]):
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
             Callable[[], T]
@@ -220,7 +221,7 @@ class ForwardInstance(Member[T, T]):
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
             Callable[[], T]

@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Any, Tuple, Type, TypeVar, Optional, overload
+from typing import Any, Set as TSet, Tuple, Type, TypeVar, Optional, overload
 
 from .catom import Member
 
@@ -13,7 +13,7 @@ T = TypeVar("T")
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 
-class Set(Member[set[T], set[T]]):
+class Set(Member[TSet[T], TSet[T]]):
     @overload
     def __new__(cls, item: None = None, default: Optional[set] = None) -> Set[Any]: ...
     @overload
@@ -30,39 +30,39 @@ class Set(Member[set[T], set[T]]):
         item: Tuple[Type[T], Type[T1], Type[T2]],
         default: None = None,
     ) -> Set[T | T1 | T2]: ...
+    @overload
+    def __new__(cls, item: Member[T, Any], default: None = None) -> Set[T]: ...
     # With default
     # The splitting is necessary otherwise Mypy type inference fails
     @overload
-    def __new__(cls, item: Type[T], default: set[T]) -> Set[T]: ...
+    def __new__(cls, item: Type[T], default: TSet[T]) -> Set[T]: ...
     @overload
-    def __new__(cls, item: Tuple[Type[T]], default: set[T]) -> Set[T]: ...
+    def __new__(cls, item: Tuple[Type[T]], default: TSet[T]) -> Set[T]: ...
     @overload
     def __new__(
-        cls, item: Tuple[Type[T], Type[T1]], default: set[T | T1]
+        cls, item: Tuple[Type[T], Type[T1]], default: TSet[T | T1]
     ) -> Set[T | T1]: ...
     @overload
     def __new__(
-        cls, item: Tuple[Type[T], Type[T1]], default: set[T] | set[T1]
+        cls, item: Tuple[Type[T], Type[T1]], default: TSet[T] | TSet[T1]
     ) -> Set[T | T1]: ...
     @overload
     def __new__(
         cls,
         item: Tuple[Type[T], Type[T1], Type[T2]],
-        default: set[T | T1 | T2],
+        default: TSet[T | T1 | T2],
     ) -> Set[T | T1 | T2]: ...
     @overload
     def __new__(
         cls,
         item: Tuple[Type[T], Type[T1], Type[T2]],
-        default: set[T | T1] | set[T | T2] | set[T1 | T2],
+        default: TSet[T | T1] | TSet[T | T2] | TSet[T1 | T2],
     ) -> Set[T | T1 | T2]: ...
     @overload
     def __new__(
         cls,
         item: Tuple[Type[T], Type[T1], Type[T2]],
-        default: set[T] | set[T1] | set[T2],
+        default: TSet[T] | TSet[T1] | TSet[T2],
     ) -> Set[T | T1 | T2]: ...
     @overload
-    def __new__(cls, item: Member[T, Any], default: None = None) -> Set[T]: ...
-    @overload
-    def __new__(cls, item: Member[T, Any], default: set[T]) -> Set[T]: ...
+    def __new__(cls, item: Member[T, Any], default: TSet[T]) -> Set[T]: ...

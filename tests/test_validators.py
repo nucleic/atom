@@ -87,7 +87,7 @@ def c(x: object) -> int:
                            [1.0, 3.7], [2, 4, 0, -11]),
                           (Bytes(strict=False), [b'a', u'a'], [b'a']*2, [1]),
                           (Bytes(), [b'a'], [b'a'], [u'a']),
-                          (Str(strict=True), [b'a', u'a'], ['a']*2, [1]),
+                          (Str(strict=False), [b'a', u'a'], ['a']*2, [1]),
                           (Str(), [u'a'], ['a'], [b'a']),
                           (Enum(1, 2, 'a'), [1, 2, 'a'], [1, 2, 'a'], [3]),
                           (Callable(), [int, None], [int, None], [1]),
