@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Any, Callable, Literal, Optional, Type, TypeVar, overload
+from typing import Any, Callable, Dict, Literal, Optional, Type, TypeVar, overload
 
 from .catom import Member
 
@@ -17,7 +17,7 @@ class Typed(Member[T, T]):
         cls,
         kind: Type[T],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[True] = True
@@ -27,7 +27,7 @@ class Typed(Member[T, T]):
         cls,
         kind: Type[T],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[False]
@@ -40,7 +40,7 @@ class ForwardTyped(Member[T, T]):
         cls,
         kind: Callable[[], Type[T]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[True] = True
@@ -50,7 +50,7 @@ class ForwardTyped(Member[T, T]):
         cls,
         kind: Callable[[], Type[T]],
         args: Optional[tuple] = None,
-        kwargs: Optional[dict[str, Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[False]
