@@ -48,10 +48,12 @@ class ReadOnly(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=None, factory=None):
+    def __init__(self, kind=None, *, default=None, factory=None):
         super(ReadOnly, self).__init__(default, factory)
         self.set_setattr_mode(SetAttr.ReadOnly, None)
         self.set_delattr_mode(DelAttr.ReadOnly, None)
+        if kind:
+            self.set_validate_mode(Validate.Instance, kind)
 
 
 class Constant(Value):
@@ -60,10 +62,12 @@ class Constant(Value):
     """
     __slots__ = ()
 
-    def __init__(self, default=None, factory=None):
+    def __init__(self, default=None, *, factory=None, kind=None):
         super(Constant, self).__init__(default, factory)
         self.set_setattr_mode(SetAttr.Constant, None)
         self.set_delattr_mode(DelAttr.Constant, None)
+        if kind:
+            self.set_validate_mode(Validate.Instance, kind)
 
 
 class Callable(Value):
