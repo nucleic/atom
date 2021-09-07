@@ -5,7 +5,12 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
-from .catom import Member, DefaultValue, Validate
+import sys
+
+from .catom import DefaultValue, Member, Validate
+
+if sys.version_info >= (3, 9):
+    from typing import GenericAlias
 
 
 class Instance(Member):
@@ -60,6 +65,8 @@ class Instance(Member):
         elif not optional:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
 
+        if sys.version_info >= (3, 9) and isinstance(kind, GenericAlias):
+            kind = kind.__origin__
         if optional:
             self.set_validate_mode(Validate.OptionalInstance, kind)
         else:
