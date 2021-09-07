@@ -862,8 +862,8 @@ Member_methods[] = {
 #if PY_VERSION_HEX >= 0x03090000
     // Generic aliases have been added in 3.9 and allow to index types
     // This removes the need to quote explicit member type annotations
-    {"__class_getitem__",       (PyCFunction)Py_GenericAlias,
-    METH_O|METH_CLASS,       PyDoc_STR("See PEP 585")},
+    { "__class_getitem__", (PyCFunction)Py_GenericAlias, METH_O|METH_CLASS,
+      "See PEP 585"},
 #endif
     { 0 } // sentinel
 };
