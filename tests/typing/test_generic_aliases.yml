@@ -1,0 +1,34 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2021, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+#------------------------------------------------------------------------------
+- case: member
+  skip: sys.version_info < (3, 9)
+  main: |
+    from atom.api import Member
+
+    m: Member[int, str] = Member()
+
+    reveal_type(m)  # N: Revealed type is "atom.catom.Member[builtins.int, builtins.str]"
+
+- case: generic-alias-as-type
+  parametrized:
+    - member: Typed
+      member_instance: Typed(list[int], optional=False)
+      member_type: atom.typed.Typed[builtins.list[builtins.int]]
+      member_value_type: builtins.list*[builtins.int*]
+    - member: Instance
+      member_instance: Instance(list[int], optional=False)
+      member_type: atom.instance.Instance[builtins.list[builtins.int]]
+      member_value_type: builtins.list*[builtins.int*]
+  main: |
+    from atom.api import Atom, {{ member }}
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
