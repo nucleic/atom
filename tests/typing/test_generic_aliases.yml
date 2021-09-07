@@ -20,10 +20,26 @@
       member_instance: Typed(list[int], optional=False)
       member_type: atom.typed.Typed[builtins.list[builtins.int]]
       member_value_type: builtins.list*[builtins.int*]
+    - member: ForwardTyped
+      member_instance: ForwardTyped(lambda:list[int], optional=False)
+      member_type: atom.typed.ForwardTyped[builtins.list[builtins.int]]
+      member_value_type: builtins.list*[builtins.int*]
     - member: Instance
       member_instance: Instance(list[int], optional=False)
       member_type: atom.instance.Instance[builtins.list[builtins.int]]
       member_value_type: builtins.list*[builtins.int*]
+    - member: Instance
+      member_instance: Instance((list[int], int), optional=False)
+      member_type: atom.instance.Instance[Union[builtins.list[builtins.int], builtins.int]]
+      member_value_type: Union[builtins.list*[builtins.int*], builtins.int*]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(lambda:list[int], optional=False)
+      member_type: atom.instance.ForwardInstance[builtins.list[builtins.int]]
+      member_value_type: builtins.list*[builtins.int*]
+    - member: ForwardInstance
+      member_instance: ForwardInstance(lambda:(list[int], int), optional=False)
+      member_type: atom.instance.ForwardInstance[Union[builtins.list[builtins.int], builtins.int]]
+      member_value_type: Union[builtins.list*[builtins.int*], builtins.int*]
   main: |
     from atom.api import Atom, {{ member }}
 

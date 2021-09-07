@@ -65,8 +65,11 @@ class Instance(Member):
         elif not optional:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
 
-        if sys.version_info >= (3, 9) and isinstance(kind, GenericAlias):
-            kind = kind.__origin__
+        if sys.version_info >= (3, 9):
+            if isinstance(kind, GenericAlias):
+                kind = kind.__origin__
+            elif isinstance(kind, tuple):
+                kind = tuple(k.__origin__ if isinstance(k, GenericAlias) else k for k in kind)
         if optional:
             self.set_validate_mode(Validate.OptionalInstance, kind)
         else:
@@ -149,6 +152,11 @@ class ForwardInstance(Instance):
 
         """
         kind = self.resolve()
+        if sys.version_info >= (3, 9):
+            if isinstance(kind, GenericAlias):
+                kind = kind.__origin__
+            elif isinstance(kind, tuple):
+                kind = tuple(k.__origin__ if isinstance(k, GenericAlias) else k for k in kind)
         if self.optional:
             self.set_validate_mode(Validate.OptionalInstance, kind)
         else:

@@ -151,6 +151,8 @@ class ForwardTyped(Typed):
 
         """
         kind = self.resolve()
+        if sys.version_info >= (3, 9) and isinstance(kind, GenericAlias):
+            kind = kind.__origin__
         if self.optional:
             self.set_validate_mode(Validate.OptionalTyped, kind)
         else:
