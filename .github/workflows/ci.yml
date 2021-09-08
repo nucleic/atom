@@ -40,7 +40,7 @@ jobs:
           mypy atom tests
       - name: Test with pytest
         run: |
-          pip install pytest-mypy-plugins
+          pip install pytest-mypy-plugins regex
           python -X dev -m pytest tests/typing -v
   tests:
     name: Unit tests
