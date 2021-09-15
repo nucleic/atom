@@ -41,12 +41,11 @@
 import sys
 
 import pytest
-
-from atom.api import (Atom, Bool, Bytes, Callable, CAtom, Coerced,
+from atom.api import (Atom, Bool, Bytes, Callable, CAtom, Coerced, Constant,
                       ContainerList, Delegator, Dict, Enum, Event, Float,
                       FloatRange, ForwardInstance, ForwardSubclass,
-                      ForwardTyped, Instance, Int, List, Range, Set, Str,
-                      Subclass, Tuple, Typed, Str, Validate, Value)
+                      ForwardTyped, Instance, Int, List, Range, ReadOnly, Set,
+                      Str, Subclass, Tuple, Typed, Validate, Value)
 
 
 def test_no_op_validation():
@@ -63,6 +62,7 @@ def test_no_op_validation():
 
 @pytest.mark.parametrize("member, set_values, values, raising_values",
                          [(Value(), ['a', 1, None], ['a', 1, None], []),
+                          (ReadOnly(int), [1], [1], [1.0]),
                           (Bool(), [True, False], [True, False], 'r'),
                           (Int(strict=True), [1], [1], [1.0]),
                           (Int(strict=False), [1, 1.0, int(1)], 3*[1], ['a']),
@@ -234,6 +234,25 @@ def test_event_validation():
         evt.ev_member = 1.0
     with pytest.raises(TypeError):
         evt.ev_type = 1.0
+
+
+def test_constant_validation():
+    """Test validating a constant."""
+
+    class A(Atom):
+        c = Constant(kind=int)
+
+        def _default_c(self):
+            return id(self)
+
+    A().c
+
+    class B(A):
+        def _default_c(self):
+            return str(super()._default_c())
+
+    with pytest.raises(TypeError):
+        B().c
 
 
 def no_atom():
