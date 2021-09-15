@@ -205,7 +205,7 @@ subclass:
 
     By default, |Typed| and |Instance| consider ``None`` to be a valid value.
     One can opt out of this behavior by passing ``optional=False`` at member
-    creation.
+    creation. New in atom 0.7.0
 
 .. note::
 
@@ -213,6 +213,13 @@ subclass:
     mean of creating a default value (no ``args``, ``kwargs`` or ``factory``),
     trying to access the member value before setting it will result in a
     ValueError.
+
+.. note::
+
+    Even though, generic aliases (i.e. list[int], introduced in
+    `PEP 585 <https://www.python.org/dev/peps/pep-0585/>`_ ) are not proper types they
+    can be used. Note however that just like ``isinstance(a, list[int])``, a member
+    ``Instance(list[int])`` does not check the type of the items of a.
 
 In some cases, the type is not accessible when the member is instantiated
 (because it will be created later in the same file for example), atom also
