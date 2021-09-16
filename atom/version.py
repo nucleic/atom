@@ -28,10 +28,10 @@ MICRO = 0
 STATUS = 'dev'
 
 #: A namedtuple of the version info for the current release.
-version_info = namedtuple('version_info', 'major minor micro status')
-version_info = version_info(MAJOR, MINOR, MICRO, STATUS)
+_version_info = namedtuple('_version_info', 'major minor micro status')
+version_info = _version_info(MAJOR, MINOR, MICRO, STATUS)
 # Remove everything but the 'version_info' from this module.
-del namedtuple, MAJOR, MINOR, MICRO, STATUS
+del namedtuple, _version_info, MAJOR, MINOR, MICRO, STATUS
 
 __version__ = ('{0}.{1}.{2}'.format(*version_info) if not version_info.status
                else '{0}.{1}.{2}.{3}'.format(*version_info))

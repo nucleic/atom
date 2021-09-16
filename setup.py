@@ -113,4 +113,7 @@ setup(
     packages=find_packages(exclude=['tests', 'tests.*']),
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},
+    package_data={
+        "atom" : ["py.typed", "*.pyi"]
+    },
 )

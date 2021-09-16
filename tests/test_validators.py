@@ -60,6 +60,10 @@ def test_no_op_validation():
         assert m.do_validate(a, None, value) == value
 
 
+def c(x: object) -> int:
+    return int(str(x), 2)
+
+
 @pytest.mark.parametrize("member, set_values, values, raising_values",
                          [(Value(), ['a', 1, None], ['a', 1, None], []),
                           (ReadOnly(int), [1], [1], [1.0]),
@@ -81,19 +85,17 @@ def test_no_op_validation():
                            [0.6]),
                           (FloatRange(1.0, 10.0, strict=True), [1.0, 3.7],
                            [1.0, 3.7], [2, 4, 0, -11]),
-                          (Bytes(), [b'a', u'a'], [b'a']*2, [1]),
-                          (Bytes(strict=True), [b'a'], [b'a'], [u'a']),
-                          (Str(), [b'a', u'a'], ['a']*2, [1]),
-                          (Str(strict=True), [u'a'], ['a'], [b'a']),
+                          (Bytes(strict=False), [b'a', u'a'], [b'a']*2, [1]),
+                          (Bytes(), [b'a'], [b'a'], [u'a']),
+                          (Str(strict=False), [b'a', u'a'], ['a']*2, [1]),
+                          (Str(), [u'a'], ['a'], [b'a']),
                           (Enum(1, 2, 'a'), [1, 2, 'a'], [1, 2, 'a'], [3]),
                           (Callable(), [int, None], [int, None], [1]),
                           (Coerced(set), [{1}, [1], (1,)], [{1}]*3, [1]),
-                          (Coerced(int, coercer=lambda x: int(str(x), 2)),
+                          (Coerced(int, coercer=c), ['101'], [5], []),
+                          (Coerced((int, float), coercer=c),
                            ['101'], [5], []),
-                          (Coerced((int, float),
-                                   coercer=lambda x: int(str(x), 2)),
-                           ['101'], [5], []),
-                          (Coerced(int, coercer=lambda x: []), [], [], ['']),
+                          (Coerced(int, coercer=lambda x: []), [], [], ['']),  # type: ignore
                           (Tuple(), [(1,)], [(1,)], [[1]]),
                           (Tuple(Int()), [(1,)], [(1,)], [(1.0,)]),
                           (Tuple(int), [(1,)], [(1,)], [(1.0,), (None,)]),

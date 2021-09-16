@@ -19,7 +19,7 @@ class Event(Member):
 
         Parameters
         ----------
-        kind : type or Member, optional
+        kind : type, tuple of types or Member, optional
             The type of argument which may be emitted by the event or
             a Member which will validate the argument which can be
             emitted. The default is None and indicates no validation

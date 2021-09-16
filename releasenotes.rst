@@ -4,11 +4,6 @@ Atom Release Notes
 
 0.7.0 - unreleased
 ------------------
-- allow to specify the type of ReadOnly and Constant. PR #128
-  The validation is done using the Instance validator. The change for ReadOnly
-  is backward incompatible since the type or tuple of type is the first argument
-  in place of the default value. Specifying the default value by keyword is both
-  forward and backward compatible.
 - make the factory argument of Typed, Instance and their forwarded version
   keyword only. PR #123
 - add an optional keyword-only argument to Typed, Instance and their forwarded
@@ -19,6 +14,15 @@ Atom Release Notes
   the validation behavior for the member with optional=False have been added. PR #123
 - consistently use Instance to wrap types passed to containers. PR #123
 - add strict argument to FloatRange. PR #124
+- allow to specify the type of ReadOnly and Constant. PR #128
+  The validation is done using the Instance validator. The change for ReadOnly
+  is backward incompatible since the type or tuple of type is the first argument
+  in place of the default value. Specifying the default value by keyword is both
+  forward and backward compatible.
+- use python stdlib IntEnum instead of the custom one in atom  PR #122
+- remove the custom atom.IntEnum  PR #122
+- add and distribute type hints PR # 122
+  This allows static type checkers to resolve the values behind a member.
 
 
 0.6.0 - 02/11/2020
