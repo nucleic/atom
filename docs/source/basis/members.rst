@@ -203,9 +203,11 @@ subclass:
 
 .. note ::
 
-    By default, |Typed| and |Instance| consider ``None`` to be a valid value.
-    One can opt out of this behavior by passing ``optional=False`` at member
-    creation. New in atom 0.7.0
+    By default, |Typed| and |Instance| consider ``None`` to be a valid value if
+    no way to build a default value was provided. One can explicitly specify if
+    ``None`` is a valid value by using the ``optional`` keyword argument when
+    creating the argument. New in atom 0.7.0, previously None was always a
+    valid value.
 
 .. note::
 
