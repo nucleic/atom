@@ -8,7 +8,8 @@ Atom Release Notes
   keyword only. PR #123
 - add an optional keyword-only argument to Typed, Instance and their forwarded
   version. When set to False, this will cause those members to reject None as
-  a valid value. The default value is True. PR #123
+  a valid value. The default value, None, will resolve to True if there is
+  no provided way to build a default value. PR #123 # 131
 - the Instance and Typed variants of the Validate enum have been renamed to
   OptionalInstance, OptionalTyped and new Instance and Typed variant describing
   the validation behavior for the member with optional=False have been added. PR #123
