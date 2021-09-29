@@ -21,7 +21,7 @@ Atom Release Notes
   forward and backward compatible.
 - use python stdlib IntEnum instead of the custom one in atom  PR #122
 - remove the custom atom.IntEnum  PR #122
-- add and distribute type hints PR # 122
+- add and distribute type hints PR #122 #132
   This allows static type checkers to resolve the values behind a member.
 
 
