@@ -14,8 +14,6 @@ from types import FunctionType
 from typing import (Any, Callable, ClassVar, Dict, Iterator, List, Optional,
                     Tuple, Type, Union)
 
-from _pytest.python import Class
-
 from .catom import (CAtom, DefaultValue, Member, PostGetAttr, PostSetAttr,
                     PostValidate, Validate)
 from .dict import Dict as ADict
@@ -286,7 +284,7 @@ class AtomMeta(type):
         meta,
         name: str,
         bases: Tuple[type, ...],
-        dct: dict[str, Any],
+        dct: Dict[str, Any],
         enable_weakrefs: bool = False,
         use_annotations: bool = True,
         annotate_type_containers: int = -1
