@@ -1,19 +1,35 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
 import copyreg
+import sys
+import typing
+from collections import abc
 from contextlib import contextmanager
 from types import FunctionType
-from typing import Any, Callable, ClassVar, Dict, Iterator, List, Optional, Tuple
+from typing import (Any, Callable, ClassVar, Dict, Iterator, List, Optional,
+                    Tuple, Type, Union)
 
-from .catom import (
-    CAtom, Member, DefaultValue, PostGetAttr, PostSetAttr, Validate,
-    PostValidate,
-)
+from _pytest.python import Class
+
+from .catom import (CAtom, DefaultValue, Member, PostGetAttr, PostSetAttr,
+                    PostValidate, Validate)
+from .dict import Dict as ADict
+from .instance import Instance
+from .list import List as AList
+from .scalars import Bool, Bytes, Callable as ACallable, Float, Int, Str, Value
+from .set import Set
+from .subclass import Subclass
+from .typed import Typed
+
+_GENERIC_ALIAS = ()
+if sys.version_info >= (3, 9):
+    from types import GenericAlias
+    _GENERIC_ALIAS = GenericAlias
 
 
 OBSERVE_PREFIX = '_observe_'
@@ -161,6 +177,97 @@ class ExtendedObserver(object):
             raise TypeError(msg % (attr, new))
 
 
+_NO_DEFAULT = object()
+
+_TYPE_TO_MEMBER = {
+    bool: Bool,
+    int: Int,
+    float: Float,
+    str: Str,
+    bytes: Bytes,
+    list: AList,
+    dict: ADict,
+    set: Set,
+    abc.Callable: ACallable
+}
+
+
+def _use_instance_or_typed(parameters) -> Union[Type[Instance], Type[Typed]]:
+    if any(p.__instancecheck__ is not object.__instancecheck__ for p in parameters):
+        return Instance
+    elif len(parameters) == 2 and type(None) in parameters:
+        return Typed
+    else:
+        return Instance
+
+
+def _generate_member_from_type_or_generic(
+    type_generic: Any, default: Any, annotate_type_containers: int
+) -> Member:
+    """Generate a member from a type or generic alias."""
+    if isinstance(type_generic, _GENERIC_ALIAS):
+        parameters = type_generic.__parameters__
+        type_generic = type_generic.__origin__
+    elif isinstance(type_generic, typing._GenericAlias):
+        parameters = type_generic.__args__
+        type_generic = type_generic.__origin__
+    else:
+        parameters = ()
+
+    m_kwargs = {}
+
+    # Int, Float, Str, Bytes, List, Dict, Set, Tuple, Bool, Callable
+    if type_generic in _TYPE_TO_MEMBER:
+        m_cls = _TYPE_TO_MEMBER[type_generic]
+        if annotate_type_containers and type_generic in (list, dict, set, tuple):
+            # We can only validate homogeneous tuple so far so we ignore other cases
+            if type_generic is tuple:
+                if ((...) in parameters or len(set(parameters)) == 1):
+                    parameters = (parameters[0],)
+                else:
+                    parameters = ()
+            parameters = tuple(
+                _generate_member_from_type_or_generic(
+                    t, _NO_DEFAULT, annotate_type_containers - 1
+                )
+                if t not in (Any, object) else
+                None
+                for t in parameters
+            )
+        else:
+            parameters = ()
+
+    # The value was annotated with Type[T] so we use a subclass
+    elif type_generic is type:
+        m_cls = Subclass
+    elif type_generic is Any or type_generic is object:
+        m_cls = Value
+    else:
+        m_cls = _use_instance_or_typed(parameters or (type_generic,))
+        m_kwargs["optional"] = type(None) in parameters
+        parameters = ()
+
+    if default is not _NO_DEFAULT:
+        m_kwargs["default"] = default
+
+    return m_cls(*parameters, **m_kwargs)
+
+def _generate_members_from_annotations(namespace, annotate_type_containers):
+    """Generate the member corresponding to a type annotation."""
+    annotations = namespace["__annotations__"]
+
+    for name, ann in annotations.items():
+        default = namespace.get(name, _NO_DEFAULT)
+        # We skip field for which a member was already provided or annotations
+        # corresponding to class variables.
+        if isinstance(default, Member) or getattr(ann, "__origin__", None) is ClassVar:
+            continue
+        namespace[name] = _generate_member_from_type_or_generic(
+            ann, default, annotate_type_containers
+        )
+
+
+
 class AtomMeta(type):
     """ The metaclass for classes derived from Atom.
 
@@ -174,12 +281,26 @@ class AtomMeta(type):
     required, then a subclasss should declare the appropriate slots.
 
     """
-    def __new__(meta, name, bases, dct):
+
+    def __new__(
+        meta,
+        name: str,
+        bases: Tuple[type, ...],
+        dct: dict[str, Any],
+        enable_weakrefs: bool = False,
+        use_annotations: bool = True,
+        annotate_type_containers: int = -1
+    ):
         # Unless the developer requests slots, they are automatically
         # turned off. This prevents the creation of instance dicts and
         # other space consuming features unless explicitly requested.
         if '__slots__' not in dct:
             dct['__slots__'] = ()
+        if enable_weakrefs:
+            dct["__slots__"] += ("__weakref__",)
+
+        if use_annotations:
+            _generate_members_from_annotations(dct, annotate_type_containers)
 
         # Pass over the class dict once and collect the information
         # necessary to implement the various behaviors. Some objects

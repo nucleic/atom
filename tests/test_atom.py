@@ -20,6 +20,9 @@ import pytest
 from atom.api import Atom, Int, Value, atomref, set_default
 
 
+# XXX test enable_weakref
+
+
 def test_init():
     """Test init.
 
