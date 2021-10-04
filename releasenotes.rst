@@ -4,16 +4,25 @@ Atom Release Notes
 
 0.7.0 - unreleased
 ------------------
+
+This release introduces several minor backward incompatibilities which are detailed
+below. Those are expected to impact only a small minority of users since they make
+behaviors more in line with users expectations in most cases or can be easily addressed.
+
 - make the factory argument of Typed, Instance and their forwarded version
   keyword only. PR #123
 - add an optional keyword-only argument to Typed, Instance and their forwarded
   version. When set to False, this will cause those members to reject None as
   a valid value. The default value, None, will resolve to True if there is
   no provided way to build a default value. PR #123 # 131
+  This is backward incompatible since previously None was always a valid value.
 - the Instance and Typed variants of the Validate enum have been renamed to
   OptionalInstance, OptionalTyped and new Instance and Typed variant describing
   the validation behavior for the member with optional=False have been added. PR #123
 - consistently use Instance to wrap types passed to containers. PR #123
+  For containers, Instance members used for validation are always created with
+  optional=False. This is backward incompatible since None was always a valid
+  value previously.
 - add strict argument to FloatRange. PR #124
 - allow to specify the type of ReadOnly and Constant. PR #128
   The validation is done using the Instance validator. The change for ReadOnly
@@ -24,6 +33,7 @@ Atom Release Notes
 - remove the custom atom.IntEnum  PR #122
 - add and distribute type hints PR #122 #132
   This allows static type checkers to resolve the values behind a member.
+- drop official support for Python 3.6
 
 
 0.6.0 - 02/11/2020
