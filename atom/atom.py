@@ -190,15 +190,6 @@ _TYPE_TO_MEMBER = {
 }
 
 
-def _use_instance_or_typed(parameters) -> Union[Type[Instance], Type[Typed]]:
-    if any(p.__instancecheck__ is not object.__instancecheck__ for p in parameters):
-        return Instance
-    elif len(parameters) == 2 and type(None) in parameters:
-        return Typed
-    else:
-        return Instance
-
-
 def _generate_member_from_type_or_generic(
     type_generic: Any, default: Any, annotate_type_containers: int
 ) -> Member:
@@ -241,9 +232,16 @@ def _generate_member_from_type_or_generic(
     elif type_generic is Any or type_generic is object:
         m_cls = Value
     else:
-        m_cls = _use_instance_or_typed(parameters or (type_generic,))
+        # We cannot determine if a type has a trivial __instancecheck__ or not so
+        # we always use Instance since Typed will fail to validate with generic types
+        # such as collections.Iterable
+        parameters = parameters or (type_generic,)
+        m_cls = Instance
         m_kwargs["optional"] = type(None) in parameters
-        parameters = ()
+        if default is not _NO_DEFAULT:
+            raise ValueError(
+                "Members requiring Typed or Instance cannot have a default value."
+            )
 
     if default is not _NO_DEFAULT:
         m_kwargs["default"] = default
