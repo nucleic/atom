@@ -21,12 +21,13 @@ class Instance(Member):
     same rules apply.
 
     If optional is True, the value of an Instance may be set to None,
-    otherwise None is not considered as a valid value.
+    otherwise None is not considered as a valid value. By default, optional will
+    be considered False if a default value is provided and True otherwise.
 
     """
     __slots__ = ()
 
-    def __init__(self, kind, args=None, kwargs=None, *, factory=None, optional=True):
+    def __init__(self, kind, args=None, kwargs=None, *, factory=None, optional=None):
         """ Initialize an Instance.
 
         Parameters
@@ -50,9 +51,10 @@ class Instance(Member):
             then the default value will be None, which will raised if
             accessed when optional is False.
 
-        optional : bool, optional
+        optional : bool | None, optional
             Boolean indicating if None is a valid value for the member.
-            True by default.
+            By default, the value is inferred to be True if no args or factory
+            is provided.
 
         """
         if factory is not None:
@@ -62,14 +64,22 @@ class Instance(Member):
             kwargs = kwargs or {}
             factory = lambda: kind(*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
-        elif not optional:
+        elif optional is False:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
 
         if sys.version_info >= (3, 9):
             if isinstance(kind, GenericAlias):
                 kind = kind.__origin__
             elif isinstance(kind, tuple):
-                kind = tuple(k.__origin__ if isinstance(k, GenericAlias) else k for k in kind)
+                kind = tuple(
+                    k.__origin__ if isinstance(k, GenericAlias) else k for k in kind
+                )
+
+        optional = (
+            optional
+            if optional is not None else
+            (factory is None and args is None and kwargs is None)
+        )
         if optional:
             self.set_validate_mode(Validate.OptionalInstance, kind)
         else:
@@ -86,7 +96,7 @@ class ForwardInstance(Instance):
     """
     __slots__ = ('resolve', 'args', 'kwargs', 'optional')
 
-    def __init__(self, resolve, args=None, kwargs=None, *, factory=None, optional=True):
+    def __init__(self, resolve, args=None, kwargs=None, *, factory=None, optional=None):
         """ Initialize a ForwardInstance.
 
         resolve : callable
@@ -109,22 +119,28 @@ class ForwardInstance(Instance):
             then the default value will be None, which will raised if
             accessed when optional is False.
 
-        optional : bool, optional
+        optional : bool | None, optional
             Boolean indicating if None is a valid value for the member.
-            True by default.
+            By default, the value is inferred to be True if no args or factory
+            is provided.
 
         """
         self.resolve = resolve
         self.args = args
         self.kwargs = kwargs
-        self.optional = optional
         if factory is not None:
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif args is not None or kwargs is not None:
             mode = DefaultValue.MemberMethod_Object
             self.set_default_value_mode(mode, "default")
-        elif not optional:
+        elif optional is False:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
+
+        self.optional = (
+            optional
+            if optional is not None else
+            (factory is None and args is None and kwargs is None)
+        )
 
         self.set_validate_mode(Validate.MemberMethod_ObjectOldNew, "validate")
 

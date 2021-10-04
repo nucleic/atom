@@ -28,7 +28,7 @@ class Typed(Member):
     """
     __slots__ = ()
 
-    def __init__(self, kind, args=None, kwargs=None, *, factory=None, optional=True):
+    def __init__(self, kind, args=None, kwargs=None, *, factory=None, optional=None):
         """ Initialize an Typed.
 
         Parameters
@@ -52,9 +52,10 @@ class Typed(Member):
             then the default value will be None, which will raised if
             accessed when optional is False.
 
-        optional : bool, optional
+        optional : bool | None, optional
             Boolean indicating if None is a valid value for the member.
-            True by default.
+            By default, the value is inferred to be True if no args or factory
+            is provided.
 
         """
         if factory is not None:
@@ -64,11 +65,16 @@ class Typed(Member):
             kwargs = kwargs or {}
             factory = lambda: kind(*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
-        elif not optional:
+        elif optional is False:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
 
         if sys.version_info >= (3, 9) and isinstance(kind, GenericAlias):
             kind = kind.__origin__
+        optional = (
+            optional
+            if optional is not None
+            else factory is None and args is None and kwargs is None
+        )
         if optional:
             self.set_validate_mode(Validate.OptionalTyped, kind)
         else:
@@ -85,7 +91,7 @@ class ForwardTyped(Typed):
     """
     __slots__ = ('resolve', 'args', 'kwargs', 'optional')
 
-    def __init__(self, resolve, args=None, kwargs=None, *, factory=None, optional=True):
+    def __init__(self, resolve, args=None, kwargs=None, *, factory=None, optional=None):
         """ Initialize a ForwardTyped.
 
         resolve : callable
@@ -108,22 +114,28 @@ class ForwardTyped(Typed):
             then the default value will be None, which will raised if
             accessed when optional is False.
 
-        optional : bool, optional
+        optional : bool | None, optional
             Boolean indicating if None is a valid value for the member.
-            True by default.
+            By default, the value is inferred to be True if no args or factory
+            is provided.
 
         """
         self.resolve = resolve
         self.args = args
         self.kwargs = kwargs
-        self.optional = optional
         if factory is not None:
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif args is not None or kwargs is not None:
             mode = DefaultValue.MemberMethod_Object
             self.set_default_value_mode(mode, "default")
-        elif not optional:
+        elif optional is False:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
+
+        self.optional = (
+            optional
+            if optional is not None
+            else factory is None and args is None and kwargs is None
+        )
 
         self.set_validate_mode(Validate.MemberMethod_ObjectOldNew, "validate")
 
