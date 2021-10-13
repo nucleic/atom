@@ -8,9 +8,7 @@
 import sys
 
 from .catom import DefaultValue, Member, Validate
-
-if sys.version_info >= (3, 9):
-    from typing import GenericAlias
+from .typing_utils import extract_types
 
 
 class Typed(Member):
@@ -68,8 +66,8 @@ class Typed(Member):
         elif optional is False:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
 
-        if sys.version_info >= (3, 9) and isinstance(kind, GenericAlias):
-            kind = kind.__origin__
+        kind, = extract_types(kind)
+
         optional = (
             optional
             if optional is not None
@@ -162,9 +160,7 @@ class ForwardTyped(Typed):
         handler to behave like a normal Typed member.
 
         """
-        kind = self.resolve()
-        if sys.version_info >= (3, 9) and isinstance(kind, GenericAlias):
-            kind = kind.__origin__
+        kind, = extract_types(self.resolve())
         if self.optional:
             self.set_validate_mode(Validate.OptionalTyped, kind)
         else:

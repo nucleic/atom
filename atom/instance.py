@@ -6,8 +6,10 @@
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
 import sys
+from itertools import chain
 
 from .catom import DefaultValue, Member, Validate
+from .typing_utils import extract_types
 
 if sys.version_info >= (3, 9):
     from typing import GenericAlias
@@ -67,13 +69,7 @@ class Instance(Member):
         elif optional is False:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
 
-        if sys.version_info >= (3, 9):
-            if isinstance(kind, GenericAlias):
-                kind = kind.__origin__
-            elif isinstance(kind, tuple):
-                kind = tuple(
-                    k.__origin__ if isinstance(k, GenericAlias) else k for k in kind
-                )
+        kind = extract_types(kind)
 
         optional = (
             optional
@@ -167,12 +163,7 @@ class ForwardInstance(Instance):
         handler to behave like a normal Instance member.
 
         """
-        kind = self.resolve()
-        if sys.version_info >= (3, 9):
-            if isinstance(kind, GenericAlias):
-                kind = kind.__origin__
-            elif isinstance(kind, tuple):
-                kind = tuple(k.__origin__ if isinstance(k, GenericAlias) else k for k in kind)
+        kind = extract_types(self.resolve())
         if self.optional:
             self.set_validate_mode(Validate.OptionalInstance, kind)
         else:

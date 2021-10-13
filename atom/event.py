@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
 from .catom import Member, Validate, GetAttr, SetAttr, DelAttr
-
+from .typing_utils import extract_types
 
 class Event(Member):
     """ A member which acts like a stateless event.
@@ -33,7 +33,7 @@ class Event(Member):
             if isinstance(kind, Member):
                 self.set_validate_mode(Validate.Delegate, kind)
             else:
-                self.set_validate_mode(Validate.Instance, kind)
+                self.set_validate_mode(Validate.Instance, extract_types(kind))
 
     def set_name(self, name):
         """ A reimplemented parent class method.
