@@ -55,3 +55,13 @@ def extract_types(kind) -> Tuple[type, ...]:
             *[_extract_types(k) for k in (kind if isinstance(kind, tuple) else (kind,))]
         )
     )
+
+
+NONE_TYPE = type(None)
+
+def is_optional(kinds: Tuple[type, ...]) -> Tuple[bool, Tuple[type, ...]]:
+    """Determine if a tuple of types contains NoneType."""
+    if NONE_TYPE in kinds:
+        return True, tuple(k for k in kinds if k is not NONE_TYPE)
+    else:
+        return False, kinds

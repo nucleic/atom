@@ -9,7 +9,7 @@ import sys
 from itertools import chain
 
 from .catom import DefaultValue, Member, Validate
-from .typing_utils import extract_types
+from .typing_utils import extract_types, is_optional
 
 if sys.version_info >= (3, 9):
     from typing import GenericAlias
@@ -59,6 +59,16 @@ class Instance(Member):
             is provided.
 
         """
+        opt, kind = is_optional(extract_types(kind))
+        # Since we fast track None it is relevant to identify it early.
+        if opt and optional is False:
+            raise ValueError(
+                "The type passed to Instance is declared optional but optional was "
+                "explicitly set to False"
+            )
+        # If opt is False we preserve optional as None for backward compatibility.
+        optional = optional if optional is not None else (opt or None)
+
         if factory is not None:
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif args is not None or kwargs is not None:
@@ -68,8 +78,6 @@ class Instance(Member):
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif optional is False:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
-
-        kind = extract_types(kind)
 
         optional = (
             optional
