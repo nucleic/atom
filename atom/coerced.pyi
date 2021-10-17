@@ -130,7 +130,7 @@ class Coerced(Member[T, S]):
         args: None = None,
         kwargs: None = None,
         *,
-        factory: Callable[[], S],
+        factory: Callable[[], T | S],
         coercer: Callable[[S], T],
     ) -> Coerced[T, T | S]: ...
     # - 1-tuple
@@ -151,7 +151,7 @@ class Coerced(Member[T, S]):
         args: None = None,
         kwargs: None = None,
         *,
-        factory: Callable[[], S],
+        factory: Callable[[], T | S],
         coercer: Callable[[S], T],
     ) -> Coerced[T, T | S]: ...
     # - 2-tuple
@@ -172,7 +172,7 @@ class Coerced(Member[T, S]):
         args: None = None,
         kwargs: None = None,
         *,
-        factory: Callable[[], S],
+        factory: Callable[[], T | T1 | S],
         coercer: Callable[[S], T | T1],
     ) -> Coerced[T | T1, T | T1 | S]: ...
     # - 3-tuple
@@ -194,5 +194,5 @@ class Coerced(Member[T, S]):
         kwargs: None = None,
         *,
         factory: Callable[[], S],
-        coercer: Callable[[S], T | T1 | T2],
+        coercer: Callable[[S],  T | T1 | T2 | S],
     ) -> Coerced[T | T1 | T2, T | T1 | T2 | S]: ...
