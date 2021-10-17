@@ -74,7 +74,7 @@ class Instance(Member):
         elif args is not None or kwargs is not None:
             args = args or ()
             kwargs = kwargs or {}
-            factory = lambda: kind(*args, **kwargs)
+            factory = lambda: kind[0](*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif optional is False:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
