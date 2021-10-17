@@ -38,12 +38,17 @@ def _extract_types(kind) -> Tuple[type, ...]:
 
     for i, t in enumerate(ret):
         if isinstance(t, TypeVar):
-            if b := t.__bound__:
+            b = t.__bound__
+            if b:
                 if isinstance(b, str):
-                    raise  # XXX
+                    raise ValueError(
+                        "Forward reference in type var bounds are not supported."
+                    )
                 ret[i] = b
             elif t.__constraints__:
-                raise  # XXX
+                raise ValueError(
+                        "Constraints in type var are not supported."
+                    )
 
     return tuple(ret)
 
