@@ -7,13 +7,26 @@
 # ------------------------------------------------------------------------------
 import sys
 from itertools import chain
-from typing import Any, _GenericAlias, TypeVar, get_origin, get_args, Union, Tuple
+from typing import Any, TypeVar, Union, Tuple, List
 
-GENERICS: Tuple[Any, ...] = (_GenericAlias,)
+
+GENERICS: Tuple[Any, ...] = (type(List[int]),)
 UNION = ()
 
+if sys.version_info < (3, 8):
+
+    def get_origin(t):
+        return t.__origin__
+
+    def get_args(t):
+        return t.__args__
+
+
+else:
+    from typing import get_origin, get_args
+
 if sys.version_info >= (3, 9):
-    from typing import GenericAlias
+    from types import GenericAlias
 
     GENERICS += (GenericAlias,)
 if sys.version_info >= (3, 10):
@@ -46,9 +59,7 @@ def _extract_types(kind) -> Tuple[type, ...]:
                     )
                 ret[i] = b
             elif t.__constraints__:
-                raise ValueError(
-                        "Constraints in type var are not supported."
-                    )
+                raise ValueError("Constraints in type var are not supported.")
 
     return tuple(ret)
 
@@ -63,6 +74,7 @@ def extract_types(kind) -> Tuple[type, ...]:
 
 
 NONE_TYPE = type(None)
+
 
 def is_optional(kinds: Tuple[type, ...]) -> Tuple[bool, Tuple[type, ...]]:
     """Determine if a tuple of types contains NoneType."""
