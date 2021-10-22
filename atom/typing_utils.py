@@ -38,14 +38,14 @@ if sys.version_info >= (3, 10):
 def _extract_types(kind) -> Tuple[type, ...]:
     """Extract a tuple of types from a type-like object"""
     if isinstance(kind, GENERICS):
-        kind = get_origin(kind)
         args = get_args(kind)
+        kind = get_origin(kind)
         if kind is Union:
-            ret = list(args)
+            ret = list(chain.from_iterable(extract_types(a) for a in args))
         else:
             ret = [kind]
     elif UNION and isinstance(kind, UNION):
-        ret = list(get_args(kind))
+        ret = list(chain.from_iterable(extract_types(a) for a in get_args(kind)))
     else:
         ret = [kind]
 
@@ -67,8 +67,8 @@ def _extract_types(kind) -> Tuple[type, ...]:
 def extract_types(kind) -> Tuple[type, ...]:
     """Extract a tuple of types from a type-like object or tuple."""
     return tuple(
-        chain(
-            *[_extract_types(k) for k in (kind if isinstance(kind, tuple) else (kind,))]
+        chain.from_iterable(
+            _extract_types(k) for k in (kind if isinstance(kind, tuple) else (kind,))
         )
     )
 
