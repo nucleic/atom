@@ -48,14 +48,19 @@ class Coerced(Member):
             the value to the appropriate type.
 
         """
+        kind = extract_types(kind)
+
         if factory is not None:
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         else:
             args = args or ()
             kwargs = kwargs or {}
-            factory = lambda: kind(*args, **kwargs)
+            if type(None) in kind:
+                factory = lambda: None
+            else:
+                factory = lambda: kind[0](*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
 
         if not coercer and not callable(kind):
             raise ValueError(f"No coercer was provided but {kind} is not callable.")
-        self.set_validate_mode(Validate.Coerced, (extract_types(kind), coercer or kind))
+        self.set_validate_mode(Validate.Coerced, (kind, coercer or kind[0]))
