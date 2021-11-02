@@ -37,7 +37,7 @@ jobs:
       - name: Run Mypy
         run: |
           pip install mypy pytest
-          mypy atom tests
+          mypy atom
       - name: Test with pytest
         run: |
           pip install pytest-mypy-plugins regex

@@ -5,10 +5,9 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
-from collections.abc import MutableMapping
-
-from .catom import Member, PostGetAttr, DefaultValue, Validate
+from .catom import Member, DefaultValue, Validate
 from .instance import Instance
+from .typing_utils import extract_types, is_optional
 
 
 class Dict(Member):
@@ -41,9 +40,11 @@ class Dict(Member):
         """
         self.set_default_value_mode(DefaultValue.Dict, default)
         if key is not None and not isinstance(key, Member):
-            key = Instance(key, optional=False)
+            opt, types = is_optional(extract_types(key))
+            key = Instance(types, optional=opt)
         if value is not None and not isinstance(value, Member):
-            value = Instance(value, optional=False)
+            opt, types = is_optional(extract_types(value))
+            value = Instance(types, optional=opt)
         self.set_validate_mode(Validate.Dict, (key, value))
 
     def set_name(self, name):
