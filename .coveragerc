@@ -2,6 +2,8 @@
 branch = True
 include =
     */atom/*
+omit =
+    */tests/*
 
 [report]
 # Regexes for lines to exclude from consideration
