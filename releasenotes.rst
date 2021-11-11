@@ -15,10 +15,10 @@ behaviors more in line with users expectations in most cases or can be easily ad
   the content types is not used beyond static type validation. PR #136
 - make the factory argument of Typed, Instance and their forwarded version
   keyword only. PR #123
-- add an optional keyword-only argument to Typed, Instance and their forwarded
-  version. When set to False, this will cause those members to reject None as
-  a valid value. The default value, None, will resolve to True if there is
-  no provided way to build a default value. PR #123 # 131
+- add a keyword-only argument to Typed, Instance and their forwarded
+  version: ``optional``. When set to False, this will cause those members to
+  reject None as a valid value. The default value, None, will resolve to True
+  if there is no provided way to build a default value. PR #123 # 131
   This is backward incompatible since previously None was always a valid value.
 - the Instance and Typed variants of the Validate enum have been renamed to
   OptionalInstance, OptionalTyped and new Instance and Typed variant describing
