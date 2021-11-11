@@ -5,14 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
-import sys
-from itertools import chain
-
 from .catom import DefaultValue, Member, Validate
 from .typing_utils import extract_types, is_optional
-
-if sys.version_info >= (3, 9):
-    from typing import GenericAlias
 
 
 class Instance(Member):
