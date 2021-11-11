@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
-import warnings
 from .catom import Member, DefaultValue, Validate, SetAttr, DelAttr
-
+from .typing_utils import extract_types
 
 class Value(Member):
     """ A member class which supports value initialization.
@@ -53,7 +52,7 @@ class ReadOnly(Value):
         self.set_setattr_mode(SetAttr.ReadOnly, None)
         self.set_delattr_mode(DelAttr.ReadOnly, None)
         if kind:
-            self.set_validate_mode(Validate.Instance, kind)
+            self.set_validate_mode(Validate.Instance, extract_types(kind))
 
 
 class Constant(Value):
@@ -67,7 +66,7 @@ class Constant(Value):
         self.set_setattr_mode(SetAttr.Constant, None)
         self.set_delattr_mode(DelAttr.Constant, None)
         if kind:
-            self.set_validate_mode(Validate.Instance, kind)
+            self.set_validate_mode(Validate.Instance, extract_types(kind))
 
 
 class Callable(Value):

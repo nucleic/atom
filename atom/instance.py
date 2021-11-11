@@ -5,12 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
-import sys
-
 from .catom import DefaultValue, Member, Validate
-
-if sys.version_info >= (3, 9):
-    from typing import GenericAlias
+from .typing_utils import extract_types, is_optional
 
 
 class Instance(Member):
@@ -57,23 +53,25 @@ class Instance(Member):
             is provided.
 
         """
+        opt, kind = is_optional(extract_types(kind))
+        # Since we fast track None it is relevant to identify it early.
+        if opt and optional is False:
+            raise ValueError(
+                "The type passed to Instance is declared optional but optional was "
+                "explicitly set to False"
+            )
+        # If opt is False we preserve optional as None for backward compatibility.
+        optional = optional if optional is not None else (opt or None)
+
         if factory is not None:
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif args is not None or kwargs is not None:
             args = args or ()
             kwargs = kwargs or {}
-            factory = lambda: kind(*args, **kwargs)
+            factory = lambda: kind[0](*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif optional is False:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
-
-        if sys.version_info >= (3, 9):
-            if isinstance(kind, GenericAlias):
-                kind = kind.__origin__
-            elif isinstance(kind, tuple):
-                kind = tuple(
-                    k.__origin__ if isinstance(k, GenericAlias) else k for k in kind
-                )
 
         optional = (
             optional
@@ -167,12 +165,7 @@ class ForwardInstance(Instance):
         handler to behave like a normal Instance member.
 
         """
-        kind = self.resolve()
-        if sys.version_info >= (3, 9):
-            if isinstance(kind, GenericAlias):
-                kind = kind.__origin__
-            elif isinstance(kind, tuple):
-                kind = tuple(k.__origin__ if isinstance(k, GenericAlias) else k for k in kind)
+        kind = extract_types(self.resolve())
         if self.optional:
             self.set_validate_mode(Validate.OptionalInstance, kind)
         else:

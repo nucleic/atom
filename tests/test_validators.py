@@ -39,6 +39,7 @@
 
 """
 import sys
+from typing import Set as TSet, Optional, Union
 
 import pytest
 from atom.api import (Atom, Bool, Bytes, Callable, CAtom, Coerced, Constant,
@@ -74,6 +75,10 @@ def c(x: object) -> int:
                           (Range(2, 0), [0, 2], [0, 2], [-1, 3]),
                           (Range(0), [0, 3], [0, 3], [-1]),
                           (Range(high=2), [-1, 2], [-1, 2], [3]),
+                          (Range(sys.maxsize, sys.maxsize + 2),
+                           [sys.maxsize, sys.maxsize + 2],
+                           [sys.maxsize, sys.maxsize + 2],
+                           [sys.maxsize - 1, sys.maxsize + 3]),
                           (Float(), [1, int(1), 1.1], [1.0, 1.0, 1.1], ['']),
                           (Float(strict=True), [1.1], [1.1], [1]),
                           (FloatRange(0.0, 0.5), [0.0, 0.5], [0.0, 0.5],
@@ -91,37 +96,46 @@ def c(x: object) -> int:
                           (Str(), [u'a'], ['a'], [b'a']),
                           (Enum(1, 2, 'a'), [1, 2, 'a'], [1, 2, 'a'], [3]),
                           (Callable(), [int, None], [int, None], [1]),
+                          # 3.9 subs and 3.10 union tests in test_typing_utils are sufficient
                           (Coerced(set), [{1}, [1], (1,)], [{1}]*3, [1]),
                           (Coerced(int, coercer=c), ['101'], [5], []),
                           (Coerced((int, float), coercer=c),
                            ['101'], [5], []),
                           (Coerced(int, coercer=lambda x: []), [], [], ['']),  # type: ignore
+                          (Coerced(TSet[int]), [{1}, [1], (1,)], [{1}]*3, [1]),
                           (Tuple(), [(1,)], [(1,)], [[1]]),
                           (Tuple(Int()), [(1,)], [(1,)], [(1.0,)]),
                           (Tuple(int), [(1,)], [(1,)], [(1.0,), (None,)]),
+                          (Tuple(TSet[int]), [({1},)], [({1},)], [(1.0,), (None,)]),
                           (List(), [[1]], [[1]], [(1,)]),
                           (List(Int()), [[1]], [[1]], [[1.0]]),
                           (List(float), [[1.0]], [[1.0]], [[1], [None]]),
                           (List((int, float)), [[1, 1.0]], [[1, 1.0]], [['']]),
+                          (List(TSet[int]), [[{1}]], [[{1}]], [[1], [None]]),
                           (ContainerList(), [[1]], [[1]], [(1,)]),
                           (ContainerList(Int()), [[1]], [[1]], [[1.0]]),
                           (ContainerList(float), [[1.0]], [[1.0]], [[1], [None]]),
                           (ContainerList((int, float)), [[1, 1.0]], [[1, 1.0]],
                            [['']]),
+                          (ContainerList(TSet[int]), [[{1}]], [[{1}]], [[1], [None]]),
                           (Set(), [{1}], [{1}], [()]),
                           (Set(Int()), [{1}], [{1}], [{''}]),
                           (Set(item=Int()), [{1}], [{1}], [{''}]),
                           (Set(int), [{1}], [{1}], [{''}, {None}]),
+                          (Set(Optional[int]), [{1, None}], [{1, None}], [[1]]),
                           (Dict(), [{1: 2}], [{1: 2}], [()]),
                           (Dict(Int()), [{1: 2}], [{1: 2}], [{'': 2}]),
                           (Dict(value=Int()), [{1: 2}], [{1: 2}], [{2: ''}]),
                           (Dict(int, int), [{1: 2}], [{1: 2}],
                            [{'': 2}, {2: ''}, {None: 2}, {2: None}]),
+                          (Dict(Optional[int]), [{None: 1, 1: 2}], [{None: 1, 1: 2}], [[1]]),
                           (Instance((int, float)), [1, 2.0, None],
                            [1, 2.0, None], ['']),
                           (Instance((int, float), ()), [1, 2.0],
                            [1, 2.0], ['', None]),
                           (Instance((int, float), (), optional=True), [1, 2.0, None],
+                           [1, 2.0, None], ['']),
+                          (Instance(Optional[Union[int, float]], ()), [1, 2.0, None],
                            [1, 2.0, None], ['']),
                           (Instance((int, float), optional=False), [1, 2.0],
                            [1, 2.0], [None, '']),
@@ -131,11 +145,14 @@ def c(x: object) -> int:
                            [1, 2.0], [1, 2.0], ['', None]),
                           (ForwardInstance(lambda: (int, float), (), optional=True),
                            [1, 2.0, None], [1, 2.0, None], ['']),
+                          (ForwardInstance(lambda: Optional[Union[int, float]], ()),
+                           [1, 2.0, None], [1, 2.0, None], ['']),
                           (ForwardInstance(lambda: (int, float), optional=False),
                            [1, 2.0], [1, 2.0], [None, '']),
                           (Typed(float), [1.0, None], [1.0, None], [1]),
                           (Typed(float, ()), [1.0], [1.0], [1, None]),
                           (Typed(float, (), optional=True), [1.0, None], [1.0, None], [1]),
+                          (Typed(Optional[float], ()), [1.0, None], [1.0, None], [1]),
                           (Typed(float, optional=False), [1.0], [1.0], [1, None]),
                           (ForwardTyped(lambda: float), [1.0, None], [1.0, None], [1]),
                           (ForwardTyped(lambda: float, ()), [1.0], [1.0], [1, None]),
@@ -146,12 +163,7 @@ def c(x: object) -> int:
                           (Subclass((CAtom, float)), [Atom], [Atom], [int, 1]),
                           (ForwardSubclass(lambda: CAtom),
                            [Atom], [Atom], [int]),
-                          ] +
-                         ([(Range(sys.maxsize, sys.maxsize + 2),
-                           [sys.maxsize, sys.maxsize + 2],
-                           [sys.maxsize, sys.maxsize + 2],
-                           [sys.maxsize - 1, sys.maxsize + 3])]
-                          if sys.version_info > (3,) else [])
+                          ]
                          )
 def test_validation_modes(member, set_values, values, raising_values):
     """Test the validation modes.

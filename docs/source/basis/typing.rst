@@ -122,6 +122,13 @@ with type annotations, one can define the type hint as follow:
 
     The above is valid outside of a .pyi file only under Python 3.9+.
 
+.. note::
+
+    One can use types from the ``typing`` module including ``Optional`` and ``Union``
+    in any place where a type or a tuple of type is expected. Note however that when
+    using list[T], set[T], etc in such a position the content of the container
+    will not be validated at runtime by Atom.
+
 
 Member typing in term of Member[T, S]
 -------------------------------------

@@ -9,6 +9,10 @@ This release introduces several minor backward incompatibilities which are detai
 below. Those are expected to impact only a small minority of users since they make
 behaviors more in line with users expectations in most cases or can be easily addressed.
 
+- allow to use any subscribed type in Typed and Instance. Optional and Union are
+  analyzed to extract the tuple of types to validate. The presence of NoneType in
+  the tuple will make the member optional. For container types (list, dict, set, etc)
+  the content types is not used beyond static type validation. PR #136
 - make the factory argument of Typed, Instance and their forwarded version
   keyword only. PR #123
 - add an optional keyword-only argument to Typed, Instance and their forwarded
@@ -20,9 +24,9 @@ behaviors more in line with users expectations in most cases or can be easily ad
   OptionalInstance, OptionalTyped and new Instance and Typed variant describing
   the validation behavior for the member with optional=False have been added. PR #123
 - consistently use Instance to wrap types passed to containers. PR #123
-  For containers, Instance members used for validation are always created with
-  optional=False. This is backward incompatible since None was always a valid
-  value previously.
+  For containers, Instance members used for validation are created with
+  optional=False by default. This is backward incompatible since None was always
+  a valid value previously.
 - add strict argument to FloatRange. PR #124
 - allow to specify the type of ReadOnly and Constant. PR #128
   The validation is done using the Instance validator. The change for ReadOnly
@@ -33,7 +37,7 @@ behaviors more in line with users expectations in most cases or can be easily ad
 - remove the custom atom.IntEnum  PR #122
 - add and distribute type hints PR #122 #132
   This allows static type checkers to resolve the values behind a member.
-- drop official support for Python 3.6
+- drop official support for Python 3.6 and add support for Python 3.10
 
 
 0.6.0 - 02/11/2020

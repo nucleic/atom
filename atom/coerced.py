@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
 from .catom import Member, DefaultValue, Validate
-
+from .typing_utils import extract_types, is_optional
 
 class Coerced(Member):
     """ A member which will coerce a value to a given instance type.
@@ -48,11 +48,21 @@ class Coerced(Member):
             the value to the appropriate type.
 
         """
+        origin = kind
+        kind = extract_types(kind)
+        opt, temp = is_optional(kind)
+
         if factory is not None:
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         else:
             args = args or ()
             kwargs = kwargs or {}
-            factory = lambda: kind(*args, **kwargs)
+            if opt:
+                factory = lambda: None
+            else:
+                factory = lambda: kind[0](*args, **kwargs)
             self.set_default_value_mode(DefaultValue.CallObject, factory)
-        self.set_validate_mode(Validate.Coerced, (kind, coercer or kind))
+
+        if not coercer and (isinstance(origin, tuple) or len(temp) > 1):
+            raise ValueError(f"No coercer was provided but {origin} is not callable.")
+        self.set_validate_mode(Validate.Coerced, (kind, coercer or temp[0]))
