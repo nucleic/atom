@@ -7,6 +7,7 @@
 #------------------------------------------------------------------------------
 from .catom import Member, DefaultValue, Validate
 from .instance import Instance
+from .typing_utils import extract_types, is_optional
 
 
 class Tuple(Member):
@@ -35,7 +36,8 @@ class Tuple(Member):
 
         """
         if item is not None and not isinstance(item, Member):
-            item = Instance(item, optional=False)
+            opt, types = is_optional(extract_types(item))
+            item = Instance(types, optional=opt)
         self.item = item
         self.set_default_value_mode(DefaultValue.Static, default)
         self.set_validate_mode(Validate.Tuple, item)

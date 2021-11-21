@@ -12,7 +12,10 @@ behaviors more in line with users expectations in most cases or can be easily ad
 - allow to use any subscribed type in Typed and Instance. Optional and Union are
   analyzed to extract the tuple of types to validate. The presence of NoneType in
   the tuple will make the member optional. For container types (list, dict, set, etc)
-  the content types is not used beyond static type validation. PR #136
+  the content types is not used beyond static type validation. PR #136 #140
+  Note however that this usage of Optional and Union breaks static analyzer currently,
+  while things deriving from an actual type will work as expected (List[int], list[int],
+  Iterable[int])
 - make the factory argument of Typed, Instance and their forwarded version
   keyword only. PR #123
 - add a keyword-only argument to Typed, Instance and their forwarded

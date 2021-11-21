@@ -13,6 +13,10 @@
       member_type: atom.typed.Typed[Union[builtins.int, None]]
       member_value_type: Union[builtins.int*, None]
     - member: Typed
+      member_instance: Typed(List[int])
+      member_type: atom.typed.Typed[Union[builtins.list[builtins.int], None]]
+      member_value_type: Union[builtins.list*[builtins.int*], None]
+    - member: Typed
       member_instance: Typed(int, ())
       member_type: atom.typed.Typed[builtins.int]
       member_value_type: builtins.int*
@@ -111,7 +115,7 @@
       member_value_type: io.StringIO*
   main: |
     import io
-    from typing import Type
+    from typing import List, Type
     from atom.api import Atom, {{ member }}
 
     def resolver() -> Type[io.StringIO]:
@@ -146,6 +150,10 @@
       member_instance: Instance((int, float, str))
       member_type: atom.instance.Instance[Union[builtins.float, builtins.str, None]]
       member_value_type: Union[builtins.float*, builtins.str*, None]
+    - member: Instance
+      member_instance: Instance(List[int])
+      member_type: atom.instance.Instance[Union[builtins.list[builtins.int], None]]
+      member_value_type: Union[builtins.list*[builtins.int*], None]
     - member: Instance
       member_instance: Instance(int, ())
       member_type: atom.instance.Instance[builtins.int]
@@ -545,7 +553,7 @@
       member_value_type: Union[io.StringIO*, builtins.str*, builtins.bytes*]
   main: |
     import io
-    from typing import Tuple, Type
+    from typing import List, Tuple, Type
     from atom.api import Atom, {{ member }}
 
     def resolver() -> Type[io.StringIO]:

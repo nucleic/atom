@@ -91,7 +91,6 @@ is not valid in those versions. Python 3.9 introduced generic aliases
 this limitation and atom members implement `__getitem__` using generic aliases for
 Python 3.9+.
 
-
 As a consequence, we need the quote around `Member[Tuple[int, int], Tuple[int, int]]`
 for Python 3.7 and 3.8 and the type checkers will use the definition found in the
 .pyi file which do define |Member| as inheriting from Protocol. Under Python 3.9+
@@ -124,10 +123,16 @@ with type annotations, one can define the type hint as follow:
 
 .. note::
 
-    One can use types from the ``typing`` module including ``Optional`` and ``Union``
-    in any place where a type or a tuple of type is expected. Note however that when
-    using list[T], set[T], etc in such a position the content of the container
-    will not be validated at runtime by Atom.
+    One can use types from the ``typing`` module or generic aliases in any place
+    where a type or a tuple of type is expected. Note however that when
+    using ``typing.List[int]`` or  ``list[T]``, etc in such a position the content
+    of the container will not be validated at runtime by Atom.
+
+    ``Optional``, ``Union`` and ``Callable`` from the ``typing`` module can also be
+    used, however because they are not seen as proper types by type checkers this
+    will break static type checking. The recommended workaround is to use ``Typed``
+    or ``Instance`` as appropriate for the first two cases and a separate annotation
+    for the ``typing.Callable`` case.
 
 
 Member typing in term of Member[T, S]
