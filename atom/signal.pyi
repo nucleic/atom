@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 from typing import NoReturn
+
 from .catom import Member, SignalConnector
 
 class Signal(Member[SignalConnector, NoReturn]): ...

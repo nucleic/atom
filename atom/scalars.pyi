@@ -5,9 +5,18 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Any
-from typing import Callable as TCallable
-from typing import Literal, NoReturn, Optional, Tuple, Type, TypeVar, Union, overload
+from typing import (
+    Any,
+    Callable as TCallable,
+    Literal,
+    NoReturn,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from .catom import Member
 

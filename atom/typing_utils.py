@@ -1,14 +1,13 @@
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 import sys
 from itertools import chain
-from typing import Any, TypeVar, Union, Tuple, List
-
+from typing import Any, List, Tuple, TypeVar, Union
 
 GENERICS: Tuple[Any, ...] = (type(List[int]),)
 UNION = ()
@@ -23,7 +22,7 @@ if sys.version_info < (3, 8):
 
 
 else:
-    from typing import get_origin, get_args
+    from typing import get_args, get_origin
 
 if sys.version_info >= (3, 9):
     from types import GenericAlias

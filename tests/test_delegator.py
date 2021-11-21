@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Test the delegator member.
 
 We need to test all behaviors:
@@ -18,62 +18,71 @@ We need to test all behaviors:
 
 """
 import pytest
-from atom.api import (Atom, Int, Delegator, GetAttr, PostGetAttr, SetAttr,
-                      PostSetAttr, PostValidate, DefaultValue, Validate)
+
+from atom.api import (
+    Atom,
+    DefaultValue,
+    Delegator,
+    GetAttr,
+    Int,
+    PostGetAttr,
+    PostSetAttr,
+    PostValidate,
+    SetAttr,
+    Validate,
+)
 from atom.catom import DelAttr
 
 
 class TrackedInt(Int):
-    """Member used to check that a Delegate does forward all calls.
-
-    """
+    """Member used to check that a Delegate does forward all calls."""
 
     def __init__(self, set_custom_modes=False):
         super(TrackedInt, self).__init__()
         self.called = []
         if set_custom_modes:
             mode = GetAttr.MemberMethod_Object
-            self.set_getattr_mode(mode, 'get')
+            self.set_getattr_mode(mode, "get")
             mode = PostGetAttr.MemberMethod_ObjectValue
-            self.set_post_getattr_mode(mode, 'post_get')
+            self.set_post_getattr_mode(mode, "post_get")
             mode = SetAttr.MemberMethod_ObjectValue
-            self.set_setattr_mode(mode, 'set')
+            self.set_setattr_mode(mode, "set")
             mode = PostSetAttr.MemberMethod_ObjectOldNew
-            self.set_post_setattr_mode(mode, 'post_set')
+            self.set_post_setattr_mode(mode, "post_set")
             mode = Validate.MemberMethod_ObjectOldNew
-            self.set_validate_mode(mode, 'validate')
+            self.set_validate_mode(mode, "validate")
             mode = PostValidate.MemberMethod_ObjectOldNew
-            self.set_post_validate_mode(mode, 'post_validate')
+            self.set_post_validate_mode(mode, "post_validate")
             mode = DefaultValue.MemberMethod_Object
-            self.set_default_value_mode(mode, 'default_value')
+            self.set_default_value_mode(mode, "default_value")
 
     def get(self, obj):
-        self.called.append('get')
+        self.called.append("get")
         return self.get_slot(obj)
 
     def post_get(self, obj, value):
-        self.called.append('post_get')
+        self.called.append("post_get")
         return value
 
     def set(self, obj, value):
-        self.called.append('set')
+        self.called.append("set")
         self.set_slot(obj, value)
 
     def post_set(self, obj, old, new):
-        self.called.append('post_set')
+        self.called.append("post_set")
 
     def validate(self, obj, old, new):
-        self.called.append('validate')
+        self.called.append("validate")
         if not isinstance(new, int):
             raise TypeError()
         return new
 
     def post_validate(self, obj, old, new):
-        self.called.append('post_validate')
+        self.called.append("post_validate")
         return new
 
     def default_value(self, obj):
-        self.called.append('default_value')
+        self.called.append("default_value")
         return 0
 
     def clone(self):
@@ -83,9 +92,8 @@ class TrackedInt(Int):
 
 
 def test_delegator_behaviors():
-    """Test that a Delegator does properly forward the behaviors.
+    """Test that a Delegator does properly forward the behaviors."""
 
-    """
     class DelegateTest(Atom):
 
         d = Delegator(TrackedInt(True))
@@ -93,13 +101,16 @@ def test_delegator_behaviors():
     # Test that behaviors are properly delegated
     dt = DelegateTest()
     assert dt.d == 0
-    assert DelegateTest.d.delegate.called == ['default_value', 'validate',
-                                              'post_validate', 'post_get']
+    assert DelegateTest.d.delegate.called == [
+        "default_value",
+        "validate",
+        "post_validate",
+        "post_get",
+    ]
     DelegateTest.d.delegate.called = []
 
     dt.d = 1
-    assert DelegateTest.d.delegate.called == ['validate', 'post_validate',
-                                              'post_set']
+    assert DelegateTest.d.delegate.called == ["validate", "post_validate", "post_set"]
     assert dt.d == 1
     # Make sure they use the same slot
     assert DelegateTest.d.delegate.do_getattr(dt) == 1
@@ -110,12 +121,16 @@ def test_delegator_behaviors():
     DelegateTest.d.set_setattr_mode(SetAttr.Delegate, DelegateTest.d.delegate)
     DelegateTest.d.set_delattr_mode(DelAttr.Delegate, DelegateTest.d.delegate)
     assert dt.d == 1
-    assert DelegateTest.d.delegate.called == ['get', 'validate',
-                                              'post_validate']
+    assert DelegateTest.d.delegate.called == ["get", "validate", "post_validate"]
     dt.d = 2
-    assert DelegateTest.d.delegate.called == ['get', 'validate',
-                                              'post_validate', 'validate',
-                                              'post_validate', 'set']
+    assert DelegateTest.d.delegate.called == [
+        "get",
+        "validate",
+        "post_validate",
+        "validate",
+        "post_validate",
+        "set",
+    ]
     assert dt.d == 2
 
     # Test delegating del (This will cause an error because the validator will
@@ -125,21 +140,23 @@ def test_delegator_behaviors():
         assert dt.d == 0
 
 
-@pytest.mark.parametrize('mode, func',
-                         [(GetAttr, 'set_getattr_mode'),
-                          (SetAttr, 'set_setattr_mode'),
-                          (DelAttr, 'set_delattr_mode'),
-                          (PostGetAttr, 'set_post_getattr_mode'),
-                          (PostSetAttr, 'set_post_setattr_mode'),
-                          (Validate, 'set_validate_mode'),
-                          (PostValidate, 'set_post_validate_mode')])
+@pytest.mark.parametrize(
+    "mode, func",
+    [
+        (GetAttr, "set_getattr_mode"),
+        (SetAttr, "set_setattr_mode"),
+        (DelAttr, "set_delattr_mode"),
+        (PostGetAttr, "set_post_getattr_mode"),
+        (PostSetAttr, "set_post_setattr_mode"),
+        (Validate, "set_validate_mode"),
+        (PostValidate, "set_post_validate_mode"),
+    ],
+)
 def test_delegator_mode_args_validation(mode, func):
-    """Test that a delegator properly validate the arguments when setting mode.
-
-    """
+    """Test that a delegator properly validate the arguments when setting mode."""
     with pytest.raises(TypeError) as excinfo:
-        getattr(Delegator(Int()), func)(getattr(mode, 'Delegate'), None)
-    assert 'Member' in excinfo.exconly()
+        getattr(Delegator(Int()), func)(getattr(mode, "Delegate"), None)
+    assert "Member" in excinfo.exconly()
 
 
 def test_delegator_methods():
@@ -148,15 +165,16 @@ def test_delegator_methods():
     Mode setting methods are tested in cloning test
 
     """
+
     class DelegateTest(Atom):
 
         d = Delegator(TrackedInt(True))
 
-    assert DelegateTest.d.name == 'd'
-    assert DelegateTest.d.delegate.name == 'd'
-    DelegateTest.d.set_name('e')
-    assert DelegateTest.d.name == 'e'
-    assert DelegateTest.d.delegate.name == 'e'
+    assert DelegateTest.d.name == "d"
+    assert DelegateTest.d.delegate.name == "d"
+    DelegateTest.d.set_name("e")
+    assert DelegateTest.d.name == "e"
+    assert DelegateTest.d.delegate.name == "e"
 
     assert DelegateTest.d.index == DelegateTest.d.delegate.index
     new_index = DelegateTest.d.index + 1
@@ -178,6 +196,7 @@ def test_delegator_cloning():
     Test that the delegate is also cloned and its mode properly configured.
 
     """
+
     class DelegateTest(Atom):
 
         tracked_int = TrackedInt(True)
@@ -186,11 +205,19 @@ def test_delegator_cloning():
 
     # Checked that a cloned TrackedInt does not have any special mode set
     ti_clone = DelegateTest.tracked_int.clone()
-    for m in ('validate_mode', 'post_getattr_mode', 'post_validate_mode',
-              'post_setattr_mode'):
+    for m in (
+        "validate_mode",
+        "post_getattr_mode",
+        "post_validate_mode",
+        "post_setattr_mode",
+    ):
         assert getattr(ti_clone, m)[1] is None
 
     d_clone = DelegateTest.d.clone()
-    for m in ('validate_mode', 'post_getattr_mode', 'post_validate_mode',
-              'post_setattr_mode'):
+    for m in (
+        "validate_mode",
+        "post_getattr_mode",
+        "post_validate_mode",
+        "post_setattr_mode",
+    ):
         assert getattr(d_clone.delegate, m)[1] is not None

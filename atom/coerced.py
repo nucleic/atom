@@ -1,20 +1,22 @@
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
-from .catom import Member, DefaultValue, Validate
+# --------------------------------------------------------------------------------------
+from .catom import DefaultValue, Member, Validate
 from .typing_utils import extract_types, is_optional
 
+
 class Coerced(Member):
-    """ A member which will coerce a value to a given instance type.
+    """A member which will coerce a value to a given instance type.
 
     Unlike Typed or Instance, a Coerced value is not intended to be
     set to None.
 
     """
+
     __slots__ = ()
 
     def __init__(self, kind, args=None, kwargs=None, *, factory=None, coercer=None):

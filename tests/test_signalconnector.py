@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2018, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2018-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Test the signal connectors.
 
 """
@@ -14,7 +14,8 @@ import sys
 from collections import Counter
 
 import pytest
-from atom.api import Atom, Signal, Int
+
+from atom.api import Atom, Signal
 
 
 def test_signalconnector_lifecycle():
@@ -24,6 +25,7 @@ def test_signalconnector_lifecycle():
     deallocate some.
 
     """
+
     class SignalAtom(Atom):
         s = Signal()
 
@@ -44,9 +46,8 @@ def test_signalconnector_lifecycle():
 
 
 def test_signalconnector_cmp():
-    """Test comparing event binders.
+    """Test comparing event binders."""
 
-    """
     class EventAtom(Atom):
         s1 = Signal()
         s2 = Signal()
@@ -57,6 +58,6 @@ def test_signalconnector_cmp():
     assert not a.s1 == 1
 
     if sys.version_info >= (3,):
-        for op in ('lt', 'le', 'gt', 'ge'):
+        for op in ("lt", "le", "gt", "ge"):
             with pytest.raises(TypeError):
                 getattr(operator, op)(a.s1, 1)

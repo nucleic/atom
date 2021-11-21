@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """ The version information for this release of Atom.
 
 """
@@ -25,13 +25,16 @@ MINOR = 8
 MICRO = 0
 
 # The status indicate if this is a development or pre-release version
-STATUS = 'dev'
+STATUS = "dev"
 
 #: A namedtuple of the version info for the current release.
-_version_info = namedtuple('_version_info', 'major minor micro status')
+_version_info = namedtuple("_version_info", "major minor micro status")
 version_info = _version_info(MAJOR, MINOR, MICRO, STATUS)
 # Remove everything but the 'version_info' from this module.
 del namedtuple, _version_info, MAJOR, MINOR, MICRO, STATUS
 
-__version__ = ('{0}.{1}.{2}'.format(*version_info) if not version_info.status
-               else '{0}.{1}.{2}.{3}'.format(*version_info))
+__version__ = (
+    "{0}.{1}.{2}".format(*version_info)
+    if not version_info.status
+    else "{0}.{1}.{2}.{3}".format(*version_info)
+)

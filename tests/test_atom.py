@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2018, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Test the working of the Atom class and metaclass
 
 The handling of specially named method is not tested here as it is exercised
@@ -17,13 +17,13 @@ import gc
 import pickle
 
 import pytest
+
 from atom.api import Atom, Int, Value, atomref, set_default
 
 
 def test_init():
-    """Test init.
+    """Test init."""
 
-    """
     class A(Atom):
         val = Int()
 
@@ -38,9 +38,8 @@ def test_init():
 
 
 def test_set_default():
-    """Test changing the default value of a member.
+    """Test changing the default value of a member."""
 
-    """
     class Default1(Atom):
         i = Int()
         i2 = Int()
@@ -57,14 +56,14 @@ def test_set_default():
     assert Default2().i == 1
 
     with pytest.raises(TypeError):
+
         class Check(Atom):
             a = set_default(1)
 
 
 def test_multi_inheritance():
-    """Test that multiple inheritance does not break the memory layout.
+    """Test that multiple inheritance does not break the memory layout."""
 
-    """
     class Multi1(Atom):
 
         i1 = Int()
@@ -79,10 +78,8 @@ def test_multi_inheritance():
 
     # This ensures the conflict will occur (dict lack of ordering can cause
     # unexpected mismatch)
-    assert (Multi1.i1.index == Multi2.i3.index or
-            Multi1.i1.index == Multi2.i4.index)
-    assert (Multi1.i2.index == Multi2.i3.index or
-            Multi1.i2.index == Multi2.i4.index)
+    assert Multi1.i1.index == Multi2.i3.index or Multi1.i1.index == Multi2.i4.index
+    assert Multi1.i2.index == Multi2.i3.index or Multi1.i2.index == Multi2.i4.index
 
     class Multi(Multi1, Multi2):
 
@@ -104,6 +101,7 @@ def test_cloning_members():
     cloning is required such as modifying a mode are tested in the tests
 
     """
+
     class CloneTest(Atom):
         a = b = Int()
 
@@ -111,25 +109,23 @@ def test_cloning_members():
 
 
 def test_listing_members():
-    """Test listing the members from an Atom instance.
+    """Test listing the members from an Atom instance."""
 
-    """
     class MembersTest(Atom):
 
         a = b = c = d = e = Int()
 
-    assert sorted(MembersTest().members().keys()) == ['a', 'b', 'c', 'd', 'e']
+    assert sorted(MembersTest().members().keys()) == ["a", "b", "c", "d", "e"]
 
 
 def test_getting_members():
-    """Test accessing members directly.
+    """Test accessing members directly."""
 
-    """
     class A(Atom):
         val = Int()
 
-    assert A().get_member('val') is A.val
-    assert A().get_member('') is None
+    assert A().get_member("val") is A.val
+    assert A().get_member("") is None
 
     with pytest.raises(TypeError):
         A().get_member(1)
@@ -137,15 +133,13 @@ def test_getting_members():
 
 class PicklingTest(Atom):
 
-    __slots__ = ('d',)
+    __slots__ = ("d",)
 
     a = b = c = Int()
 
 
 def test_pickling():
-    """Test pickling an Atom instance.
-
-    """
+    """Test pickling an Atom instance."""
     pt = PicklingTest()
     pt.a = 2
     pt.b = 3
@@ -162,9 +156,8 @@ def test_pickling():
 
 
 def test_freezing():
-    """Test freezing an Atom instance.
+    """Test freezing an Atom instance."""
 
-    """
     class FreezingTest(Atom):
 
         a = Int()
@@ -181,20 +174,19 @@ def test_freezing():
 
 
 def test_traverse_atom():
-    """Test that we can break reference cycles involving Atom object.
+    """Test that we can break reference cycles involving Atom object."""
 
-    """
     class MyAtom(Atom):
 
-        l = Value()
+        val = Value()
 
     a = MyAtom()
-    l = list()
-    a.l = l
-    a.l.append(a)
+    l1 = list()
+    a.val = l1
+    a.val.append(a)
 
     ref = atomref(a)
-    del a, l
+    del a, l1
     gc.collect()
 
     assert not ref()

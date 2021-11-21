@@ -5,11 +5,10 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Callable, Optional, TypeVar, NoReturn, overload
+from typing import Callable, NoReturn, Optional, TypeVar, overload
 
 from .atom import Atom
 from .catom import Member
-
 
 A = TypeVar("A", bound=Atom)
 T = TypeVar("T")
@@ -22,7 +21,7 @@ class Property(Member[T, S]):
         fget: None = None,
         fset: None = None,
         fdel: Optional[Callable[[A], None]] = None,
-        cached: bool=False,
+        cached: bool = False,
     ) -> Property[NoReturn, NoReturn]: ...
     @overload
     def __new__(
@@ -30,7 +29,7 @@ class Property(Member[T, S]):
         fget: None,
         fset: Callable[[A, S], None],
         fdel: Optional[Callable[[A], None]] = None,
-        cached: bool=False,
+        cached: bool = False,
     ) -> Property[NoReturn, S]: ...
     @overload
     def __new__(
@@ -38,7 +37,7 @@ class Property(Member[T, S]):
         fget: Callable[[A], T],
         fset: None = None,
         fdel: Optional[Callable[[A], None]] = None,
-        cached: bool=False,
+        cached: bool = False,
     ) -> Property[T, NoReturn]: ...
     @overload
     def __new__(
@@ -46,7 +45,7 @@ class Property(Member[T, S]):
         fget: Callable[[A], T],
         fset: Callable[[A, S], None],
         fdel: Optional[Callable[[A], None]] = None,
-        cached: bool=False,
+        cached: bool = False,
     ) -> Property[T, S]: ...
     @property
     def fget(self) -> Optional[Callable[[A], T]]: ...

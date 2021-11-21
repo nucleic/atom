@@ -1,35 +1,35 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2018, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Test the notification mechanisms.
 
 """
 import pytest
-from atom.api import Atom, Int, List, Value, Event, Signal, observe
+
+from atom.api import Atom, Event, Int, List, Signal, Value, observe
 
 
 class NonComparableObject:
-
     def __eq__(self, other):
         raise ValueError()
 
 
 # --- Static observer manipulations
 
+
 @pytest.fixture
 def static_atom():
-    """Class to test static observers.
+    """Class to test static observers."""
 
-    """
     class Extended(Atom):
 
         val = Int()
 
-    obs_decorator = observe('val2', 'ext.val')
+    obs_decorator = observe("val2", "ext.val")
 
     class ObserverTest(Atom):
 
@@ -43,7 +43,7 @@ def static_atom():
 
         @obs_decorator
         def react(self, change):
-            self.changes.append(change['name'])
+            self.changes.append(change["name"])
 
         manual_obs = obs_decorator(react.func)
 
@@ -51,42 +51,38 @@ def static_atom():
 
 
 def test_static_observer(static_atom):
-    """ Test static observers.
-
-    """
+    """Test static observers."""
     ot = static_atom
 
     # Test checking for static observers
-    assert ot.get_member('val2').has_observers()
-    assert ot.get_member('val2').has_observer('manual_obs')
-    assert ot.get_member('val2').has_observer('react')
+    assert ot.get_member("val2").has_observers()
+    assert ot.get_member("val2").has_observer("manual_obs")
+    assert ot.get_member("val2").has_observer("react")
     with pytest.raises(TypeError) as excinfo:
-        assert ot.get_member('val2').has_observer(1)
-    assert 'str or callable' in excinfo.exconly()
+        assert ot.get_member("val2").has_observer(1)
+    assert "str or callable" in excinfo.exconly()
 
     # Test notifications on value setting
     ot.val2 = 1
-    assert 'val2' in ot.changes
+    assert "val2" in ot.changes
 
 
 def test_manual_static_observers(static_atom):
-    """Test manually managing static observers.
-
-    """
+    """Test manually managing static observers."""
     # Force the use of safe comparison (error cleaning and fallback)
     class Observer:
         def __eq__(self, other):
             raise ValueError()
 
         def __call__(self, change):
-            change['object'].changes.append(change['name'])
+            change["object"].changes.append(change["name"])
 
     react = Observer()
 
     # We have 2 static observers hence 2 removals
-    member = static_atom.get_member('val2')
-    member.remove_static_observer('react')
-    member.remove_static_observer('manual_obs')
+    member = static_atom.get_member("val2")
+    member.remove_static_observer("react")
+    member.remove_static_observer("manual_obs")
     assert not member.has_observers()
     static_atom.val2 += 1
     assert not static_atom.changes
@@ -99,17 +95,16 @@ def test_manual_static_observers(static_atom):
 
     with pytest.raises(TypeError) as excinfo:
         member.add_static_observer(1)
-    assert 'str or callable' in excinfo.exconly()
+    assert "str or callable" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         member.remove_static_observer(1)
-    assert 'str or callable' in excinfo.exconly()
+    assert "str or callable" in excinfo.exconly()
 
 
 def test_modifying_static_observers_in_callback():
-    """Test modifying the static observers in an observer.
+    """Test modifying the static observers in an observer."""
 
-    """
     class ChangingAtom(Atom):
         val = Int()
 
@@ -117,37 +112,37 @@ def test_modifying_static_observers_in_callback():
 
         counter2 = Int()
 
-        @observe('val')
+        @observe("val")
         def react1(self, change):
             self.counter1 += 1
-            m = self.get_member('val')
-            m.remove_static_observer('react1')
-            m.add_static_observer('react2')
+            m = self.get_member("val")
+            m.remove_static_observer("react1")
+            m.add_static_observer("react2")
 
         def react2(self, change):
             self.counter2 += 1
-            m = self.get_member('val')
-            m.remove_static_observer('react2')
-            m.add_static_observer('react1')
+            m = self.get_member("val")
+            m.remove_static_observer("react2")
+            m.add_static_observer("react1")
 
     ca = ChangingAtom()
-    assert ChangingAtom.val.has_observer('react1')
-    assert not ChangingAtom.val.has_observer('react2')
+    assert ChangingAtom.val.has_observer("react1")
+    assert not ChangingAtom.val.has_observer("react2")
     ca.val = 1
     assert ca.counter1 == 1
     # Ensure the modification take place after notification dispatch is
     # complete
     assert ca.counter2 == 0
-    assert ChangingAtom.val.has_observer('react2')
-    assert not ChangingAtom.val.has_observer('react1')
+    assert ChangingAtom.val.has_observer("react2")
+    assert not ChangingAtom.val.has_observer("react1")
 
     ca.val += 1
     assert ca.counter2 == 1
     # Ensure the modification take place after notification dispatch is
     # complete
     assert ca.counter1 == 1
-    assert ChangingAtom.val.has_observer('react1')
-    assert not ChangingAtom.val.has_observer('react2')
+    assert ChangingAtom.val.has_observer("react1")
+    assert not ChangingAtom.val.has_observer("react2")
 
     # Test handling exception in the guard map that ensure that the
     # modifications to the observers occur after the notification dispatch
@@ -163,68 +158,64 @@ def test_modifying_static_observers_in_callback():
     # Ensure the modification take place after notification dispatch is
     # complete
     assert ca.counter2 == 1
-    assert ChangingAtom.val.has_observer('react2')
+    assert ChangingAtom.val.has_observer("react2")
 
 
 def test_copy_static_observers(static_atom):
-    """Test cloning the static observers of a member.
-
-    """
-    member = static_atom.get_member('val2')
+    """Test cloning the static observers of a member."""
+    member = static_atom.get_member("val2")
     v = Value()
     v.copy_static_observers(member)
     assert v.has_observers()
-    assert v.has_observer('manual_obs')
-    assert v.has_observer('react')
+    assert v.has_observer("manual_obs")
+    assert v.has_observer("react")
 
     # This is ano-op and take an early exit seen in coverage.
     v.copy_static_observers(v)
 
     with pytest.raises(TypeError) as excinfo:
         v.copy_static_observers(1)
-    assert 'Member' in excinfo.exconly()
+    assert "Member" in excinfo.exconly()
 
 
 def test_extended_static_observers(static_atom):
-    """Test using extended static observers.
-
-    """
+    """Test using extended static observers."""
     ot = static_atom
     ext1 = static_atom.cls()
     ext2 = static_atom.cls()
 
     # Test installing the extended observer
     ot.ext = ext1
-    assert ext1.has_observer('val', ot.react)
-    assert not ext2.has_observer('val', ot.react)
+    assert ext1.has_observer("val", ot.react)
+    assert not ext2.has_observer("val", ot.react)
 
     ot.ext = ext2
-    assert ext2.has_observer('val', ot.react)
-    assert not ext1.has_observer('val', ot.react)
+    assert ext2.has_observer("val", ot.react)
+    assert not ext1.has_observer("val", ot.react)
 
     # Test notifications on value setting
     ot.val2 = 1
-    assert 'val2' in ot.changes
+    assert "val2" in ot.changes
     ext1.val = 1
-    assert 'val' not in ot.changes
+    assert "val" not in ot.changes
     ext2.val = 1
-    assert 'val' in ot.changes
+    assert "val" in ot.changes
 
     # Test removing the extended observer upon deletion
     del ot.ext
-    assert not ext2.has_observer('val', ot.react)
+    assert not ext2.has_observer("val", ot.react)
 
     with pytest.raises(TypeError):
         ot.ext = 12
 
 
 def test_observe_decorators():
-    """Test checking observe decorator handling.
+    """Test checking observe decorator handling."""
 
-    """
     def react(self, change):
         pass
-    handler = observe(('val',))
+
+    handler = observe(("val",))
     handler(react)
     handler_clone = handler.clone()
     assert handler is not handler_clone
@@ -234,15 +225,14 @@ def test_observe_decorators():
     with pytest.raises(TypeError):
         observe(12)
     with pytest.raises(TypeError):
-        observe(['a.b.c'])
+        observe(["a.b.c"])
 
 
 # --- Dynamic observer manipulations
 
-class Observer(object):
-    """Observer used for testing dynamic observers.
 
-    """
+class Observer(object):
+    """Observer used for testing dynamic observers."""
 
     def __init__(self):
         self.count = 0
@@ -257,23 +247,20 @@ class Observer(object):
 
 
 class DynamicAtom(Atom):
-    """Atom used to test dynamic observers.
+    """Atom used to test dynamic observers."""
 
-    """
     val = Int()
     val2 = Int()
     val3 = Int()
 
 
 def test_single_observe():
-    """Test observing a single member from a single instance.
-
-    """
+    """Test observing a single member from a single instance."""
     dt1 = DynamicAtom()
     dt2 = DynamicAtom()
     observer = Observer()
 
-    dt1.observe('val', observer.react)
+    dt1.observe("val", observer.react)
     # Test creation in the absence of static observers
     dt1.val
     assert observer.count == 1
@@ -284,13 +271,11 @@ def test_single_observe():
 
 
 def test_multiple_observe():
-    """Test observing multiple members from a single instance.
-
-    """
+    """Test observing multiple members from a single instance."""
     dt1 = DynamicAtom()
     observer = Observer()
 
-    dt1.observe(('val', 'val2'), observer.react)
+    dt1.observe(("val", "val2"), observer.react)
     dt1.val = 1
     assert observer.count == 1
     dt1.val2 = 1
@@ -298,45 +283,39 @@ def test_multiple_observe():
 
 
 def test_wrong_args_observe():
-    """Test handling of wrong arguments to observe.
-
-    """
+    """Test handling of wrong arguments to observe."""
     dt1 = DynamicAtom()
 
     with pytest.raises(TypeError) as excinfo:
-        dt1.observe('val', lambda change: change, 1)
-    assert '2 arguments' in excinfo.exconly()
+        dt1.observe("val", lambda change: change, 1)
+    assert "2 arguments" in excinfo.exconly()
 
-    with pytest.raises(TypeError)as excinfo:
+    with pytest.raises(TypeError) as excinfo:
         dt1.observe(1, lambda change: change)
-    assert 'iterable' in excinfo.exconly()
+    assert "iterable" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         dt1.observe((1, 1), lambda change: change)
-    assert 'str' in excinfo.exconly()
+    assert "str" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
-        dt1.observe('val', 1)
-    assert 'callable' in excinfo.exconly()
+        dt1.observe("val", 1)
+    assert "callable" in excinfo.exconly()
 
 
 @pytest.fixture()
 def observed_atom():
-    """Observed atom used to test unobserve.
-
-    """
+    """Observed atom used to test unobserve."""
     a = DynamicAtom()
     ob1 = Observer()
     ob2 = Observer()
-    a.observe(('val', 'val2', 'val3'), ob1.react)
-    a.observe(('val', 'val2', 'val3'), ob2.react)
+    a.observe(("val", "val2", "val3"), ob1.react)
+    a.observe(("val", "val2", "val3"), ob2.react)
     return a, ob1, ob2
 
 
 def test_unobserving_no_args(observed_atom):
-    """Test removing all observers at once.
-
-    """
+    """Test removing all observers at once."""
     a, _, _ = observed_atom
     a.unobserve()
     for m in a.members():
@@ -344,117 +323,104 @@ def test_unobserving_no_args(observed_atom):
 
 
 def test_unobserving_a_single_member(observed_atom):
-    """Test removing the observers from a single member.
-
-    """
+    """Test removing the observers from a single member."""
     a, _, _ = observed_atom
-    assert a.has_observers('val')
-    assert a.has_observers('val2')
-    a.unobserve('val')
-    assert not a.has_observers('val')
-    assert a.has_observers('val2')
+    assert a.has_observers("val")
+    assert a.has_observers("val2")
+    a.unobserve("val")
+    assert not a.has_observers("val")
+    assert a.has_observers("val2")
 
 
 def test_unobserving_multiple_members(observed_atom):
-    """Test removing observers from multiple members.
-
-    """
+    """Test removing observers from multiple members."""
     a, _, _ = observed_atom
-    assert a.has_observers('val')
-    assert a.has_observers('val2')
-    a.unobserve(('val', 'val2'))
-    assert not a.has_observers('val')
-    assert not a.has_observers('val2')
-    assert a.has_observers('val3')
+    assert a.has_observers("val")
+    assert a.has_observers("val2")
+    a.unobserve(("val", "val2"))
+    assert not a.has_observers("val")
+    assert not a.has_observers("val2")
+    assert a.has_observers("val3")
 
 
 def test_removing_specific_observer(observed_atom):
-    """Test removing a specific observer from a member.
-
-    """
+    """Test removing a specific observer from a member."""
     a, ob1, ob2 = observed_atom
-    assert a.has_observer('val', ob1.react)
-    assert a.has_observer('val', ob2.react)
-    a.unobserve('val', ob2.react)
-    assert a.has_observer('val', ob1.react)
-    assert not a.has_observer('val', ob2.react)
+    assert a.has_observer("val", ob1.react)
+    assert a.has_observer("val", ob2.react)
+    a.unobserve("val", ob2.react)
+    assert a.has_observer("val", ob1.react)
+    assert not a.has_observer("val", ob2.react)
 
 
 def test_removing_specific_observer2(observed_atom):
-    """Test removing a specific observer from multiple members.
-
-    """
+    """Test removing a specific observer from multiple members."""
     a, ob1, ob2 = observed_atom
-    for m in ('val', 'val2', 'val3'):
+    for m in ("val", "val2", "val3"):
         assert a.has_observer(m, ob1.react)
         assert a.has_observer(m, ob2.react)
-    a.unobserve(('val', 'val2'), ob2.react)
-    for m in ('val', 'val2'):
+    a.unobserve(("val", "val2"), ob2.react)
+    for m in ("val", "val2"):
         assert a.has_observer(m, ob1.react)
-        assert not a.has_observer('val', ob2.react)
-    assert a.has_observer('val3', ob1.react)
-    assert a.has_observer('val3', ob2.react)
+        assert not a.has_observer("val", ob2.react)
+    assert a.has_observer("val3", ob1.react)
+    assert a.has_observer("val3", ob2.react)
 
 
 def test_wrong_args_unobserve(observed_atom):
-    """Test handling of bad arguments to unobserve.
-
-    """
+    """Test handling of bad arguments to unobserve."""
     a, _, _ = observed_atom
 
     # Too many args
     with pytest.raises(TypeError) as excinfo:
-        a.unobserve('val', lambda change: change, 1)
-    assert '2 arguments' in excinfo.exconly()
+        a.unobserve("val", lambda change: change, 1)
+    assert "2 arguments" in excinfo.exconly()
 
     # Non-iterable first arg
-    with pytest.raises(TypeError)as excinfo:
+    with pytest.raises(TypeError) as excinfo:
         a.unobserve(1)
-    assert 'iterable' in excinfo.exconly()
+    assert "iterable" in excinfo.exconly()
 
     # Non-iterable first arg with callable
-    with pytest.raises(TypeError)as excinfo:
+    with pytest.raises(TypeError) as excinfo:
         a.unobserve(1, lambda change: change)
-    assert 'iterable' in excinfo.exconly()
+    assert "iterable" in excinfo.exconly()
 
     # Non iterable fo string first arg
     with pytest.raises(TypeError) as excinfo:
         a.unobserve((1, 1))
-    assert 'str' in excinfo.exconly()
+    assert "str" in excinfo.exconly()
 
     # Non iterable fo string first arg with callable
     with pytest.raises(TypeError) as excinfo:
         a.unobserve((1, 1), lambda change: change)
-    assert 'str' in excinfo.exconly()
+    assert "str" in excinfo.exconly()
 
     # Non callable second arg
     with pytest.raises(TypeError) as excinfo:
-        a.unobserve('vsl', 1)
-    assert 'callable' in excinfo.exconly()
+        a.unobserve("vsl", 1)
+    assert "callable" in excinfo.exconly()
 
 
 def test_wrong_arg_to_has_observer(observed_atom):
-    """Test non string arg to has_observer.
-
-    """
+    """Test non string arg to has_observer."""
     a, _, _ = observed_atom
     with pytest.raises(TypeError) as excinfo:
         a.has_observer(1, lambda x: x, 1)
-    assert '2 arguments' in excinfo.exconly()
+    assert "2 arguments" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         a.has_observer(1, lambda x: x)
-    assert 'str' in excinfo.exconly()
+    assert "str" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
-        a.has_observer('val', 1)
-    assert 'callable' in excinfo.exconly()
+        a.has_observer("val", 1)
+    assert "callable" in excinfo.exconly()
 
 
 def test_binding_event_signals():
-    """Test directly binding events and signals.
+    """Test directly binding events and signals."""
 
-    """
     class EventSignalTest(Atom):
 
         e = Event()
@@ -464,7 +430,7 @@ def test_binding_event_signals():
         counter = Int()
 
     def event_handler(change):
-        change['object'].counter += 1
+        change["object"].counter += 1
 
     def signal_handler(obj):
         obj.counter += 2
@@ -485,14 +451,11 @@ def test_binding_event_signals():
 
 
 def test_modifying_dynamic_observers_in_callback():
-    """Test modifying the static observers in an observer.
-
-    """
+    """Test modifying the static observers in an observer."""
 
     class InvalidObserver(object):
-        """Silly callable which always evaluate to false.
+        """Silly callable which always evaluate to false."""
 
-        """
         def __init__(self, active):
             self.active = active
 
@@ -516,44 +479,43 @@ def test_modifying_dynamic_observers_in_callback():
         def react1(self, change):
             self.counter1 += 1
             self.observer.active = False
-            self.unobserve('val', self.react1)
-            self.observe('val', self.react2)
+            self.unobserve("val", self.react1)
+            self.observe("val", self.react2)
 
         def react2(self, change):
             self.counter2 += 1
-            self.unobserve('val')
-            self.observe('val', self.react1)
+            self.unobserve("val")
+            self.observe("val", self.react1)
 
     ca = ChangingAtom()
     ca.observer = invalid_obs = InvalidObserver(True)
-    ca.observe('val', invalid_obs)
-    ca.observe('val', ca.react1)
-    assert ca.has_observer('val', ca.react1)
-    assert not ca.has_observer('val', ca.react2)
+    ca.observe("val", invalid_obs)
+    ca.observe("val", ca.react1)
+    assert ca.has_observer("val", ca.react1)
+    assert not ca.has_observer("val", ca.react2)
     ca.val = 1
     assert ca.counter1 == 1
     # Ensure the modification take place after notification dispatch is
     # complete
     assert ca.counter2 == 0
-    assert ca.has_observer('val', ca.react2)
-    assert not ca.has_observer('val', ca.react1)
-    assert not ca.has_observer('val', invalid_obs)
-
+    assert ca.has_observer("val", ca.react2)
+    assert not ca.has_observer("val", ca.react1)
+    assert not ca.has_observer("val", invalid_obs)
 
     ca.val += 1
     assert ca.counter2 == 1
     # Ensure the modification take place after notification dispatch is
     # complete
     assert ca.counter1 == 1
-    assert ca.has_observer('val', ca.react1)
-    assert not ca.has_observer('val', ca.react2)
+    assert ca.has_observer("val", ca.react1)
+    assert not ca.has_observer("val", ca.react2)
 
     # Test handling exception in the guard map that ensure that the
     # modifications to the observers occur after the notification dispatch
     def raising_observer(change):
         raise ValueError()
 
-    ca.observe('val', raising_observer)
+    ca.observe("val", raising_observer)
 
     with pytest.raises(ValueError):
         ca.val += 1
@@ -562,18 +524,17 @@ def test_modifying_dynamic_observers_in_callback():
     # Ensure the modification take place after notification dispatch is
     # complete
     assert ca.counter2 == 1
-    assert ca.has_observer('val', ca.react2)
+    assert ca.has_observer("val", ca.react2)
 
 
 # --- Notifications generation and handling
 
+
 @pytest.fixture
 def sd_observed_atom():
-    """Atom object with both static and dynamic observers.
+    """Atom object with both static and dynamic observers."""
 
-    """
     class Observer(object):
-
         def __init__(self):
             self.count = 0
 
@@ -592,7 +553,7 @@ def sd_observed_atom():
         def __init__(self):
             super(NotifTest, self).__init__()
             self.observer = Observer()
-            self.observe('val', self.observer.react)
+            self.observe("val", self.observer.react)
 
         def _observe_val(self, change):
             print(change)
@@ -602,9 +563,7 @@ def sd_observed_atom():
 
 
 def test_notification_on_creation_deletion(sd_observed_atom):
-    """Test that observers are properly called on creation.
-
-    """
+    """Test that observers are properly called on creation."""
     # Create value based on default
     sd_observed_atom.val
 
@@ -623,9 +582,7 @@ def test_notification_on_creation_deletion(sd_observed_atom):
 
 
 def test_notification_on_setting(sd_observed_atom):
-    """Test that notifiers are called when setting a value.
-
-    """
+    """Test that notifiers are called when setting a value."""
     sd_observed_atom.val = 1
 
     assert sd_observed_atom.count == 1
@@ -639,9 +596,7 @@ def test_notification_on_setting(sd_observed_atom):
 
 
 def test_notification_on_setting_non_comparable_value(sd_observed_atom):
-    """Test that notifiers are called when setting a value.
-
-    """
+    """Test that notifiers are called when setting a value."""
     o1 = NonComparableObject()
     sd_observed_atom.val = 0
 
@@ -666,7 +621,7 @@ def test_notification_on_setting_non_comparable_value(sd_observed_atom):
     assert sd_observed_atom.count == 3
     assert sd_observed_atom.observer.count == 3
 
-     # Check no notification on equal value assignment
+    # Check no notification on equal value assignment
     sd_observed_atom.val = o1
 
     assert sd_observed_atom.count == 3
@@ -674,9 +629,7 @@ def test_notification_on_setting_non_comparable_value(sd_observed_atom):
 
 
 def test_enabling_disabling_notifications(sd_observed_atom):
-    """Test enabling/disabling notification on an atom.
-
-    """
+    """Test enabling/disabling notification on an atom."""
     assert sd_observed_atom.notifications_enabled()
     sd_observed_atom.val = 1
     assert sd_observed_atom.count == 1
@@ -687,15 +640,13 @@ def test_enabling_disabling_notifications(sd_observed_atom):
     assert sd_observed_atom.observer.count == 1
 
     with pytest.raises(TypeError):
-        sd_observed_atom.set_notifications_enabled('')
+        sd_observed_atom.set_notifications_enabled("")
 
     sd_observed_atom.__sizeof__()  # check that observers do not cause issues
 
 
 def test_manually_notifying(sd_observed_atom):
-    """Test manual notifications
-
-    """
+    """Test manual notifications"""
     nt = sd_observed_atom
     ob = nt.observer
 
@@ -705,7 +656,7 @@ def test_manually_notifying(sd_observed_atom):
     assert nt.count == 1
 
     # Check only dynamic notifiers are called
-    nt.notify('val', dict(name='val'))
+    nt.notify("val", dict(name="val"))
     assert ob.count == 2
     assert nt.count == 1
 
@@ -724,21 +675,20 @@ def test_manually_notifying(sd_observed_atom):
     # Check bad argument
     with pytest.raises(TypeError) as excinfo:
         nt.notify()
-    assert '1 argument' in excinfo.exconly()
+    assert "1 argument" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         nt.notify(1)
-    assert 'str' in excinfo.exconly()
+    assert "str" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         type(nt).val.notify(1)
-    assert 'CAtom' in excinfo.exconly()
+    assert "CAtom" in excinfo.exconly()
 
 
 def test_event_notification(sd_observed_atom):
-    """Check that Event do call both static and dynamic observers.
+    """Check that Event do call both static and dynamic observers."""
 
-    """
     class EventAtom(type(sd_observed_atom)):
         val = Event()
 
@@ -753,9 +703,8 @@ def test_event_notification(sd_observed_atom):
 
 
 def test_signal_notification(sd_observed_atom):
-    """Check that Signal do call both static and dynamic observers.
+    """Check that Signal do call both static and dynamic observers."""
 
-    """
     class SignalAtom(type(sd_observed_atom)):
         val = Signal()
 

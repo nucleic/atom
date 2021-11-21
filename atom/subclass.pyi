@@ -5,17 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import Any, Callable, Dict, Optional, Tuple, Type, TypeVar, Union, overload
 
 from .catom import Member
 
@@ -26,9 +16,7 @@ T2 = TypeVar("T2")
 class Subclass(Member[T, T]):
     # No default
     @overload
-    def __new__(
-        cls, kind: Type[T], default: None = None
-    ) -> Subclass[Type[T]]: ...
+    def __new__(cls, kind: Type[T], default: None = None) -> Subclass[Type[T]]: ...
     @overload
     def __new__(
         cls, kind: Tuple[Type[T]], default: None = None

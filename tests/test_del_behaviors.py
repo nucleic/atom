@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Test the del behaviors
 
     no_op_handler:  not sure it is used
@@ -18,14 +18,13 @@
 
 """
 import pytest
-from atom.api import (Atom, Int, Constant, Member, Signal, ReadOnly, Event)
+
+from atom.api import Atom, Constant, Event, Int, Member, ReadOnly, Signal
 from atom.catom import DelAttr
 
 
 def test_del_noop():
-    """Test the noop handler.
-
-    """
+    """Test the noop handler."""
     member = Member()
     member.set_delattr_mode(DelAttr.NoOp, None)
 
@@ -42,15 +41,18 @@ def test_del_noop():
     assert a.m == 1
 
 
-@pytest.mark.parametrize("member, mode",
-                         [(Event(), DelAttr.Event), (Signal(), DelAttr.Signal),
-                          (ReadOnly(), DelAttr.ReadOnly),
-                          (Constant(1), DelAttr.Constant)
-                          ])
+@pytest.mark.parametrize(
+    "member, mode",
+    [
+        (Event(), DelAttr.Event),
+        (Signal(), DelAttr.Signal),
+        (ReadOnly(), DelAttr.ReadOnly),
+        (Constant(1), DelAttr.Constant),
+    ],
+)
 def test_undeletable(member, mode):
-    """Test that unsettable members do raise the proper error.
+    """Test that unsettable members do raise the proper error."""
 
-    """
     class Undeletable(Atom):
 
         m = member
@@ -64,9 +66,8 @@ def test_undeletable(member, mode):
 
 
 def test_del_slot():
-    """Test deleting a member using the slot handler.
+    """Test deleting a member using the slot handler."""
 
-    """
     class DelSlot(Atom):
 
         i = Int(10)

@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Test the get behaviors
 
     no_op_handler: : tested here
@@ -24,13 +24,11 @@
 """
 import pytest
 
-from atom.api import (Atom, Int, Value, GetAttr)
+from atom.api import Atom, GetAttr, Int, Value
 
 
 def test_using_no_op_handler():
-    """Test using the no_op handler.
-
-    """
+    """Test using the no_op handler."""
     v = Value()
     v.set_getattr_mode(GetAttr.NoOp, None)
 
@@ -44,9 +42,7 @@ def test_using_no_op_handler():
 
 
 def test_using_call_object_object_mode():
-    """Test using call_object_object mode.
-
-    """
+    """Test using call_object_object mode."""
 
     def getter(object):
         object.count += 1
@@ -68,9 +64,8 @@ def test_using_call_object_object_mode():
 
 
 def test_using_call_object_object_name_mode():
-    """Test using call_object_object_name mode.
+    """Test using call_object_object_name mode."""
 
-    """
     def getter(object, name):
         object.count += 1
         return object.count, name
@@ -83,19 +78,17 @@ def test_using_call_object_object_name_mode():
         count = Int()
 
     a = CustomGetAtom()
-    assert a.val == (1, 'val')
-    assert a.val == (2, 'val')
+    assert a.val == (1, "val")
+    assert a.val == (2, "val")
 
     with pytest.raises(TypeError):
         m.set_getattr_mode(GetAttr.CallObject_ObjectName, 1)
 
 
 def test_using_object_method_mode():
-    """Test using object_method mode.
-
-    """
+    """Test using object_method mode."""
     m = Int()
-    m.set_getattr_mode(GetAttr.ObjectMethod, 'getter')
+    m.set_getattr_mode(GetAttr.ObjectMethod, "getter")
 
     class CustomGetAtom(Atom):
         val = m
@@ -114,11 +107,9 @@ def test_using_object_method_mode():
 
 
 def test_using_object_method_name_mode():
-    """Test using object_method mode.
-
-    """
+    """Test using object_method mode."""
     m = Value()
-    m.set_getattr_mode(GetAttr.ObjectMethod_Name, 'getter')
+    m.set_getattr_mode(GetAttr.ObjectMethod_Name, "getter")
 
     class CustomGetAtom(Atom):
         val = m
@@ -129,23 +120,21 @@ def test_using_object_method_name_mode():
             return (self.count, name)
 
     a = CustomGetAtom()
-    assert a.val == (1, 'val')
-    assert a.val == (2, 'val')
+    assert a.val == (1, "val")
+    assert a.val == (2, "val")
 
     with pytest.raises(TypeError):
         m.set_getattr_mode(GetAttr.CallObject_Object, 1)
 
 
 def test_subclassing_member():
-    """Test defining get in a Member subclass
+    """Test defining get in a Member subclass"""
 
-    """
     class ModuloInt(Int):
-
         def __init__(self):
             super(ModuloInt, self).__init__()
             mode = GetAttr.MemberMethod_Object
-            self.set_getattr_mode(mode, 'get')
+            self.set_getattr_mode(mode, "get")
 
         def get(self, obj):
             return self.get_slot(obj) % 2
@@ -155,7 +144,7 @@ def test_subclassing_member():
         mi = ModuloInt()
 
     pvt = GetTest()
-    mi = pvt.get_member('mi')
+    mi = pvt.get_member("mi")
     assert mi.getattr_mode[0] == GetAttr.MemberMethod_Object
     pvt.mi = 2
     assert pvt.mi == 0
@@ -172,9 +161,8 @@ def test_subclassing_member():
 
 
 def test_handling_wrong_index():
-    """Test handling a wrong index in the slot handler.
+    """Test handling a wrong index in the slot handler."""
 
-    """
     class SlotAtom(Atom):
         v = Value()
 

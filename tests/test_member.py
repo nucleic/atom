@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Test the Member class.
 
 Attributes:
@@ -40,56 +40,71 @@ Methods:
 """
 import pytest
 
-from atom.api import (Atom, DefaultValue, Dict, Event, ForwardInstance,
-                      ForwardSubclass, ForwardTyped, GetAttr, Instance, Int,
-                      List, PostGetAttr, PostSetAttr, PostValidate, Set,
-                      SetAttr, Tuple, Validate, Value, observe)
+from atom.api import (
+    Atom,
+    DefaultValue,
+    Dict,
+    Event,
+    ForwardInstance,
+    ForwardSubclass,
+    ForwardTyped,
+    GetAttr,
+    Int,
+    List,
+    PostGetAttr,
+    PostSetAttr,
+    PostValidate,
+    Set,
+    SetAttr,
+    Tuple,
+    Validate,
+    Value,
+    observe,
+)
 from atom.catom import DelAttr
 
 
 def test_name_managing_name():
-    """Test getting/setting the name of a Member.
+    """Test getting/setting the name of a Member."""
 
-    """
     class NameTest(Atom):
 
         v = Value()
 
         t = Tuple(Int())
 
-        l = List(Int())
+        li = List(Int())
 
         d = Dict(Int(), Int())
 
         e = Event(Int())
 
-    assert NameTest.v.name == 'v'
-    NameTest.v.set_name('v2')
-    assert NameTest.v.name == 'v2'
+    assert NameTest.v.name == "v"
+    NameTest.v.set_name("v2")
+    assert NameTest.v.name == "v2"
 
-    assert NameTest.t.name == 't'
-    assert NameTest.t.item.name == 't|item'
+    assert NameTest.t.name == "t"
+    assert NameTest.t.item.name == "t|item"
 
-    assert NameTest.l.name == 'l'
-    assert NameTest.l.item.name == 'l|item'
+    assert NameTest.li.name == "li"
+    assert NameTest.li.item.name == "li|item"
 
-    assert NameTest.d.name == 'd'
+    assert NameTest.d.name == "d"
     key, value = NameTest.d.validate_mode[1]
-    assert key.name == 'd|key'
-    assert value.name == 'd|value'
+    assert key.name == "d|key"
+    assert value.name == "d|value"
 
-    assert NameTest.e.name == 'e'
-    assert NameTest.e.validate_mode[1].name == 'e'
+    assert NameTest.e.name == "e"
+    assert NameTest.e.validate_mode[1].name == "e"
 
     with pytest.raises(TypeError) as excinfo:
         NameTest.v.set_name(1)
-    assert 'str' in excinfo.exconly()
+    assert "str" in excinfo.exconly()
 
 
 def test_managing_slot_index():
-    """Test getting and setting the index of a Member.
+    """Test getting and setting the index of a Member."""
 
-    """
     class IndexTest(Atom):
 
         v1 = Value()
@@ -97,7 +112,7 @@ def test_managing_slot_index():
 
         t = Tuple(Int())
 
-        l = List(Int())
+        li = List(Int())
 
         d = Dict(Int(), Int())
 
@@ -117,9 +132,9 @@ def test_managing_slot_index():
     IndexTest.t.set_index(99)
     assert IndexTest.t.item.index == IndexTest.t.index
 
-    assert IndexTest.l.item.index == IndexTest.l.index
-    IndexTest.l.set_index(99)
-    assert IndexTest.l.item.index == IndexTest.l.index
+    assert IndexTest.li.item.index == IndexTest.li.index
+    IndexTest.li.set_index(99)
+    assert IndexTest.li.item.index == IndexTest.li.index
 
     key, value = IndexTest.d.validate_mode[1]
     assert key.index == IndexTest.d.index
@@ -131,14 +146,12 @@ def test_managing_slot_index():
     assert IndexTest.e.validate_mode[1].index == IndexTest.e.index
 
     with pytest.raises(TypeError) as excinfo:
-        IndexTest.v1.set_index('')
-    assert 'int' in excinfo.exconly()
+        IndexTest.v1.set_index("")
+    assert "int" in excinfo.exconly()
 
 
 def test_metadata_handling():
-    """Test writing and accessing the metadata of a Member.
-
-    """
+    """Test writing and accessing the metadata of a Member."""
     assert Value().metadata is None
 
     class MetadataTest(Atom):
@@ -146,8 +159,8 @@ def test_metadata_handling():
         m = Value().tag(pref=True)
 
     mt = MetadataTest()
-    m = mt.get_member('m')
-    assert m.metadata == {'pref': True}
+    m = mt.get_member("m")
+    assert m.metadata == {"pref": True}
     m.metadata = dict(a=1, b=2)
     assert m.metadata == dict(a=1, b=2)
 
@@ -156,21 +169,20 @@ def test_metadata_handling():
 
     with pytest.raises(TypeError) as excinfo:
         m.metadata = 1
-    assert 'dict or None' in excinfo.exconly()
+    assert "dict or None" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         m.tag(1)
-    assert 'tag()' in excinfo.exconly()
+    assert "tag()" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         m.tag()
-    assert 'tag()' in excinfo.exconly()
+    assert "tag()" in excinfo.exconly()
 
 
 def test_direct_slot_access():
-    """Test accessing a slot directly.
+    """Test accessing a slot directly."""
 
-    """
     class SlotTest(Atom):
 
         v = Value()
@@ -185,19 +197,19 @@ def test_direct_slot_access():
     # Test type validation
     with pytest.raises(TypeError) as excinfo:
         SlotTest.v.get_slot(None)
-    assert 'CAtom' in excinfo.exconly()
+    assert "CAtom" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         SlotTest.v.set_slot()
-    assert '2 arguments' in excinfo.exconly()
+    assert "2 arguments" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         SlotTest.v.set_slot(None, 1)
-    assert 'CAtom' in excinfo.exconly()
+    assert "CAtom" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         SlotTest.v.del_slot(None)
-    assert 'CAtom' in excinfo.exconly()
+    assert "CAtom" in excinfo.exconly()
 
     # Test index validation
     SlotTest.v.set_index(SlotTest.v.index + 1)
@@ -210,9 +222,8 @@ def test_direct_slot_access():
 
 
 def test_class_validation():
-    """Test validating the type of class in the descriptor.
+    """Test validating the type of class in the descriptor."""
 
-    """
     class FalseAtom(object):
         v = Value()
 
@@ -220,43 +231,43 @@ def test_class_validation():
 
     with pytest.raises(TypeError) as excinfo:
         fa.v
-    assert 'CAtom' in excinfo.exconly()
+    assert "CAtom" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         fa.v = 1
-    assert 'CAtom' in excinfo.exconly()
+    assert "CAtom" in excinfo.exconly()
 
 
-@pytest.mark.parametrize('method, arg_number',
-                         [('do_getattr', 1),
-                          ('do_setattr', 2),
-                          ('do_delattr', 1),
-                          ('do_post_getattr', 2),
-                          ('do_post_setattr', 3),
-                          ('do_default_value', 1),
-                          ('do_validate', 3),
-                          ('do_post_validate', 3),
-                          ('do_full_validate', 3)])
+@pytest.mark.parametrize(
+    "method, arg_number",
+    [
+        ("do_getattr", 1),
+        ("do_setattr", 2),
+        ("do_delattr", 1),
+        ("do_post_getattr", 2),
+        ("do_post_setattr", 3),
+        ("do_default_value", 1),
+        ("do_validate", 3),
+        ("do_post_validate", 3),
+        ("do_full_validate", 3),
+    ],
+)
 def test_handling_arg_issue_in_do_methods(method, arg_number):
-    """Test handling bad args in do methods.
-
-    """
+    """Test handling bad args in do methods."""
     m = Value()
     if arg_number > 1:
-        with pytest.raises(TypeError)as excinfo:
+        with pytest.raises(TypeError) as excinfo:
             getattr(m, method)()
         assert str(arg_number) in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
-        getattr(m, method)(*([None]*arg_number))
+        getattr(m, method)(*([None] * arg_number))
 
 
 def test_member_cloning():
-    """Test cloning members.
+    """Test cloning members."""
 
-    """
     class Spy(object):
-
         def __call__(self, *args):
             pass
 
@@ -265,7 +276,7 @@ def test_member_cloning():
     class CloneTest(Atom):
         v = Value().tag(test=True)
 
-        @observe('v')
+        @observe("v")
         def react(self, change):
             pass
 
@@ -275,56 +286,66 @@ def test_member_cloning():
     CloneTest.v.set_delattr_mode(DelAttr.Signal, None)
     CloneTest.v.set_default_value_mode(DefaultValue.CallObject_Object, spy)
     CloneTest.v.set_validate_mode(Validate.Int, None)
-    CloneTest.v.set_post_getattr_mode(PostGetAttr.ObjectMethod_NameValue, 'a')
-    CloneTest.v.set_post_setattr_mode(PostSetAttr.ObjectMethod_NameOldNew, 'b')
-    CloneTest.v.set_post_validate_mode(PostValidate.ObjectMethod_NameOldNew,
-                                       'c')
+    CloneTest.v.set_post_getattr_mode(PostGetAttr.ObjectMethod_NameValue, "a")
+    CloneTest.v.set_post_setattr_mode(PostSetAttr.ObjectMethod_NameOldNew, "b")
+    CloneTest.v.set_post_validate_mode(PostValidate.ObjectMethod_NameOldNew, "c")
     cv = CloneTest.v.clone()
-    for attr in ('name', 'index', 'metadata',
-                 'getattr_mode', 'setattr_mode', 'delattr_mode',
-                 'default_value_mode', 'validate_mode',
-                 'post_getattr_mode', 'post_setattr_mode',
-                 'post_validate_mode'):
+    for attr in (
+        "name",
+        "index",
+        "metadata",
+        "getattr_mode",
+        "setattr_mode",
+        "delattr_mode",
+        "default_value_mode",
+        "validate_mode",
+        "post_getattr_mode",
+        "post_setattr_mode",
+        "post_validate_mode",
+    ):
         assert getattr(cv, attr) == getattr(CloneTest.v, attr)
 
     assert cv.static_observers() == CloneTest.v.static_observers()
 
 
-@pytest.mark.parametrize('untyped, typed',
-                         [(List(), List(int)),
-                          (Tuple(), Tuple(int)),
-                          (Dict(), Dict(int, int)),
-                          (Set(), Set(int))])
+@pytest.mark.parametrize(
+    "untyped, typed",
+    [
+        (List(), List(int)),
+        (Tuple(), Tuple(int)),
+        (Dict(), Dict(int, int)),
+        (Set(), Set(int)),
+    ],
+)
 def test_cloning_containers_member(untyped, typed):
-    """Check that cloning a list does clone the validation item is present.
-
-    """
+    """Check that cloning a list does clone the validation item is present."""
     if not isinstance(untyped, Dict):
         assert untyped.clone().item is None
 
     typed.set_index(5)
     cl2 = typed.clone()
     assert cl2.index == typed.index
-    validators = ([typed.item] if hasattr(typed, 'item') else
-                  typed.validate_mode[1])
-    c_validators = ([cl2.item] if hasattr(typed, 'item') else
-                     cl2.validate_mode[1])
+    validators = [typed.item] if hasattr(typed, "item") else typed.validate_mode[1]
+    c_validators = [cl2.item] if hasattr(typed, "item") else cl2.validate_mode[1]
     for v, cv in zip(validators, c_validators):
         assert cv is not v
         assert isinstance(cv, type(v))
 
 
 # XXX should the kwargs be copied rather than simply re-assigned
-@pytest.mark.parametrize("member, cloned_attributes",
-                         [(ForwardSubclass(lambda: object), ['resolve']),
-                          (ForwardTyped(lambda: object, (1,), {'a': 1}),
-                           ['resolve', 'args', 'kwargs']),
-                          (ForwardInstance(lambda: object, (1,), {'a': 1}),
-                           ['resolve', 'args', 'kwargs'])])
+@pytest.mark.parametrize(
+    "member, cloned_attributes",
+    [
+        (ForwardSubclass(lambda: object), ["resolve"]),
+        (ForwardTyped(lambda: object, (1,), {"a": 1}), ["resolve", "args", "kwargs"]),
+        (
+            ForwardInstance(lambda: object, (1,), {"a": 1}),
+            ["resolve", "args", "kwargs"],
+        ),
+    ],
+)
 def test_cloning_forward(member, cloned_attributes):
-    """Test that subclasses of Member are properly cloned.
-
-    """
+    """Test that subclasses of Member are properly cloned."""
     member.set_index(5)
     clone = member.clone()
     assert clone.index == member.index
@@ -332,20 +353,20 @@ def test_cloning_forward(member, cloned_attributes):
         assert getattr(clone, attr) is getattr(member, attr)
 
 
-@pytest.mark.parametrize('ForwardedMember, optional', (
-    (ForwardInstance, True),
-    (ForwardTyped, False),
-))
+@pytest.mark.parametrize(
+    "ForwardedMember, optional",
+    (
+        (ForwardInstance, True),
+        (ForwardTyped, False),
+    ),
+)
 def test_cloned_forward_validator(ForwardedMember, optional):
-    """ Test a cloned forwarded member
-
-    """
+    """Test a cloned forwarded member"""
 
     class AbtractItem(Atom):
         view = ForwardedMember(lambda: View, optional=optional)
 
     class Item(AbtractItem):
-
         def _default_view(self):
             return View()
 
