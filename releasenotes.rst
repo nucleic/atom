@@ -2,7 +2,7 @@ Atom Release Notes
 ==================
 
 
-0.7.0 - unreleased
+0.7.0 - 21/11/2021
 ------------------
 
 This release introduces several minor backward incompatibilities which are detailed
