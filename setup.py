@@ -11,9 +11,6 @@ import sys
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
-sys.path.insert(0, os.path.abspath("."))
-from atom.version import __version__
-
 # Use the env var ATOM_DISABLE_FH4 to disable linking against VCRUNTIME140_1.dll
 
 ext_modules = [
@@ -89,28 +86,6 @@ class BuildExt(build_ext):
 
 
 setup(
-    name="atom",
-    version=__version__,
-    author="The Nucleic Development Team",
-    author_email="sccolbert@gmail.com",
-    maintainer_email="m.dartiailh@gmail.com",
-    url="https://github.com/nucleic/atom",
-    description="Memory efficient Python objects",
-    long_description=open("README.rst").read(),
-    license="BSD",
-    classifiers=[
-        # https://pypi.org/pypi?%3Aaction=list_classifiers
-        "License :: OSI Approved :: BSD License",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: Implementation :: CPython",
-    ],
-    python_requires=">=3.7",
-    setup_requires=["cppy>=1.1.0"],
     packages=find_packages(exclude=["tests", "tests.*"]),
     ext_modules=ext_modules,
     cmdclass={"build_ext": BuildExt},
