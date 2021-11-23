@@ -45,7 +45,7 @@ getting a C++ compiler properly configured is generally straighforward. On
 Windows, starting with Python 3.6 the free version of the Microsoft toolchain
 should work out of the box. Installing atom is then as simple as::
 
-    $ python setup.py install
+    $ pip install .
 
 .. note::
 
