@@ -70,7 +70,6 @@ version_info = _version_info(
 del namedtuple, _version_info, parts
 
 __version__ = "{version}"
-
 """
 
 [tool.black]
