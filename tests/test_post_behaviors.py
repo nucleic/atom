@@ -18,7 +18,7 @@ All of them have the following handlers:
 """
 import pytest
 
-from atom.api import Int, PostGetAttr, PostSetAttr, PostValidate
+from atom.api import Atom, Int, PostGetAttr, PostSetAttr, PostValidate
 
 GET_MEMBER_METHOD_SRC = """
 class TrackedInt(Int):
