@@ -18,7 +18,7 @@ class Person(Atom):
 
     # Static type checker cannot infer from the magic method that the property
     # is read/write so a type annotation helps.
-    age: Property[int, int] = Property()  # type: ignore
+    age: "Property[int, int]" = Property()  # type: ignore
     _age = Int(40)
 
     def _get_age(self) -> int:
