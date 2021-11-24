@@ -18,9 +18,11 @@ All of them have the following handlers:
 """
 import pytest
 
-from atom.api import Atom, Int, PostGetAttr, PostSetAttr, PostValidate
+from atom.api import Int, PostGetAttr, PostSetAttr, PostValidate
 
 GET_MEMBER_METHOD_SRC = """
+from atom.api import Atom
+
 class TrackedInt(Int):
 
     def __init__(self):
@@ -40,6 +42,8 @@ class PostAtom(Atom):
 """
 
 GET_OBJECT_METHOD_SRC = """
+from atom.api import Atom
+
 class PostAtom(Atom):
 
     mi = Int()
@@ -51,6 +55,8 @@ class PostAtom(Atom):
 """
 
 GET_OBJECT_METHOD_NAME_SRC = """
+from atom.api import Atom
+
 class PostAtom(Atom):
 
     mi = Int()
@@ -104,6 +110,8 @@ def test_post_getattr(mode):
 
 
 MEMBER_METHOD_SRC = """
+from atom.api import Atom
+
 class TrackedInt(Int):
 
     def __init__(self):
@@ -123,6 +131,8 @@ class PostAtom(Atom):
 """
 
 OBJECT_METHOD_SRC = """
+from atom.api import Atom
+
 class PostAtom(Atom):
 
     mi = Int()
@@ -134,6 +144,8 @@ class PostAtom(Atom):
 """
 
 OBJECT_METHOD_NAME_SRC = """
+from atom.api import Atom
+
 class PostAtom(Atom):
 
     mi = Int()
