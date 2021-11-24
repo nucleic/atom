@@ -32,7 +32,7 @@ jobs:
           pip install https://github.com/nucleic/cppy/tarball/main
       - name: Install project
         run: |
-          python setup.py develop
+          pip install .
       - name: Install graphviz
         uses: kamiazya/setup-graphviz@v1
       - name: Install doc building tools

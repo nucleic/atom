@@ -78,7 +78,7 @@ jobs:
           pip install https://github.com/nucleic/cppy/tarball/main
       - name: Install project
         run: |
-          python setup.py develop
+          pip install .
       - name: Run Mypy
         run: |
           pip install mypy pytest
@@ -112,7 +112,7 @@ jobs:
         env:
           CPPFLAGS: --coverage
         run: |
-          pip install -e .
+          pip install .
       - name: Test with pytest
         run: |
           pip install -r test_requirements.txt
