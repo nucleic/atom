@@ -13,9 +13,10 @@ from atom.api import Atom, Coerced
 
 class Demo(Atom):
 
-    cint = Coerced(int)
-    cfloat = Coerced(float)
-    cstr = Coerced(str)
+    # The coercer could be omitted but being explicit helps static type checkers
+    cint = Coerced(int, coercer=int)
+    cfloat = Coerced(float, coercer=float)
+    cstr = Coerced(str, coercer=str)
 
 
 if __name__ == "__main__":

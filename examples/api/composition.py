@@ -32,9 +32,14 @@ class Person(Atom):
     name = Str()
 
     # uses static constructor
-    fido = Typed(Dog)
+    # When using a static constructor the member is considered by default to be
+    # optional even though it is often not the desired behavior, and specifying
+    # optional=False preventing the member to be set to None makes sense.
+    fido = Typed(Dog, optional=False)
 
     # uses kwargs provided in the definition
+    # When the member is provided a way to build a default value, it assumes it
+    # is not optional by default, i.e. None is not a valid value.
     fluffy = Typed(Dog, kwargs=dict(name="Fluffy"))
 
     # uses an object provided in Person constructor
@@ -49,6 +54,7 @@ if __name__ == "__main__":
 
     print("Fido")
     print("name: {0}".format(bob.fido.name))
+    assert bob.fido.owner  # owner is optional so check it is set
     print("owner: {0}".format(bob.fido.owner.name))
 
     print("\nFluffy")
@@ -61,4 +67,5 @@ if __name__ == "__main__":
     new_dog = Dog(name="Scruffy", owner=bob)
     bob.new_dog = new_dog
     print("name: {0}".format(bob.new_dog.name))
+    assert bob.new_dog.owner  # owner is optional so check it is set
     print("owner: {0}".format(bob.new_dog.owner.name))
