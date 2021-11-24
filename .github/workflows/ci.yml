@@ -112,7 +112,7 @@ jobs:
         env:
           CPPFLAGS: --coverage
         run: |
-          pip install .
+          pip install -e .
       - name: Test with pytest
         run: |
           pip install -r test_requirements.txt
