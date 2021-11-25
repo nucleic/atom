@@ -157,7 +157,7 @@ class ExtendedObserver(object):
             raise TypeError(msg % (attr, new))
 
 
-class MissingMember(UserWarning):
+class MissingMemberWarning(UserWarning):
     """Signal an expected member is not present."""
 
     pass
@@ -167,7 +167,7 @@ def _signal_missing_member(method: str, members: List[str], prefix: str) -> None
     warnings.warn(
         f"{prefix} method {method} does not match any member defined "
         f"on the Atom object. Existing members are: {members}",
-        MissingMember,
+        MissingMemberWarning,
         stacklevel=3,
     )
 
