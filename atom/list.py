@@ -1,26 +1,28 @@
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
-from .catom import Member, DefaultValue, Validate
+# --------------------------------------------------------------------------------------
+from .catom import DefaultValue, Member, Validate
 from .instance import Instance
 from .typing_utils import extract_types, is_optional
 
+
 class List(Member):
-    """ A member which allows list values.
+    """A member which allows list values.
 
     Assigning to a list creates a copy. The orginal list will remain
     unmodified. This is similar to the semantics of the assignment
     operator on the C++ STL container classes.
 
     """
-    __slots__ = 'item'
+
+    __slots__ = "item"
 
     def __init__(self, item=None, default=None):
-        """ Initialize a List.
+        """Initialize a List.
 
         Parameters
         ----------
@@ -43,7 +45,7 @@ class List(Member):
         self.set_validate_mode(Validate.List, item)
 
     def set_name(self, name):
-        """ Set the name of the member.
+        """Set the name of the member.
 
         This method ensures that the item member name is also updated.
 
@@ -53,7 +55,7 @@ class List(Member):
             self.item.set_name(name + "|item")
 
     def set_index(self, index):
-        """ Assign the index to this member.
+        """Assign the index to this member.
 
         This method ensures that the item member index is also updated.
 
@@ -63,7 +65,7 @@ class List(Member):
             self.item.set_index(index)
 
     def clone(self):
-        """ Create a clone of the list.
+        """Create a clone of the list.
 
         This will clone the internal list item if one is in use.
 

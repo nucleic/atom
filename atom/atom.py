@@ -1,31 +1,35 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 import copyreg
 from contextlib import contextmanager
 from types import FunctionType
 from typing import Any, Callable, ClassVar, Dict, Iterator, List, Optional, Tuple
 
 from .catom import (
-    CAtom, Member, DefaultValue, PostGetAttr, PostSetAttr, Validate,
+    CAtom,
+    DefaultValue,
+    Member,
+    PostGetAttr,
+    PostSetAttr,
     PostValidate,
+    Validate,
 )
 
-
-OBSERVE_PREFIX = '_observe_'
-DEFAULT_PREFIX = '_default_'
-VALIDATE_PREFIX = '_validate_'
-POST_GETATTR_PREFIX = '_post_getattr_'
-POST_SETATTR_PREFIX = '_post_setattr_'
-POST_VALIDATE_PREFIX = '_post_validate_'
+OBSERVE_PREFIX = "_observe_"
+DEFAULT_PREFIX = "_default_"
+VALIDATE_PREFIX = "_validate_"
+POST_GETATTR_PREFIX = "_post_getattr_"
+POST_SETATTR_PREFIX = "_post_setattr_"
+POST_VALIDATE_PREFIX = "_post_validate_"
 
 
 def observe(*names: str):
-    """ A decorator which can be used to observe members on a class.
+    """A decorator which can be used to observe members on a class.
 
     Parameters
     ----------
@@ -42,12 +46,12 @@ def observe(*names: str):
         if not isinstance(name, str):
             msg = "observe attribute name must be a string, got '%s' instead"
             raise TypeError(msg % type(name).__name__)
-        ndots = name.count('.')
+        ndots = name.count(".")
         if ndots > 1:
             msg = "cannot observe '%s', only a single extension is allowed"
             raise TypeError(msg % name)
         if ndots == 1:
-            name, attr = name.split('.')
+            name, attr = name.split(".")
             pairs.append((name, attr))
         else:
             pairs.append((name, None))
@@ -55,13 +59,12 @@ def observe(*names: str):
 
 
 class ObserveHandler(object):
-    """ An object used to temporarily store observe decorator state.
+    """An object used to temporarily store observe decorator state."""
 
-    """
-    __slots__ = ('pairs', 'func', 'funcname')
+    __slots__ = ("pairs", "func", "funcname")
 
     def __init__(self, pairs: List[Tuple[str, Optional[str]]]):
-        """ Initialize an ObserveHandler.
+        """Initialize an ObserveHandler.
 
         Parameters
         ----------
@@ -71,51 +74,43 @@ class ObserveHandler(object):
 
         """
         self.pairs = pairs
-        self.func: Optional[Callable] = None        # set by the __call__ method
-        self.funcname: Optional[str] = None    # storage for the metaclass
+        self.func: Optional[Callable] = None  # set by the __call__ method
+        self.funcname: Optional[str] = None  # storage for the metaclass
 
     def __call__(self, func: Callable) -> "ObserveHandler":
-        """ Called to decorate the function.
-
-        """
+        """Called to decorate the function."""
         assert isinstance(func, FunctionType), "func must be a function"
         self.func = func
         return self
 
     def clone(self) -> "ObserveHandler":
-        """ Create a clone of the sentinel.
-
-        """
+        """Create a clone of the sentinel."""
         clone = type(self)(self.pairs)
         clone.func = self.func
         return clone
 
 
 class set_default(object):
-    """ An object used to set the default value of a base class member.
+    """An object used to set the default value of a base class member."""
 
-    """
-    __slots__ = ('value', 'name')
+    __slots__ = ("value", "name")
 
     def __init__(self, value: Any) -> None:
         self.value = value
-        self.name = None    # storage for the metaclass
+        self.name = None  # storage for the metaclass
 
     def clone(self) -> "set_default":
-        """ Create a clone of the sentinel.
-
-        """
+        """Create a clone of the sentinel."""
         return type(self)(self.value)
 
 
 class ExtendedObserver(object):
-    """ A callable object used to implement extended observers.
+    """A callable object used to implement extended observers."""
 
-    """
-    __slots__ = ('funcname', 'attr')
+    __slots__ = ("funcname", "attr")
 
     def __init__(self, funcname: str, attr: str) -> None:
-        """ Initialize an ExtendedObserver.
+        """Initialize an ExtendedObserver.
 
         Parameters
         ----------
@@ -132,7 +127,7 @@ class ExtendedObserver(object):
         self.attr = attr
 
     def __call__(self, change: Dict[str, Any]) -> None:
-        """ Handle a change of the target object.
+        """Handle a change of the target object.
 
         This handler will remove the old observer and attach a new
         observer to the target attribute. If the target object is not
@@ -141,16 +136,16 @@ class ExtendedObserver(object):
         """
         old = None
         new = None
-        ctype = change['type']
-        if ctype == 'create':
-            new = change['value']
-        elif ctype == 'update':
-            old = change['oldvalue']
-            new = change['value']
-        elif ctype == 'delete':
-            old = change['value']
+        ctype = change["type"]
+        if ctype == "create":
+            new = change["value"]
+        elif ctype == "update":
+            old = change["oldvalue"]
+            new = change["value"]
+        elif ctype == "delete":
+            old = change["value"]
         attr = self.attr
-        owner = change['object']
+        owner = change["object"]
         handler = getattr(owner, self.funcname)
         if isinstance(old, Atom):
             old.unobserve(attr, handler)
@@ -162,7 +157,7 @@ class ExtendedObserver(object):
 
 
 class AtomMeta(type):
-    """ The metaclass for classes derived from Atom.
+    """The metaclass for classes derived from Atom.
 
     This metaclass computes the memory layout of the members in a given
     class so that the CAtom class can allocate exactly enough space for
@@ -174,27 +169,28 @@ class AtomMeta(type):
     required, then a subclasss should declare the appropriate slots.
 
     """
-    def __new__(meta, name, bases, dct):
+
+    def __new__(meta, name, bases, dct):  # noqa: C901
         # Unless the developer requests slots, they are automatically
         # turned off. This prevents the creation of instance dicts and
         # other space consuming features unless explicitly requested.
-        if '__slots__' not in dct:
-            dct['__slots__'] = ()
+        if "__slots__" not in dct:
+            dct["__slots__"] = ()
 
         # Pass over the class dict once and collect the information
         # necessary to implement the various behaviors. Some objects
         # declared on the class only serve as sentinels, and they are
         # removed from the dict before creating the class.
-        observes = []               # Static observer methods: _observe_*
-        defaults = []               # Default value methods: _default_*
-        validates = []              # Validator methods: _validate_*
-        decorated = []              # Decorated observers: @observe
-        set_defaults = []           # set_default() sentinel
-        post_getattrs = []          # Post getattr methods: _post_getattr_*
-        post_setattrs = []          # Post setattr methods: _post_setattr_*
-        post_validates = []         # Post validate methods: _post_validate_*
-        seen_sentinels = set()      # The set of seen sentinels
-        seen_decorated = set()      # The set of seen @observe decorators
+        observes = []  # Static observer methods: _observe_*
+        defaults = []  # Default value methods: _default_*
+        validates = []  # Validator methods: _validate_*
+        decorated = []  # Decorated observers: @observe
+        set_defaults = []  # set_default() sentinel
+        post_getattrs = []  # Post getattr methods: _post_getattr_*
+        post_setattrs = []  # Post setattr methods: _post_setattr_*
+        post_validates = []  # Post validate methods: _post_validate_*
+        seen_sentinels = set()  # The set of seen sentinels
+        seen_decorated = set()  # The set of seen @observe decorators
         for key, value in dct.items():
             if isinstance(value, set_default):
                 if value in seen_sentinels:
@@ -318,8 +314,7 @@ class AtomMeta(type):
             target = mangled[n:]
             if target in members:
                 member = clone_if_needed(members[target])
-                member.set_default_value_mode(DefaultValue.ObjectMethod,
-                                              mangled)
+                member.set_default_value_mode(DefaultValue.ObjectMethod, mangled)
 
         # _validate_* methods
         n = len(VALIDATE_PREFIX)
@@ -335,8 +330,7 @@ class AtomMeta(type):
             target = mangled[n:]
             if target in members:
                 member = clone_if_needed(members[target])
-                member.set_post_validate_mode(PostValidate.ObjectMethod_OldNew,
-                                              mangled)
+                member.set_post_validate_mode(PostValidate.ObjectMethod_OldNew, mangled)
 
         # _post_getattr_* methods
         n = len(POST_GETATTR_PREFIX)
@@ -344,8 +338,7 @@ class AtomMeta(type):
             target = mangled[n:]
             if target in members:
                 member = clone_if_needed(members[target])
-                member.set_post_getattr_mode(PostGetAttr.ObjectMethod_Value,
-                                             mangled)
+                member.set_post_getattr_mode(PostGetAttr.ObjectMethod_Value, mangled)
 
         # _post_setattr_* methods
         n = len(POST_SETATTR_PREFIX)
@@ -353,8 +346,7 @@ class AtomMeta(type):
             target = mangled[n:]
             if target in members:
                 member = clone_if_needed(members[target])
-                member.set_post_setattr_mode(PostSetAttr.ObjectMethod_OldNew,
-                                             mangled)
+                member.set_post_setattr_mode(PostSetAttr.ObjectMethod_OldNew, mangled)
 
         # _observe_* methods
         n = len(OBSERVE_PREFIX)
@@ -382,7 +374,7 @@ class AtomMeta(type):
 
 
 def __newobj__(cls, *args):
-    """ A compatibility pickler function.
+    """A compatibility pickler function.
 
     This function is not part of the public Atom api.
 
@@ -391,7 +383,7 @@ def __newobj__(cls, *args):
 
 
 class Atom(CAtom, metaclass=AtomMeta):
-    """ The base class for defining atom objects.
+    """The base class for defining atom objects.
 
     `Atom` objects are special Python objects which never allocate an
     instance dictionary unless one is explicitly requested. The storage
@@ -409,7 +401,7 @@ class Atom(CAtom, metaclass=AtomMeta):
 
     @classmethod
     def members(cls) -> Dict[str, Member]:
-        """ Get the members dictionary for the type.
+        """Get the members dictionary for the type.
 
         Returns
         -------
@@ -422,7 +414,7 @@ class Atom(CAtom, metaclass=AtomMeta):
 
     @contextmanager
     def suppress_notifications(self) -> Iterator[None]:
-        """ Disable member notifications within in a context.
+        """Disable member notifications within in a context.
 
         Returns
         -------
@@ -437,7 +429,7 @@ class Atom(CAtom, metaclass=AtomMeta):
         self.set_notifications_enabled(old)
 
     def __reduce_ex__(self, proto):
-        """ An implementation of the reduce protocol.
+        """An implementation of the reduce protocol.
 
         This method creates a reduction tuple for Atom instances. This
         method should not be overridden by subclasses unless the author
@@ -448,7 +440,7 @@ class Atom(CAtom, metaclass=AtomMeta):
         return (__newobj__, args, self.__getstate__())
 
     def __getnewargs__(self):
-        """ Get the argument tuple to pass to __new__ on unpickling.
+        """Get the argument tuple to pass to __new__ on unpickling.
 
         See the Python.org docs for more information.
 
@@ -456,7 +448,7 @@ class Atom(CAtom, metaclass=AtomMeta):
         return ()
 
     def __getstate__(self):
-        """ The base implementation of the pickle getstate protocol.
+        """The base implementation of the pickle getstate protocol.
 
         This base class implementation handles the generic case where
         the object and all of its state are pickable. This includes
@@ -467,7 +459,7 @@ class Atom(CAtom, metaclass=AtomMeta):
 
         """
         state = {}
-        state.update(getattr(self, '__dict__', {}))
+        state.update(getattr(self, "__dict__", {}))
         slots = copyreg._slotnames(type(self))
         if slots:
             for name in slots:
@@ -477,7 +469,7 @@ class Atom(CAtom, metaclass=AtomMeta):
         return state
 
     def __setstate__(self, state):
-        """ The base implementation of the pickle setstate protocol.
+        """The base implementation of the pickle setstate protocol.
 
         This base class implementation handle the generic case of
         restoring an object using the state generated by the base

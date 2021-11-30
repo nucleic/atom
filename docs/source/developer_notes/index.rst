@@ -9,8 +9,15 @@ details of the implementation and coding style of the project.
 Python codebase
 ---------------
 
-The Python codebase currently targets Python 3.6+, strives to follow PEP 8 and
-uses Numpy style docstring.
+The Python codebase currently targets Python 3.7+. Isort, black, flake8 and mypy
+are used to ensure a consistent style check the code. The code make use of Numpy
+style docstring.
+
+Atom use build tools compliant with PEP 517. It can be installed using pip and
+wheels and sdist can be built using https://github.com/pypa/build from the root
+of the project::
+
+  python -m build .
 
 
 Python C++ bindings

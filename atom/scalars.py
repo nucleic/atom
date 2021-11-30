@@ -1,15 +1,16 @@
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
-from .catom import Member, DefaultValue, Validate, SetAttr, DelAttr
+# --------------------------------------------------------------------------------------
+from .catom import DefaultValue, DelAttr, Member, SetAttr, Validate
 from .typing_utils import extract_types
 
+
 class Value(Member):
-    """ A member class which supports value initialization.
+    """A member class which supports value initialization.
 
     A plain `Value` provides support for default values and factories,
     but does not perform any type checking or validation. It serves as
@@ -17,6 +18,7 @@ class Value(Member):
     where type checking is not needed (like private attributes).
 
     """
+
     __slots__ = ()
 
     def __init__(self, default=None, *, factory=None):
@@ -42,9 +44,8 @@ class Value(Member):
 
 
 class ReadOnly(Value):
-    """ A value which can be assigned once and is then read-only.
+    """A value which can be assigned once and is then read-only."""
 
-    """
     __slots__ = ()
 
     def __init__(self, kind=None, *, default=None, factory=None):
@@ -56,9 +57,8 @@ class ReadOnly(Value):
 
 
 class Constant(Value):
-    """ A value which cannot be changed from its default.
+    """A value which cannot be changed from its default."""
 
-    """
     __slots__ = ()
 
     def __init__(self, default=None, *, factory=None, kind=None):
@@ -70,9 +70,8 @@ class Constant(Value):
 
 
 class Callable(Value):
-    """ A value which is callable.
+    """A value which is callable."""
 
-    """
     __slots__ = ()
 
     def __init__(self, default=None, *, factory=None):
@@ -81,9 +80,8 @@ class Callable(Value):
 
 
 class Bool(Value):
-    """ A value of type `bool`.
+    """A value of type `bool`."""
 
-    """
     __slots__ = ()
 
     def __init__(self, default=False, *, factory=None):
@@ -92,12 +90,13 @@ class Bool(Value):
 
 
 class Int(Value):
-    """ A value of type `int`.
+    """A value of type `int`.
 
     By default, ints are strictly typed.  Pass strict=False to the
     constructor to enable int casting for longs and floats.
 
     """
+
     __slots__ = ()
 
     def __init__(self, default=0, *, factory=None, strict=True):
@@ -109,12 +108,13 @@ class Int(Value):
 
 
 class FloatRange(Value):
-    """ A float value clipped to a range.
+    """A float value clipped to a range.
 
     By default, ints and longs will be promoted to floats. Pass
     strict=True to the constructor to enable strict float checking.
 
     """
+
     __slots__ = ()
 
     def __init__(self, low=None, high=None, value=None, *, strict=False):
@@ -135,9 +135,8 @@ class FloatRange(Value):
 
 
 class Range(Value):
-    """ An integer value clipped to a range.
+    """An integer value clipped to a range."""
 
-    """
     __slots__ = ()
 
     def __init__(self, low=None, high=None, value=None):
@@ -155,12 +154,13 @@ class Range(Value):
 
 
 class Float(Value):
-    """ A value of type `float`.
+    """A value of type `float`.
 
     By default, ints and longs will be promoted to floats. Pass
     strict=True to the constructor to enable strict float checking.
 
     """
+
     __slots__ = ()
 
     def __init__(self, default=0.0, *, factory=None, strict=False):
@@ -178,6 +178,7 @@ class Bytes(Value):
     constructor to enable loose byte checking.
 
     """
+
     __slots__ = ()
 
     def __init__(self, default=b"", *, factory=None, strict=True):

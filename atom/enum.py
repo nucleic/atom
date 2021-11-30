@@ -1,21 +1,20 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
-from .catom import Member, DefaultValue, Validate
+# --------------------------------------------------------------------------------------
+from .catom import DefaultValue, Member, Validate
 
 
 class Enum(Member):
-    """ A member where the value can be one in a sequence of items.
+    """A member where the value can be one in a sequence of items."""
 
-    """
     __slots__ = ()
 
     def __init__(self, *items):
-        """ Initialize an Enum.
+        """Initialize an Enum.
 
         Parameters
         ----------
@@ -24,19 +23,17 @@ class Enum(Member):
 
         """
         if len(items) == 0:
-            raise ValueError('an Enum requires at least 1 item')
+            raise ValueError("an Enum requires at least 1 item")
         self.set_default_value_mode(DefaultValue.Static, items[0])
         self.set_validate_mode(Validate.Enum, items)
 
     @property
     def items(self):
-        """ A readonly property which returns the items in the enum.
-
-        """
+        """A readonly property which returns the items in the enum."""
         return self.validate_mode[1]
 
     def added(self, *items):
-        """ Create a clone of the Enum with added items.
+        """Create a clone of the Enum with added items.
 
         Parameters
         ----------
@@ -57,7 +54,7 @@ class Enum(Member):
         return clone
 
     def removed(self, *items):
-        """ Create a clone of the Enum with some items removed.
+        """Create a clone of the Enum with some items removed.
 
         Parameters
         ----------
@@ -73,14 +70,14 @@ class Enum(Member):
         """
         newitems = tuple(i for i in self.items if i not in items)
         if len(newitems) == 0:
-            raise ValueError('an Enum requires at least 1 item')
+            raise ValueError("an Enum requires at least 1 item")
         clone = self.clone()
         clone.set_default_value_mode(DefaultValue.Static, newitems[0])
         clone.set_validate_mode(Validate.Enum, newitems)
         return clone
 
     def __call__(self, item):
-        """ Create a clone of the Enum item with a new default.
+        """Create a clone of the Enum item with a new default.
 
         Parameters
         ----------
@@ -90,7 +87,7 @@ class Enum(Member):
 
         """
         if item not in self.items:
-            raise TypeError('invalid enum value')
+            raise TypeError("invalid enum value")
         clone = self.clone()
         clone.set_default_value_mode(DefaultValue.Static, item)
         return clone

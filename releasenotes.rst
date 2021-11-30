@@ -2,6 +2,16 @@ Atom Release Notes
 ==================
 
 
+0.8.0 - unreleased
+------------------
+
+- use isort, black and flake8 to ensure a consistent coding style PR #141
+- base the version number on the most recent git tag using setuptools-scm PR #141
+- make the setup compatible with PEP 517 PR #141
+  Pip should be used for development install in place of directly calling
+  setup.py
+
+
 0.7.0 - 21/11/2021
 ------------------
 

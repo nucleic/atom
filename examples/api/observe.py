@@ -1,17 +1,14 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Demonstration of the use of static and dynamic observers.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from atom.api import Atom, Str, Range, Typed, observe
+from atom.api import Atom, Range, Str, Typed, observe
 
 
 class Dog(Atom):
@@ -20,9 +17,8 @@ class Dog(Atom):
 
 
 class Person(Atom):
-    """ A simple class representing a person object.
+    """A simple class representing a person object."""
 
-    """
     name = Str()
 
     age = Range(low=0)
@@ -30,31 +26,31 @@ class Person(Atom):
     dog = Typed(Dog, ())
 
     def _observe_age(self, change):
-        print('Age changed: {0}'.format(change['value']))
+        print("Age changed: {0}".format(change["value"]))
 
-    @observe('name')
+    @observe("name")
     def any_name_i_want(self, change):
-        print('Name changed: {0}'.format(change['value']))
+        print("Name changed: {0}".format(change["value"]))
 
-    @observe('dog.name')
+    @observe("dog.name")
     def another_random_name(self, change):
-        print('Dog name changed: {0}'.format(change['value']))
+        print("Dog name changed: {0}".format(change["value"]))
 
 
 def main():
-    bob = Person(name='Robert Paulson', age=40)
-    bob.name = 'Bobby Paulson'
+    bob = Person(name="Robert Paulson", age=40)
+    bob.name = "Bobby Paulson"
     bob.age = 50
-    bob.dog.name = 'Scruffy'
+    bob.dog.name = "Scruffy"
 
     def watcher_func(change):
-        print('Watcher func change: {0}'.format(change['value']))
+        print("Watcher func change: {0}".format(change["value"]))
 
-    bob.observe('age', watcher_func)
+    bob.observe("age", watcher_func)
     bob.age = 51
-    bob.unobserve('age', watcher_func)
+    bob.unobserve("age", watcher_func)
     bob.age = 52  # No call to watcher func
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

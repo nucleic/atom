@@ -1,23 +1,31 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2018, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Test the property and cached property member
 
 """
 import pytest
-from atom.api import (Atom, GetAttr, Int, Property, SetAttr, Value,
-                      cached_property, observe)
+
+from atom.api import (
+    Atom,
+    GetAttr,
+    Int,
+    Property,
+    SetAttr,
+    Value,
+    cached_property,
+    observe,
+)
 from atom.catom import DelAttr, reset_property
 
 
 def test_property1():
-    """Test defining a property using the arguments.
+    """Test defining a property using the arguments."""
 
-    """
     def get_function(obj):
         return obj.i
 
@@ -47,9 +55,8 @@ def test_property1():
 
 
 def test_property2():
-    """Test defining a property using the decorators.
+    """Test defining a property using the decorators."""
 
-    """
     class PropertyTest(Atom):
 
         p = Property()
@@ -78,9 +85,8 @@ def test_property2():
 
 
 def test_property3():
-    """Test defining a property mangled method names.
+    """Test defining a property mangled method names."""
 
-    """
     class PropertyTest(Atom):
 
         p = Property()
@@ -106,9 +112,8 @@ def test_property3():
 
 
 def test_property4():
-    """Test handling missing function(fget, fset, fdel)
+    """Test handling missing function(fget, fset, fdel)"""
 
-    """
     class PropertyTest(Atom):
 
         p = Property()
@@ -125,9 +130,8 @@ def test_property4():
 
 
 def test_cached_property():
-    """Test using a cached property.
+    """Test using a cached property."""
 
-    """
     class PropertyTest(Atom):
 
         i = Int()
@@ -141,14 +145,13 @@ def test_cached_property():
     pt = PropertyTest()
     assert pt.prop == 1
     assert pt.prop == 1
-    pt.get_member('prop').reset(pt)
+    pt.get_member("prop").reset(pt)
     assert pt.prop == 2
 
 
 def test_enforce_read_only_cached_property():
-    """Check a cached property has to be read-only.
+    """Check a cached property has to be read-only."""
 
-    """
     def get(self):
         pass
 
@@ -164,11 +167,9 @@ def test_enforce_read_only_cached_property():
 
 
 def test_observed_property():
-    """Test observing a property.
+    """Test observing a property."""
 
-    """
     class NonComparableObject:
-
         def __eq__(self, other):
             raise ValueError()
 
@@ -188,7 +189,7 @@ def test_observed_property():
             self.i += 1
             return self.i
 
-        @observe('prop')
+        @observe("prop")
         def observe_cp(self, change):
             self.counter += 1
 
@@ -197,43 +198,43 @@ def test_observed_property():
     assert pt.prop == 2
 
     pt.i = NonComparableObject()
-    pt.observe('prop', pt.observe_cp)
-    pt.get_member('prop').reset(pt)
+    pt.observe("prop", pt.observe_cp)
+    pt.get_member("prop").reset(pt)
     assert pt.counter == 2
     assert pt.prop == 7
 
 
 def test_wrong_reset_arguments():
-    """Test the handling of wrong arguments in reset.
-
-    """
+    """Test the handling of wrong arguments in reset."""
     prop = Property()
 
     with pytest.raises(TypeError) as excinfo:
         reset_property()
-    assert '2 arguments' in excinfo.exconly()
+    assert "2 arguments" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         reset_property(None, None)
-    assert 'Member' in excinfo.exconly()
+    assert "Member" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         prop.reset(None)
-    assert 'CAtom' in excinfo.exconly()
+    assert "CAtom" in excinfo.exconly()
 
     with pytest.raises(SystemError) as excinfo:
         prop.reset(Atom())
-    assert 'invalid member index' in excinfo.exconly()
+    assert "invalid member index" in excinfo.exconly()
 
 
-@pytest.mark.parametrize('mode, func',
-                         [(GetAttr, 'set_getattr_mode'),
-                          (SetAttr, 'set_setattr_mode'),
-                          (DelAttr, 'set_delattr_mode')])
+@pytest.mark.parametrize(
+    "mode, func",
+    [
+        (GetAttr, "set_getattr_mode"),
+        (SetAttr, "set_setattr_mode"),
+        (DelAttr, "set_delattr_mode"),
+    ],
+)
 def test_property_mode_args_validation(mode, func):
-    """Test that a delegator properly validate the arguments when setting mode.
-
-    """
+    """Test that a delegator properly validate the arguments when setting mode."""
     with pytest.raises(TypeError) as excinfo:
-        getattr(Property(), func)(getattr(mode, 'Property'), 1)
-    assert 'callable or None' in excinfo.exconly()
+        getattr(Property(), func)(getattr(mode, "Property"), 1)
+    assert "callable or None" in excinfo.exconly()

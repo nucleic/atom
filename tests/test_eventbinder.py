@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2018, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2018-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Test the notification mechanisms.
 
 """
@@ -14,6 +14,7 @@ import sys
 from collections import Counter
 
 import pytest
+
 from atom.api import Atom, Event, Int
 
 
@@ -24,6 +25,7 @@ def test_eventbinder_lifecycle():
     deallocate some.
 
     """
+
     class EventAtom(Atom):
         e = Event()
 
@@ -44,9 +46,8 @@ def test_eventbinder_lifecycle():
 
 
 def test_eventbinder_call():
-    """Test calling an event binder and handling bad arguments.
+    """Test calling an event binder and handling bad arguments."""
 
-    """
     class EventAtom(Atom):
         counter = Int()
         e = Event()
@@ -54,26 +55,25 @@ def test_eventbinder_call():
     a = EventAtom()
 
     def update_counter(change):
-        change['object'].counter += change['value']
+        change["object"].counter += change["value"]
 
-    a.observe('e', update_counter)
+    a.observe("e", update_counter)
 
     a.e(2)
     assert a.counter == 2
 
     with pytest.raises(TypeError) as excinfo:
         a.e(k=1)
-    assert 'keyword arguments' in excinfo.exconly()
+    assert "keyword arguments" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         a.e(1, 2, 3)
-    assert 'at most 1 argument' in excinfo.exconly()
+    assert "at most 1 argument" in excinfo.exconly()
 
 
 def test_eventbinder_cmp():
-    """Test comparing event binders.
+    """Test comparing event binders."""
 
-    """
     class EventAtom(Atom):
         e1 = Event()
         e2 = Event()
@@ -84,6 +84,6 @@ def test_eventbinder_cmp():
     assert not a.e1 == 1
 
     if sys.version_info >= (3,):
-        for op in ('lt', 'le', 'gt', 'ge'):
+        for op in ("lt", "le", "gt", "ge"):
             with pytest.raises(TypeError):
                 getattr(operator, op)(a.e1, 1)

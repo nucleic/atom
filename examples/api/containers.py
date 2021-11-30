@@ -1,17 +1,14 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Demonstration of the member handling containers.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from atom.api import Atom, List, ContainerList, Tuple, Dict
+from atom.api import Atom, ContainerList, Dict, List, Tuple
 
 
 class Data(Atom):
@@ -22,13 +19,13 @@ class Data(Atom):
 
     dtuple = Tuple(default=(5, 4, 3))
 
-    ddict = Dict(default=dict(foo=1, bar='a'))
+    ddict = Dict(default=dict(foo=1, bar="a"))
 
     def _observe_dcont_list(self, change):
-        print('container list change: {0}'.format(change['value']))
+        print("container list change: {0}".format(change["value"]))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     data = Data()
     print(data.dlist)
     print(data.dcont_list)

@@ -1,17 +1,14 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Demonstration of the ranges members.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from atom.api import Atom, Range, FloatRange
+from atom.api import Atom, FloatRange, Range
 
 
 class Experiment(Atom):
@@ -23,7 +20,7 @@ class Experiment(Atom):
     scale = FloatRange(0.0, 2.0, 1.0, strict=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     exp = Experiment()
 
     print(exp.coef)

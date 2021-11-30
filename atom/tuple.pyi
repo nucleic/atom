@@ -5,15 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import (
-    Any,
-    Optional,
-    Tuple as TTuple,
-    Type,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import Any, Optional, Tuple as TTuple, Type, TypeVar, Union, overload
 
 from .catom import Member
 

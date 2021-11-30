@@ -1,21 +1,20 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2019, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
-from .catom import Member, GetAttr, SetAttr, DelAttr, reset_property
+# --------------------------------------------------------------------------------------
+from .catom import DelAttr, GetAttr, Member, SetAttr, reset_property
 
 
 class Property(Member):
-    """ A Member which behaves similar to a Python property.
+    """A Member which behaves similar to a Python property."""
 
-    """
     __slots__ = ()
 
     def __init__(self, fget=None, fset=None, fdel=None, cached=False):
-        """ Initialize a Property member.
+        """Initialize a Property member.
 
         Parameters
         ----------
@@ -46,14 +45,15 @@ class Property(Member):
         gm = GetAttr.CachedProperty if cached else GetAttr.Property
         self.set_getattr_mode(gm, fget)
         if cached and fset is not None:
-            raise ValueError('Cached property are read-only, but a setter was '
-                             'specified.')
+            raise ValueError(
+                "Cached property are read-only, but a setter was " "specified."
+            )
         self.set_setattr_mode(SetAttr.Property, fset)
         self.set_delattr_mode(DelAttr.Property, fdel)
 
     @property
     def fget(self):
-        """ Get the getter function for the property.
+        """Get the getter function for the property.
 
         This will not find a specially named _get_* function.
 
@@ -62,7 +62,7 @@ class Property(Member):
 
     @property
     def fset(self):
-        """ Get the setter function for the property.
+        """Get the setter function for the property.
 
         This will not find a specially named _set_* function.
 
@@ -71,7 +71,7 @@ class Property(Member):
 
     @property
     def fdel(self):
-        """ Get the deleter function for the property.
+        """Get the deleter function for the property.
 
         This will not find a specially named _del_* function.
 
@@ -80,13 +80,11 @@ class Property(Member):
 
     @property
     def cached(self):
-        """ Test whether or not this is a cached property.
-
-        """
+        """Test whether or not this is a cached property."""
         return self.getattr_mode[0] == GetAttr.CachedProperty
 
     def getter(self, func):
-        """ Use the given function as the property getter.
+        """Use the given function as the property getter.
 
         This method is intended to be used as a decorator. The original
         function will still be callable.
@@ -97,20 +95,21 @@ class Property(Member):
         return func
 
     def setter(self, func):
-        """ Use the given function as the property setter.
+        """Use the given function as the property setter.
 
         This method is intended to be used as a decorator. The original
         function will still be callable.
 
         """
         if self.cached:
-            raise ValueError('Cached property are read-only, but a setter was '
-                             'specified.')
+            raise ValueError(
+                "Cached property are read-only, but a setter was " "specified."
+            )
         self.set_setattr_mode(SetAttr.Property, func)
         return func
 
     def deleter(self, func):
-        """ Use the given function as the property deleter.
+        """Use the given function as the property deleter.
 
         This method is intended to be used as a decorator. The original
         function will still be callable.
@@ -120,7 +119,7 @@ class Property(Member):
         return func
 
     def reset(self, owner):
-        """ Reset the value of the property.
+        """Reset the value of the property.
 
         The old property value will be cleared and the notifiers will
         be run if the new value is different from the old value. If
@@ -132,7 +131,7 @@ class Property(Member):
 
 
 def cached_property(fget):
-    """ A decorator which converts a function into a cached Property.
+    """A decorator which converts a function into a cached Property.
 
     Parameters
     ----------

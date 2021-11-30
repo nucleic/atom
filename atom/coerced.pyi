@@ -5,16 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    overload
-)
+from typing import Any, Callable, Dict, Optional, Tuple, Type, TypeVar, overload
 
 from .atom import Atom
 from .catom import Member
@@ -194,5 +185,5 @@ class Coerced(Member[T, S]):
         kwargs: None = None,
         *,
         factory: Callable[[], S],
-        coercer: Callable[[S],  T | T1 | T2 | S],
+        coercer: Callable[[S], T | T1 | T2 | S],
     ) -> Coerced[T | T1 | T2, T | T1 | T2 | S]: ...

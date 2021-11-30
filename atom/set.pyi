@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Any, Set as TSet, Tuple, Type, TypeVar, Optional, overload
+from typing import Any, Optional, Set as TSet, Tuple, Type, TypeVar, overload
 
 from .catom import Member
 

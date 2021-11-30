@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """ Demonstrate the use of Compostion of Atom objects.
 
 1. If the class has not been declared, use a ForwardTyped
@@ -16,10 +16,7 @@
    - Provide a pre-created object in the constructor
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
-from atom.api import Atom, Typed, ForwardTyped, Str
+from atom.api import Atom, ForwardTyped, Str, Typed
 
 
 class Dog(Atom):
@@ -35,33 +32,40 @@ class Person(Atom):
     name = Str()
 
     # uses static constructor
-    fido = Typed(Dog)
+    # When using a static constructor the member is considered by default to be
+    # optional even though it is often not the desired behavior, and specifying
+    # optional=False preventing the member to be set to None makes sense.
+    fido = Typed(Dog, optional=False)
 
     # uses kwargs provided in the definition
-    fluffy = Typed(Dog, kwargs=dict(name='Fluffy'))
+    # When the member is provided a way to build a default value, it assumes it
+    # is not optional by default, i.e. None is not a valid value.
+    fluffy = Typed(Dog, kwargs=dict(name="Fluffy"))
 
     # uses an object provided in Person constructor
     new_dog = Typed(Dog)
 
     def _default_fido(self):
-        return Dog(name='Fido', owner=self)
+        return Dog(name="Fido", owner=self)
 
 
-if __name__ == '__main__':
-    bob = Person(name='Bob Smith')
+if __name__ == "__main__":
+    bob = Person(name="Bob Smith")
 
-    print('Fido')
-    print('name: {0}'.format(bob.fido.name))
-    print('owner: {0}'.format(bob.fido.owner.name))
+    print("Fido")
+    print("name: {0}".format(bob.fido.name))
+    assert bob.fido.owner  # owner is optional so check it is set
+    print("owner: {0}".format(bob.fido.owner.name))
 
-    print('\nFluffy')
-    print('name: {0}'.format(bob.fluffy.name))
-    print('original owner: {0}'.format(repr(bob.fluffy.owner)))  # none
+    print("\nFluffy")
+    print("name: {0}".format(bob.fluffy.name))
+    print("original owner: {0}".format(repr(bob.fluffy.owner)))  # none
     bob.fluffy.owner = bob
-    print('new owner: {0}'.format(bob.fluffy.owner.name))
+    print("new owner: {0}".format(bob.fluffy.owner.name))
 
-    print('\nNew Dog')
-    new_dog = Dog(name='Scruffy', owner=bob)
+    print("\nNew Dog")
+    new_dog = Dog(name="Scruffy", owner=bob)
     bob.new_dog = new_dog
-    print('name: {0}'.format(bob.new_dog.name))
-    print('owner: {0}'.format(bob.new_dog.owner.name))
+    print("name: {0}".format(bob.new_dog.name))
+    assert bob.new_dog.owner  # owner is optional so check it is set
+    print("owner: {0}".format(bob.new_dog.owner.name))

@@ -1,27 +1,21 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 """Simple example of a class hierarchy built on atom.
 
 """
-from __future__ import (division, unicode_literals, print_function,
-                        absolute_import)
-
 import datetime
 
-from atom.api import (
-    Atom, Str, Range, Bool, Value, Int, Tuple, Typed, observe
-)
+from atom.api import Atom, Bool, Int, Range, Str, Tuple, Typed, Value, observe
 
 
 class Person(Atom):
-    """ A simple class representing a person object.
+    """A simple class representing a person object."""
 
-    """
     last_name = Str()
 
     first_name = Str()
@@ -32,31 +26,29 @@ class Person(Atom):
 
     debug = Bool(False)
 
-    @observe('age')
+    @observe("age")
     def debug_print(self, change):
-        """ Prints out a debug message whenever the person's age changes.
-
-        """
+        """Prints out a debug message whenever the person's age changes."""
         if self.debug:
             templ = "{first} {last} is {age} years old."
             s = templ.format(
-                first=self.first_name, last=self.last_name, age=self.age,
+                first=self.first_name,
+                last=self.last_name,
+                age=self.age,
             )
             print(s)
 
 
 class Employer(Person):
-    """ An employer is a person who runs a company.
+    """An employer is a person who runs a company."""
 
-    """
     # The name of the company
     company_name = Str()
 
 
 class Employee(Person):
-    """ An employee is person with a boss and a phone number.
+    """An employee is person with a boss and a phone number."""
 
-    """
     # The employee's boss
     boss = Typed(Employer)
 
@@ -66,18 +58,22 @@ class Employee(Person):
     # This method will be called automatically by atom when the
     # employee's phone number changes
     def _observe_phone(self, val):
-        if val['type'] == 'update':
-            msg = 'received new phone number for %s: %s'
-            print(msg % (self.first_name, val['value']))
+        if val["type"] == "update":
+            msg = "received new phone number for %s: %s"
+            print(msg % (self.first_name, val["value"]))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Create an employee with a boss
     boss_john = Employer(
-        first_name='John', last_name='Paw', company_name="Packrat's Cats",
+        first_name="John",
+        last_name="Paw",
+        company_name="Packrat's Cats",
     )
     employee_mary = Employee(
-        first_name='Mary', last_name='Sue', boss=boss_john,
+        first_name="Mary",
+        last_name="Sue",
+        boss=boss_john,
         phone=(555, 555, 5555),
     )
 

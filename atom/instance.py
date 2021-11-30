@@ -1,16 +1,16 @@
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 from .catom import DefaultValue, Member, Validate
 from .typing_utils import extract_types, is_optional
 
 
 class Instance(Member):
-    """ A value which allows objects of a given type or types.
+    """A value which allows objects of a given type or types.
 
     Values will be tested using the `PyObject_IsInstance` C API call.
     This call is equivalent to `isinstance(value, kind)` and all the
@@ -21,10 +21,11 @@ class Instance(Member):
     be considered False if a default value is provided and True otherwise.
 
     """
+
     __slots__ = ()
 
     def __init__(self, kind, args=None, kwargs=None, *, factory=None, optional=None):
-        """ Initialize an Instance.
+        """Initialize an Instance.
 
         Parameters
         ----------
@@ -75,8 +76,8 @@ class Instance(Member):
 
         optional = (
             optional
-            if optional is not None else
-            (factory is None and args is None and kwargs is None)
+            if optional is not None
+            else (factory is None and args is None and kwargs is None)
         )
         if optional:
             self.set_validate_mode(Validate.OptionalInstance, kind)
@@ -85,17 +86,18 @@ class Instance(Member):
 
 
 class ForwardInstance(Instance):
-    """ An Instance which delays resolving the type definition.
+    """An Instance which delays resolving the type definition.
 
     The first time the value is accessed or modified, the type will
     be resolved and the forward instance will behave identically to
     a normal instance.
 
     """
-    __slots__ = ('resolve', 'args', 'kwargs', 'optional')
+
+    __slots__ = ("resolve", "args", "kwargs", "optional")
 
     def __init__(self, resolve, args=None, kwargs=None, *, factory=None, optional=None):
-        """ Initialize a ForwardInstance.
+        """Initialize a ForwardInstance.
 
         resolve : callable
             A callable which takes no arguments and returns the type or
@@ -136,14 +138,14 @@ class ForwardInstance(Instance):
 
         self.optional = (
             optional
-            if optional is not None else
-            (factory is None and args is None and kwargs is None)
+            if optional is not None
+            else (factory is None and args is None and kwargs is None)
         )
 
         self.set_validate_mode(Validate.MemberMethod_ObjectOldNew, "validate")
 
     def default(self, owner):
-        """ Called to retrieve the default value.
+        """Called to retrieve the default value.
 
         This is called the first time the default value is retrieved
         for the member. It resolves the type and updates the internal
@@ -158,7 +160,7 @@ class ForwardInstance(Instance):
         return kind(*args, **kwargs)
 
     def validate(self, owner, old, new):
-        """ Called to validate the value.
+        """Called to validate the value.
 
         This is called the first time a value is validated for the
         member. It resolves the type and updates the internal validate
@@ -173,9 +175,7 @@ class ForwardInstance(Instance):
         return self.do_validate(owner, old, new)
 
     def clone(self):
-        """ Create a clone of the ForwardInstance object.
-
-        """
+        """Create a clone of the ForwardInstance object."""
         clone = super(ForwardInstance, self).clone()
         clone.resolve = self.resolve
         clone.args = self.args

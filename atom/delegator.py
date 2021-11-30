@@ -1,17 +1,22 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 from .catom import (
-    Member, PostGetAttr, PostSetAttr, DefaultValue, Validate, PostValidate
+    DefaultValue,
+    Member,
+    PostGetAttr,
+    PostSetAttr,
+    PostValidate,
+    Validate,
 )
 
 
 class Delegator(Member):
-    """ A member subclass which delegates all work to a wrapped member.
+    """A member subclass which delegates all work to a wrapped member.
 
     The only behaviors not delegated are GetAttr and SetAttr. Subclasses
     should override behavior as needed to suit their needs. In order to
@@ -19,10 +24,11 @@ class Delegator(Member):
     via super(Delegator, ...).
 
     """
-    __slots__ = 'delegate'
+
+    __slots__ = "delegate"
 
     def __init__(self, delegate):
-        """ Initialize a DeclarativeProperty.
+        """Initialize a DeclarativeProperty.
 
         Parameters
         ----------
@@ -40,7 +46,7 @@ class Delegator(Member):
         sup.set_post_validate_mode(PostValidate.Delegate, delegate)
 
     def add_static_observer(self, observer):
-        """ Add a static observer to the member.
+        """Add a static observer to the member.
 
         This method also adds the static observer to the delegate.
 
@@ -49,7 +55,7 @@ class Delegator(Member):
         self.delegate.add_static_observer(observer)
 
     def remove_static_observer(self, observer):
-        """ Remove a static observer from the member.
+        """Remove a static observer from the member.
 
         This method also removes the static observer from the delegate.
 
@@ -58,7 +64,7 @@ class Delegator(Member):
         self.delegate.remove_static_observer(observer)
 
     def set_name(self, name):
-        """ Assign the name to this member.
+        """Assign the name to this member.
 
         This method keeps the name of the delegate member in sync.
 
@@ -67,7 +73,7 @@ class Delegator(Member):
         self.delegate.set_name(name)
 
     def set_index(self, index):
-        """ Assign the index to this member.
+        """Assign the index to this member.
 
         This method keeps the index of the delegate member in sync.
 
@@ -76,7 +82,7 @@ class Delegator(Member):
         self.delegate.set_index(index)
 
     def set_post_getattr_mode(self, mode, context):
-        """ Set the post getattr mode for the member.
+        """Set the post getattr mode for the member.
 
         This method proxies the change to the delegate member.
 
@@ -84,7 +90,7 @@ class Delegator(Member):
         self.delegate.set_post_getattr_mode(mode, context)
 
     def set_post_setattr_mode(self, mode, context):
-        """ Set the post getattr mode for the member.
+        """Set the post getattr mode for the member.
 
         This method proxies the change to the delegate member.
 
@@ -92,7 +98,7 @@ class Delegator(Member):
         self.delegate.set_post_setattr_mode(mode, context)
 
     def set_default_value_mode(self, mode, context):
-        """ Set the default value mode for the member.
+        """Set the default value mode for the member.
 
         This method proxies the change to the delegate member.
 
@@ -100,7 +106,7 @@ class Delegator(Member):
         self.delegate.set_default_value_mode(mode, context)
 
     def set_validate_mode(self, mode, context):
-        """ Set the default value mode for the member.
+        """Set the default value mode for the member.
 
         This method proxies the change to the delegate member.
 
@@ -108,7 +114,7 @@ class Delegator(Member):
         self.delegate.set_validate_mode(mode, context)
 
     def set_post_validate_mode(self, mode, context):
-        """ Set the default value mode for the member.
+        """Set the default value mode for the member.
 
         This method proxies the change to the delegate member.
 
@@ -116,7 +122,7 @@ class Delegator(Member):
         self.delegate.set_post_validate_mode(mode, context)
 
     def clone(self):
-        """ Create a clone of the declarative property.
+        """Create a clone of the declarative property.
 
         This method also creates a clone of the internal delegate for
         mode handlers which use the original delegate as the context.

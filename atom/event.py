@@ -1,21 +1,21 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2013-2017, Nucleic Development Team.
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2013-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
-from .catom import Member, Validate, GetAttr, SetAttr, DelAttr
+# --------------------------------------------------------------------------------------
+from .catom import DelAttr, GetAttr, Member, SetAttr, Validate
 from .typing_utils import extract_types
 
-class Event(Member):
-    """ A member which acts like a stateless event.
 
-    """
+class Event(Member):
+    """A member which acts like a stateless event."""
+
     __slots__ = ()
 
     def __init__(self, kind=None):
-        """ Initialize an Event.
+        """Initialize an Event.
 
         Parameters
         ----------
@@ -36,7 +36,7 @@ class Event(Member):
                 self.set_validate_mode(Validate.Instance, extract_types(kind))
 
     def set_name(self, name):
-        """ A reimplemented parent class method.
+        """A reimplemented parent class method.
 
         This method ensures that the delegate name is also set, if a
         delegate validator is being used.
@@ -48,7 +48,7 @@ class Event(Member):
             kind.set_name(name)
 
     def set_index(self, index):
-        """ A reimplemented parent class method.
+        """A reimplemented parent class method.
 
         This method ensures that the delegate index is also set, if a
         delegate validator is being used.

@@ -1,27 +1,28 @@
-#------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2019-2021, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
-#------------------------------------------------------------------------------
-from .catom import Member, DefaultValue, Validate
+# --------------------------------------------------------------------------------------
+from .catom import DefaultValue, Member, Validate
 from .instance import Instance
 from .typing_utils import extract_types, is_optional
 
 
 class Set(Member):
-    """ A member which allows set values.
+    """A member which allows set values.
 
     Assigning to a set creates a copy. The original set will remain
     unmodified. This is similar to the semantics of the assignment
     operator on the C++ STL container classes.
 
     """
-    __slots__ = 'item'
+
+    __slots__ = "item"
 
     def __init__(self, item=None, default=None):
-        """ Initialize a Set.
+        """Initialize a Set.
 
         Parameters
         ----------
@@ -44,7 +45,7 @@ class Set(Member):
         self.set_validate_mode(Validate.Set, item)
 
     def set_name(self, name):
-        """ Assign the name to this member.
+        """Assign the name to this member.
 
         This method is called by the Atom metaclass when a class is
         created. This makes sure the name of the internal members are
@@ -54,10 +55,10 @@ class Set(Member):
         super(Set, self).set_name(name)
         item = self.item
         if item is not None:
-            item.set_name(name + '|item')
+            item.set_name(name + "|item")
 
     def set_index(self, index):
-        """ Assign the index to this member.
+        """Assign the index to this member.
 
         This method is called by the Atom metaclass when a class is
         created. This makes sure the index of the internal members are
@@ -70,7 +71,7 @@ class Set(Member):
             item.set_index(index)
 
     def clone(self):
-        """ Create a clone of the member.
+        """Create a clone of the member.
 
         This will clone the internal set item members if they exist.
 
