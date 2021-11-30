@@ -218,7 +218,7 @@ def test_warn_on_missing(method_name):
     """
     )
 
-    with pytest.warns(MissingMemberWarning) as w:
+    with pytest.warns(MissingMemberWarning):
         exec(src)
 
 
@@ -234,5 +234,5 @@ def test_warn_on_missing_observe():
     """
     )
 
-    with pytest.warns(MissingMemberWarning) as w:
+    with pytest.warns(MissingMemberWarning):
         exec(src, globals(), {"Atom": Atom, "observe": observe})
