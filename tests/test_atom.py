@@ -15,10 +15,12 @@ The methods related to member observation are tested in test_observe.py
 """
 import gc
 import pickle
+from textwrap import dedent
 
 import pytest
 
-from atom.api import Atom, Int, Value, atomref, set_default
+from atom.api import Atom, Int, MissingMemberWarning, Value, atomref, set_default
+from atom.atom import observe
 
 
 def test_init():
@@ -190,3 +192,47 @@ def test_traverse_atom():
     gc.collect()
 
     assert not ref()
+
+
+@pytest.mark.parametrize(
+    "method_name",
+    [
+        "_default_x",
+        "_validate_x",
+        "_post_validate_x",
+        "_post_getattr_",
+        "_post_setattr_",
+        "_observe_",
+    ],
+)
+def test_warn_on_missing(method_name):
+    src = dedent(
+        f"""
+    from atom.api import Atom
+
+    class A(Atom):
+
+        def {method_name}(self):
+            pass
+
+    """
+    )
+
+    with pytest.warns(MissingMemberWarning):
+        exec(src)
+
+
+def test_warn_on_missing_observe():
+    src = dedent(
+        """
+    class A(Atom):
+
+        @observe("x")
+        def f(self, change):
+            pass
+
+    """
+    )
+
+    with pytest.warns(MissingMemberWarning):
+        exec(src, globals(), {"Atom": Atom, "observe": observe})
