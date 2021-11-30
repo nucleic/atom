@@ -19,7 +19,7 @@ from textwrap import dedent
 
 import pytest
 
-from atom.api import Atom, Int, MissingMember, Value, atomref, set_default
+from atom.api import Atom, Int, MissingMemberWarning, Value, atomref, set_default
 from atom.atom import observe
 
 
@@ -218,7 +218,7 @@ def test_warn_on_missing(method_name):
     """
     )
 
-    with pytest.warns(MissingMember) as w:
+    with pytest.warns(MissingMemberWarning) as w:
         exec(src)
 
 
@@ -234,5 +234,5 @@ def test_warn_on_missing_observe():
     """
     )
 
-    with pytest.warns(MissingMember) as w:
+    with pytest.warns(MissingMemberWarning) as w:
         exec(src, globals(), {"Atom": Atom, "observe": observe})
