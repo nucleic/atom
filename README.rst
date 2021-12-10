@@ -13,8 +13,8 @@ Welcome to Atom
 
 Atom is a framework for creating memory efficient Python objects with enhanced
 features such as dynamic initialization, validation, and change notification for
-object attributes. It provides the default model binding behaviour for the
-`Enaml <http://nucleic.github.io/enaml/docs>`_ UI framework.
+object attributes. It provides the default model binding behavior for the
+`Enaml <https://enaml.readthedocs.io/en/latest/>`_ UI framework.
 
 Version 0.4.3 will be the last version to support Python 2.  Moving forward
 support will be limited to Python 3.5+.
