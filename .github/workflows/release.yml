@@ -66,6 +66,7 @@ jobs:
           CIBW_BUILD: cp${{ matrix.python }}-*
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: python -m pytest {package}/tests -v
+          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           # Disable FH4 to avoid linking against VC2014_1
           ATOM_DISABLE_FH4: 1
         run: |
