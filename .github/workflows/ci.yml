@@ -10,8 +10,8 @@ on:
       - main
     paths:
       - .github/workflows/ci.yml
-      - atom/*
-      - tests/*
+      - "atom/**"
+      - "tests/**"
       - setup.py
 
 jobs:
