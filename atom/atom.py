@@ -264,12 +264,15 @@ class AtomMeta(type):
         # classes will overlap. When this happens, the members which
         # conflict must be cloned in order to occupy a unique index.
         conflicts = []
-        occupied = set()
+        occupied = {}
         for member in members.values():
-            if member.index in occupied:
-                conflicts.append(member)
+            other = occupied.get(member.index)
+            if other is None:
+                occupied[member.index] = member
+            elif other is member:
+                pass  # Alias to another member
             else:
-                occupied.add(member.index)
+                conflicts.append(member)
 
         # Clone the conflicting members and give them a unique index.
         # Do not blow away an overridden item on the current class.

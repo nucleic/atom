@@ -19,7 +19,7 @@ from textwrap import dedent
 
 import pytest
 
-from atom.api import Atom, Int, MissingMemberWarning, Value, atomref, set_default
+from atom.api import Atom, AtomMeta, Int, MissingMemberWarning, Value, atomref, set_default
 from atom.atom import observe
 
 
@@ -192,6 +192,45 @@ def test_traverse_atom():
     gc.collect()
 
     assert not ref()
+
+
+def test_aliased_member():
+    """ Test that reassigning a member does not break the index. """
+
+    class CustomMeta(AtomMeta):
+        def __new__(meta, name, bases, dct):
+            cls = AtomMeta.__new__(meta, name, bases, dct)
+            members = cls.members()
+            for m in members.values():
+                if m.name != '_id' and m.metadata and m.metadata.get('pk'):
+                    cls._id = members['_id'] = m
+            return cls
+
+    class Base(Atom, metaclass=CustomMeta):
+        _id = Value()
+        foo = Value()
+
+    class A(Base):
+        id = Int().tag(pk=True)
+        bar = Value()
+
+    class B(A):
+        pass
+
+    b = B()
+    b.id = 1
+    assert b._id == 1
+
+    # Validate the index
+    for cls in (A, B):
+        print('Validating %s index' % cls)
+        assert cls._id is cls.id
+        member_map = {m: m.index for m in cls.members().values()}
+        occupied = set()
+        for m in member_map:
+            assert m.index not in occupied
+            occupied.add(m.index)
+        print("OK")
 
 
 @pytest.mark.parametrize(
