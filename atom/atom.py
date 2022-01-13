@@ -163,10 +163,12 @@ class MissingMemberWarning(UserWarning):
     pass
 
 
-def _signal_missing_member(method: str, members: List[str], prefix: str) -> None:
+def _signal_missing_member(
+    owner: CAtom, method: str, members: List[str], prefix: str
+) -> None:
     warnings.warn(
-        f"{prefix} method {method} does not match any member defined "
-        f"on the Atom object. Existing members are: {members}",
+        f"{prefix} method {method} on {owner} does not match any member "
+        f"defined on the Atom object. Existing members are: {members}",
         MissingMemberWarning,
         stacklevel=3,
     )
@@ -332,7 +334,7 @@ class AtomMeta(type):
                 member = clone_if_needed(members[target])
                 member.set_default_value_mode(DefaultValue.ObjectMethod, mangled)
             else:
-                _signal_missing_member(mangled, members, "_default_")
+                _signal_missing_member(cls, mangled, members, "_default_")
 
         # _validate_* methods
         n = len(VALIDATE_PREFIX)
@@ -342,7 +344,7 @@ class AtomMeta(type):
                 member = clone_if_needed(members[target])
                 member.set_validate_mode(Validate.ObjectMethod_OldNew, mangled)
             else:
-                _signal_missing_member(mangled, members, "_validate_")
+                _signal_missing_member(cls, mangled, members, "_validate_")
 
         # _post_validate_* methods
         n = len(POST_VALIDATE_PREFIX)
@@ -352,7 +354,7 @@ class AtomMeta(type):
                 member = clone_if_needed(members[target])
                 member.set_post_validate_mode(PostValidate.ObjectMethod_OldNew, mangled)
             else:
-                _signal_missing_member(mangled, members, "_post_validate_")
+                _signal_missing_member(cls, mangled, members, "_post_validate_")
 
         # _post_getattr_* methods
         n = len(POST_GETATTR_PREFIX)
@@ -362,7 +364,7 @@ class AtomMeta(type):
                 member = clone_if_needed(members[target])
                 member.set_post_getattr_mode(PostGetAttr.ObjectMethod_Value, mangled)
             else:
-                _signal_missing_member(mangled, members, "_post_getattr_")
+                _signal_missing_member(cls, mangled, members, "_post_getattr_")
 
         # _post_setattr_* methods
         n = len(POST_SETATTR_PREFIX)
@@ -372,7 +374,7 @@ class AtomMeta(type):
                 member = clone_if_needed(members[target])
                 member.set_post_setattr_mode(PostSetAttr.ObjectMethod_OldNew, mangled)
             else:
-                _signal_missing_member(mangled, members, "_post_setattr_")
+                _signal_missing_member(cls, mangled, members, "_post_setattr_")
 
         # _observe_* methods
         n = len(OBSERVE_PREFIX)
@@ -382,7 +384,7 @@ class AtomMeta(type):
                 member = clone_if_needed(members[target])
                 member.add_static_observer(mangled)
             else:
-                _signal_missing_member(mangled, members, "_observe_")
+                _signal_missing_member(cls, mangled, members, "_observe_")
 
         # @observe decorated methods
         for handler in decorated:
@@ -394,7 +396,7 @@ class AtomMeta(type):
                         observer = ExtendedObserver(observer, attr)
                     member.add_static_observer(observer)
                 else:
-                    _signal_missing_member(name, members, "observe decorated")
+                    _signal_missing_member(cls, name, members, "observe decorated")
 
         # Put a reference to the members dict on the class. This is used
         # by CAtom to query for the members and member count as needed.
