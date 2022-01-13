@@ -5,7 +5,7 @@ Atom Release Notes
 0.8.0 - unreleased
 ------------------
 
-- emit warnings when a magic method points to an undefined member PR #139
+- emit warnings when a magic method points to an undefined member PR #139 #149
 - use isort, black and flake8 to ensure a consistent coding style PR #141
 - base the version number on the most recent git tag using setuptools-scm PR #141
 - make the setup compatible with PEP 517 PR #141
