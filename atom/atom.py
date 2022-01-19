@@ -9,7 +9,17 @@ import copyreg
 import warnings
 from contextlib import contextmanager
 from types import FunctionType
-from typing import Any, Callable, ClassVar, Dict, Iterator, List, Optional, Tuple
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+)
 
 from .catom import (
     CAtom,
@@ -64,21 +74,29 @@ class ObserveHandler(object):
 
     __slots__ = ("pairs", "func", "funcname")
 
+    #: List of 2-tuples which stores the pair information for the observers.
+    pairs: List[Tuple[str, Optional[str]]]
+
+    #: Callable to be used as observer callback.
+    func: Optional[Callable[[Mapping[str, Any]], None]]
+
+    #: Name of the callable. Used by the metaclass.
+    funcname: Optional[str]
+
     def __init__(self, pairs: List[Tuple[str, Optional[str]]]):
         """Initialize an ObserveHandler.
 
         Parameters
         ----------
         pairs : list
-            The list of 2-tuples which store the pair information
-            for the observers.
+            The list of 2-tuples which stores the pair information for the observers.
 
         """
         self.pairs = pairs
-        self.func: Optional[Callable] = None  # set by the __call__ method
-        self.funcname: Optional[str] = None  # storage for the metaclass
+        self.func = None  # set by the __call__ method
+        self.funcname = None
 
-    def __call__(self, func: Callable) -> "ObserveHandler":
+    def __call__(self, func: Callable[[Mapping[str, Any]], None]) -> "ObserveHandler":
         """Called to decorate the function."""
         assert isinstance(func, FunctionType), "func must be a function"
         self.func = func
@@ -96,6 +114,13 @@ class set_default(object):
 
     __slots__ = ("value", "name")
 
+    #: Name of the member for which a new default value should be set. Used by
+    #: the metaclass.
+    name: Optional[str]
+
+    #: New default value to be set.
+    value: Any
+
     def __init__(self, value: Any) -> None:
         self.value = value
         self.name = None  # storage for the metaclass
@@ -109,6 +134,12 @@ class ExtendedObserver(object):
     """A callable object used to implement extended observers."""
 
     __slots__ = ("funcname", "attr")
+
+    #: Name of the function on the owner object which should be used as the observer.
+    funcname: str
+
+    #: Attribute name on the target object which should be observed.
+    attr: str
 
     def __init__(self, funcname: str, attr: str) -> None:
         """Initialize an ExtendedObserver.
