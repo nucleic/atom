@@ -11,6 +11,8 @@ Atom Release Notes
 - make the setup compatible with PEP 517 PR #141
   Pip should be used for development install in place of directly calling
   setup.py
+- fix handling of _SpecialGenericAlias (typing.Sequence, ...) when used inside
+  an Instance member PR #151
 
 
 0.7.0 - 21/11/2021
