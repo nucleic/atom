@@ -8,8 +8,14 @@
 """Test defining an atom class using typing annotations.
 
 """
-from collections.abc import Callable as TCallable
-from typing import Any, Dict as TDict, Iterable, List as TList, Set as TSet
+from typing import (
+    Any,
+    Callable as TCallable,
+    Dict as TDict,
+    Iterable,
+    List as TList,
+    Set as TSet,
+)
 
 import pytest
 
