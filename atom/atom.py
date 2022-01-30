@@ -17,10 +17,13 @@ from typing import (
     Iterator,
     List,
     Mapping,
+    MutableMapping,
     Optional,
     Tuple,
+    Union,
 )
 
+from .annotation_utils import generate_members_from_cls_namespace
 from .catom import (
     CAtom,
     DefaultValue,
@@ -195,7 +198,7 @@ class MissingMemberWarning(UserWarning):
 
 
 def _signal_missing_member(
-    owner: CAtom, method: str, members: List[str], prefix: str
+    owner: "AtomMeta", method: str, members: Mapping[str, Member], prefix: str
 ) -> None:
     warnings.warn(
         f"{prefix} method {method} on {owner} does not match any member "
@@ -219,12 +222,27 @@ class AtomMeta(type):
 
     """
 
-    def __new__(meta, name, bases, dct):  # noqa: C901
+    __atom_members__: Mapping[str, Member]
+
+    def __new__(  # noqa: C901
+        meta,
+        name: str,
+        bases: Tuple[type, ...],
+        dct: Dict[str, Any],
+        enable_weakrefs: bool = False,
+        use_annotations: bool = True,
+        type_containers: int = 1,
+    ):
         # Unless the developer requests slots, they are automatically
         # turned off. This prevents the creation of instance dicts and
         # other space consuming features unless explicitly requested.
         if "__slots__" not in dct:
             dct["__slots__"] = ()
+        if enable_weakrefs:
+            dct["__slots__"] += ("__weakref__",)
+
+        if use_annotations and "__annotations__" in dct:
+            generate_members_from_cls_namespace(dct, type_containers)
 
         # Pass over the class dict once and collect the information
         # necessary to implement the various behaviors. Some objects
@@ -274,6 +292,7 @@ class AtomMeta(type):
         # Remove the sentinels from the dict before creating the class.
         # The sentinels for the @observe decorators are already removed.
         for s in seen_sentinels:
+            assert s.name
             del dct[s.name]
 
         # Create the class object.
@@ -282,10 +301,12 @@ class AtomMeta(type):
         # Walk the mro of the class, excluding itself, in reverse order
         # collecting all of the members into a single dict. The reverse
         # update preserves the mro of overridden members.
-        members = {}
+        members: MutableMapping[str, Member] = {}
         for base in reversed(cls.__mro__[1:-1]):
             if base is not CAtom and issubclass(base, CAtom):
-                members.update(base.__atom_members__)
+                # Except if somebody abuses the system and create a non-Atom subclass
+                # of CAtom, this works
+                members.update(base.__atom_members__)  # type: ignore
 
         # The set of members which live on this class as opposed to a
         # base class. This enables the code which hooks up the various
@@ -350,6 +371,7 @@ class AtomMeta(type):
 
         # set_default() sentinels
         for sd in set_defaults:
+            assert sd.name  # At this point the name has been set
             if sd.name not in members:
                 msg = "Invalid call to set_default(). '%s' is not a member "
                 msg += "on the '%s' class."
@@ -419,9 +441,11 @@ class AtomMeta(type):
 
         # @observe decorated methods
         for handler in decorated:
+            assert handler.funcname  # Set at this point
             for name, attr in handler.pairs:
                 if name in members:
                     member = clone_if_needed(members[name])
+                    observer: Union[str, Callable[..., None]]
                     observer = handler.funcname
                     if attr is not None:
                         observer = ExtendedObserver(observer, attr)
@@ -460,15 +484,15 @@ class Atom(CAtom, metaclass=AtomMeta):
 
     """
 
-    __atom_members__: ClassVar[Dict[str, Member]]
+    __atom_members__: ClassVar[Mapping[str, Member]]
 
     @classmethod
-    def members(cls) -> Dict[str, Member]:
+    def members(cls) -> Mapping[str, Member]:
         """Get the members dictionary for the type.
 
         Returns
         -------
-        result : dict
+        result : Mapping[str, Member]
             The dictionary of members defined on the class. User code
             should not modify the contents of the dict.
 

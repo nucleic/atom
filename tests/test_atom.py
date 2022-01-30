@@ -19,8 +19,15 @@ from textwrap import dedent
 
 import pytest
 
-from atom.api import Atom, Int, MissingMemberWarning, Value, atomref, set_default
-from atom.atom import observe
+from atom.api import (
+    Atom,
+    Int,
+    MissingMemberWarning,
+    Value,
+    atomref,
+    observe,
+    set_default,
+)
 
 
 def test_init():
@@ -236,3 +243,10 @@ def test_warn_on_missing_observe():
 
     with pytest.warns(MissingMemberWarning):
         exec(src, globals(), {"Atom": Atom, "observe": observe})
+
+
+def test_enable_weakref():
+    class WA(Atom, enable_weakrefs=True):
+        pass
+
+    assert "__weakref__" in WA.__slots__
