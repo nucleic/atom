@@ -220,7 +220,7 @@ class Member(Generic[T, S]):
         mode: Literal[PostGetAttr.ObjectMethod_Value]
         | Literal[PostGetAttr.ObjectMethod_NameValue]
         | Literal[PostGetAttr.MemberMethod_ObjectValue],
-        context: Member,
+        context: str,
     ) -> None: ...
     # Post setattr mode
     @overload
