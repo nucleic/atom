@@ -7,23 +7,12 @@
 # --------------------------------------------------------------------------------------
 import sys
 from itertools import chain
-from typing import Any, List, Tuple, TypeVar, Union
+from typing import Any, List, Tuple, TypeVar, Union, get_args, get_origin
 
 # In Python 3.9+, List is a _SpecialGenericAlias and does not inherit from
 # _GenericAlias which is the type of List[int] for example
 GENERICS: Tuple[Any, ...] = (type(List), type(List[int]))
 UNION = ()
-
-if sys.version_info < (3, 8):
-
-    def get_origin(t):
-        return t.__origin__
-
-    def get_args(t):
-        return t.__args__
-
-else:
-    from typing import get_args, get_origin
 
 if sys.version_info >= (3, 9):
     from types import GenericAlias
