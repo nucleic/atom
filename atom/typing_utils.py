@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021, Nucleic Development Team.
+# Copyright (c) 2021-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -7,9 +7,12 @@
 # --------------------------------------------------------------------------------------
 import sys
 from itertools import chain
-from typing import Any, List, Tuple, TypeVar, Union
 
-GENERICS: Tuple[Any, ...] = (type(List[int]),)
+# This is not a public member but neither are _GenericAlias not _SpecialGenericAlias
+from typing import _BaseGenericAlias  # type: ignore
+from typing import Any, Iterable, List, Tuple, TypeVar, Union
+
+GENERICS: Tuple[Any, ...] = (_BaseGenericAlias,)
 UNION = ()
 
 if sys.version_info < (3, 8):

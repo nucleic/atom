@@ -39,7 +39,7 @@
 
 """
 import sys
-from typing import Optional, Set as TSet, Union
+from typing import List as TList, Optional, Sequence, Set as TSet, Union
 
 import pytest
 
@@ -169,6 +169,8 @@ def c(x: object) -> int:
             [""],
         ),
         (Instance((int, float), optional=False), [1, 2.0], [1, 2.0], [None, ""]),
+        (Instance(TList[int], optional=False), [[1]], [[1]], [None, ""]),
+        (Instance(Sequence[int], optional=False), [[1]], [[1]], [None, 1]),
         (ForwardInstance(lambda: (int, float)), [1, 2.0, None], [1, 2.0, None], [""]),
         (ForwardInstance(lambda: (int, float), ()), [1, 2.0], [1, 2.0], ["", None]),
         (
