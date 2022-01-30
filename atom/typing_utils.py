@@ -7,12 +7,11 @@
 # --------------------------------------------------------------------------------------
 import sys
 from itertools import chain
-
-# This is not a public member but neither are _GenericAlias not _SpecialGenericAlias
-from typing import _BaseGenericAlias  # type: ignore
 from typing import Any, Iterable, List, Tuple, TypeVar, Union
 
-GENERICS: Tuple[Any, ...] = (_BaseGenericAlias,)
+# In Python 3.9+, List is a _SpecialGenericAlias and does not inherit from
+# _GenericAlias which is the type of List[int] for example
+GENERICS: Tuple[Any, ...] = (type(List), type(List[int]))
 UNION = ()
 
 if sys.version_info < (3, 8):
