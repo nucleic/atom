@@ -54,7 +54,7 @@ def test_repr(atom_dict, member):
     """Test the repr."""
     d = getattr(atom_dict.__class__, member).default_value_mode[1]
     if not d:
-        d = {i: i ** 2 for i in range(10)}
+        d = {i: i**2 for i in range(10)}
         setattr(atom_dict, member, d)
     assert repr(getattr(atom_dict, member)) == repr(d)
 
@@ -64,7 +64,7 @@ def test_len(atom_dict, member):
     """Test the len."""
     d = getattr(atom_dict.__class__, member).default_value_mode[1]
     if not d:
-        d = {i: i ** 2 for i in range(10)}
+        d = {i: i**2 for i in range(10)}
         setattr(atom_dict, member, d)
     assert len(getattr(atom_dict, member)) == len(d)
 
@@ -72,7 +72,7 @@ def test_len(atom_dict, member):
 @pytest.mark.parametrize("member", MEMBERS)
 def test_contains(atom_dict, member):
     """Test __contains__."""
-    d = {i: i ** 2 for i in range(10)}
+    d = {i: i**2 for i in range(10)}
     setattr(atom_dict, member, d)
     assert 5 in getattr(atom_dict, member)
     del getattr(atom_dict, member)[5]
@@ -84,7 +84,7 @@ def test_keys(atom_dict, member):
     """Test the keys."""
     d = getattr(atom_dict.__class__, member).default_value_mode[1]
     if not d:
-        d = {i: i ** 2 for i in range(10)}
+        d = {i: i**2 for i in range(10)}
         setattr(atom_dict, member, d)
     assert getattr(atom_dict, member).keys() == d.keys()
 
@@ -94,7 +94,7 @@ def test_copy(atom_dict, member):
     """Test copy."""
     d = getattr(atom_dict.__class__, member).default_value_mode[1]
     if not d:
-        d = {i: i ** 2 for i in range(10)}
+        d = {i: i**2 for i in range(10)}
         setattr(atom_dict, member, d)
     assert getattr(atom_dict, member).copy() == d
 

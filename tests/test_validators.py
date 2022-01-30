@@ -115,10 +115,10 @@ def c(x: object) -> int:
         (FloatRange(0.0), [0.0, 0.6], [0.0, 0.6], [-0.1, ""]),
         (FloatRange(high=0.5), [-0.3, 0.5], [-0.3, 0.5], [0.6]),
         (FloatRange(1.0, 10.0, strict=True), [1.0, 3.7], [1.0, 3.7], [2, 4, 0, -11]),
-        (Bytes(strict=False), [b"a", u"a"], [b"a"] * 2, [1]),
-        (Bytes(), [b"a"], [b"a"], [u"a"]),
-        (Str(strict=False), [b"a", u"a"], ["a"] * 2, [1]),
-        (Str(), [u"a"], ["a"], [b"a"]),
+        (Bytes(strict=False), [b"a", "a"], [b"a"] * 2, [1]),
+        (Bytes(), [b"a"], [b"a"], ["a"]),
+        (Str(strict=False), [b"a", "a"], ["a"] * 2, [1]),
+        (Str(), ["a"], ["a"], [b"a"]),
         (Enum(1, 2, "a"), [1, 2, "a"], [1, 2, "a"], [3]),
         (Callable(), [int, None], [int, None], [1]),
         # 3.9 subs and 3.10 union tests in test_typing_utils are sufficient
@@ -220,7 +220,7 @@ def test_validation_modes(member, set_values, values, raising_values):
     for rv in raising_values:
         with pytest.raises(
             OverflowError
-            if (isinstance(member, Int) and isinstance(rv, float) and rv > 2 ** 32)
+            if (isinstance(member, Int) and isinstance(rv, float) and rv > 2**32)
             else ValueError
             if isinstance(member, Enum)
             else TypeError
