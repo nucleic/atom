@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021, Nucleic Development Team.
+# Copyright (c) 2021-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -9,7 +9,9 @@ import sys
 from itertools import chain
 from typing import Any, List, Tuple, TypeVar, Union
 
-GENERICS: Tuple[Any, ...] = (type(List[int]),)
+# In Python 3.9+, List is a _SpecialGenericAlias and does not inherit from
+# _GenericAlias which is the type of List[int] for example
+GENERICS: Tuple[Any, ...] = (type(List), type(List[int]))
 UNION = ()
 
 if sys.version_info < (3, 8):
