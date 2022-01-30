@@ -7,7 +7,7 @@
 # --------------------------------------------------------------------------------------
 import sys
 from itertools import chain
-from typing import Any, Iterable, List, Tuple, TypeVar, Union
+from typing import Any, List, Tuple, TypeVar, Union
 
 # In Python 3.9+, List is a _SpecialGenericAlias and does not inherit from
 # _GenericAlias which is the type of List[int] for example
