@@ -1,9 +1,12 @@
 from dataclasses import dataclass
+from dataclasses import field
 from typing import Optional
 
 import pytest
 
 from atom.api import Atom
+from atom.api import List
+from atom.api import Typed
 
 
 class InventoryAtom(Atom):
@@ -70,6 +73,7 @@ def test_optional_with_no_default():
     Atom allows it, and sets the default value to None.
 
     """
+
     @dataclass
     class TestDataclass:
         x: Optional[int]
@@ -98,3 +102,71 @@ def test_no_default():
     atm = TestAtom()
     assert atm.x == 0
 
+
+def test_list():
+    @dataclass
+    class TestDataclass:
+        x: list[int]
+
+    class TestAtom(Atom):
+        x: list[int]
+
+    TestDataclass(x=[1, 2, 3])
+    TestAtom(x=[1, 2, 3])
+
+    TestDataclass(x=[1, 'a', 3])
+    with pytest.raises(TypeError):
+        atm = TestAtom(x=[1, 'a', 3])
+
+
+def test_list_default():
+    """ Mutable Defaults
+
+    Dataclasses do not support mutable defaults.
+    Atom allows it, should it?
+    """
+
+    with pytest.raises(ValueError):
+        @dataclass
+        class TestDataclassNoMutableDefault:
+            x: list[int] = [1, 2, 3]
+
+    class TestAtom(Atom):
+        x: list[int] = [1, 2, 3]
+
+    atm = TestAtom()
+    assert atm.x == [1, 2, 3]
+
+    atm = TestAtom(x=[1])
+    assert atm.x == [1]
+
+
+def test_default_list_factory():
+    """ Default list factory
+
+    Not sure what equivalent syntax would be.
+    """
+
+    # Dataclass example
+    @dataclass
+    class TestDataclassNoMutableDefault:
+        x: list[int] = field(default_factory=list)
+
+    dcl = TestDataclassNoMutableDefault()
+    assert dcl.x == []
+
+    # Syntax 1 (like dataclass, doesn't support default list)
+    class TestAtom2(Atom):
+        x: list[int] = Typed(list, factory=list)
+
+    atm = TestAtom2()
+    assert atm.x == []
+
+    # Syntax 2 (does not enforce int)
+    class TestAtom1(Atom):
+        x: list[int] = List(default=[1, 2, 3])
+
+    atm = TestAtom1()
+    assert atm.x == [1, 2, 3]
+
+    TestAtom1(x=[1, 'a', 3])  # PROBLEM: Should raise a TypeError
