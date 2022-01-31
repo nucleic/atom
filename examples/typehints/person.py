@@ -49,3 +49,4 @@ if __name__ == '__main__':
     john = Person(first_name='John', last_name='Doe', age=42)
     john.debug = True
     john.age = 43
+    assert john.middle_name is None

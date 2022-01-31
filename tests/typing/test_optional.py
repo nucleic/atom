@@ -45,7 +45,6 @@ def test_default_value():
 def test_optional_with_default_none_value():
     """Optional members with default value should be respected
 
-    Fails but seems like it should not.
     """
 
     @dataclass
@@ -83,3 +82,19 @@ def test_optional_with_no_default():
 
     atm = TestAtom()
     assert atm.x is None
+
+
+def test_no_default():
+    @dataclass
+    class TestDataclass:
+        x: int
+
+    class TestAtom(Atom):
+        x: int
+
+    with pytest.raises(TypeError):
+        dcl = TestDataclass()
+
+    atm = TestAtom()
+    assert atm.x == 0
+
