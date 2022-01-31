@@ -42,10 +42,10 @@ def test_default_value():
     assert dcl.quantity_on_hand == 2
 
 
-# @pytest.mark.skip("Optional members with default value should be respected")
 def test_optional_with_default_none_value():
-    """
-    Optional members with default value should be respected
+    """Optional members with default value should be respected
+
+    Fails but seems like it should not.
     """
 
     @dataclass
@@ -62,8 +62,15 @@ def test_optional_with_default_none_value():
     assert atm.x is None
 
 
-# @pytest.mark.skip("Optional members with no default should not be allowed")
 def test_optional_with_no_default():
+    """
+    This example highlights a possible difference between atom and dataclasses.
+
+    When a member/field is declared as Optional without a default:
+    A dataclass will raise a TypeError if the constructor does not have the argument.
+    Atom allows it, and sets the default value to None.
+
+    """
     @dataclass
     class TestDataclass:
         x: Optional[int]
@@ -74,5 +81,5 @@ def test_optional_with_no_default():
     with pytest.raises(TypeError):
         TestDataclass()
 
-    with pytest.raises(TypeError):
-        TestAtom()
+    atm = TestAtom()
+    assert atm.x is None
