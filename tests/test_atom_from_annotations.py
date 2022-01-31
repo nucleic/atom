@@ -8,7 +8,6 @@
 """Test defining an atom class using typing annotations.
 
 """
-from ast import In
 from typing import (
     Any,
     Callable as TCallable,
@@ -136,10 +135,10 @@ def test_annotations_with_default(annotation, member, default):
 def test_annotations_no_default_for_instance():
     with pytest.raises(ValueError):
 
-        class A(Atom):
+        class A(Atom):  # noqa
             a: Iterable = []
 
     with pytest.raises(ValueError):
 
-        class A(Atom):
+        class B(Atom):  # noqa
             a: Optional[Iterable] = []
