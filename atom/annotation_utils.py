@@ -10,6 +10,7 @@ from typing import Any, ClassVar, Type
 
 from .catom import Member
 from .dict import Dict as ADict
+from .instance import Instance
 from .list import List as AList
 from .scalars import Bool, Bytes, Callable as ACallable, Float, Int, Str, Value
 from .set import Set as ASet
@@ -69,8 +70,6 @@ def generate_member_from_type_or_generic(
     elif all(t is type for t in types):
         m_cls = Subclass
     else:
-        from .instance import Instance  # delayed to avoid circular import
-
         # We cannot determine if a type has a trivial __instancecheck__ or not so
         # we always use Instance since Typed will fail to validate with generic types
         # such as collections.Iterable
@@ -78,8 +77,17 @@ def generate_member_from_type_or_generic(
 
         opt, parameters = is_optional(types)
         m_kwargs["optional"] = opt
-        if default is not _NO_DEFAULT:
+        if opt and default not in (_NO_DEFAULT, None):
+            raise ValueError(
+                "Members requiring Instance(optional=True) cannot have "
+                "a non-None default value."
+            )
+        elif not opt and default is not _NO_DEFAULT:
             raise ValueError("Members requiring Instance cannot have a default value.")
+
+        # Instance does not have a default keyword so turn a None default into the
+        # equivalent no default.
+        default = _NO_DEFAULT
 
     if default is not _NO_DEFAULT:
         m_kwargs["default"] = default
