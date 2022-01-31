@@ -14,6 +14,7 @@ from typing import (
     Dict as TDict,
     Iterable,
     List as TList,
+    Optional,
     Set as TSet,
 )
 
@@ -119,6 +120,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (TList, List, [1]),
         (TSet, Set, {1}),
         (TDict, Dict, {1: 2}),
+        (Optional[Iterable], Instance, None),
     ],
 )
 def test_annotations_with_default(annotation, member, default):
@@ -126,11 +128,17 @@ def test_annotations_with_default(annotation, member, default):
         a: annotation = default
 
     assert isinstance(A.a, member)
-    assert A.a.default_value_mode == member(default=default).default_value_mode
+    if member is not Instance:
+        assert A.a.default_value_mode == member(default=default).default_value_mode
 
 
 def test_annotations_no_default_for_instance():
     with pytest.raises(ValueError):
 
-        class A(Atom):
+        class A(Atom):  # noqa
             a: Iterable = []
+
+    with pytest.raises(ValueError):
+
+        class B(Atom):  # noqa
+            a: Optional[Iterable] = []
