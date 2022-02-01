@@ -171,7 +171,7 @@ def test_default_list_factory():
     assert dcl.x == []
 
     class TestAtom2(Atom):
-        x: list[int] = Typed(list, factory=list)
+        x: list[int] = Typed(list[int], factory=list)
 
     atm = TestAtom2()
     assert atm.x == []
@@ -181,11 +181,15 @@ def test_default_list_factory():
 
 
 def test_default_list_factory_with_default():
+    """ This example demonstrates how an Atom member can be used to
+    avoid the expense of run-time checking while relying on
+    type-checkers to enforce assignments.
+
+    """
     class TestAtom1(Atom):
         x: list[int] = List(default=[1, 2, 3])
 
     atm = TestAtom1()
     assert atm.x == [1, 2, 3]
 
-    with pytest.raises(TypeError):
-        TestAtom1(x=[1, 'a', 3])
+    atm = TestAtom1(x=[1, 'a', 3])  # type: ignore
