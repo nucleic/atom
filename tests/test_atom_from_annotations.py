@@ -11,6 +11,7 @@
 from typing import (
     Any,
     Callable as TCallable,
+    ClassVar,
     Dict as TDict,
     Iterable,
     List as TList,
@@ -30,6 +31,7 @@ from atom.api import (
     Instance,
     Int,
     List,
+    Member,
     Set,
     Str,
     Value,
@@ -41,6 +43,13 @@ def test_ignore_annotations():
         a: int
 
     assert not hasattr(A, "a")
+
+
+def test_ignore_class_var():
+    class A(Atom):
+        a: ClassVar[int] = 1
+
+    assert not isinstance(A.a, Member)
 
 
 @pytest.mark.parametrize(
