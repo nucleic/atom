@@ -64,13 +64,39 @@ def test_optional_with_default_none_value():
     assert atm.x is None
 
 
+def test_no_default():
+    """
+    This test demonstrates a difference between Dataclasses and standard Atom behavior
+
+    When a member/field is declared with no default:
+
+    - Atom always sets a default value (e.g. 0 for `int` type), and the field is not required in the constructor.
+    - A dataclass requires the field in the constructor, otherwise a TypeError is raised.
+
+    """
+
+    @dataclass
+    class TestDataclass:
+        x: int
+
+    class TestAtom(Atom):
+        x: int
+
+    with pytest.raises(TypeError):
+        dcl = TestDataclass()
+
+    atm = TestAtom()
+    assert atm.x == 0
+
+
 def test_optional_with_no_default():
     """
-    This example highlights a possible difference between atom and dataclasses.
+        This test demonstrates a difference between Dataclasses and standard Atom behavior
 
     When a member/field is declared as Optional without a default:
-    A dataclass will raise a TypeError if the constructor does not have the argument.
-    Atom allows it, and sets the default value to None.
+
+    - Atom sets the default value of an Optional to None, and the field is not required in the constructor.
+    - A dataclass requires the field in the constructor, otherwise a TypeError is raised.
 
     """
 
@@ -88,22 +114,12 @@ def test_optional_with_no_default():
     assert atm.x is None
 
 
-def test_no_default():
-    @dataclass
-    class TestDataclass:
-        x: int
-
-    class TestAtom(Atom):
-        x: int
-
-    with pytest.raises(TypeError):
-        dcl = TestDataclass()
-
-    atm = TestAtom()
-    assert atm.x == 0
-
-
 def test_list():
+    """ Demonstrate list validation
+
+    Simple demonstration of Atom's validation of list contents.
+    """
+
     @dataclass
     class TestDataclass:
         x: list[int]
@@ -116,14 +132,15 @@ def test_list():
 
     TestDataclass(x=[1, 'a', 3])
     with pytest.raises(TypeError):
-        atm = TestAtom(x=[1, 'a', 3])
+        TestAtom(x=[1, 'a', 3])
 
 
 def test_list_default():
     """ Mutable Defaults
 
-    Dataclasses do not support mutable defaults.
-    Atom allows it, should it?
+    This test demonstrates a difference between Dataclasses and standard Atom behavior
+
+    Dataclasses do not allow mutable default values.
     """
 
     with pytest.raises(ValueError):
@@ -144,9 +161,7 @@ def test_list_default():
 def test_default_list_factory():
     """ Default list factory
 
-    Not sure what equivalent syntax would be.
     """
-
     # Dataclass example
     @dataclass
     class TestDataclassNoMutableDefault:
@@ -155,18 +170,22 @@ def test_default_list_factory():
     dcl = TestDataclassNoMutableDefault()
     assert dcl.x == []
 
-    # Syntax 1 (like dataclass, doesn't support default list)
     class TestAtom2(Atom):
         x: list[int] = Typed(list, factory=list)
 
     atm = TestAtom2()
     assert atm.x == []
 
-    # Syntax 2 (does not enforce int)
+    with pytest.raises(TypeError):
+        TestAtom2(x=[1, 'a', 3])
+
+
+def test_default_list_factory_with_default():
     class TestAtom1(Atom):
         x: list[int] = List(default=[1, 2, 3])
 
     atm = TestAtom1()
     assert atm.x == [1, 2, 3]
 
-    TestAtom1(x=[1, 'a', 3])  # PROBLEM: Should raise a TypeError
+    with pytest.raises(TypeError):
+        TestAtom1(x=[1, 'a', 3])
