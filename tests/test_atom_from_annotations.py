@@ -52,6 +52,13 @@ def test_ignore_class_var():
     assert not isinstance(A.a, Member)
 
 
+def test_ignore_annotated_member():
+    class A(Atom):
+        a: TList[int] = List(int, default=[1, 2, 3])
+
+    assert A().a == [1, 2, 3]
+
+
 @pytest.mark.parametrize(
     "annotation, member",
     [
