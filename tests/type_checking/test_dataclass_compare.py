@@ -11,6 +11,7 @@ from atom.instance import Instance
 
 class InventoryAtom(Atom):
     """Class for keeping track of an item in inventory."""
+
     name: str
     unit_price: float
     quantity_sold: Optional[int]
@@ -20,6 +21,7 @@ class InventoryAtom(Atom):
 @dataclass
 class InventoryDataclass:
     """Class for keeping track of an item in inventory."""
+
     name: str
     unit_price: float
     quantity_sold: Optional[int]
@@ -27,8 +29,8 @@ class InventoryDataclass:
 
 
 def test_constructor() -> None:
-    atm = InventoryDataclass(name='widget1', unit_price=0.99, quantity_on_hand=10, quantity_sold=1)
-    dcl = InventoryAtom(name='widget1', unit_price=0.99, quantity_on_hand=10, quantity_sold=1)
+    atm = InventoryDataclass(name="widget1", unit_price=0.99, quantity_on_hand=10, quantity_sold=1)
+    dcl = InventoryAtom(name="widget1", unit_price=0.99, quantity_on_hand=10, quantity_sold=1)
 
     assert isinstance(atm.name, str)
     assert isinstance(atm.unit_price, float)
@@ -42,17 +44,15 @@ def test_constructor() -> None:
 
 
 def test_default_value() -> None:
-    dcl = InventoryDataclass(name='widget1', unit_price=0.99, quantity_sold=1)
-    atm = InventoryAtom(name='widget1', unit_price=0.99, quantity_sold=1)
+    dcl = InventoryDataclass(name="widget1", unit_price=0.99, quantity_sold=1)
+    atm = InventoryAtom(name="widget1", unit_price=0.99, quantity_sold=1)
 
     assert atm.quantity_on_hand == 2
     assert dcl.quantity_on_hand == 2
 
 
 def test_optional_with_default_none_value() -> None:
-    """Optional members with default value should be respected
-
-    """
+    """Optional members with default value should be respected"""
 
     @dataclass
     class TestDataclass:
@@ -87,7 +87,7 @@ def test_no_default() -> None:
         x: int
 
     with pytest.raises(TypeError):
-        dcl = TestDataclass()  # type: ignore
+        TestDataclass()  # type: ignore
 
     atm = TestAtom()
     assert atm.x == 0
@@ -119,7 +119,7 @@ def test_optional_with_no_default() -> None:
 
 
 def test_list() -> None:
-    """ Demonstrate list validation
+    """Demonstrate list validation
 
     Simple demonstration of Atom's validation of list contents.
     """
@@ -134,13 +134,13 @@ def test_list() -> None:
     TestDataclass(x=[1, 2, 3])
     TestAtom(x=[1, 2, 3])
 
-    TestDataclass(x=[1, 'a', 3])  # type: ignore
+    TestDataclass(x=[1, "a", 3])  # type: ignore
     with pytest.raises(TypeError):
-        TestAtom(x=[1, 'a', 3])
+        TestAtom(x=[1, "a", 3])
 
 
 def test_list_default() -> None:
-    """ Mutable Defaults
+    """Mutable Defaults
 
     This test demonstrates a difference between Dataclasses and standard Atom behavior
 
@@ -148,6 +148,7 @@ def test_list_default() -> None:
     """
 
     with pytest.raises(ValueError):
+
         @dataclass
         class TestDataclassNoMutableDefault:
             x: list[int] = [1, 2, 3]
@@ -163,9 +164,7 @@ def test_list_default() -> None:
 
 
 def test_default_list_factory() -> None:
-    """ Default list factory
-
-    """
+    """Default list factory"""
 
     # Dataclass example
     @dataclass
@@ -182,11 +181,11 @@ def test_default_list_factory() -> None:
     assert atm.x == []
 
     with pytest.raises(TypeError):
-        TestAtom2(x=[1, 'a', 3])
+        TestAtom2(x=[1, "a", 3])
 
 
 def test_default_list_factory_with_default() -> None:
-    """ This example demonstrates how an Atom member can be used to
+    """This example demonstrates how an Atom member can be used to
     avoid the expense of run-time checking while relying on
     type-checkers to enforce assignments.
 
@@ -198,7 +197,7 @@ def test_default_list_factory_with_default() -> None:
     atm = TestAtom1()
     assert atm.x == [1, 2, 3]
 
-    atm = TestAtom1(x=[1, 'a', 3])
+    atm = TestAtom1(x=[1, "a", 3])
 
 
 def test_instance_without_default() -> None:
@@ -211,7 +210,7 @@ def test_instance_without_default() -> None:
     assert isinstance(Atom2(y=Atom1()).y, Atom1)
 
     with pytest.raises(TypeError):
-        Atom2(y='notAnAtom1')
+        Atom2(y="notAnAtom1")
 
     # FAILS:
     assert isinstance(Atom2().y, Atom1)
@@ -223,7 +222,7 @@ def test_optional_instance_with_constructor_arguments() -> None:
 
     # Default factory specification
     class Atom2(Atom):
-        y: Optional[Atom1] = Instance(Atom1, kwargs={'x': 2})  # type: ignore
+        y: Optional[Atom1] = Instance(Atom1, kwargs={"x": 2})  # type: ignore
 
     assert Atom2().y.x == 2  # type: ignore
 
