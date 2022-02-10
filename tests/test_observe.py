@@ -102,6 +102,36 @@ def test_manual_static_observers(static_atom):
     assert "str or callable" in excinfo.exconly()
 
 
+@pytest.mark.parametrize('change_type, expected_types', [
+    (0xFF, ["create", "update", "delete"]),
+    (1, ["create"]),
+    (2, ["update"]),
+    (4, ["delete"]),
+    (2 | 6, ["update", "delete"]),
+    (0, []),
+    (100000, []),
+])
+def test_static_observers_change_types(change_type, expected_types):
+    """Test manually managing static observers."""
+    # Force the use of safe comparison (error cleaning and fallback)
+    class Widget(Atom):
+        val = Value()
+
+    changes = []
+
+    def react(change):
+        changes.append(change)
+
+    Widget.val.add_static_observer(react, change_type)
+    w = Widget()
+    w.val
+    w.val = 1
+    del w.val
+    assert len(changes) == len(expected_types)
+    for change, exp in zip(changes, expected_types):
+        assert change["type"] == exp
+
+
 def test_modifying_static_observers_in_callback():
     """Test modifying the static observers in an observer."""
 

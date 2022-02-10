@@ -67,7 +67,7 @@ reset_property( PyObject* mod, PyObject* args )
     }
     cppy::ptr oldptr( atom->get_slot( member->index ) );
     atom->set_slot( member->index, 0 );
-    bool has_static = member->has_observers();
+    bool has_static = member->has_observers( MemberChange::Type::Property );
     bool has_dynamic = atom->has_observers( member->name );
     if( has_static || has_dynamic )
     {
@@ -88,11 +88,11 @@ reset_property( PyObject* mod, PyObject* args )
             {
                 return 0;
             }
-            if( has_static && !member->notify( atom, argsptr.get(), 0 ) )
+            if( has_static && !member->notify( atom, argsptr.get(), 0, MemberChange::Type::Property ) )
             {
                 return 0;
             }
-            if( has_dynamic && !atom->notify( member->name, argsptr.get(), 0 ) )
+            if( has_dynamic && !atom->notify( member->name, argsptr.get(), 0, MemberChange::Type::Property ) )
             {
                 return 0;
             }

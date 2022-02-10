@@ -13,6 +13,7 @@
 #include "behaviors.h"
 #include "catom.h"
 #include "modifyguard.h"
+#include "observer.h"
 
 #ifndef UINT64_C
 #define UINT64_C( c ) ( c ## ULL )
@@ -23,7 +24,6 @@
 
 namespace atom
 {
-
 
 struct Member
 {
@@ -41,7 +41,7 @@ struct Member
     PyObject* default_value_context;
     PyObject* post_validate_context;
     ModifyGuard<Member>* modify_guard;
-    std::vector<cppy::ptr>* static_observers;
+    std::vector<Observer>* static_observers;
 
     static PyType_Spec TypeObject_Spec;
 
@@ -164,13 +164,30 @@ struct Member
         return static_observers && static_observers->size() > 0;
     }
 
-    bool has_observer( PyObject* observer );
+    bool has_observers( uint8_t change_types );
 
-    void add_observer( PyObject* observer );
+    bool has_observer( PyObject* observer )
+    {
+        return has_observer( observer, MemberChange::Type::Any );
+    }
+
+    bool has_observer( PyObject* observer, uint8_t change_types );
+
+    void add_observer( PyObject* observer )
+    {
+        return add_observer( observer, MemberChange::Type::Any );
+    }
+
+    void add_observer( PyObject* observer, uint8_t change_types );
 
     void remove_observer( PyObject* observer );
 
-    bool notify( CAtom* atom, PyObject* args, PyObject* kwargs );
+    bool notify( CAtom* atom, PyObject* args, PyObject* kwargs )
+    {
+        return notify( atom, args, kwargs, MemberChange::Type::Any );
+    }
+
+    bool notify( CAtom* atom, PyObject* args, PyObject* kwargs, uint8_t change_types );
 
     static bool check_context( GetAttr::Mode mode, PyObject* context );
 

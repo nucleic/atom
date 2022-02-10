@@ -27,9 +27,10 @@ struct BaseTask : public ModifyTask
 
 struct AddTask : public BaseTask
 {
-    AddTask( ObserverPool& pool, cppy::ptr& topic, cppy::ptr& observer ) :
-        BaseTask( pool, topic, observer ) {}
-    void run() { m_pool.add( m_topic, m_observer ); }
+    AddTask( ObserverPool& pool, cppy::ptr& topic, cppy::ptr& observer, uint8_t change_types ) :
+        BaseTask( pool, topic, observer ), m_change_types(change_types) {}
+    void run() { m_pool.add( m_topic, m_observer, m_change_types ); }
+    uint8_t m_change_types;
 };
 
 
@@ -68,7 +69,7 @@ ObserverPool::has_topic( cppy::ptr& topic )
 
 
 bool
-ObserverPool::has_observer( cppy::ptr& topic, cppy::ptr& observer )
+ObserverPool::has_observer( cppy::ptr& topic, cppy::ptr& observer, uint8_t change_types )
 {
     uint32_t obs_offset = 0;
     std::vector<Topic>::iterator topic_it;
@@ -77,13 +78,13 @@ ObserverPool::has_observer( cppy::ptr& topic, cppy::ptr& observer )
     {
         if( topic_it->match( topic ) )
         {
-            std::vector<cppy::ptr>::iterator obs_it;
-            std::vector<cppy::ptr>::iterator obs_end;
+            std::vector<Observer>::iterator obs_it;
+            std::vector<Observer>::iterator obs_end;
             obs_it = m_observers.begin() + obs_offset;
             obs_end = obs_it + topic_it->m_count;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( *obs_it == observer || utils::safe_richcompare( obs_it->get(), observer, Py_EQ ) )
+                if( obs_it->match( observer ) && obs_it->enabled( change_types ) )
                     return true;
             }
             return false;
@@ -95,11 +96,11 @@ ObserverPool::has_observer( cppy::ptr& topic, cppy::ptr& observer )
 
 
 void
-ObserverPool::add( cppy::ptr& topic, cppy::ptr& observer )
+ObserverPool::add( cppy::ptr& topic, cppy::ptr& observer, uint8_t change_types )
 {
     if( m_modify_guard )
     {
-        ModifyTask* task = new AddTask( *this, topic, observer );
+        ModifyTask* task = new AddTask( *this, topic, observer, change_types );
         m_modify_guard->add_task( task );
         return;
     }
@@ -110,17 +111,20 @@ ObserverPool::add( cppy::ptr& topic, cppy::ptr& observer )
     {
         if( topic_it->match( topic ) )
         {
-            std::vector<cppy::ptr>::iterator obs_it;
-            std::vector<cppy::ptr>::iterator obs_end;
-            std::vector<cppy::ptr>::iterator obs_free;
+            std::vector<Observer>::iterator obs_it;
+            std::vector<Observer>::iterator obs_end;
+            std::vector<Observer>::iterator obs_free;
             obs_it = m_observers.begin() + obs_offset;
             obs_end = obs_it + topic_it->m_count;
             obs_free = obs_end;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( *obs_it == observer || utils::safe_richcompare( obs_it->get(), observer, Py_EQ ) )
+                if( obs_it->match( observer ) )
+                {
+                    obs_it->m_change_types = change_types;
                     return;
-                if( !obs_it->is_truthy() )
+                }
+                if( !obs_it->m_observer.is_truthy() )
                     obs_free = obs_it;
             }
             if( obs_free == obs_end )
@@ -135,7 +139,7 @@ ObserverPool::add( cppy::ptr& topic, cppy::ptr& observer )
         obs_offset += topic_it->m_count;
     }
     m_topics.push_back( Topic( topic, 1 ) );
-    m_observers.push_back( observer );
+    m_observers.push_back( Observer(observer, change_types) );
 }
 
 
@@ -155,13 +159,13 @@ ObserverPool::remove( cppy::ptr& topic, cppy::ptr& observer )
     {
         if( topic_it->match( topic ) )
         {
-            std::vector<cppy::ptr>::iterator obs_it;
-            std::vector<cppy::ptr>::iterator obs_end;
+            std::vector<Observer>::iterator obs_it;
+            std::vector<Observer>::iterator obs_end;
             obs_it = m_observers.begin() + obs_offset;
             obs_end = obs_it + topic_it->m_count;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( *obs_it == observer || utils::safe_richcompare( obs_it->get(), observer, Py_EQ ) )
+                if( obs_it->match( observer ) )
                 {
                     m_observers.erase( obs_it );
                     if( ( --topic_it->m_count ) == 0 )
@@ -205,7 +209,7 @@ ObserverPool::remove( cppy::ptr& topic )
 
 
 bool
-ObserverPool::notify( cppy::ptr& topic, cppy::ptr& args, cppy::ptr& kwargs )
+ObserverPool::notify( cppy::ptr& topic, cppy::ptr& args, cppy::ptr& kwargs, uint8_t change_types )
 {
     ModifyGuard<ObserverPool> guard( *this );
     uint32_t obs_offset = 0;
@@ -215,20 +219,20 @@ ObserverPool::notify( cppy::ptr& topic, cppy::ptr& args, cppy::ptr& kwargs )
     {
         if( topic_it->match( topic ) )
         {
-            std::vector<cppy::ptr>::iterator obs_it;
-            std::vector<cppy::ptr>::iterator obs_end;
+            std::vector<Observer>::iterator obs_it;
+            std::vector<Observer>::iterator obs_end;
             obs_it = m_observers.begin() + obs_offset;
             obs_end = obs_it + topic_it->m_count;
             for( ; obs_it != obs_end; ++obs_it )
             {
-                if( obs_it->is_truthy() )
+                if( obs_it->m_observer.is_truthy() )
                 {
-                    if( !obs_it->call( args, kwargs ) )
+                    if( obs_it->enabled( change_types ) && !obs_it->m_observer.call( args, kwargs ) )
                         return false;
                 }
                 else
                 {
-                    ModifyTask* task = new RemoveTask( *this, topic, *obs_it );
+                    ModifyTask* task = new RemoveTask( *this, topic, obs_it->m_observer );
                     m_modify_guard->add_task( task );
                 }
             }
@@ -252,11 +256,11 @@ ObserverPool::py_traverse( visitproc visit, void* arg )
         if( vret )
             return vret;
     }
-    std::vector<cppy::ptr>::iterator obs_it;
-    std::vector<cppy::ptr>::iterator obs_end = m_observers.end();
+    std::vector<Observer>::iterator obs_it;
+    std::vector<Observer>::iterator obs_end = m_observers.end();
     for( obs_it = m_observers.begin(); obs_it != obs_end; ++obs_it )
     {
-        vret = visit( obs_it->get(), arg );
+        vret = visit( obs_it->m_observer.get(), arg );
         if( vret )
             return vret;
     }

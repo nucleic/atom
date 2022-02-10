@@ -456,7 +456,7 @@ wrap_callback( PyObject* callback )
 
 
 bool
-CAtom::observe( PyObject* topic, PyObject* callback )
+CAtom::observe( PyObject* topic, PyObject* callback, uint8_t change_types )
 {
     cppy::ptr topicptr( cppy::incref( topic ) );
     cppy::ptr callbackptr( wrap_callback( callback ) );
@@ -464,7 +464,7 @@ CAtom::observe( PyObject* topic, PyObject* callback )
         return false;
     if( !observers )
         observers = new ObserverPool();
-    observers->add( topicptr, callbackptr );
+    observers->add( topicptr, callbackptr, change_types );
     return true;
 }
 
@@ -503,14 +503,14 @@ CAtom::unobserve()
 
 
 bool
-CAtom::notify( PyObject* topic, PyObject* args, PyObject* kwargs )
+CAtom::notify( PyObject* topic, PyObject* args, PyObject* kwargs, uint8_t change_types )
 {
     if( observers && get_notifications_enabled() )
     {
         cppy::ptr topicptr( cppy::incref( topic ) );
         cppy::ptr argsptr( cppy::incref( args ) );
         cppy::ptr kwargsptr( cppy::xincref( kwargs ) );
-        if( !observers->notify( topicptr, argsptr, kwargsptr ) )
+        if( !observers->notify( topicptr, argsptr, kwargsptr, change_types ) )
             return false;
     }
     return true;
