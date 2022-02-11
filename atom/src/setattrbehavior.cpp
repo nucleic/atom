@@ -129,7 +129,7 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
     if( ( !valid_old || oldptr != newptr ) && atom->get_notifications_enabled() )
     {
         cppy::ptr argsptr;
-        if( member->has_observers(MemberChange::Type::Updated | MemberChange::Type::Created) )
+        if( member->has_observers(MemberChange::Type::Update | MemberChange::Type::Create) )
         {
 
             if( valid_old && utils::safe_richcompare( oldptr, newptr, Py_EQ ) )
@@ -140,7 +140,7 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
                 argsptr = created_args( atom, member, newptr.get() );
             if( !argsptr )
                 return -1;
-            MemberChange::Type change_type = ( valid_old ) ? MemberChange::Type::Updated: MemberChange::Type::Created;
+            MemberChange::Type change_type = ( valid_old ) ? MemberChange::Type::Update: MemberChange::Type::Create;
             if( !member->notify( atom, argsptr.get(), 0, change_type ) )
                 return -1;
         }
@@ -153,12 +153,12 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
                     return 0;
                 if( valid_old )
                 {
-                    change_type = MemberChange::Type::Updated;
+                    change_type = MemberChange::Type::Update;
                     argsptr = updated_args( atom, member, oldptr.get(), newptr.get() );
                 }
                 else
                 {
-                    change_type = MemberChange::Type::Created;
+                    change_type = MemberChange::Type::Create;
                     argsptr = created_args( atom, member, newptr.get() );
                 }
                 if( !argsptr )

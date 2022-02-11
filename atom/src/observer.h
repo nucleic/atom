@@ -19,9 +19,9 @@ namespace MemberChange
 {
 
 enum Type {
-    Created = 1,
-    Updated = 2,
-    Deleted = 4,
+    Create = 1,
+    Update = 2,
+    Delete = 4,
     Event = 8,
     Property = 16,
     Container = 32,

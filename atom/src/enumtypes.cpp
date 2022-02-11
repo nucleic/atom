@@ -311,9 +311,9 @@ bool init_enumtypes()
         {
             return false;  // LCOV_EXCL_LINE
         }
-        add_long( dict_ptr, expand_enum( Created ) );
-        add_long( dict_ptr, expand_enum( Updated ) );
-        add_long( dict_ptr, expand_enum( Deleted ) );
+        add_long( dict_ptr, expand_enum( Create ) );
+        add_long( dict_ptr, expand_enum( Update ) );
+        add_long( dict_ptr, expand_enum( Delete ) );
         add_long( dict_ptr, expand_enum( Event ) );
         add_long( dict_ptr, expand_enum( Property ) );
         add_long( dict_ptr, expand_enum( Container ) );

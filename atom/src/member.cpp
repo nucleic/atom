@@ -122,7 +122,7 @@ PyObject*
 Member_has_observer( Member* self, PyObject* args )
 {
     const size_t n = PyTuple_GET_SIZE( args );
-    if( n < 1 or n > 2 )
+    if( n < 1 || n > 2 )
         return cppy::type_error( "has_observer() expects a callable and an optional change type" );
     PyObject* observer = PyTuple_GET_ITEM( args, 0 );
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
@@ -134,7 +134,7 @@ Member_has_observer( Member* self, PyObject* args )
         PyObject* types = PyTuple_GET_ITEM( args, 1 );
         if( !PyLong_Check( types ) )
             return cppy::type_error( types, "int" );
-        change_types = PyLong_AsLong( types );
+        change_types = PyLong_AsLong( types ) & 0xFF;
     }
     return utils::py_bool( self->has_observer( observer, change_types ) );
 }
@@ -196,7 +196,7 @@ Member_add_static_observer( Member* self, PyObject* args)
         PyObject* types = PyTuple_GET_ITEM( args, 1 );
         if( !PyLong_Check( types ) )
             return cppy::type_error( types, "int" );
-        change_types = PyLong_AsLong( types );
+        change_types = PyLong_AsLong( types ) & 0xFF ;
     }
     self->add_observer( observer, change_types );
     Py_RETURN_NONE;

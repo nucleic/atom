@@ -66,7 +66,7 @@ def test_static_observer(static_atom):
 
     # Test checking for static observers
     assert ot.get_member("val2").has_observers()
-    assert ot.get_member("val2").has_observers(MemberChange.Updated)
+    assert ot.get_member("val2").has_observers(MemberChange.Update)
     assert ot.get_member("val2").has_observer("manual_obs")
     assert ot.get_member("val2").has_observer("react")
     with pytest.raises(TypeError) as excinfo:
@@ -104,11 +104,11 @@ def test_manual_static_observers(static_atom):
     member.remove_static_observer(react)
     assert not member.has_observers()
 
-    member.add_static_observer(react, MemberChange.Updated)
-    assert not member.has_observers(MemberChange.Created)
-    assert member.has_observers(MemberChange.Updated)
-    assert member.has_observer(react, MemberChange.Updated)
-    assert not member.has_observer(react, MemberChange.Deleted)
+    member.add_static_observer(react, MemberChange.Update)
+    assert not member.has_observers(MemberChange.Create)
+    assert member.has_observers(MemberChange.Update)
+    assert member.has_observer(react, MemberChange.Update)
+    assert not member.has_observer(react, MemberChange.Delete)
 
     with pytest.raises(TypeError) as excinfo:
         member.add_static_observer(1)
@@ -140,10 +140,10 @@ def test_manual_static_observers(static_atom):
     "change_type, expected_types",
     [
         (MemberChange.Any, ["create", "update", "delete"]),
-        (MemberChange.Created, ["create"]),
-        (MemberChange.Updated, ["update"]),
-        (MemberChange.Deleted, ["delete"]),
-        (MemberChange.Updated | MemberChange.Deleted, ["update", "delete"]),
+        (MemberChange.Create, ["create"]),
+        (MemberChange.Update, ["update"]),
+        (MemberChange.Delete, ["delete"]),
+        (MemberChange.Update | MemberChange.Delete, ["update", "delete"]),
         (0, []),
         (100000, []),
     ],
@@ -796,7 +796,7 @@ def test_static_observer_container_change_type():
     def react(change):
         changes.append(change)
 
-    Widget.items.add_static_observer(react, MemberChange.Created | MemberChange.Updated)
+    Widget.items.add_static_observer(react, MemberChange.Create | MemberChange.Update)
 
     w = Widget()
     w.items = []
@@ -817,7 +817,7 @@ def test_static_observer_container_change_type():
     assert len(changes) == 0
 
     Widget.items.add_static_observer(
-        react, MemberChange.Updated | MemberChange.Container
+        react, MemberChange.Update | MemberChange.Container
     )
     w.items = [1, 2]
     assert len(changes) == 1
