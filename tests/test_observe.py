@@ -102,15 +102,18 @@ def test_manual_static_observers(static_atom):
     assert "str or callable" in excinfo.exconly()
 
 
-@pytest.mark.parametrize('change_type, expected_types', [
-    (0xFF, ["create", "update", "delete"]),
-    (1, ["create"]),
-    (2, ["update"]),
-    (4, ["delete"]),
-    (2 | 6, ["update", "delete"]),
-    (0, []),
-    (100000, []),
-])
+@pytest.mark.parametrize(
+    "change_type, expected_types",
+    [
+        (0xFF, ["create", "update", "delete"]),
+        (1, ["create"]),
+        (2, ["update"]),
+        (4, ["delete"]),
+        (2 | 6, ["update", "delete"]),
+        (0, []),
+        (100000, []),
+    ],
+)
 def test_static_observers_change_types(change_type, expected_types):
     """Test manually managing static observers."""
     # Force the use of safe comparison (error cleaning and fallback)
