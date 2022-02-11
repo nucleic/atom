@@ -24,6 +24,7 @@ enum Type {
     Deleted = 4,
     Event = 8,
     Property = 16,
+    Container = 32,
     Any = 0xFF,
 };
 

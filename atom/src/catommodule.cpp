@@ -134,6 +134,7 @@ bool add_objects( PyObject* mod )
     cppy::incref( PyDefaultValue );
     cppy::incref( PyValidate );
     cppy::incref( PyPostValidate );
+    cppy::incref( PyMemberChange );
     PyModule_AddObject( mod, "GetAttr", PyGetAttr );
     PyModule_AddObject( mod, "SetAttr", PySetAttr );
     PyModule_AddObject( mod, "DelAttr", PyDelAttr );
@@ -142,6 +143,7 @@ bool add_objects( PyObject* mod )
     PyModule_AddObject( mod, "DefaultValue", PyDefaultValue );
     PyModule_AddObject( mod, "Validate", PyValidate );
     PyModule_AddObject( mod, "PostValidate", PyPostValidate );
+    PyModule_AddObject( mod, "MemberChange", PyMemberChange );
 
 	return true;
 }

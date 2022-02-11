@@ -103,18 +103,40 @@ Member_dealloc( Member* self )
 
 
 PyObject*
-Member_has_observers( Member* self )
+Member_has_observers( Member* self, PyObject* args )
 {
-    return utils::py_bool( self->has_observers() );
+    const size_t n = PyTuple_GET_SIZE( args );
+    if( n == 0 )
+        return utils::py_bool( self->has_observers() );
+    if( n > 1 )
+        return cppy::type_error( "has_observers() takes at most 1 argument" );
+    PyObject* types = PyTuple_GET_ITEM( args, 0 );
+    if( !PyLong_Check( types ) )
+        return cppy::type_error( types, "int" );
+    uint8_t change_types = PyLong_AsLong( types );
+    return utils::py_bool( self->has_observers( change_types ) );
 }
 
 
 PyObject*
-Member_has_observer( Member* self, PyObject* observer )
+Member_has_observer( Member* self, PyObject* args )
 {
+    const size_t n = PyTuple_GET_SIZE( args );
+    if( n < 1 or n > 2 )
+        return cppy::type_error( "has_observer() expects a callable and an optional change type" );
+    PyObject* observer = PyTuple_GET_ITEM( args, 0 );
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return cppy::type_error( observer, "str or callable" );
-    return utils::py_bool( self->has_observer( observer ) );
+
+    uint8_t change_types = MemberChange::Type::Any;
+    if ( n == 2 )
+    {
+        PyObject* types = PyTuple_GET_ITEM( args, 1 );
+        if( !PyLong_Check( types ) )
+            return cppy::type_error( types, "int" );
+        change_types = PyLong_AsLong( types );
+    }
+    return utils::py_bool( self->has_observer( observer, change_types ) );
 }
 
 
@@ -821,9 +843,9 @@ Member_methods[] = {
       "Set the atom's slot value directly." },
     { "del_slot", ( PyCFunction )Member_del_slot, METH_O,
       "Delete the atom's slot value directly." },
-    { "has_observers", ( PyCFunction )Member_has_observers, METH_NOARGS,
+    { "has_observers", ( PyCFunction )Member_has_observers, METH_VARARGS,
       "Get whether or not this member has observers." },
-    { "has_observer", ( PyCFunction )Member_has_observer, METH_O,
+    { "has_observer", ( PyCFunction )Member_has_observer, METH_VARARGS,
       "Get whether or not the member already has the given observer." },
     { "copy_static_observers", ( PyCFunction )Member_copy_static_observers, METH_O,
       "Copy the static observers from one member into this member." },

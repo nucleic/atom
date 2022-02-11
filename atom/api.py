@@ -14,6 +14,7 @@ from .catom import (
     DefaultValue,
     GetAttr,
     Member,
+    MemberChange,
     PostGetAttr,
     PostSetAttr,
     PostValidate,

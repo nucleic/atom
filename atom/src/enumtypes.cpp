@@ -7,6 +7,7 @@
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
 #include "enumtypes.h"
+#include "observer.h"
 #include "packagenaming.h"
 
 #define expand_enum( e ) #e, e
@@ -23,6 +24,7 @@ PyObject* PyPostSetAttr = 0;
 PyObject* PyDefaultValue = 0;
 PyObject* PyValidate = 0;
 PyObject* PyPostValidate = 0;
+PyObject* PyMemberChange = 0;
 
 
 namespace {
@@ -302,7 +304,26 @@ bool init_enumtypes()
             return false;
         }
     }
-
+    {
+        using namespace MemberChange;
+        cppy::ptr dict_ptr( PyDict_New() );
+        if( !dict_ptr )
+        {
+            return false;  // LCOV_EXCL_LINE
+        }
+        add_long( dict_ptr, expand_enum( Created ) );
+        add_long( dict_ptr, expand_enum( Updated ) );
+        add_long( dict_ptr, expand_enum( Deleted ) );
+        add_long( dict_ptr, expand_enum( Event ) );
+        add_long( dict_ptr, expand_enum( Property ) );
+        add_long( dict_ptr, expand_enum( Container ) );
+        add_long( dict_ptr, expand_enum( Any ) );
+        PyMemberChange = make_enum( enum_cls, "MemberChange", dict_ptr );
+        if( !PyMemberChange )
+        {
+            return false;
+        }
+    }
     return true;
 }
 

@@ -10,7 +10,17 @@
 """
 import pytest
 
-from atom.api import Atom, Event, Int, List, Signal, Value, observe
+from atom.api import (
+    Atom,
+    ContainerList,
+    Event,
+    Int,
+    List,
+    MemberChange,
+    Signal,
+    Value,
+    observe,
+)
 
 
 class NonComparableObject:
@@ -56,6 +66,7 @@ def test_static_observer(static_atom):
 
     # Test checking for static observers
     assert ot.get_member("val2").has_observers()
+    assert ot.get_member("val2").has_observers(MemberChange.Updated)
     assert ot.get_member("val2").has_observer("manual_obs")
     assert ot.get_member("val2").has_observer("react")
     with pytest.raises(TypeError) as excinfo:
@@ -93,23 +104,46 @@ def test_manual_static_observers(static_atom):
     member.remove_static_observer(react)
     assert not member.has_observers()
 
+    member.add_static_observer(react, MemberChange.Updated)
+    assert not member.has_observers(MemberChange.Created)
+    assert member.has_observers(MemberChange.Updated)
+    assert member.has_observer(react, MemberChange.Updated)
+    assert not member.has_observer(react, MemberChange.Deleted)
+
     with pytest.raises(TypeError) as excinfo:
         member.add_static_observer(1)
     assert "str or callable" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
+        member.add_static_observer(react, "foobar")
+    assert "int" in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
         member.remove_static_observer(1)
     assert "str or callable" in excinfo.exconly()
+
+    # Check errors
+    with pytest.raises(TypeError) as excinfo:
+        member.has_observer()
+    assert "expects a callable" in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        member.has_observer(react, 1, True)
+    assert "expects a callable" in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        member.has_observer(react, "bool")
+    assert "int" in excinfo.exconly()
 
 
 @pytest.mark.parametrize(
     "change_type, expected_types",
     [
-        (0xFF, ["create", "update", "delete"]),
-        (1, ["create"]),
-        (2, ["update"]),
-        (4, ["delete"]),
-        (2 | 6, ["update", "delete"]),
+        (MemberChange.Any, ["create", "update", "delete"]),
+        (MemberChange.Created, ["create"]),
+        (MemberChange.Updated, ["update"]),
+        (MemberChange.Deleted, ["delete"]),
+        (MemberChange.Updated | MemberChange.Deleted, ["update", "delete"]),
         (0, []),
         (100000, []),
     ],
@@ -749,3 +783,42 @@ def test_signal_notification(sd_observed_atom):
 
     assert sa.count == 1
     assert sa.observer.count == 1
+
+
+def test_static_observer_container_change_type():
+    """Test observing a single member from a single instance."""
+
+    class Widget(Atom):
+        items = ContainerList()
+
+    changes = []
+
+    def react(change):
+        changes.append(change)
+
+    Widget.items.add_static_observer(react, MemberChange.Created | MemberChange.Updated)
+
+    w = Widget()
+    w.items = []
+    assert len(changes) == 1
+    assert changes[0]["type"] == "create"
+    changes.clear()
+
+    w.items.append(1)
+    assert len(changes) == 0  # Container ignored
+
+    Widget.items.add_static_observer(react, MemberChange.Container)
+    w.items.append(1)
+    assert len(changes) == 1
+    assert changes[0]["type"] == "container"
+    changes.clear()
+
+    w.items = []
+    assert len(changes) == 0
+
+    Widget.items.add_static_observer(
+        react, MemberChange.Updated | MemberChange.Container
+    )
+    w.items = [1, 2]
+    assert len(changes) == 1
+    assert changes[0]["type"] == "update"
