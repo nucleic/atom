@@ -8,6 +8,7 @@
 """Test defining an atom class using typing annotations.
 
 """
+import sys
 from typing import (
     Any,
     Callable as TCallable,
@@ -36,27 +37,68 @@ from atom.api import (
     Str,
     Value,
 )
+from atom.atom import set_default
 
 
 def test_ignore_annotations():
-    class A(Atom, use_annotations=False):
+    class A(Atom):
         a: int
 
     assert not hasattr(A, "a")
 
 
+def test_reject_str_annotations():
+    with pytest.raises(TypeError):
+
+        class A(Atom, use_annotations=True):
+            a: "int"
+
+
 def test_ignore_class_var():
-    class A(Atom):
+    class A(Atom, use_annotations=True):
         a: ClassVar[int] = 1
 
     assert not isinstance(A.a, Member)
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 9), reason="Subscription of Members requires Python 3.9+"
+)
 def test_ignore_annotated_member():
-    class A(Atom):
-        a: TList[int] = List(int, default=[1, 2, 3])
+    class A(Atom, use_annotations=True):
+        a: List[int] = List(int, default=[1, 2, 3])
 
     assert A().a == [1, 2, 3]
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 9), reason="Subscription of Members requires Python 3.9+"
+)
+def test_ignore_annotated_set_default():
+    class A(Atom, use_annotations=True):
+        a = Value()
+
+    class B(A, use_annotations=True):
+        a: Value[int] = set_default(1)
+
+    assert B().a == 1
+
+
+def test_reject_non_member_annotated_member():
+    with pytest.raises(TypeError):
+
+        class A(Atom, use_annotations=True):
+            a: TList[int] = List(int, default=[1, 2, 3])
+
+
+def test_reject_non_member_annotated_set_default():
+    class A(Atom, use_annotations=True):
+        a = Value()
+
+    with pytest.raises(TypeError):
+
+        class B(A, use_annotations=True):
+            a: int = set_default(1)
 
 
 @pytest.mark.parametrize(
@@ -75,7 +117,7 @@ def test_ignore_annotated_member():
     ],
 )
 def test_annotation_use(annotation, member):
-    class A(Atom):
+    class A(Atom, use_annotations=True):
         a: annotation
 
     assert isinstance(A.a, member)
@@ -99,7 +141,7 @@ def test_annotation_use(annotation, member):
     ],
 )
 def test_annotated_containers_no_default(annotation, member, depth):
-    class A(Atom, type_containers=depth):
+    class A(Atom, use_annotations=True, type_containers=depth):
         a: annotation
 
     assert isinstance(A.a, type(member))
@@ -140,7 +182,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
     ],
 )
 def test_annotations_with_default(annotation, member, default):
-    class A(Atom):
+    class A(Atom, use_annotations=True):
         a: annotation = default
 
     assert isinstance(A.a, member)
@@ -151,10 +193,10 @@ def test_annotations_with_default(annotation, member, default):
 def test_annotations_no_default_for_instance():
     with pytest.raises(ValueError):
 
-        class A(Atom):  # noqa
+        class A(Atom, use_annotations=True):  # noqa
             a: Iterable = []
 
     with pytest.raises(ValueError):
 
-        class B(Atom):  # noqa
+        class B(Atom, use_annotations=True):  # noqa
             a: Optional[Iterable] = []
