@@ -101,6 +101,16 @@ def test_ignore_str_annotated_set_default():
     assert B().a == 1
 
 
+def test_reject_bare_member_annotated_member():
+    with pytest.raises(ValueError) as e:
+
+        class A(Atom, use_annotations=True):
+            a: List[int]
+
+    assert "field 'a' of 'A'" in e.exconly()
+    assert e.value.__cause__
+
+
 def test_reject_non_member_annotated_member():
     with pytest.raises(TypeError):
 

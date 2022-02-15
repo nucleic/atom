@@ -42,7 +42,12 @@ def generate_member_from_type_or_generic(
     m_kwargs = {}
 
     m_cls: Type[Member]
-    if object in types or Any in types:
+    if any(issubclass(t, Member) for t in types) and not isinstance(default, Member):
+        raise ValueError(
+            "Member subclasses cannot be used as annotations without "
+            "specifying a default value for the attribute."
+        )
+    elif object in types or Any in types:
         m_cls = Value
     # Int, Float, Str, Bytes, List, Dict, Set, Tuple, Bool, Callable
     elif len(types) == 1 and types[0] in _TYPE_TO_MEMBER:
@@ -116,7 +121,7 @@ def generate_members_from_cls_namespace(
             types = extract_types(ann)
             if len(types) != 1 or not issubclass(types[0], Member):
                 raise TypeError(
-                    f"Field {name} of {cls_name} is assigned a Member-like value "
+                    f"Field '{name}' of '{cls_name}' is assigned a Member-like value "
                     "but its annotation is not Member compatible"
                 )
             continue
@@ -125,6 +130,12 @@ def generate_members_from_cls_namespace(
         elif getattr(ann, "__origin__", None) is ClassVar:
             continue
 
-        namespace[name] = generate_member_from_type_or_generic(
-            ann, default, annotate_type_containers
-        )
+        try:
+            namespace[name] = generate_member_from_type_or_generic(
+                ann, default, annotate_type_containers
+            )
+        except ValueError as e:
+            raise ValueError(
+                "Encountered an issue when generating a member for field "
+                f"'{name}' of '{cls_name}'."
+            ) from e
