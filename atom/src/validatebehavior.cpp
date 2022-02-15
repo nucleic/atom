@@ -26,8 +26,8 @@ bool validate_type_tuple_types( PyObject* type_tuple_types )
 {
     if( PyTuple_Check( type_tuple_types ) )
     {
-        int len = PySequence_Size( type_tuple_types );
-        for( int i = 0; i < len; i++ )
+        Py_ssize_t len = PySequence_Size( type_tuple_types );
+        for( Py_ssize_t i = 0; i < len; i++ )
         {
             if( !PyType_Check( PyTuple_GET_ITEM( type_tuple_types, i ) ) )
             {
@@ -235,8 +235,8 @@ std::string name_from_type_tuple_types( PyObject* type_tuple_types )
     else
     {
         ostr << "(";
-        int len = PySequence_Size( type_tuple_types );
-        for( int i = 0; i < len; i++ )
+        Py_ssize_t len = PySequence_Size( type_tuple_types );
+        for( Py_ssize_t i = 0; i < len; i++ )
         {
             PyTypeObject* type = pytype_cast( PyTuple_GET_ITEM( type_tuple_types, i ) );
             ostr << type->tp_name;
