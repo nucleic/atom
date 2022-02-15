@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Copyright (c) 2021, Nucleic Development Team.
+# Copyright (c) 2021-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -41,7 +41,7 @@ from atom.atom import set_default
 
 
 def test_ignore_annotations():
-    class A(Atom):
+    class A(Atom, use_annotations=False):
         a: int
 
     assert not hasattr(A, "a")
@@ -66,9 +66,16 @@ def test_ignore_class_var():
 )
 def test_ignore_annotated_member():
     class A(Atom, use_annotations=True):
-        a: List[int] = List(int, default=[1, 2, 3])
+        a: List[int] = List(default=[1, 2, 3])
 
     assert A().a == [1, 2, 3]
+
+
+def test_ignore_str_annotated_member():
+    class A(Atom, use_annotations=True):
+        b: "List[int]" = List(default=[1, 2, 3])
+
+    assert A().b == [1, 2, 3]
 
 
 @pytest.mark.skipif(
@@ -80,6 +87,16 @@ def test_ignore_annotated_set_default():
 
     class B(A, use_annotations=True):
         a: Value[int] = set_default(1)
+
+    assert B().a == 1
+
+
+def test_ignore_str_annotated_set_default():
+    class A(Atom, use_annotations=True):
+        a = Value()
+
+    class B(A, use_annotations=True):
+        a: "Value[int]" = set_default(1)
 
     assert B().a == 1
 

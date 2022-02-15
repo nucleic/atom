@@ -230,7 +230,7 @@ class AtomMeta(type):
         bases: Tuple[type, ...],
         dct: Dict[str, Any],
         enable_weakrefs: bool = False,
-        use_annotations: bool = False,
+        use_annotations: bool = True,
         type_containers: int = 1,
     ):
         # Unless the developer requests slots, they are automatically
