@@ -13,6 +13,17 @@ Atom Release Notes
   setup.py
 - fix handling of _SpecialGenericAlias (typing.Sequence, ...) when used inside
   an Instance member PR #151
+- add several keyword argument to the AtomMeta metaclass  PR #133
+
+   - enable_weakref: allow to have weak references to an Atom object without
+     having to add the slot by hand. False by default.
+   - use_annotations: generate members from type annotations. Str-like annotations
+     are not supported but allowed when an actual member is provided as default value.
+     True by default.
+   - type_containers: in conjunction with use_annotations determine to what depth
+     to type the content of a container. The default is 1 meaning that list[int]
+     will use List(Int()) but list[list[int]] will use List(List()).
+
 
 
 0.7.0 - 21/11/2021

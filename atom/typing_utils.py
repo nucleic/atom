@@ -26,6 +26,11 @@ if sys.version_info >= (3, 10):
 
 def _extract_types(kind) -> Tuple[type, ...]:
     """Extract a tuple of types from a type-like object"""
+    if isinstance(kind, str):
+        raise TypeError(
+            f"Str-based annotations ({kind!r}) are not supported in atom Members."
+        )
+
     if isinstance(kind, GENERICS):
         args = get_args(kind)
         kind = get_origin(kind)
