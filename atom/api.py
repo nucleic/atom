@@ -62,6 +62,7 @@ __all__ = [
     "observe",
     "set_default",
     "CAtom",
+    "ChangeType",
     "DefaultValue",
     "GetAttr",
     "Member",
