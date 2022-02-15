@@ -816,9 +816,7 @@ def test_static_observer_container_change_type():
     w.items = []
     assert len(changes) == 0
 
-    Widget.items.add_static_observer(
-        react, ChangeType.UPDATE | ChangeType.CONTAINER
-    )
+    Widget.items.add_static_observer(react, ChangeType.UPDATE | ChangeType.CONTAINER)
     w.items = [1, 2]
     assert len(changes) == 1
     assert changes[0]["type"] == "update"
