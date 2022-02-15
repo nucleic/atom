@@ -42,7 +42,9 @@ def generate_member_from_type_or_generic(
     m_kwargs = {}
 
     m_cls: Type[Member]
-    if any(issubclass(t, Member) for t in types) and not isinstance(default, Member):
+    if any(
+        isinstance(t, type) and issubclass(t, Member) for t in types
+    ) and not isinstance(default, Member):
         raise ValueError(
             "Member subclasses cannot be used as annotations without "
             "specifying a default value for the attribute."
