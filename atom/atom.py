@@ -42,7 +42,7 @@ POST_SETATTR_PREFIX = "_post_setattr_"
 POST_VALIDATE_PREFIX = "_post_validate_"
 
 
-def observe(*names: str):
+def observe(*names: str) -> "ObserveHandler":
     """A decorator which can be used to observe members on a class.
 
     Parameters
@@ -86,7 +86,7 @@ class ObserveHandler(object):
     #: Name of the callable. Used by the metaclass.
     funcname: Optional[str]
 
-    def __init__(self, pairs: List[Tuple[str, Optional[str]]]):
+    def __init__(self, pairs: List[Tuple[str, Optional[str]]]) -> None:
         """Initialize an ObserveHandler.
 
         Parameters
