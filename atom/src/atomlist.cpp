@@ -834,8 +834,7 @@ private:
         m_obsa = false;
         if( !member() || !atom() )
             return false;
-        // TODO: Should this use check only for Container changes?
-        m_obsm = member()->has_observers();
+        m_obsm = member()->has_observers( ChangeType::Container );
         m_obsa = atom()->has_observers( member()->name );
         return m_obsm || m_obsa;
     }
@@ -864,12 +863,12 @@ private:
         PyTuple_SET_ITEM( args.get(), 0, change.release() );
         if( m_obsm )
         {
-            if( !member()->notify( atom(), args.get(), 0, MemberChange::Type::Container ) )
+            if( !member()->notify( atom(), args.get(), 0, ChangeType::Container ) )
                 return false;
         }
         if( m_obsa )
         {
-            if( !atom()->notify( member()->name, args.get(), 0, MemberChange::Type::Container ) )
+            if( !atom()->notify( member()->name, args.get(), 0, ChangeType::Container ) )
                 return false;
         }
         return true;

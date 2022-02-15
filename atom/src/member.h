@@ -168,14 +168,14 @@ struct Member
 
     bool has_observer( PyObject* observer )
     {
-        return has_observer( observer, MemberChange::Type::Any );
+        return has_observer( observer, ChangeType::Any );
     }
 
     bool has_observer( PyObject* observer, uint8_t change_types );
 
     void add_observer( PyObject* observer )
     {
-        return add_observer( observer, MemberChange::Type::Any );
+        return add_observer( observer, ChangeType::Any );
     }
 
     void add_observer( PyObject* observer, uint8_t change_types );
@@ -184,7 +184,7 @@ struct Member
 
     bool notify( CAtom* atom, PyObject* args, PyObject* kwargs )
     {
-        return notify( atom, args, kwargs, MemberChange::Type::Any );
+        return notify( atom, args, kwargs, ChangeType::Any );
     }
 
     bool notify( CAtom* atom, PyObject* args, PyObject* kwargs, uint8_t change_types );

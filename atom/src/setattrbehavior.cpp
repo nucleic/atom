@@ -129,7 +129,7 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
     if( ( !valid_old || oldptr != newptr ) && atom->get_notifications_enabled() )
     {
         cppy::ptr argsptr;
-        if( member->has_observers(MemberChange::Type::Update | MemberChange::Type::Create) )
+        if( member->has_observers(ChangeType::Update | ChangeType::Create) )
         {
 
             if( valid_old && utils::safe_richcompare( oldptr, newptr, Py_EQ ) )
@@ -140,25 +140,25 @@ slot_handler( Member* member, CAtom* atom, PyObject* value )
                 argsptr = created_args( atom, member, newptr.get() );
             if( !argsptr )
                 return -1;
-            MemberChange::Type change_type = ( valid_old ) ? MemberChange::Type::Update: MemberChange::Type::Create;
+            ChangeType::Type change_type = ( valid_old ) ? ChangeType::Update: ChangeType::Create;
             if( !member->notify( atom, argsptr.get(), 0, change_type ) )
                 return -1;
         }
         if( atom->has_observers( member->name ) )
         {
-            MemberChange::Type change_type = MemberChange::Type::Any;
+            ChangeType::Type change_type = ChangeType::Any;
             if( !argsptr )
             {
                 if( valid_old && utils::safe_richcompare( oldptr, newptr, Py_EQ ) )
                     return 0;
                 if( valid_old )
                 {
-                    change_type = MemberChange::Type::Update;
+                    change_type = ChangeType::Update;
                     argsptr = updated_args( atom, member, oldptr.get(), newptr.get() );
                 }
                 else
                 {
-                    change_type = MemberChange::Type::Create;
+                    change_type = ChangeType::Create;
                     argsptr = created_args( atom, member, newptr.get() );
                 }
                 if( !argsptr )
@@ -221,12 +221,12 @@ event_handler( Member* member, CAtom* atom, PyObject* value )
     if( atom->get_notifications_enabled() )
     {
         cppy::ptr argsptr;
-        if( member->has_observers( MemberChange::Type::Event ) )
+        if( member->has_observers( ChangeType::Event ) )
         {
             argsptr = event_args( atom, member, valueptr.get() );
             if( !argsptr )
                 return -1;
-            if( !member->notify( atom, argsptr.get(), 0, MemberChange::Type::Event ) )
+            if( !member->notify( atom, argsptr.get(), 0, ChangeType::Event ) )
                 return -1;
         }
         if( atom->has_observers( member->name ) )
@@ -237,7 +237,7 @@ event_handler( Member* member, CAtom* atom, PyObject* value )
                 if( !argsptr )
                     return -1;
             }
-            if( !atom->notify( member->name, argsptr.get(), 0, MemberChange::Type::Event ) )
+            if( !atom->notify( member->name, argsptr.get(), 0, ChangeType::Event ) )
                 return -1;
         }
     }

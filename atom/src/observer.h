@@ -14,8 +14,9 @@
 namespace atom
 {
 
+extern PyObject* PyChangeType;
 
-namespace MemberChange
+namespace ChangeType
 {
 
 enum Type {
@@ -28,7 +29,7 @@ enum Type {
     Any = 0xFF,
 };
 
-} // end memberchange
+} // end ChangeType
 
 
 struct Observer

@@ -16,7 +16,7 @@ from atom.api import (
     Event,
     Int,
     List,
-    MemberChange,
+    ChangeType,
     Signal,
     Value,
     observe,
@@ -66,7 +66,7 @@ def test_static_observer(static_atom):
 
     # Test checking for static observers
     assert ot.get_member("val2").has_observers()
-    assert ot.get_member("val2").has_observers(MemberChange.Update)
+    assert ot.get_member("val2").has_observers(ChangeType.UPDATE)
     assert ot.get_member("val2").has_observer("manual_obs")
     assert ot.get_member("val2").has_observer("react")
     with pytest.raises(TypeError) as excinfo:
@@ -104,11 +104,11 @@ def test_manual_static_observers(static_atom):
     member.remove_static_observer(react)
     assert not member.has_observers()
 
-    member.add_static_observer(react, MemberChange.Update)
-    assert not member.has_observers(MemberChange.Create)
-    assert member.has_observers(MemberChange.Update)
-    assert member.has_observer(react, MemberChange.Update)
-    assert not member.has_observer(react, MemberChange.Delete)
+    member.add_static_observer(react, ChangeType.UPDATE)
+    assert not member.has_observers(ChangeType.CREATE)
+    assert member.has_observers(ChangeType.UPDATE)
+    assert member.has_observer(react, ChangeType.UPDATE)
+    assert not member.has_observer(react, ChangeType.DELETE)
 
     with pytest.raises(TypeError) as excinfo:
         member.add_static_observer(1)
@@ -139,11 +139,11 @@ def test_manual_static_observers(static_atom):
 @pytest.mark.parametrize(
     "change_type, expected_types",
     [
-        (MemberChange.Any, ["create", "update", "delete"]),
-        (MemberChange.Create, ["create"]),
-        (MemberChange.Update, ["update"]),
-        (MemberChange.Delete, ["delete"]),
-        (MemberChange.Update | MemberChange.Delete, ["update", "delete"]),
+        (ChangeType.ANY, ["create", "update", "delete"]),
+        (ChangeType.CREATE, ["create"]),
+        (ChangeType.UPDATE, ["update"]),
+        (ChangeType.DELETE, ["delete"]),
+        (ChangeType.UPDATE | ChangeType.DELETE, ["update", "delete"]),
         (0, []),
         (100000, []),
     ],
@@ -796,7 +796,7 @@ def test_static_observer_container_change_type():
     def react(change):
         changes.append(change)
 
-    Widget.items.add_static_observer(react, MemberChange.Create | MemberChange.Update)
+    Widget.items.add_static_observer(react, ChangeType.CREATE | ChangeType.UPDATE)
 
     w = Widget()
     w.items = []
@@ -807,7 +807,7 @@ def test_static_observer_container_change_type():
     w.items.append(1)
     assert len(changes) == 0  # Container ignored
 
-    Widget.items.add_static_observer(react, MemberChange.Container)
+    Widget.items.add_static_observer(react, ChangeType.CONTAINER)
     w.items.append(1)
     assert len(changes) == 1
     assert changes[0]["type"] == "container"
@@ -817,7 +817,7 @@ def test_static_observer_container_change_type():
     assert len(changes) == 0
 
     Widget.items.add_static_observer(
-        react, MemberChange.Update | MemberChange.Container
+        react, ChangeType.UPDATE | ChangeType.CONTAINER
     )
     w.items = [1, 2]
     assert len(changes) == 1

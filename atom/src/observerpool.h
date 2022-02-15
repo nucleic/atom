@@ -50,7 +50,7 @@ public:
 
     bool has_observer( cppy::ptr& topic, cppy::ptr& observer )
     {
-        return has_observer( topic, observer, MemberChange::Type::Any );
+        return has_observer( topic, observer, ChangeType::Any );
     }
 
     bool has_observer( cppy::ptr& topic, cppy::ptr& observer, uint8_t change_types );
@@ -63,7 +63,7 @@ public:
 
     bool notify( cppy::ptr& topic, cppy::ptr& args, cppy::ptr& kwargs )
     {
-        return notify( topic, args, kwargs, MemberChange::Type::Any );
+        return notify( topic, args, kwargs, ChangeType::Any );
     }
 
     bool notify( cppy::ptr& topic, cppy::ptr& args, cppy::ptr& kwargs, uint8_t change_types );

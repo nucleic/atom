@@ -128,7 +128,7 @@ Member_has_observer( Member* self, PyObject* args )
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return cppy::type_error( observer, "str or callable" );
 
-    uint8_t change_types = MemberChange::Type::Any;
+    uint8_t change_types = ChangeType::Any;
     if ( n == 2 )
     {
         PyObject* types = PyTuple_GET_ITEM( args, 1 );
@@ -190,7 +190,7 @@ Member_add_static_observer( Member* self, PyObject* args)
     PyObject* observer = PyTuple_GET_ITEM( args, 0 );
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return cppy::type_error( observer, "str or callable" );
-    uint8_t change_types = MemberChange::Type::Any;
+    uint8_t change_types = ChangeType::Any;
     if(n == 2)
     {
         PyObject* types = PyTuple_GET_ITEM( args, 1 );

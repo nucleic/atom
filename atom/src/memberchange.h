@@ -13,8 +13,6 @@
 namespace atom
 {
 
-extern PyObject* PyMemberChange;
-
 namespace MemberChange
 {
 

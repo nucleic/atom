@@ -29,7 +29,6 @@ from .catom import (
     CAtom,
     DefaultValue,
     Member,
-    MemberChange,
     PostGetAttr,
     PostSetAttr,
     PostValidate,

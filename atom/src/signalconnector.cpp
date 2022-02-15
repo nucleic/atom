@@ -80,7 +80,6 @@ SignalConnector__call__( SignalConnector* self, PyObject* args, PyObject* kwargs
     // XXX validate the Signal args and kwargs?
     if( self->atom->get_notifications_enabled() )
     {
-        // TODO: Should Signals have a specific type?
         if( self->member->has_observers() )
         {
             if( !self->member->notify( self->atom, args, kwargs ) )

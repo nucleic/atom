@@ -138,7 +138,7 @@ struct CAtom
 
     bool observe( PyObject* topic, PyObject* callback )
     {
-        return observe( topic, callback, MemberChange::Type::Any );
+        return observe( topic, callback, ChangeType::Any );
     }
 
     bool observe( PyObject* topic, PyObject* callback, uint8_t change_types );
@@ -151,7 +151,7 @@ struct CAtom
 
     bool notify( PyObject* topic, PyObject* args, PyObject* kwargs )
     {
-        return notify( topic, args, kwargs, MemberChange::Type::Any );
+        return notify( topic, args, kwargs, ChangeType::Any );
     }
 
     bool notify( PyObject* topic, PyObject* args, PyObject* kwargs, uint8_t change_types );

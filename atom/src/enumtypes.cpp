@@ -24,7 +24,7 @@ PyObject* PyPostSetAttr = 0;
 PyObject* PyDefaultValue = 0;
 PyObject* PyValidate = 0;
 PyObject* PyPostValidate = 0;
-PyObject* PyMemberChange = 0;
+PyObject* PyChangeType = 0;
 
 
 namespace {
@@ -98,6 +98,11 @@ bool init_enumtypes()
     }
     cppy::ptr enum_cls( intenum_mod.getattr( "IntEnum" ) );
     if( !enum_cls )
+    {
+        return false;
+    }
+    cppy::ptr flag_cls( intenum_mod.getattr( "IntFlag" ) );
+    if( !flag_cls )
     {
         return false;
     }
@@ -305,21 +310,21 @@ bool init_enumtypes()
         }
     }
     {
-        using namespace MemberChange;
+        using namespace ChangeType;
         cppy::ptr dict_ptr( PyDict_New() );
         if( !dict_ptr )
         {
             return false;  // LCOV_EXCL_LINE
         }
-        add_long( dict_ptr, expand_enum( Create ) );
-        add_long( dict_ptr, expand_enum( Update ) );
-        add_long( dict_ptr, expand_enum( Delete ) );
-        add_long( dict_ptr, expand_enum( Event ) );
-        add_long( dict_ptr, expand_enum( Property ) );
-        add_long( dict_ptr, expand_enum( Container ) );
-        add_long( dict_ptr, expand_enum( Any ) );
-        PyMemberChange = make_enum( enum_cls, "MemberChange", dict_ptr );
-        if( !PyMemberChange )
+        add_long( dict_ptr, "CREATE", Create );
+        add_long( dict_ptr, "UPDATE", Update );
+        add_long( dict_ptr, "DELETE", Delete );
+        add_long( dict_ptr, "EVENT",  Event );
+        add_long( dict_ptr, "PROPERTY", Property );
+        add_long( dict_ptr, "CONTAINER", Container );
+        add_long( dict_ptr, "ANY", Any );
+        PyChangeType = make_enum( flag_cls, "ChangeType", dict_ptr );
+        if( !PyChangeType )
         {
             return false;
         }
