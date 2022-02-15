@@ -11,10 +11,10 @@
 from .atom import Atom, AtomMeta, MissingMemberWarning, observe, set_default
 from .catom import (
     CAtom,
+    ChangeType,
     DefaultValue,
     GetAttr,
     Member,
-    ChangeType,
     PostGetAttr,
     PostSetAttr,
     PostValidate,

@@ -12,11 +12,11 @@ import pytest
 
 from atom.api import (
     Atom,
+    ChangeType,
     ContainerList,
     Event,
     Int,
     List,
-    ChangeType,
     Signal,
     Value,
     observe,
