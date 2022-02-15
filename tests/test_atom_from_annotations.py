@@ -105,7 +105,7 @@ def test_reject_bare_member_annotated_member():
     with pytest.raises(ValueError) as e:
 
         class A(Atom, use_annotations=True):
-            a: List[int]
+            a: List
 
     assert "field 'a' of 'A'" in e.exconly()
     assert e.value.__cause__
