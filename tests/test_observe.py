@@ -349,13 +349,37 @@ def test_multiple_observe():
     assert observer.count == 2
 
 
+def test_observe_change_types():
+    """Test observing multiple members from a single instance."""
+    dt1 = DynamicAtom()
+
+    changes = []
+
+    def on_change(change):
+        changes.append(change)
+
+    dt1.observe("val", on_change, ChangeType.UPDATE | ChangeType.DELETE)
+    dt1.val = 1
+    assert len(changes) == 0
+    dt1.val = 2
+    assert len(changes) == 1
+    assert changes[0]["type"] == "update"
+    del dt1.val
+    assert len(changes) == 2
+    assert changes[1]["type"] == "delete"
+
+
 def test_wrong_args_observe():
     """Test handling of wrong arguments to observe."""
     dt1 = DynamicAtom()
 
     with pytest.raises(TypeError) as excinfo:
-        dt1.observe("val", lambda change: change, 1)
-    assert "2 arguments" in excinfo.exconly()
+        dt1.observe("val")
+    assert "2 or 3 arguments" in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        dt1.observe("val", lambda change: change, ChangeType.ANY, "bar")
+    assert "2 or 3 arguments" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         dt1.observe(1, lambda change: change)
@@ -368,6 +392,10 @@ def test_wrong_args_observe():
     with pytest.raises(TypeError) as excinfo:
         dt1.observe("val", 1)
     assert "callable" in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        dt1.observe("val", lambda change: change, "foo")
+    assert "int" in excinfo.exconly()
 
 
 @pytest.fixture()
