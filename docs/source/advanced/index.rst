@@ -15,3 +15,4 @@ can take advantage of. Those will be described in the following sections
     Atom's containers <containers.rst>
     Advanced members customisation <customization.rst>
     Manual notifications <manual_notifications.rst>
+    Advanced Typing <typing.rst>
