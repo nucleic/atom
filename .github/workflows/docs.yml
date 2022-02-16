@@ -36,6 +36,7 @@ jobs:
       - name: Install graphviz
         uses: ts-graphviz/setup-graphviz@v1
       - name: Build documentation
+        # Remove -W till the multiple reference can be fixed in Sphinx 4
         run: |
           mkdir docs_output;
-          sphinx-build docs/source docs_output -W -b html;
+          sphinx-build docs/source docs_output -b html;

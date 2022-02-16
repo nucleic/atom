@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2021, Nucleic Development Team.
+# Copyright (c) 2013-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -10,7 +10,18 @@
 """
 import datetime
 
-from atom.api import Atom, Bool, Int, Range, Str, Tuple, Typed, Value, observe
+from atom.api import (
+    Atom,
+    Bool,
+    ChangeDict,
+    Int,
+    Range,
+    Str,
+    Tuple,
+    Typed,
+    Value,
+    observe,
+)
 
 
 class Person(Atom):
@@ -27,15 +38,11 @@ class Person(Atom):
     debug = Bool(False)
 
     @observe("age")
-    def debug_print(self, change):
+    def debug_print(self, change: ChangeDict) -> None:
         """Prints out a debug message whenever the person's age changes."""
         if self.debug:
             templ = "{first} {last} is {age} years old."
-            s = templ.format(
-                first=self.first_name,
-                last=self.last_name,
-                age=self.age,
-            )
+            s = templ.format(first=self.first_name, last=self.last_name, age=self.age)
             print(s)
 
 
@@ -57,7 +64,7 @@ class Employee(Person):
 
     # This method will be called automatically by atom when the
     # employee's phone number changes
-    def _observe_phone(self, val):
+    def _observe_phone(self, val: ChangeDict) -> None:
         if val["type"] == "update":
             msg = "received new phone number for %s: %s"
             print(msg % (self.first_name, val["value"]))
@@ -66,15 +73,10 @@ class Employee(Person):
 if __name__ == "__main__":
     # Create an employee with a boss
     boss_john = Employer(
-        first_name="John",
-        last_name="Paw",
-        company_name="Packrat's Cats",
+        first_name="John", last_name="Paw", company_name="Packrat's Cats"
     )
     employee_mary = Employee(
-        first_name="Mary",
-        last_name="Sue",
-        boss=boss_john,
-        phone=(555, 555, 5555),
+        first_name="Mary", last_name="Sue", boss=boss_john, phone=(555, 555, 5555)
     )
 
     employee_mary.phone = (100, 100, 100)

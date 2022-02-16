@@ -52,3 +52,8 @@ def test_extract_types(ty, outputs):
 )
 def test_is_optional(ty, outputs):
     assert is_optional(extract_types(ty)) == outputs
+
+
+def test_reject_str_annotations():
+    with pytest.raises(TypeError):
+        extract_types("int")

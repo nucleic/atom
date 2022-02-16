@@ -52,6 +52,7 @@ from .signal import Signal
 from .subclass import ForwardSubclass, Subclass
 from .tuple import Tuple
 from .typed import ForwardTyped, Typed
+from .typing_utils import ChangeDict
 
 __all__ = [
     "Atom",
@@ -102,4 +103,5 @@ __all__ = [
     "Tuple",
     "ForwardTyped",
     "Typed",
+    "ChangeDict",
 ]
