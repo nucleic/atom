@@ -3,7 +3,13 @@ from atom.api import observe
 
 
 class InventoryItem(Atom):
-    """Class for keeping track of an item in inventory."""
+    """Class for keeping track of an item in inventory.
+
+    This example demonstrates creating an Atom using python type hints
+    and using `observe` to detect when an item goes on sale.
+
+    Expected output: `Save $0.99 now on widgets!`
+    """
 
     name: str
     unit_price: float

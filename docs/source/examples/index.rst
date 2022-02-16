@@ -10,6 +10,7 @@ Tutorial Examples
     :maxdepth: 1
 
     ex_hello_world
+    ex_inventory
     ex_person
     ex_employee
 
@@ -27,5 +28,6 @@ API Examples
     ex_metadata
     ex_numeric
     ex_observe
+    ex_observe_hints
     ex_property
     ex_range
