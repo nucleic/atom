@@ -63,16 +63,16 @@ Static observers can be bound to a member in three ways:
   in the name).
 - finally one can manage manually static observer using the following methods
   defined on the base class of all members:
-  + |add_static_observer| which takes a single callable as arguemnt
-  + |remove_static_observer| which takes a single callable as arguemnt
-
+  + |add_static_observer| which takes a callable and an optional flag indiciating
+  which change types to emit
+  + |remove_static_observer| which takes a single callable as argument
 
 Dynamic observers
 ~~~~~~~~~~~~~~~~~
 
 Dynamic observers are managed using the |Atom.observe| and |Atom.unobserve|
 methods of the |Atom| class. To observe one needs to pass the name of the
-member to observe and the callback function. When unobserving, you can either
+member to observe and the callback function.  When unobserving, you can either
 pass just the member name to remove all observers at once or a name and a
 callback to remove specific observer.
 
@@ -98,16 +98,40 @@ accept a single argument which is usually called *change*. This argument is a
 dictionary with ``str`` as keys which are described below:
 
 - ``'type'``: A string describing the event that triggered the notification:
-    + 'created': when accessing or assigning to a member that has no previous
+    + ``'created'``: when accessing or assigning to a member that has no previous
       value.
-    + 'update': when assigning a new value to a member with a previous value.
-    + 'delete': when deleting a member (using ``del`` or ``delattr``)
-    + 'container': when doing inplace modification on a the of |ContainerList|.
+    + ``'update'``: when assigning a new value to a member with a previous value.
+    + ``'delete'``: when deleting a member (using ``del`` or ``delattr``)
+    + ``'container'``: when doing inplace modification on a the of |ContainerList|.
 - ``'object'``: This is the |Atom| instance that triggered the notification.
 - ``'name'``: Name of the member from which the notification originate.
 - ``'value'``: New value of the member (or old value of the member in the case
   of a delete event).
 - ``'oldvalue'``: Old value of the member in the case of an update.
+
+.. note::
+    As of 0.8.0 ``observe`` and  ``add_static_observer`` also accepts an optional
+    ``ChangeType`` flag which can be used to selectively enable or disable
+    which change ``type`` events are generated.
+
+    .. code-block:: python
+
+        from atom.api import Atom, Int, ChangeType
+
+        class Widget(Atom):
+
+            count = Int()
+
+        def on_change(change):
+            print(change["type"])
+
+        Widget.count.add_static_observer(on_change, ChangeType.UPDATE | ChangeType.DELETE)
+
+        w = Widget()
+        w.count  # Will not emit a "create" event since it was disabled
+        w.count += 1 # Will trigger an "update" event
+        del w.count # Will trigger a "delete" event
+
 
 In the case of ``'container'`` events emitted by |ContainerList| the change
 disctionary can contains additional information (note that ``'value'`` and
