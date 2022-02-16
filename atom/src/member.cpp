@@ -1027,7 +1027,8 @@ Member::add_observer( PyObject* observer, uint8_t change_types )
     std::vector<Observer>::iterator end = static_observers->end();
     for( it = static_observers->begin(); it != end; ++it )
     {
-        if( it->match( obptr ) ) {
+        if( it->match( obptr ) )
+        {
             it->m_change_types = change_types;
             return;
         }

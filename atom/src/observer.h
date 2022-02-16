@@ -35,7 +35,6 @@ enum Type {
 struct Observer
 {
 
-    Observer( cppy::ptr& observer ) : m_observer( observer ), m_change_types( 0xFF ) {}
     Observer( cppy::ptr& observer, uint8_t change_types ) : m_observer( observer ), m_change_types( change_types ) {}
     ~Observer() {}
 

@@ -129,11 +129,11 @@ ObserverPool::add( cppy::ptr& topic, cppy::ptr& observer, uint8_t change_types )
             }
             if( obs_free == obs_end )
             {
-                m_observers.insert( obs_end, observer );
+                m_observers.insert( obs_end, Observer( observer, change_types ) );
                 ++topic_it->m_count;
             }
             else
-                *obs_free = observer;
+                *obs_free = Observer( observer, change_types );
             return;
         }
         obs_offset += topic_it->m_count;
