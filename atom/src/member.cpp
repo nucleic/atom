@@ -1028,7 +1028,6 @@ Member::add_observer( PyObject* observer, uint8_t change_types )
     for( it = static_observers->begin(); it != end; ++it )
     {
         if( it->match( obptr ) ) {
-            // TODO: Should it update change types here?
             it->m_change_types = change_types;
             return;
         }
