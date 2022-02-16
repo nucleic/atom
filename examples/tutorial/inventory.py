@@ -19,7 +19,7 @@ class InventoryItem(Atom):
         return self.unit_price * self.quantity_on_hand
 
     @observe("unit_price")
-    def _observe_unit_price(self, change):
+    def check_for_price_reduction(self, change):
         savings = change.get("oldvalue", 0) - change.get("value")
         if savings > 0:
             print(f"Save ${savings} now on {self.name}s!")
