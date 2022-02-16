@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2021, Nucleic Development Team.
+# Copyright (c) 2013-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -8,7 +8,7 @@
 """Simple class using atom and static observers.
 
 """
-from atom.api import Atom, Bool, Range, Str, observe
+from atom.api import Atom, Bool, ChangeDict, Range, Str, observe
 
 
 class Person(Atom):
@@ -23,15 +23,11 @@ class Person(Atom):
     debug = Bool(False)
 
     @observe("age")
-    def debug_print(self, change):
+    def debug_print(self, change: ChangeDict) -> None:
         """Prints out a debug message whenever the person's age changes."""
         if self.debug:
             templ = "{first} {last} is {age} years old."
-            s = templ.format(
-                first=self.first_name,
-                last=self.last_name,
-                age=self.age,
-            )
+            s = templ.format(first=self.first_name, last=self.last_name, age=self.age)
             print(s)
 
 

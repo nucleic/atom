@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2021, Nucleic Development Team.
+# Copyright (c) 2013-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -20,6 +20,7 @@ from typing import (
     MutableMapping,
     Optional,
     Tuple,
+    TypeVar,
     Union,
 )
 
@@ -33,6 +34,7 @@ from .catom import (
     PostValidate,
     Validate,
 )
+from .typing_utils import ChangeDict
 
 OBSERVE_PREFIX = "_observe_"
 DEFAULT_PREFIX = "_default_"
@@ -42,7 +44,7 @@ POST_SETATTR_PREFIX = "_post_setattr_"
 POST_VALIDATE_PREFIX = "_post_validate_"
 
 
-def observe(*names: str):
+def observe(*names: str) -> "ObserveHandler":
     """A decorator which can be used to observe members on a class.
 
     Parameters
@@ -72,6 +74,9 @@ def observe(*names: str):
     return ObserveHandler(pairs)
 
 
+T = TypeVar("T", bound="Atom")
+
+
 class ObserveHandler(object):
     """An object used to temporarily store observe decorator state."""
 
@@ -86,7 +91,7 @@ class ObserveHandler(object):
     #: Name of the callable. Used by the metaclass.
     funcname: Optional[str]
 
-    def __init__(self, pairs: List[Tuple[str, Optional[str]]]):
+    def __init__(self, pairs: List[Tuple[str, Optional[str]]]) -> None:
         """Initialize an ObserveHandler.
 
         Parameters
@@ -99,8 +104,19 @@ class ObserveHandler(object):
         self.func = None  # set by the __call__ method
         self.funcname = None
 
-    def __call__(self, func: Callable[[Mapping[str, Any]], None]) -> "ObserveHandler":
-        """Called to decorate the function."""
+    def __call__(
+        self,
+        func: Union[Callable[[ChangeDict], None], Callable[[T, ChangeDict], None]],
+    ) -> "ObserveHandler":
+        """Called to decorate the function.
+
+        Parameters
+        ----------
+        func
+            Should be either a callable taking as single argument the change
+            dictionary or a method declared on an Atom object.
+
+        """
         assert isinstance(func, FunctionType), "func must be a function"
         self.func = func
         return self
@@ -161,7 +177,7 @@ class ExtendedObserver(object):
         self.funcname = funcname
         self.attr = attr
 
-    def __call__(self, change: Dict[str, Any]) -> None:
+    def __call__(self, change: ChangeDict) -> None:
         """Handle a change of the target object.
 
         This handler will remove the old observer and attach a new

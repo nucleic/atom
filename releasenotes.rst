@@ -13,6 +13,7 @@ Atom Release Notes
   setup.py
 - fix handling of _SpecialGenericAlias (typing.Sequence, ...) when used inside
   an Instance member PR #151
+- add a ChangeDict TypedDict to help annotate observers PR #133
 - add several keyword argument to the AtomMeta metaclass  PR #133
 
    - enable_weakref: allow to have weak references to an Atom object without

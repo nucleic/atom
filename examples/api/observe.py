@@ -8,7 +8,7 @@
 """Demonstration of the use of static and dynamic observers.
 
 """
-from atom.api import Atom, Range, Str, Typed, observe
+from atom.api import Atom, ChangeDict, Range, Str, Typed, observe
 
 
 class Dog(Atom):
@@ -25,15 +25,15 @@ class Person(Atom):
 
     dog = Typed(Dog, ())
 
-    def _observe_age(self, change):
+    def _observe_age(self, change: ChangeDict) -> None:
         print("Age changed: {0}".format(change["value"]))
 
     @observe("name")
-    def any_name_i_want(self, change):
+    def any_name_i_want(self, change: ChangeDict) -> None:
         print("Name changed: {0}".format(change["value"]))
 
     @observe("dog.name")
-    def another_random_name(self, change):
+    def another_random_name(self, change: ChangeDict) -> None:
         print("Dog name changed: {0}".format(change["value"]))
 
 
