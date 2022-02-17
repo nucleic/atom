@@ -848,3 +848,36 @@ def test_static_observer_container_change_type():
     w.items = [1, 2]
     assert len(changes) == 1
     assert changes[0]["type"] == "update"
+
+
+def test_observe_decorator_change_type():
+    """Test observing a single member from a single instance."""
+
+    changes = []
+
+    change_types = ChangeType.ANY & ~(ChangeType.CREATE)
+
+    class Widget(Atom):
+        items = ContainerList()
+
+        @observe("items", change_types=change_types)
+        def _on_items_change(self, change):
+            changes.append(change)
+
+    w = Widget()
+    w.items
+    assert len(changes) == 0
+    w.items.append(1)
+    assert len(changes) == 1
+    assert changes[0]["type"] == "container"
+    changes.clear()
+    del w.items
+    assert len(changes) == 1
+    assert changes[0]["type"] == "delete"
+    changes.clear()
+
+    w.items  # Create default
+    assert len(changes) == 0
+    w.items = [2]  # Update
+    assert len(changes) == 1
+    assert changes[0]["type"] == "update"
