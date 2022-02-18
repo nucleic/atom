@@ -117,7 +117,15 @@ class ObserveHandler(object):
 
     def __call__(
         self,
-        func: Union[Callable[[ChangeDict], None], Callable[[T, ChangeDict], None]],
+        func: Union[
+            Callable[[ChangeDict], None],
+            Callable[[T, ChangeDict], None],
+            # AtomMeta will replace ObserveHandler in the body of an atom
+            # class allowing to access it for example in a subclass. We lie here by
+            # giving ObserverHandler.__call__ a signature compatible with an
+            # observer to mimic this behavior.
+            ChangeDict,
+        ],
     ) -> "ObserveHandler":
         """Called to decorate the function.
 

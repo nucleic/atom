@@ -37,6 +37,14 @@ class Person(Atom):
         print("Dog name changed: {0}".format(change["value"]))
 
 
+class Employee(Person):
+    title = Str()
+
+    @observe("title")
+    def on_title_change(self, change: ChangeDict) -> None:
+        super().any_name_i_want(change)
+
+
 def main():
     bob = Person(name="Robert Paulson", age=40)
     bob.name = "Bobby Paulson"
