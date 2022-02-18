@@ -1,7 +1,7 @@
 .. _advanced-typing:
 
-Advanced Typing
-===============
+Static type checking explained
+===============================
 
 .. include:: ../substitutions.sub
 
