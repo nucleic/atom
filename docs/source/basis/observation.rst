@@ -33,9 +33,9 @@ members it will be:
 
 .. note::
 
-    The |ContainerList| member is a special case simce it can emit
+    The |ContainerList| member is a special case since it can emit
     notifications when elements are added or removed from the list. This will
-    be refrred to as 'container' events.
+    be referred to as 'container' events.
 
 The distinction between static and dynamic observers comes from the moment at
 which the binding of the observer to the member is defined. In the case of
@@ -53,7 +53,7 @@ Static observers
 
 Static observers can be bound to a member in three ways:
 
-- declaring a method matching the anme of the member to observe but whose name
+- declaring a method matching the name of the member to observe but whose name
   starts with ``_observe_``
 - using the |observe| decorator on method. The decorator can take an
   arbitrary number of arguments which allows to tie the same observer to
@@ -63,9 +63,9 @@ Static observers can be bound to a member in three ways:
   in the name).
 - finally one can manage manually static observer using the following methods
   defined on the base class of all members:
-  + |add_static_observer| which takes a single callable as arguemnt
-  + |remove_static_observer| which takes a single callable as arguemnt
-
+  + |add_static_observer| which takes a callable and an optional flag indicating
+  which change types to emit
+  + |remove_static_observer| which takes a single callable as argument
 
 Dynamic observers
 ~~~~~~~~~~~~~~~~~
@@ -98,19 +98,49 @@ accept a single argument which is usually called *change*. This argument is a
 dictionary with ``str`` as keys which are described below:
 
 - ``'type'``: A string describing the event that triggered the notification:
-    + 'created': when accessing or assigning to a member that has no previous
+    + ``'created'``: when accessing or assigning to a member that has no previous
       value.
-    + 'update': when assigning a new value to a member with a previous value.
-    + 'delete': when deleting a member (using ``del`` or ``delattr``)
-    + 'container': when doing inplace modification on a the of |ContainerList|.
+    + ``'update'``: when assigning a new value to a member with a previous value.
+    + ``'delete'``: when deleting a member (using ``del`` or ``delattr``)
+    + ``'container'``: when doing inplace modification on a the of |ContainerList|.
 - ``'object'``: This is the |Atom| instance that triggered the notification.
 - ``'name'``: Name of the member from which the notification originate.
 - ``'value'``: New value of the member (or old value of the member in the case
   of a delete event).
 - ``'oldvalue'``: Old value of the member in the case of an update.
 
+.. note::
+
+    As of 0.8.0 ``observe`` and  ``add_static_observer`` also accepts an optional
+    ``ChangeType`` flag which can be used to selectively enable or disable
+    which change ``type`` events are generated.
+
+    .. code-block:: python
+
+        from atom.api import Atom, Int, ChangeType
+
+        class Widget(Atom):
+
+            count = Int()
+
+        def on_change(change):
+            print(change["type"])
+
+        Widget.count.add_static_observer(on_change, ChangeType.UPDATE | ChangeType.DELETE)
+
+        w = Widget()
+        w.count  # Will not emit a "create" event since it was disabled
+        w.count += 1 # Will trigger an "update" event
+        del w.count # Will trigger a "delete" event
+
+.. warning::
+
+    If you attach twice the same callback function to a member, the second call
+    will override the change type flag of the observer.
+
+
 In the case of ``'container'`` events emitted by |ContainerList| the change
-disctionary can contains additional information (note that ``'value'`` and
+dictionary can contains additional information (note that ``'value'`` and
 ``'oldvalue'`` are present):
 
 - ``'operation'``: a str describing the operation that took place (append,
@@ -123,7 +153,7 @@ disctionary can contains additional information (note that ``'value'`` and
 
   .. note::
 
-    As mentionned previously, |Signal| emits notifications in a different
+    As mentioned previously, |Signal| emits notifications in a different
     format. When calling (emitting) the signal, it will pass whatever arguments
     and keyword arguments it was passed as is to the observers as illustrated
     below.
@@ -145,6 +175,6 @@ disctionary can contains additional information (note that ``'value'`` and
 Suppressing notifications
 -------------------------
 
-If for any reason you need to prevent notifications to be progated you can use
+If for any reason you need to prevent notifications to be propagated you can use
 the |Atom.suppress_notifications| context manager. Inside this context manager,
 notifications will not be propagated.

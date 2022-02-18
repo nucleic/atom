@@ -136,7 +136,12 @@ struct CAtom
             bitfield &= ~FROZEN_BIT;
     }
 
-    bool observe( PyObject* topic, PyObject* callback );
+    bool observe( PyObject* topic, PyObject* callback )
+    {
+        return observe( topic, callback, ChangeType::Any );
+    }
+
+    bool observe( PyObject* topic, PyObject* callback, uint8_t change_types );
 
     bool unobserve( PyObject* topic, PyObject* callback );
 
@@ -144,7 +149,12 @@ struct CAtom
 
     bool unobserve();
 
-    bool notify( PyObject* topic, PyObject* args, PyObject* kwargs );
+    bool notify( PyObject* topic, PyObject* args, PyObject* kwargs )
+    {
+        return notify( topic, args, kwargs, ChangeType::Any );
+    }
+
+    bool notify( PyObject* topic, PyObject* args, PyObject* kwargs, uint8_t change_types );
 
     static int TypeCheck( PyObject* object )
     {

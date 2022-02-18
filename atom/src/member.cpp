@@ -78,10 +78,10 @@ Member_traverse( Member* self, visitproc visit, void* arg )
     Py_VISIT( self->post_validate_context );
     if( self->static_observers )
     {
-        std::vector<cppy::ptr>::iterator it;
-        std::vector<cppy::ptr>::iterator end = self->static_observers->end();
+        std::vector<Observer>::iterator it;
+        std::vector<Observer>::iterator end = self->static_observers->end();
         for( it = self->static_observers->begin(); it != end; ++it )
-            Py_VISIT( it->get() );
+            Py_VISIT( it->m_observer.get() );
     }
 #if PY_VERSION_HEX >= 0x03090000
     // This was not needed before Python 3.9 (Python issue 35810 and 40217)
@@ -103,18 +103,40 @@ Member_dealloc( Member* self )
 
 
 PyObject*
-Member_has_observers( Member* self )
+Member_has_observers( Member* self, PyObject* args )
 {
-    return utils::py_bool( self->has_observers() );
+    const size_t n = PyTuple_GET_SIZE( args );
+    if( n == 0 )
+        return utils::py_bool( self->has_observers() );
+    if( n > 1 )
+        return cppy::type_error( "has_observers() takes at most 1 argument" );
+    PyObject* types = PyTuple_GET_ITEM( args, 0 );
+    if( !PyLong_Check( types ) )
+        return cppy::type_error( types, "int" );
+    uint8_t change_types = PyLong_AsLong( types );
+    return utils::py_bool( self->has_observers( change_types ) );
 }
 
 
 PyObject*
-Member_has_observer( Member* self, PyObject* observer )
+Member_has_observer( Member* self, PyObject* args )
 {
+    const size_t n = PyTuple_GET_SIZE( args );
+    if( n < 1 || n > 2 )
+        return cppy::type_error( "has_observer() expects a callable and an optional change type" );
+    PyObject* observer = PyTuple_GET_ITEM( args, 0 );
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return cppy::type_error( observer, "str or callable" );
-    return utils::py_bool( self->has_observer( observer ) );
+
+    uint8_t change_types = ChangeType::Any;
+    if ( n == 2 )
+    {
+        PyObject* types = PyTuple_GET_ITEM( args, 1 );
+        if( !PyLong_Check( types ) )
+            return cppy::type_error( types, "int" );
+        change_types = PyLong_AsLong( types ) & 0xFF;
+    }
+    return utils::py_bool( self->has_observer( observer, change_types ) );
 }
 
 
@@ -134,7 +156,7 @@ Member_copy_static_observers( Member* self, PyObject* other )
     else
     {
         if( !self->static_observers )
-            self->static_observers = new std::vector<cppy::ptr>();
+            self->static_observers = new std::vector<Observer>();
         *self->static_observers = *member->static_observers;
     }
     Py_RETURN_NONE;
@@ -146,23 +168,37 @@ Member_static_observers( Member* self )
 {
     if( !self->static_observers )
         return PyTuple_New( 0 );
-    std::vector<cppy::ptr>& observers( *self->static_observers );
+    std::vector<Observer>& observers( *self->static_observers );
     size_t size = observers.size();
     PyObject* items = PyTuple_New( size );
     if( !items )
         return 0;
     for( size_t i = 0; i < size; ++i )
-        PyTuple_SET_ITEM( items, i, cppy::incref( observers[ i ].get() ) );
+        PyTuple_SET_ITEM( items, i, cppy::incref( observers[ i ].m_observer.get() ) );
     return items;
 }
 
 
 PyObject*
-Member_add_static_observer( Member* self, PyObject* observer )
+Member_add_static_observer( Member* self, PyObject* args)
 {
+    const size_t n = PyTuple_GET_SIZE( args );
+    if( n < 1 )
+        return cppy::type_error( "add_static_observer() requires at least 1 argument" );
+    if( n > 2 )
+        return cppy::type_error( "add_static_observer() takes at most 2 arugments" );
+    PyObject* observer = PyTuple_GET_ITEM( args, 0 );
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return cppy::type_error( observer, "str or callable" );
-    self->add_observer( observer );
+    uint8_t change_types = ChangeType::Any;
+    if(n == 2)
+    {
+        PyObject* types = PyTuple_GET_ITEM( args, 1 );
+        if( !PyLong_Check( types ) )
+            return cppy::type_error( types, "int" );
+        change_types = PyLong_AsLong( types ) & 0xFF ;
+    }
+    self->add_observer( observer, change_types );
     Py_RETURN_NONE;
 }
 
@@ -360,7 +396,7 @@ Member_clone( Member* self )
     clone->post_validate_context = cppy::xincref( self->post_validate_context );
     if( self->static_observers )
     {
-        clone->static_observers = new std::vector<cppy::ptr>();
+        clone->static_observers = new std::vector<Observer>();
         *clone->static_observers = *self->static_observers;
     }
     return pyclone;
@@ -807,15 +843,15 @@ Member_methods[] = {
       "Set the atom's slot value directly." },
     { "del_slot", ( PyCFunction )Member_del_slot, METH_O,
       "Delete the atom's slot value directly." },
-    { "has_observers", ( PyCFunction )Member_has_observers, METH_NOARGS,
+    { "has_observers", ( PyCFunction )Member_has_observers, METH_VARARGS,
       "Get whether or not this member has observers." },
-    { "has_observer", ( PyCFunction )Member_has_observer, METH_O,
+    { "has_observer", ( PyCFunction )Member_has_observer, METH_VARARGS,
       "Get whether or not the member already has the given observer." },
     { "copy_static_observers", ( PyCFunction )Member_copy_static_observers, METH_O,
       "Copy the static observers from one member into this member." },
     { "static_observers", ( PyCFunction )Member_static_observers, METH_NOARGS,
       "Get a tuple of the static observers defined for this member" },
-    { "add_static_observer", ( PyCFunction )Member_add_static_observer, METH_O,
+    { "add_static_observer", ( PyCFunction )Member_add_static_observer, METH_VARARGS,
       "Add the name of a method to call on all atoms when the member changes." },
     { "remove_static_observer", ( PyCFunction )Member_remove_static_observer, METH_O,
       "Remove the name of a method to call on all atoms when the member changes." },
@@ -937,13 +973,14 @@ struct BaseTask : public ModifyTask
 
 struct AddTask : public BaseTask
 {
-    AddTask( Member* member, PyObject* observer ) :
-        BaseTask( member, observer ) {}
+    AddTask( Member* member, PyObject* observer, uint8_t change_types ) :
+        BaseTask( member, observer ), m_change_types(change_types) {}
     void run()
     {
         Member* member = member_cast( m_member.get() );
-        member->add_observer( m_observer.get() );
+        member->add_observer( m_observer.get(), m_change_types );
     }
+    uint8_t m_change_types;
 };
 
 
@@ -960,27 +997,43 @@ struct RemoveTask : public BaseTask
 
 } // namespace
 
+bool Member::has_observers( uint8_t change_types )
+{
+    if ( static_observers ) {
+        std::vector<Observer>::iterator it;
+        std::vector<Observer>::iterator end = static_observers->end();
+        for( it = static_observers->begin(); it != end; ++it )
+        {
+            if( it->enabled( change_types ) )
+                return true;
+        }
+    }
+    return false;
+}
 
 void
-Member::add_observer( PyObject* observer )
+Member::add_observer( PyObject* observer, uint8_t change_types )
 {
     if( modify_guard )
     {
-        ModifyTask* task = new AddTask( this, observer );
+        ModifyTask* task = new AddTask( this, observer, change_types );
         modify_guard->add_task( task );
         return;
     }
     if( !static_observers )
-        static_observers = new std::vector<cppy::ptr>();
+        static_observers = new std::vector<Observer>();
     cppy::ptr obptr( cppy::incref( observer ) );
-    std::vector<cppy::ptr>::iterator it;
-    std::vector<cppy::ptr>::iterator end = static_observers->end();
+    std::vector<Observer>::iterator it;
+    std::vector<Observer>::iterator end = static_observers->end();
     for( it = static_observers->begin(); it != end; ++it )
     {
-        if( *it == obptr || utils::safe_richcompare( it->get(), obptr, Py_EQ ) )
+        if( it->match( obptr ) )
+        {
+            it->m_change_types = change_types;
             return;
+        }
     }
-    static_observers->push_back( obptr );
+    static_observers->push_back( Observer(obptr, change_types) );
     return;
 }
 
@@ -997,11 +1050,11 @@ Member::remove_observer( PyObject* observer )
     if( static_observers )
     {
         cppy::ptr obptr( cppy::incref( observer ) );
-        std::vector<cppy::ptr>::iterator it;
-        std::vector<cppy::ptr>::iterator end = static_observers->end();
+        std::vector<Observer>::iterator it;
+        std::vector<Observer>::iterator end = static_observers->end();
         for( it = static_observers->begin(); it != end; ++it )
         {
-            if( *it == obptr || utils::safe_richcompare( it->get(), obptr, Py_EQ ) )
+            if( it->match( obptr ) )
             {
                 static_observers->erase( it );
                 if( static_observers->size() == 0 )
@@ -1017,16 +1070,16 @@ Member::remove_observer( PyObject* observer )
 
 
 bool
-Member::has_observer( PyObject* observer )
+Member::has_observer( PyObject* observer, uint8_t change_types )
 {
     if( !static_observers )
         return false;
     cppy::ptr obptr( cppy::incref( observer ) );
-    std::vector<cppy::ptr>::iterator it;
-    std::vector<cppy::ptr>::iterator end = static_observers->end();
+    std::vector<Observer>::iterator it;
+    std::vector<Observer>::iterator end = static_observers->end();
     for( it = static_observers->begin(); it != end; ++it )
     {
-        if( *it == obptr || utils::safe_richcompare( it->get(), obptr, Py_EQ ) )
+        if( it->match( obptr ) && it->enabled( change_types ))
             return true;
     }
     return false;
@@ -1034,7 +1087,7 @@ Member::has_observer( PyObject* observer )
 
 
 bool
-Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
+Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs, uint8_t change_types)
 {
     if( static_observers && atom->get_notifications_enabled() )
     {
@@ -1043,19 +1096,22 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs )
         cppy::ptr kwargsptr( cppy::xincref( kwargs ) );
         cppy::ptr objectptr( cppy::incref( pyobject_cast( atom ) ) );
         cppy::ptr callable;
-        std::vector<cppy::ptr>::iterator it;
-        std::vector<cppy::ptr>::iterator end = static_observers->end();
+        std::vector<Observer>::iterator it;
+        std::vector<Observer>::iterator end = static_observers->end();
         for( it = static_observers->begin(); it != end; ++it )
         {
-            if( PyUnicode_CheckExact( it->get() ) )
+            if ( !it->enabled( change_types ) )
+                continue;  // Ignore
+
+            if( PyUnicode_CheckExact( it->m_observer.get() ) )
             {
-                callable = objectptr.getattr( *it );
+                callable = objectptr.getattr( it->m_observer );
                 if( !callable )
                     return false;
             }
             else
             {
-                callable = *it;
+                callable = it->m_observer;
             }
             if( !callable.call( argsptr, kwargsptr ) )
                 return false;

@@ -190,15 +190,25 @@ CAtom_get_member( PyObject* self, PyObject* name )
 PyObject*
 CAtom_observe( CAtom* self, PyObject* args )
 {
-    if( PyTuple_GET_SIZE( args ) != 2 )
-        return cppy::type_error( "observe() takes exactly 2 arguments" );
+    const size_t n = PyTuple_GET_SIZE( args );
+    if( n < 2 || n > 3)
+        return cppy::type_error( "observe() takes exactly 2 or 3 arguments" );
     PyObject* topic = PyTuple_GET_ITEM( args, 0 );
     PyObject* callback = PyTuple_GET_ITEM( args, 1 );
     if( !PyCallable_Check( callback ) )
         return cppy::type_error( callback, "callable" );
+    uint8_t change_types = ChangeType::Any;
+    if ( n == 3 )
+    {
+        PyObject* types = PyTuple_GET_ITEM( args, 2 );
+        if( !PyLong_Check( types ) )
+            return cppy::type_error( types, "int" );
+        change_types = PyLong_AsLong( types ) & 0xFF;
+    }
+
     if( utils::str_check( topic ) )
     {
-        if( !self->observe( topic, callback ) )
+        if( !self->observe( topic, callback, change_types ) )
             return 0;
     }
     else
@@ -211,7 +221,7 @@ CAtom_observe( CAtom* self, PyObject* args )
         {
             if( !utils::str_check( topicptr.get() ) )
                 return cppy::type_error( topicptr.get(), "str" );
-            if( !self->observe( topicptr.get(), callback ) )
+            if( !self->observe( topicptr.get(), callback, change_types ) )
                 return 0;
         }
         if( PyErr_Occurred() )
@@ -456,7 +466,7 @@ wrap_callback( PyObject* callback )
 
 
 bool
-CAtom::observe( PyObject* topic, PyObject* callback )
+CAtom::observe( PyObject* topic, PyObject* callback, uint8_t change_types )
 {
     cppy::ptr topicptr( cppy::incref( topic ) );
     cppy::ptr callbackptr( wrap_callback( callback ) );
@@ -464,7 +474,7 @@ CAtom::observe( PyObject* topic, PyObject* callback )
         return false;
     if( !observers )
         observers = new ObserverPool();
-    observers->add( topicptr, callbackptr );
+    observers->add( topicptr, callbackptr, change_types );
     return true;
 }
 
@@ -503,14 +513,14 @@ CAtom::unobserve()
 
 
 bool
-CAtom::notify( PyObject* topic, PyObject* args, PyObject* kwargs )
+CAtom::notify( PyObject* topic, PyObject* args, PyObject* kwargs, uint8_t change_types )
 {
     if( observers && get_notifications_enabled() )
     {
         cppy::ptr topicptr( cppy::incref( topic ) );
         cppy::ptr argsptr( cppy::incref( args ) );
         cppy::ptr kwargsptr( cppy::xincref( kwargs ) );
-        if( !observers->notify( topicptr, argsptr, kwargsptr ) )
+        if( !observers->notify( topicptr, argsptr, kwargsptr, change_types ) )
             return false;
     }
     return true;

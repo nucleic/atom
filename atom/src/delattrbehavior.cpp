@@ -84,12 +84,12 @@ slot_handler( Member* member, CAtom* atom )
     if( atom->get_notifications_enabled() )
     {
         cppy::ptr argsptr;
-        if( member->has_observers() )
+        if( member->has_observers( ChangeType::Delete ) )
         {
             argsptr = deleted_args( atom, member, valueptr.get() );
             if( !argsptr )
                 return -1;
-            if( !member->notify( atom, argsptr.get(), 0 ) )
+            if( !member->notify( atom, argsptr.get(), 0, ChangeType::Delete ) )
                 return -1;
         }
         if( atom->has_observers( member->name ) )
@@ -100,7 +100,7 @@ slot_handler( Member* member, CAtom* atom )
                 if( !argsptr )
                     return -1;
             }
-            if( !atom->notify( member->name, argsptr.get(), 0 ) )
+            if( !atom->notify( member->name, argsptr.get(), 0, ChangeType::Delete ) )
                 return -1;
         }
     }

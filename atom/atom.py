@@ -27,6 +27,7 @@ from typing import (
 from .annotation_utils import generate_members_from_cls_namespace
 from .catom import (
     CAtom,
+    ChangeType,
     DefaultValue,
     Member,
     PostGetAttr,
@@ -44,7 +45,7 @@ POST_SETATTR_PREFIX = "_post_setattr_"
 POST_VALIDATE_PREFIX = "_post_validate_"
 
 
-def observe(*names: str) -> "ObserveHandler":
+def observe(*names: str, change_types: ChangeType = ChangeType.ANY) -> "ObserveHandler":
     """A decorator which can be used to observe members on a class.
 
     Parameters
@@ -52,6 +53,8 @@ def observe(*names: str) -> "ObserveHandler":
     *names
         The str names of the attributes to observe on the object.
         These must be of the form 'foo' or 'foo.bar'.
+    change_types
+        The flag specifying the type of changes to observe.
 
     """
     # backwards compatibility for a single tuple or list argument
@@ -71,7 +74,7 @@ def observe(*names: str) -> "ObserveHandler":
             pairs.append((name, attr))
         else:
             pairs.append((name, None))
-    return ObserveHandler(pairs)
+    return ObserveHandler(pairs, change_types)
 
 
 T = TypeVar("T", bound="Atom")
@@ -80,7 +83,7 @@ T = TypeVar("T", bound="Atom")
 class ObserveHandler(object):
     """An object used to temporarily store observe decorator state."""
 
-    __slots__ = ("pairs", "func", "funcname")
+    __slots__ = ("pairs", "func", "funcname", "change_types")
 
     #: List of 2-tuples which stores the pair information for the observers.
     pairs: List[Tuple[str, Optional[str]]]
@@ -91,7 +94,14 @@ class ObserveHandler(object):
     #: Name of the callable. Used by the metaclass.
     funcname: Optional[str]
 
-    def __init__(self, pairs: List[Tuple[str, Optional[str]]]) -> None:
+    #: Types of changes to listen to.
+    change_types: ChangeType
+
+    def __init__(
+        self,
+        pairs: List[Tuple[str, Optional[str]]],
+        change_types: ChangeType = ChangeType.ANY,
+    ) -> None:
         """Initialize an ObserveHandler.
 
         Parameters
@@ -101,6 +111,7 @@ class ObserveHandler(object):
 
         """
         self.pairs = pairs
+        self.change_types = change_types
         self.func = None  # set by the __call__ method
         self.funcname = None
 
@@ -123,7 +134,7 @@ class ObserveHandler(object):
 
     def clone(self) -> "ObserveHandler":
         """Create a clone of the sentinel."""
-        clone = type(self)(self.pairs)
+        clone = type(self)(self.pairs, self.change_types)
         clone.func = self.func
         return clone
 
@@ -458,6 +469,7 @@ class AtomMeta(type):
         # @observe decorated methods
         for handler in decorated:
             assert handler.funcname  # Set at this point
+            change_types = handler.change_types
             for name, attr in handler.pairs:
                 if name in members:
                     member = clone_if_needed(members[name])
@@ -465,7 +477,7 @@ class AtomMeta(type):
                     observer = handler.funcname
                     if attr is not None:
                         observer = ExtendedObserver(observer, attr)
-                    member.add_static_observer(observer)
+                    member.add_static_observer(observer, change_types)
                 else:
                     _signal_missing_member(cls, name, members, "observe decorated")
 

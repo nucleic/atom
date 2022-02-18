@@ -10,7 +10,17 @@
 """
 import pytest
 
-from atom.api import Atom, Event, Int, List, Signal, Value, observe
+from atom.api import (
+    Atom,
+    ChangeType,
+    ContainerList,
+    Event,
+    Int,
+    List,
+    Signal,
+    Value,
+    observe,
+)
 
 
 class NonComparableObject:
@@ -56,6 +66,7 @@ def test_static_observer(static_atom):
 
     # Test checking for static observers
     assert ot.get_member("val2").has_observers()
+    assert ot.get_member("val2").has_observers(ChangeType.UPDATE)
     assert ot.get_member("val2").has_observer("manual_obs")
     assert ot.get_member("val2").has_observer("react")
     with pytest.raises(TypeError) as excinfo:
@@ -93,13 +104,69 @@ def test_manual_static_observers(static_atom):
     member.remove_static_observer(react)
     assert not member.has_observers()
 
+    member.add_static_observer(react, ChangeType.UPDATE)
+    assert not member.has_observers(ChangeType.CREATE)
+    assert member.has_observers(ChangeType.UPDATE)
+    assert member.has_observer(react, ChangeType.UPDATE)
+    assert not member.has_observer(react, ChangeType.DELETE)
+
     with pytest.raises(TypeError) as excinfo:
         member.add_static_observer(1)
     assert "str or callable" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
+        member.add_static_observer(react, "foobar")
+    assert "int" in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
         member.remove_static_observer(1)
     assert "str or callable" in excinfo.exconly()
+
+    # Check errors
+    with pytest.raises(TypeError) as excinfo:
+        member.has_observer()
+    assert "expects a callable" in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        member.has_observer(react, 1, True)
+    assert "expects a callable" in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        member.has_observer(react, "bool")
+    assert "int" in excinfo.exconly()
+
+
+@pytest.mark.parametrize(
+    "change_type, expected_types",
+    [
+        (ChangeType.ANY, ["create", "update", "delete"]),
+        (ChangeType.CREATE, ["create"]),
+        (ChangeType.UPDATE, ["update"]),
+        (ChangeType.DELETE, ["delete"]),
+        (ChangeType.UPDATE | ChangeType.DELETE, ["update", "delete"]),
+        (0, []),
+        (100000, []),
+    ],
+)
+def test_static_observers_change_types(change_type, expected_types):
+    """Test manually managing static observers."""
+    # Force the use of safe comparison (error cleaning and fallback)
+    class Widget(Atom):
+        val = Value()
+
+    changes = []
+
+    def react(change):
+        changes.append(change)
+
+    Widget.val.add_static_observer(react, change_type)
+    w = Widget()
+    w.val
+    w.val = 1
+    del w.val
+    assert len(changes) == len(expected_types)
+    for change, exp in zip(changes, expected_types):
+        assert change["type"] == exp
 
 
 def test_modifying_static_observers_in_callback():
@@ -282,13 +349,37 @@ def test_multiple_observe():
     assert observer.count == 2
 
 
+def test_observe_change_types():
+    """Test observing multiple members from a single instance."""
+    dt1 = DynamicAtom()
+
+    changes = []
+
+    def on_change(change):
+        changes.append(change)
+
+    dt1.observe("val", on_change, ChangeType.UPDATE | ChangeType.DELETE)
+    dt1.val = 1
+    assert len(changes) == 0
+    dt1.val = 2
+    assert len(changes) == 1
+    assert changes[0]["type"] == "update"
+    del dt1.val
+    assert len(changes) == 2
+    assert changes[1]["type"] == "delete"
+
+
 def test_wrong_args_observe():
     """Test handling of wrong arguments to observe."""
     dt1 = DynamicAtom()
 
     with pytest.raises(TypeError) as excinfo:
-        dt1.observe("val", lambda change: change, 1)
-    assert "2 arguments" in excinfo.exconly()
+        dt1.observe("val")
+    assert "2 or 3 arguments" in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        dt1.observe("val", lambda change: change, ChangeType.ANY, "bar")
+    assert "2 or 3 arguments" in excinfo.exconly()
 
     with pytest.raises(TypeError) as excinfo:
         dt1.observe(1, lambda change: change)
@@ -301,6 +392,10 @@ def test_wrong_args_observe():
     with pytest.raises(TypeError) as excinfo:
         dt1.observe("val", 1)
     assert "callable" in excinfo.exconly()
+
+    with pytest.raises(TypeError) as excinfo:
+        dt1.observe("val", lambda change: change, "foo")
+    assert "int" in excinfo.exconly()
 
 
 @pytest.fixture()
@@ -716,3 +811,73 @@ def test_signal_notification(sd_observed_atom):
 
     assert sa.count == 1
     assert sa.observer.count == 1
+
+
+def test_static_observer_container_change_type():
+    """Test observing a single member from a single instance."""
+
+    class Widget(Atom):
+        items = ContainerList()
+
+    changes = []
+
+    def react(change):
+        changes.append(change)
+
+    Widget.items.add_static_observer(react, ChangeType.CREATE | ChangeType.UPDATE)
+
+    w = Widget()
+    w.items = []
+    assert len(changes) == 1
+    assert changes[0]["type"] == "create"
+    changes.clear()
+
+    w.items.append(1)
+    assert len(changes) == 0  # Container ignored
+
+    Widget.items.add_static_observer(react, ChangeType.CONTAINER)
+    w.items.append(1)
+    assert len(changes) == 1
+    assert changes[0]["type"] == "container"
+    changes.clear()
+
+    w.items = []
+    assert len(changes) == 0
+
+    Widget.items.add_static_observer(react, ChangeType.UPDATE | ChangeType.CONTAINER)
+    w.items = [1, 2]
+    assert len(changes) == 1
+    assert changes[0]["type"] == "update"
+
+
+def test_observe_decorator_change_type():
+    """Test observing a single member from a single instance."""
+
+    changes = []
+
+    change_types = ChangeType.ANY & ~(ChangeType.CREATE)
+
+    class Widget(Atom):
+        items = ContainerList()
+
+        @observe("items", change_types=change_types)
+        def _on_items_change(self, change):
+            changes.append(change)
+
+    w = Widget()
+    w.items
+    assert len(changes) == 0
+    w.items.append(1)
+    assert len(changes) == 1
+    assert changes[0]["type"] == "container"
+    changes.clear()
+    del w.items
+    assert len(changes) == 1
+    assert changes[0]["type"] == "delete"
+    changes.clear()
+
+    w.items  # Create default
+    assert len(changes) == 0
+    w.items = [2]  # Update
+    assert len(changes) == 1
+    assert changes[0]["type"] == "update"

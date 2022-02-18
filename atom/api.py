@@ -11,6 +11,7 @@
 from .atom import Atom, AtomMeta, MissingMemberWarning, observe, set_default
 from .catom import (
     CAtom,
+    ChangeType,
     DefaultValue,
     GetAttr,
     Member,
@@ -61,6 +62,7 @@ __all__ = [
     "observe",
     "set_default",
     "CAtom",
+    "ChangeType",
     "DefaultValue",
     "GetAttr",
     "Member",
