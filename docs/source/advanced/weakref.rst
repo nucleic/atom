@@ -32,6 +32,18 @@ the proper slot to your object as illustrated below:
 
         __slots__ = ('__weakref__',)
 
+.. note::
+
+  Starting with atom 0.8.0 you can use the metaclass keyword argument `enable_weakrefs`
+  to achieve the same result.
+
+  .. code-block:: python
+
+    from atom.api import Atom
+
+    MyWeakRefAtom(Atom, enable_weakrefs=True):
+        pass
+
 
 Using atom builtin weak references: |atomref|
 ---------------------------------------------
