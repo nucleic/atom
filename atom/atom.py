@@ -117,7 +117,11 @@ class ObserveHandler(object):
 
     def __call__(
         self,
-        func: Union[Callable[[ChangeDict], None], Callable[[T, ChangeDict], None]],
+        func: Union[
+            Callable[[ChangeDict], None],
+            Callable[[T, ChangeDict], None],
+            ChangeDict,  # TODO: Workaround for mypy
+        ],
     ) -> "ObserveHandler":
         """Called to decorate the function.
 
