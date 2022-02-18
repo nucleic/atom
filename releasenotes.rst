@@ -24,7 +24,7 @@ Atom Release Notes
    - type_containers: in conjunction with use_annotations determine to what depth
      to type the content of a container. The default is 1 meaning that list[int]
      will use List(Int()) but list[list[int]] will use List(List()).
-- allow specifing which change events are emitted when adding static observers PR#155
+- allow specifing which change events are emitted when adding static observers PR #155
 
 
 
