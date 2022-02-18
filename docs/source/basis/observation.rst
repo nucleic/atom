@@ -72,7 +72,7 @@ Dynamic observers
 
 Dynamic observers are managed using the |Atom.observe| and |Atom.unobserve|
 methods of the |Atom| class. To observe one needs to pass the name of the
-member to observe and the callback function.  When unobserving, you can either
+member to observe and the callback function. When unobserving, you can either
 pass just the member name to remove all observers at once or a name and a
 callback to remove specific observer.
 
