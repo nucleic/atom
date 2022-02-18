@@ -120,10 +120,10 @@ class ObserveHandler(object):
         func: Union[
             Callable[[ChangeDict], None],
             Callable[[T, ChangeDict], None],
-            # AtomMeta will replace ObserveHandler in the body of an atom 
+            # AtomMeta will replace ObserveHandler in the body of an atom
             # class allowing to access it for example in a subclass. We lie here by
-            # giving ObserverHandler.__call__ a signature compatible with an 
-            # observer to mimic this behavior. 
+            # giving ObserverHandler.__call__ a signature compatible with an
+            # observer to mimic this behavior.
             ChangeDict,
         ],
     ) -> "ObserveHandler":
