@@ -225,8 +225,7 @@ The output of this block will be:
 .. note::
 
     Atom objects can be frozen using |Atom.freeze| at any time of their
-    lifetime to forbid further modifications. At a later time, the object can
-    unfrozen using |Atom.unfreeze|.
+    lifetime to forbid further modifications.
 
 
 Conclusion
