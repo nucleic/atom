@@ -15,9 +15,7 @@
 
 .. |Atom.notify| replace:: :py:meth:`~atom.catom.CAtom.freeze`
 
-.. |Atom.freeze| replace:: :py:meth:`~atom.catom.CAtom.unfreeze`
-
-.. |Atom.unfreeze| replace:: :py:meth:`~atom.catom.CAtom.notify`
+.. |Atom.freeze| replace:: :py:meth:`~atom.catom.CAtom.freeze`
 
 .. |Atom.suppress_notifications| replace:: :py:class:`~atom.atom.Atom.suppress_notifications`
 

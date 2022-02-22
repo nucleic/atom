@@ -10,6 +10,7 @@ Tutorial Examples
     :maxdepth: 1
 
     ex_hello_world
+    ex_inventory
     ex_person
     ex_employee
 
@@ -20,6 +21,8 @@ API Examples
 .. toctree::
     :maxdepth: 1
 
+    ex_observe_hints
+    ex_static_type_checking
     ex_coersion
     ex_composition
     ex_containers

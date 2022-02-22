@@ -16,10 +16,7 @@ features such as dynamic initialization, validation, and change notification for
 object attributes. It provides the default model binding behavior for the
 `Enaml <https://enaml.readthedocs.io/en/latest/>`_ UI framework.
 
-Version 0.4.3 will be the last version to support Python 2.  Moving forward
-support will be limited to Python 3.5+.
-
-Illustrative Example:
+Examples:
 
 .. code-block:: python
 
@@ -58,5 +55,32 @@ Illustrative Example:
     john.debug = True
     john.age = 43  # prints message
     john.age = 'forty three'   # raises TypeError
+
+Starting with atom 0.8.0 atom object can also be defined using type annotations.
+
+.. code-block:: python
+
+    from atom.api import Atom, observe
+
+    class InventoryItem(Atom):
+        """Class for keeping track of an item in inventory."""
+
+        name: str
+        unit_price: float
+        quantity_on_hand: int = 0
+
+        def total_cost(self) -> float:
+            return self.unit_price * self.quantity_on_hand
+
+        @observe("unit_price")
+        def check_for_price_reduction(self, change):
+            savings = change.get("oldvalue", 0) - change.get("value")
+            if savings > 0:
+                print(f"Save ${savings} now on {self.name}s!")
+
+    >>> w = InventoryItem(name="widget", unit_price=1.99, quantity_on_hand=10)
+    >>> w.unit_price = 1.00
+    Save $0.99 now on widgets!
+
 
 For version information, see `the Revision History <https://github.com/nucleic/atom/blob/main/releasenotes.rst>`_.

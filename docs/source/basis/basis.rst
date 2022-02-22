@@ -178,7 +178,7 @@ values a bit more.
         def _default_int_value(self):
             return 1
 
-In this subclass, we simply alter the default values of two of the members. 
+In this subclass, we simply alter the default values of two of the members.
 We do that in two ways:
 
 - using |set_default| which indicates to the framework that it should create
@@ -225,8 +225,7 @@ The output of this block will be:
 .. note::
 
     Atom objects can be frozen using |Atom.freeze| at any time of their
-    lifetime to forbid further modifications. At a later time, the object can
-    unfrozen using |Atom.unfreeze|.
+    lifetime to forbid further modifications.
 
 
 Conclusion
@@ -237,3 +236,8 @@ The next three sections will cover in more details three points introduced
 here: the members, notifications and in particular observers specific to an
 instance, and finally the specially named methods used to alter default
 member behaviors.
+
+.. note::
+
+  Starting with atom 0.8.0 atom classes can also infer their members from type
+  annotations see :ref:`basis-typing`
