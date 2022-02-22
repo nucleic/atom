@@ -12,7 +12,9 @@ on:
       - .github/workflows/ci.yml
       - "atom/**"
       - "tests/**"
+      - "examples/**"
       - setup.py
+      - pyproject.toml
 
 jobs:
   lint:
