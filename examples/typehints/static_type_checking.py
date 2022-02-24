@@ -29,6 +29,8 @@ assert my_atom.num is None
 # Mutable default values for lists and dicts are OK
 assert my_atom.lst == [1, 2, 3]
 
-# The following statements will fail static type checking and Atom will raise runtime TypeError exceptions.
-my_atom.n = "Not an integer"
-my_atom.s = 5
+# The following statements will fail static type checking and
+# Atom will raise runtime TypeError exceptions.
+# (the type ignore comment allow CI to pass)
+my_atom.n = "Not an integer"  # type: ignore
+my_atom.s = 5  # type: ignore

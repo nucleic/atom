@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 """Example on using type hints to create Atom subclasses."""
-from atom.api import Atom, observe
+from atom.api import Atom, ChangeDict, observe
 
 
 class InventoryItem(Atom):
@@ -26,8 +26,8 @@ class InventoryItem(Atom):
         return self.unit_price * self.quantity_on_hand
 
     @observe("unit_price")
-    def _observe_unit_price(self, change):
-        savings = change.get("oldvalue", 0) - change.get("value")
+    def _observe_unit_price(self, change: ChangeDict) -> None:
+        savings = change.get("oldvalue", 0) - change["value"]
         if savings > 0:
             print(f"Save ${savings} now on {self.name}s!")
 
