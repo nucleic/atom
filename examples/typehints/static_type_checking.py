@@ -1,10 +1,19 @@
-from atom.api import Atom
-from atom.api import Int
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2022, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+# --------------------------------------------------------------------------------------
+"""Demonstration of the interaction between static and dynamic type validation."""
 from typing import Optional
+
+from atom.api import Atom, Int
 
 
 class MyAtom(Atom):
     """Simple atom typing example."""
+
     s: str = "Hello"
     lst: list[int] = [1, 2, 3]
     num: Optional[float]

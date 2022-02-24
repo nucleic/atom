@@ -1,5 +1,12 @@
-from atom.api import Atom
-from atom.api import observe
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2022, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+# --------------------------------------------------------------------------------------
+"""Example on using type hints to create Atom subclasses."""
+from atom.api import Atom, observe
 
 
 class InventoryItem(Atom):
