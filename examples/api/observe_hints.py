@@ -1,16 +1,14 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2021, Nucleic Development Team.
+# Copyright (c) 2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Demonstration of the use of static and dynamic observers.
+"""Demonstration of the use of static and dynamic observers."""
+from typing import Optional
 
-"""
-from typing import Any, Dict, Optional
-
-from atom.api import Atom, observe
+from atom.api import Atom, ChangeDict, observe
 
 
 class Dog(Atom):
@@ -26,15 +24,15 @@ class Person(Atom):
 
     dog: Optional[Dog]
 
-    def _observe_age(self, change: Dict[str, Any]) -> None:
+    def _observe_age(self, change: ChangeDict) -> None:
         print("Age changed: {0}".format(change["value"]))
 
     @observe("name")
-    def any_name_i_want(self, change: Dict[str, Any]) -> None:
+    def any_name_i_want(self, change: ChangeDict) -> None:
         print("Name changed: {0}".format(change["value"]))
 
     @observe("dog.name")
-    def another_random_name(self, change: Dict[str, Any]) -> None:
+    def another_random_name(self, change: ChangeDict) -> None:
         print("Dog name changed: {0}".format(change["value"]))
 
 
@@ -44,7 +42,7 @@ def main() -> None:
     bob.age = 50
     bob.dog = Dog(name="Scruffy")
 
-    def watcher_func(change: Dict[str, Any]) -> None:
+    def watcher_func(change: ChangeDict) -> None:
         print("Watcher func change: {0}".format(change["value"]))
 
     bob.observe("age", watcher_func)

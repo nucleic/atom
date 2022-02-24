@@ -10,9 +10,11 @@ on:
       - main
     paths:
       - .github/workflows/docs.yml
-      - atom/*
-      - docs/*
+      - "atom/**"
+      - "docs/**"
+      - "examples/**"
       - setup.py
+      - pyproject.toml
 
 jobs:
   docs:
