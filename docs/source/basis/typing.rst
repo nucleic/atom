@@ -14,6 +14,10 @@ Atom understands standard Python type hints, and uses them to infer the
 appropriate Atom members. Type hints can also be used to specify default values.
 Note that one can freely mix standard atom members and type annotations.
 
+.. note::
+
+    Str-like annotations are not supported.
+
 The following example creates a class that performs run-time type checking on
 all instance attributes, sets appropriate default values, and supports static
 type checking like any other atom object.
