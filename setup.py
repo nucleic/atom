@@ -1,17 +1,18 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2021, Nucleic Development Team.
+# Copyright (c) 2013-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 import os
-import sys
 
+from cppy import CppyBuildExt
 from setuptools import Extension, find_packages, setup
-from setuptools.command.build_ext import build_ext
 
 # Use the env var ATOM_DISABLE_FH4 to disable linking against VCRUNTIME140_1.dll
+if "ATOM_DISABLE_FH4" in os.environ:
+    os.environ.setdefault("CPPY_DISABLE_FH4", "1")
 
 ext_modules = [
     Extension(
@@ -52,42 +53,9 @@ ext_modules = [
 ]
 
 
-class BuildExt(build_ext):
-    """A custom build extension for adding compiler-specific options."""
-
-    c_opts = {
-        "msvc": ["/EHsc"],
-    }
-
-    def initialize_options(self):
-        build_ext.initialize_options(self)
-        self.debug = False
-
-    def build_extensions(self):
-
-        # Delayed import of cppy to let setup_requires install it if necessary
-        import cppy
-
-        ct = self.compiler.compiler_type
-        opts = self.c_opts.get(ct, [])
-        for ext in self.extensions:
-            ext.include_dirs.insert(0, cppy.get_include())
-            ext.extra_compile_args = opts
-            if sys.platform == "darwin":
-                ext.extra_compile_args += ["-stdlib=libc++"]
-                ext.extra_link_args += ["-stdlib=libc++"]
-            if ct == "msvc" and os.environ.get("ATOM_DISABLE_FH4"):
-                # Disable FH4 Exception Handling implementation so that we don't
-                # require VCRUNTIME140_1.dll. For more details, see:
-                # https://devblogs.microsoft.com/cppblog/making-cpp-exception-handling-smaller-x64/
-                # https://github.com/joerick/cibuildwheel/issues/423#issuecomment-677763904
-                ext.extra_compile_args.append("/d2FH4-")
-        build_ext.build_extensions(self)
-
-
 setup(
     packages=find_packages(exclude=["tests", "tests.*"]),
     ext_modules=ext_modules,
-    cmdclass={"build_ext": BuildExt},
+    cmdclass={"build_ext": CppyBuildExt},
     package_data={"atom": ["py.typed", "*.pyi"]},
 )
