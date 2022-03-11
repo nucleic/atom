@@ -7,8 +7,15 @@
 # --------------------------------------------------------------------------------------
 import os
 
-from cppy import CppyBuildExt
 from setuptools import Extension, find_packages, setup
+
+try:
+    from cppy import CppyBuildExt
+except ImportError as e:
+    raise RuntimeError(
+        "Missing setup required dependencies: cppy. "
+        "Installing through pip as recommended ensure one never hits this issue."
+    ) from e
 
 # Use the env var ATOM_DISABLE_FH4 to disable linking against VCRUNTIME140_1.dll
 if "ATOM_DISABLE_FH4" in os.environ:
