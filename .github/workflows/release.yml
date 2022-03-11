@@ -20,8 +20,6 @@ jobs:
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Setup Python
         uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
       - name: Build sdist
         run: |
           pip install --upgrade pip

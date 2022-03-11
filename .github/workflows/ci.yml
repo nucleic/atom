@@ -32,7 +32,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install https://github.com/nucleic/cppy/tarball/main
       - name: Install project
         run: |
           pip install -e .
@@ -76,7 +75,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install git+https://github.com/nucleic/cppy@main
       - name: Install project
         run: |
           pip install .
