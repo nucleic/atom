@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2021, Nucleic Development Team.
+# Copyright (c) 2013-2022, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -27,6 +27,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
+dynamic=["version"]
 
 
 [project.urls]
@@ -37,8 +38,12 @@ changelog = "https://github.com/nucleic/atom/blob/main/releasenotes.rst"
 
 
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.2.0"]
+requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.2.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = false
+package-data = {atom = ["py.typed", "*.pyi"]}
 
 [tool.setuptools_scm]
 write_to = "atom/version.py"
