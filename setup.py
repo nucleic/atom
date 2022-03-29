@@ -7,7 +7,7 @@
 # --------------------------------------------------------------------------------------
 import os
 
-from setuptools import Extension, find_packages, setup
+from setuptools import Extension, setup
 
 try:
     from cppy import CppyBuildExt
@@ -61,8 +61,6 @@ ext_modules = [
 
 
 setup(
-    packages=find_packages(exclude=["tests", "tests.*"]),
     ext_modules=ext_modules,
     cmdclass={"build_ext": CppyBuildExt},
-    package_data={"atom": ["py.typed", "*.pyi"]},
 )
