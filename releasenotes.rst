@@ -2,13 +2,15 @@ Atom Release Notes
 ==================
 
 
-0.8.0 - unreleased
+0.8.0 - 30/03/2022
 ------------------
+
+This release introduced a new way to declare atom object based on type annotations.
 
 - emit warnings when a magic method points to an undefined member PR #139 #149
 - use isort, black and flake8 to ensure a consistent coding style PR #141
 - base the version number on the most recent git tag using setuptools-scm PR #141
-- make the setup compatible with PEP 517 PR #141
+- make the setup compatible with PEP 517 and PEP 621 compliant PR #141 #162
   Pip should be used for development install in place of directly calling
   setup.py
 - fix handling of _SpecialGenericAlias (typing.Sequence, ...) when used inside
@@ -24,8 +26,7 @@ Atom Release Notes
    - type_containers: in conjunction with use_annotations determine to what depth
      to type the content of a container. The default is 1 meaning that list[int]
      will use List(Int()) but list[list[int]] will use List(List()).
-- allow specifing which change events are emitted when adding static observers PR #155
-
+- allow specifying which change events are emitted when adding static observers PR #155
 
 
 0.7.0 - 21/11/2021
