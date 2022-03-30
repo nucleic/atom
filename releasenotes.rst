@@ -18,7 +18,7 @@ This release introduced a new way to declare atom object based on type annotatio
 - add a ChangeDict TypedDict to help annotate observers PR #133
 - add several keyword argument to the AtomMeta metaclass  PR #133
 
-   - enable_weakref: allow to have weak references to an Atom object without
+   - enable_weakrefs: allow to have weak references to an Atom object without
      having to add the slot by hand. False by default.
    - use_annotations: generate members from type annotations. Str-like annotations
      are not supported but allowed when an actual member is provided as default value.
