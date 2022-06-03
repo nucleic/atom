@@ -29,13 +29,11 @@ classifiers = [
 ]
 dynamic=["version"]
 
-
 [project.urls]
 homepage = "https://github.com/nucleic/atom"
 documentation = "https://atom.readthedocs.io/en/latest/"
 repository = "https://github.com/nucleic/atom"
 changelog = "https://github.com/nucleic/atom/blob/main/releasenotes.rst"
-
 
 [build-system]
 requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.2.0"]
