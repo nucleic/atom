@@ -23,6 +23,7 @@ from atom.api import (
     Atom,
     Int,
     MissingMemberWarning,
+    Str,
     Value,
     atomref,
     observe,
@@ -101,6 +102,38 @@ def test_multi_inheritance():
             if m is m2:
                 continue
             assert m.index != m2.index
+
+
+def test_member_mro_in_multiple_inheritance():
+    """Test that we respect the MRO for members."""
+
+    class A(Atom):
+        a = Str("a")
+
+    class B(Atom):
+        b = Str("b")
+
+    class AB(A, B):
+        pass
+
+    class A2(A):
+        a = Str("a2")
+
+    class C(AB, A2):
+        pass
+
+    # C mro AB -> A2 -> A -> B -> Atom
+    # a is not defined or altered on AB so we expect to get A2 behavior
+    assert C().a == "a2"
+
+    # When AB alters a we expect to see it
+    class BB(A, B):
+        a = set_default("b")
+
+    class D(BB, A2):
+        pass
+
+    assert D().a == "b"
 
 
 def test_cloning_members():
