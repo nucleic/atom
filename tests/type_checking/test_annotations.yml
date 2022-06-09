@@ -11,7 +11,7 @@
       annotation: List[int]
       member_instance: List()
       member_type: atom.list.List[builtins.int]
-      member_value_type: builtins.list*[builtins.int*]
+      member_value_type: builtins.list[builtins.int]
   main: |
     import io
     from typing import Type

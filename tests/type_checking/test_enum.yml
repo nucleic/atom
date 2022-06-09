@@ -10,11 +10,11 @@
   - member: Enum
     member_instance: Enum(1, 2)
     member_type: atom.enum.Enum[builtins.int]
-    member_value_type: builtins.int*
+    member_value_type: builtins.int
   - member: Enum
     member_instance: Enum(1, str(1))
     member_type: atom.enum.Enum[builtins.object]
-    member_value_type: builtins.object*
+    member_value_type: builtins.object
   main: |
     from atom.api import Atom, {{ member }}
 
