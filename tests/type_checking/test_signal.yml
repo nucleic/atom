@@ -13,5 +13,5 @@
       m = Signal()
 
     reveal_type(A.m)  # N: Revealed type is "atom.signal.Signal"
-    reveal_type(A().m)  # N: Revealed type is "atom.catom.SignalConnector*"
+    reveal_type(A().m)  # N: Revealed type is "atom.catom.SignalConnector"
     A().m()

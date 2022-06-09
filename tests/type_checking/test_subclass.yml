@@ -10,51 +10,51 @@
     - member: Subclass
       member_instance: Subclass(A)
       member_type: atom.subclass.Subclass[Type[main.A]]
-      member_value_type: Type[main.A*]
+      member_value_type: Type[main.A]
     - member: Subclass
       member_instance: Subclass(A, B)
       member_type: atom.subclass.Subclass[Type[main.A]]
-      member_value_type: Type[main.A*]
+      member_value_type: Type[main.A]
     - member: Subclass
       member_instance: Subclass((A,))
       member_type: atom.subclass.Subclass[Type[main.A]]
-      member_value_type: Type[main.A*]
+      member_value_type: Type[main.A]
     - member: Subclass
       member_instance: Subclass((A,), B)
       member_type: atom.subclass.Subclass[Type[main.A]]
-      member_value_type: Type[main.A*]
+      member_value_type: Type[main.A]
     - member: Subclass
       member_instance: Subclass((int, A))
       member_type: atom.subclass.Subclass[Union[Type[builtins.int], Type[main.A]]]
-      member_value_type: Union[Type[builtins.int*], Type[main.A*]]
+      member_value_type: Union[Type[builtins.int], Type[main.A]]
     - member: Subclass
       member_instance: Subclass((int, A), B)
       member_type: atom.subclass.Subclass[Union[Type[builtins.int], Type[main.A]]]
-      member_value_type: Union[Type[builtins.int*], Type[main.A*]]
+      member_value_type: Union[Type[builtins.int], Type[main.A]]
     - member: Subclass
       member_instance: Subclass((int, A, str))
       member_type: atom.subclass.Subclass[Union[Type[builtins.int], Type[main.A], Type[builtins.str]]]
-      member_value_type: Union[Type[builtins.int*], Type[main.A*], Type[builtins.str*]]
+      member_value_type: Union[Type[builtins.int], Type[main.A], Type[builtins.str]]
     - member: Subclass
       member_instance: Subclass((int, A, str), B)
       member_type: atom.subclass.Subclass[Union[Type[builtins.int], Type[main.A], Type[builtins.str]]]
-      member_value_type: Union[Type[builtins.int*], Type[main.A*], Type[builtins.str*]]
+      member_value_type: Union[Type[builtins.int], Type[main.A], Type[builtins.str]]
     - member: ForwardSubclass
       member_instance: ForwardSubclass(resolve1)
       member_type: atom.subclass.ForwardSubclass[Type[main.A]]
-      member_value_type: Type[main.A*]
+      member_value_type: Type[main.A]
     - member: ForwardSubclass
       member_instance: ForwardSubclass(resolve2)
       member_type: atom.subclass.ForwardSubclass[Type[main.A]]
-      member_value_type: Type[main.A*]
+      member_value_type: Type[main.A]
     - member: ForwardSubclass
       member_instance: ForwardSubclass(resolve3)
       member_type: atom.subclass.ForwardSubclass[Union[Type[builtins.int], Type[main.A]]]
-      member_value_type: Union[Type[builtins.int*], Type[main.A*]]
+      member_value_type: Union[Type[builtins.int], Type[main.A]]
     - member: ForwardSubclass
       member_instance: ForwardSubclass(resolve4)
       member_type: atom.subclass.ForwardSubclass[Union[Type[builtins.int], Type[main.A], Type[builtins.str]]]
-      member_value_type: Union[Type[builtins.int*], Type[main.A*], Type[builtins.str*]]
+      member_value_type: Union[Type[builtins.int], Type[main.A], Type[builtins.str]]
   main: |
     import io
     from typing import Tuple, Type

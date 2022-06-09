@@ -32,5 +32,5 @@
       m = {{ member_instance }}
 
     reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
-    reveal_type(A().m)  # N: Revealed type is "atom.catom.EventBinder*"
+    reveal_type(A().m)  # N: Revealed type is "atom.catom.EventBinder"
     A().m = 1

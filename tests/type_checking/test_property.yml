@@ -27,18 +27,18 @@
       m = Property(g)
 
     reveal_type(A.m)  # N: Revealed type is "atom.property.Property[builtins.int, <nothing>]"
-    reveal_type(A().m)  # N: Revealed type is "builtins.int*"
+    reveal_type(A().m)  # N: Revealed type is "builtins.int"
 
 - case: property
   parametrized:
     - member: Property
       member_instance: Property(g, s)
       member_type: atom.property.Property[builtins.int, Union[builtins.int, builtins.str]]
-      member_value_type: builtins.int*
+      member_value_type: builtins.int
     - member: Property
       member_instance: Property(g, s, d)
       member_type: atom.property.Property[builtins.int, Union[builtins.int, builtins.str]]
-      member_value_type: builtins.int*
+      member_value_type: builtins.int
   main: |
     from typing import Union
 
@@ -71,4 +71,4 @@
         pass
 
     reveal_type(A.m)  # N: Revealed type is "atom.property.Property[builtins.int, <nothing>]"
-    reveal_type(A().m)  # N: Revealed type is "builtins.int*"
+    reveal_type(A().m)  # N: Revealed type is "builtins.int"

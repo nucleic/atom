@@ -15,4 +15,4 @@
       m = Delegator(i)
 
     reveal_type(A.m)  # N: Revealed type is "atom.delegator.Delegator[builtins.int, builtins.float]"
-    reveal_type(A().m)  # N: Revealed type is "builtins.int*"
+    reveal_type(A().m)  # N: Revealed type is "builtins.int"
