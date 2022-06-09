@@ -107,7 +107,7 @@ ListSubtype_New( PyTypeObject* subtype, Py_ssize_t size )
             return PyErr_NoMemory();  // LCOV_EXCL_LINE
         memset( op->ob_item, 0, nbytes );
     }
-    Py_SIZE( op ) = size;
+    Py_SET_SIZE( op, size );
     op->allocated = size;
     return ptr.release();
 }
