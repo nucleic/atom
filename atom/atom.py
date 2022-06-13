@@ -372,17 +372,25 @@ class AtomMeta(type):
             else:
                 occupied.add(member.index)
 
+        # Track the first available index
+        i = 0
+
+        def get_first_free_index() -> int:
+            nonlocal i
+            while i in occupied:
+                i += 1
+            occupied.add(i)
+            return i
+
         # Clone the conflicting members and give them a unique index.
         # Do not blow away an overridden item on the current class.
-        resolved_index = len(occupied)
         for member in conflicts:
             clone = member.clone()
-            clone.set_index(resolved_index)
+            clone.set_index(get_first_free_index())
             owned_members.add(clone)
             members[clone.name] = clone
             if clone.name not in dct:
                 setattr(cls, clone.name, clone)
-            resolved_index += 1
 
         # Keep track of the members whose behavior is specific to this class.
         specific_members: Set[Member] = set()
@@ -405,8 +413,11 @@ class AtomMeta(type):
                     value.set_index(supermember.index)
                     value.copy_static_observers(supermember)
                 else:
-                    value.set_index(len(members))
+                    value.set_index(get_first_free_index())
                     members[key] = value
+
+        # Ensure we have a contiguous array for members
+        assert occupied == set(range(len(members)))
 
         # Add the special statically defined behaviors for the members.
         # If the target member is defined on a subclass, it is cloned
@@ -519,6 +530,24 @@ class AtomMeta(type):
         cls.__atom_specific_members__ = frozenset(m.name for m in specific_members)
 
         return cls
+
+
+def add_member(cls: AtomMeta, name: str, member: Member) -> None:
+    """Add or override a member after the class creation."""
+    existing = cls.__atom_members__.get(name)
+    if existing is not None:
+        member.set_index(member.index)
+        member.copy_static_observers(member)
+    else:
+        member.set_index(len(cls.__atom_members__))
+
+    member.set_name(name)
+    # The dict is mutable but we do not want to say it too loud
+    cls.__atom_members__[name] = member  # type: ignore
+    cls.__atom_specific_members__ = frozenset(
+        set(cls.__atom_specific_members__) | {name}
+    )
+    setattr(cls, name, member)
 
 
 def __newobj__(cls, *args):
