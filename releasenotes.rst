@@ -5,7 +5,8 @@ Atom Release Notes
 ------------------
 
 - fix the resolution order of members in the presence of multiple inheritance
-  with a common base class PR #165 #
+  with a common base class PR #165 #168
+
   Due to the above changes, adding a member after the class definition extra_requires
   more work than before. As a consequence a new helper function ``add_member`` has
   been added.
