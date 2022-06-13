@@ -8,7 +8,7 @@
 """Module exporting the public interface to atom.
 
 """
-from .atom import Atom, AtomMeta, MissingMemberWarning, observe, set_default
+from .atom import Atom, AtomMeta, MissingMemberWarning, add_member, observe, set_default
 from .catom import (
     CAtom,
     ChangeType,
@@ -59,6 +59,7 @@ __all__ = [
     "Atom",
     "AtomMeta",
     "MissingMemberWarning",
+    "add_member",
     "observe",
     "set_default",
     "CAtom",
