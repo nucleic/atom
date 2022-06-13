@@ -14,6 +14,7 @@ from typing import (
     Callable,
     ClassVar,
     Dict,
+    FrozenSet,
     Iterator,
     List,
     Mapping,
@@ -259,7 +260,7 @@ class AtomMeta(type):
     """
 
     __atom_members__: Mapping[str, Member]
-    __atom_specific_members__: Mapping[str, Member]
+    __atom_specific_members__: FrozenSet[str]
 
     def __new__(  # noqa: C901
         meta,
@@ -345,7 +346,14 @@ class AtomMeta(type):
             if base is not CAtom and issubclass(base, CAtom):
                 # Except if somebody abuses the system and create a non-Atom subclass
                 # of CAtom, this works
-                members.update(base.__atom_specific_members__)  # type: ignore
+                # Mypy does not narrow the type from the above test hence the ignores
+                members.update(
+                    {
+                        k: v
+                        for k, v in base.__atom_members__.items()  # type: ignore
+                        if k in base.__atom_specific_members__  # type: ignore
+                    }
+                )
 
         # The set of members which live on this class as opposed to a
         # base class. This enables the code which hooks up the various
@@ -508,7 +516,7 @@ class AtomMeta(type):
         # Keep a reference to the specific members dict on the class. Specific
         # members are members which are defined or altered in the class. This
         # is used to ensure proper MRO resolution for members.
-        cls.__atom_specific_members__ = {m.name: m for m in specific_members}
+        cls.__atom_specific_members__ = frozenset(m.name for m in specific_members)
 
         return cls
 
