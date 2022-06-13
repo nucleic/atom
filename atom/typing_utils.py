@@ -24,7 +24,7 @@ from typing import (
 # In Python 3.9+, List is a _SpecialGenericAlias and does not inherit from
 # _GenericAlias which is the type of List[int] for example
 GENERICS: Tuple[Any, ...] = (type(List), type(List[int]))
-UNION = ()
+UNION: Tuple[Any, ...] = ()
 
 if sys.version_info >= (3, 9):
     from types import GenericAlias
