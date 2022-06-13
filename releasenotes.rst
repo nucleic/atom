@@ -1,6 +1,12 @@
 Atom Release Notes
 ==================
 
+0.8.1 - unreleased
+------------------
+
+- fix the resolution order of members in the presence of multiple inheritance
+  with a common base class PR #165
+
 
 0.8.0 - 30/03/2022
 ------------------
