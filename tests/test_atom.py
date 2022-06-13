@@ -25,7 +25,6 @@ from atom.api import (
     MissingMemberWarning,
     Str,
     Value,
-    add_member,
     atomref,
     observe,
     set_default,
@@ -104,26 +103,6 @@ def test_multi_inheritance():
                 continue
             assert m.index != m2.index
 
-    class Mixin(Atom):
-
-        i5 = Int()
-
-        i6 = Int()
-
-        i7 = Int()
-
-    class MultiNext(Multi, Mixin):
-
-        i1 = Int()
-
-    class MultiNext2(MultiNext):
-
-        i1 = Int()
-
-    assert sorted(m.index for m in MultiNext2.__atom_members__.values()) == list(
-        range(7)
-    )
-
 
 def test_member_mro_in_multiple_inheritance():
     """Test that we respect the MRO for members."""
@@ -155,18 +134,6 @@ def test_member_mro_in_multiple_inheritance():
         pass
 
     assert D().a == "b"
-
-
-def test_add_member():
-    class A(Atom):
-        pass
-
-    add_member(A, "a", Int())
-
-    class B(A):
-        pass
-
-    assert "a" in B().members()
 
 
 def test_cloning_members():

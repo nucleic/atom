@@ -1,16 +1,12 @@
 Atom Release Notes
 ==================
 
-0.9.0 - unreleased
+0.8.1 - unreleased
 ------------------
 
 - add support for Python 3.11 PR #166
 - fix the resolution order of members in the presence of multiple inheritance
-  with a common base class PR #165 #168
-
-  Due to the above changes, adding a member after the class definition extra_requires
-  more work than before. As a consequence a new helper function ``add_member`` has
-  been added.
+  with a common base class PR #165
 
 
 0.8.0 - 30/03/2022
