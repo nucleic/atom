@@ -107,7 +107,11 @@ ListSubtype_New( PyTypeObject* subtype, Py_ssize_t size )
             return PyErr_NoMemory();  // LCOV_EXCL_LINE
         memset( op->ob_item, 0, nbytes );
     }
+#if PY_VERSION_HEX >= 0x03090000
+    Py_SET_SIZE( op, size );
+#else
     Py_SIZE( op ) = size;
+#endif
     op->allocated = size;
     return ptr.release();
 }
