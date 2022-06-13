@@ -4,6 +4,7 @@ Atom Release Notes
 0.8.1 - unreleased
 ------------------
 
+- add support for Python 3.11 PR #166
 - fix the resolution order of members in the presence of multiple inheritance
   with a common base class PR #165
 
