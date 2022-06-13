@@ -1,7 +1,7 @@
 Atom Release Notes
 ==================
 
-0.8.1 - unreleased
+0.8.1 - 13/06/2022
 ------------------
 
 - add support for Python 3.11 PR #166
