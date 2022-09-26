@@ -165,7 +165,7 @@ dictionary can contains additional information (note that ``'value'`` and
             s = Signal()
 
         def print_pair(name, value):
-            print(name, value
+            print(name, value)
 
         a = MyAtom()
         a.s.connect(print_pair)
