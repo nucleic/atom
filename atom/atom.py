@@ -14,13 +14,11 @@ from typing import (
     Callable,
     ClassVar,
     Dict,
-    FrozenSet,
     Iterator,
     List,
     Mapping,
     MutableMapping,
     Optional,
-    Set,
     Tuple,
     TypeVar,
     Union,
@@ -260,7 +258,6 @@ class AtomMeta(type):
     """
 
     __atom_members__: Mapping[str, Member]
-    __atom_specific_members__: FrozenSet[str]
 
     def __new__(  # noqa: C901
         meta,
@@ -338,22 +335,13 @@ class AtomMeta(type):
 
         # Walk the mro of the class, excluding itself, in reverse order
         # collecting all of the members into a single dict. The reverse
-        # update preserves the mro of overridden members. We use only known
-        # specific members to also preserve the mro in presence of multiple
-        # inheritance.
+        # update preserves the mro of overridden members.
         members: MutableMapping[str, Member] = {}
         for base in reversed(cls.__mro__[1:-1]):
             if base is not CAtom and issubclass(base, CAtom):
                 # Except if somebody abuses the system and create a non-Atom subclass
                 # of CAtom, this works
-                # Mypy does not narrow the type from the above test hence the ignores
-                members.update(
-                    {
-                        k: v
-                        for k, v in base.__atom_members__.items()  # type: ignore
-                        if k in base.__atom_specific_members__  # type: ignore
-                    }
-                )
+                members.update(base.__atom_members__)  # type: ignore
 
         # The set of members which live on this class as opposed to a
         # base class. This enables the code which hooks up the various
@@ -384,9 +372,6 @@ class AtomMeta(type):
                 setattr(cls, clone.name, clone)
             resolved_index += 1
 
-        # Keep track of the members whose behavior is specific to this class.
-        specific_members: Set[Member] = set()
-
         # Walk the dict a second time to collect the class members. This
         # assigns the name and the index to the member. If a member is
         # overriding an existing member, the memory index of the old
@@ -397,7 +382,6 @@ class AtomMeta(type):
                     value = value.clone()
                     setattr(cls, key, value)
                 owned_members.add(value)
-                specific_members.add(value)
                 value.set_name(key)
                 if key in members:
                     supermember = members[key]
@@ -413,10 +397,6 @@ class AtomMeta(type):
         # so that the behavior of the subclass is not modified.
 
         def clone_if_needed(m):
-            # The member may have been cloned due to slot conflicts but that
-            # does not make it specific. However, each member on which function
-            # is called is guaranteed to be specific.
-            specific_members.add(m)
             if m not in owned_members:
                 m = m.clone()
                 members[m.name] = m
@@ -512,11 +492,6 @@ class AtomMeta(type):
         # Put a reference to the members dict on the class. This is used
         # by CAtom to query for the members and member count as needed.
         cls.__atom_members__ = members
-
-        # Keep a reference to the specific members dict on the class. Specific
-        # members are members which are defined or altered in the class. This
-        # is used to ensure proper MRO resolution for members.
-        cls.__atom_specific_members__ = frozenset(m.name for m in specific_members)
 
         return cls
 
