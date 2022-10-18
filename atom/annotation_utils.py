@@ -82,7 +82,8 @@ def generate_member_from_type_or_generic(
         # such as collections.Iterable
         m_cls = Instance
 
-        opt, parameters = is_optional(types)
+        opt, filtered_types = is_optional(types)
+        parameters = (filtered_types,)
         m_kwargs["optional"] = opt
         if opt and default not in (_NO_DEFAULT, None):
             raise ValueError(
