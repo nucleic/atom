@@ -11,6 +11,11 @@ Atom Release Notes
   more work than before. As a consequence a new helper function ``add_member`` has
   been added.
 
+0.8.2 - 18/10/2022
+------------------
+
+- fix handling of Union in annotation based class definition PR #177
+
 0.8.1 - 13/06/2022
 ------------------
 
