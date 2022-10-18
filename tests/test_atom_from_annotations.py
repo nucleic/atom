@@ -18,6 +18,7 @@ from typing import (
     List as TList,
     Optional,
     Set as TSet,
+    Union,
 )
 
 import pytest
@@ -152,6 +153,21 @@ def test_annotation_use(annotation, member):
         assert A.a.validate_mode[1] == (annotation.__origin__,)
     else:
         assert A.a.default_value_mode == member().default_value_mode
+
+
+@pytest.mark.parametrize(
+    "annotation, validate_mode",
+    [
+        (Atom, (Atom,)),
+        (Union[int, str], (int, str)),
+    ],
+)
+def test_union_in_annotation(annotation, validate_mode):
+    class A(Atom, use_annotations=True):
+        a: annotation
+
+    assert isinstance(A.a, Instance)
+    assert A.a.validate_mode[1] == validate_mode
 
 
 @pytest.mark.parametrize(
