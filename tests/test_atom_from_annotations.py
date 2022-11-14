@@ -18,6 +18,7 @@ from typing import (
     List as TList,
     Optional,
     Set as TSet,
+    Tuple as TTuple,
     Union,
 )
 
@@ -36,6 +37,7 @@ from atom.api import (
     Member,
     Set,
     Str,
+    Tuple,
     Value,
 )
 from atom.atom import set_default
@@ -181,6 +183,11 @@ def test_union_in_annotation(annotation, validate_mode):
         (TSet[int], Set(Int()), 1),
         (TDict[int, int], Dict(), 0),
         (TDict[int, int], Dict(Int(), Int()), 1),
+        (TTuple[int], Tuple(), 0),
+        (TTuple[int], Tuple(Int()), 1),
+        (TTuple[int, ...], Tuple(Int()), 1),
+        (TTuple[int, float], Tuple(), 1),
+        (TTuple[tuple, int], Tuple(), 1),
     ],
 )
 def test_annotated_containers_no_default(annotation, member, depth):
