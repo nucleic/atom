@@ -124,7 +124,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: None = None,
         *,
-        value: Member[VT, Any] = None,
+        value: Member[VT, Any],
         default: Optional[dict] = None,
     ) -> Dict[Any, VT]: ...
     # Typed key and value

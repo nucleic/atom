@@ -195,7 +195,7 @@ class Float(Member[float, T]):
         cls,
         default: float = 0.0,
         *,
-        factory: TCallable[[], Union[int, float]] = None,
+        factory: Optional[TCallable[[], Union[int, float]]] = None,
         strict: Literal[False] = False,
     ) -> Float[float]: ...
     @overload
@@ -203,7 +203,7 @@ class Float(Member[float, T]):
         cls,
         default: float = 0.0,
         *,
-        factory: TCallable[[], float] = None,
+        factory: Optional[TCallable[[], float]] = None,
         strict: Literal[True],
     ) -> Float[float]: ...  # FIXME we cannot encode that an int will be rejected
 
