@@ -22,12 +22,12 @@
     member_value_type: builtins.tuple[builtins.int, ...]
   - member: Tuple
     member_instance: Tuple((int, float))
-    member_type: atom.tuple.Tuple[builtins.float]
-    member_value_type: builtins.tuple[builtins.float, ...]
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.float]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.float], ...]
   - member: Tuple
     member_instance: Tuple((int, float, str))
-    member_type: atom.tuple.Tuple[Union[builtins.float, builtins.str]]
-    member_value_type: builtins.tuple[Union[builtins.float, builtins.str], ...]
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.float, builtins.str], ...]
   - member: Tuple, Int
     member_instance: Tuple(Int())
     member_type: atom.tuple.Tuple[builtins.int]

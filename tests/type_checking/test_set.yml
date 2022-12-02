@@ -22,12 +22,12 @@
     member_value_type: builtins.set[builtins.int]
   - member: Set
     member_instance: Set((int, float))
-    member_type: atom.set.Set[builtins.float]
-    member_value_type: builtins.set[builtins.float]
+    member_type: atom.set.Set[Union[builtins.int, builtins.float]]
+    member_value_type: builtins.set[Union[builtins.int, builtins.float]]
   - member: Set
     member_instance: Set((int, float, str))
-    member_type: atom.set.Set[Union[builtins.float, builtins.str]]
-    member_value_type: builtins.set[Union[builtins.float, builtins.str]]
+    member_type: atom.set.Set[Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.set[Union[builtins.int, builtins.float, builtins.str]]
   - member: Set, Int
     member_instance: Set(Int())
     member_type: atom.set.Set[builtins.int]

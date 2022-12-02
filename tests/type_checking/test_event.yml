@@ -18,10 +18,10 @@
     member_type: atom.event.Event[builtins.int]
   - member: Event
     member_instance: Event((int, float))
-    member_type: atom.event.Event[builtins.float]
+    member_type: atom.event.Event[Union[builtins.int, builtins.float]]
   - member: Event
     member_instance: Event((int, float, str))
-    member_type: atom.event.Event[Union[builtins.float, builtins.str]]
+    member_type: atom.event.Event[Union[builtins.int, builtins.float, builtins.str]]
   - member: Event, Int
     member_instance: Event(Int())
     member_type: atom.event.Event[builtins.int]
