@@ -22,12 +22,12 @@
     member_value_type: builtins.list[builtins.int]
   - member: List
     member_instance: List((int, float))
-    member_type: atom.list.List[builtins.float]
-    member_value_type: builtins.list[builtins.float]
+    member_type: atom.list.List[Union[builtins.int, builtins.float]]
+    member_value_type: builtins.list[Union[builtins.int, builtins.float]]
   - member: List
     member_instance: List((int, float, str))
-    member_type: atom.list.List[Union[builtins.float, builtins.str]]
-    member_value_type: builtins.list[Union[builtins.float, builtins.str]]
+    member_type: atom.list.List[Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.list[Union[builtins.int, builtins.float, builtins.str]]
   - member: List, Int
     member_instance: List(Int())
     member_type: atom.list.List[builtins.int]
@@ -120,12 +120,12 @@
     member_value_type: builtins.list[builtins.int]
   - member: ContainerList
     member_instance: ContainerList((int, float))
-    member_type: atom.containerlist.ContainerList[builtins.float]
-    member_value_type: builtins.list[builtins.float]
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.float]]
+    member_value_type: builtins.list[Union[builtins.int, builtins.float]]
   - member: ContainerList
     member_instance: ContainerList((int, float, str))
-    member_type: atom.containerlist.ContainerList[Union[builtins.float, builtins.str]]
-    member_value_type: builtins.list[Union[builtins.float, builtins.str]]
+    member_type: atom.containerlist.ContainerList[Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.list[Union[builtins.int, builtins.float, builtins.str]]
   - member: ContainerList, Int
     member_instance: ContainerList(Int())
     member_type: atom.containerlist.ContainerList[builtins.int]

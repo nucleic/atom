@@ -61,16 +61,16 @@
       member_value_type: Union[builtins.int, builtins.str]
     - member: ReadOnly
       member_instance: ReadOnly((int, str, float))
-      member_type: atom.scalars.ReadOnly[Union[builtins.str, builtins.float]]
-      member_value_type: Union[builtins.str, builtins.float]
+      member_type: atom.scalars.ReadOnly[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
     - member: ReadOnly
       member_instance: ReadOnly((int, str, float), default=0)
-      member_type: atom.scalars.ReadOnly[Union[builtins.str, builtins.float]]
-      member_value_type: Union[builtins.str, builtins.float]
+      member_type: atom.scalars.ReadOnly[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
     - member: ReadOnly
       member_instance: ReadOnly((int, str, float), factory=g)
-      member_type: atom.scalars.ReadOnly[Union[builtins.str, builtins.float]]
-      member_value_type: Union[builtins.str, builtins.float]
+      member_type: atom.scalars.ReadOnly[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
     - member: Constant
       member_instance: Constant()
       member_type: atom.scalars.Constant[Any]
@@ -112,7 +112,7 @@
       member_type: atom.scalars.Constant[Union[builtins.int, builtins.str]]
       member_value_type: Union[builtins.int, builtins.str]
     - member: Constant
-      member_instance: Constant(0, kind=(int,str))
+      member_instance: Constant(0, kind=(int, str))
       member_type: atom.scalars.Constant[Union[builtins.int, builtins.str]]
       member_value_type: Union[builtins.int, builtins.str]
     - member: Constant
@@ -121,16 +121,16 @@
       member_value_type: Union[builtins.int, builtins.str]
     - member: Constant
       member_instance: Constant(kind=(int, str, float))
-      member_type: atom.scalars.Constant[Union[builtins.str, builtins.float]]
-      member_value_type: Union[builtins.str, builtins.float]
+      member_type: atom.scalars.Constant[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
     - member: Constant
       member_instance: Constant(0, kind=(int, str, float))
-      member_type: atom.scalars.Constant[Union[builtins.str, builtins.float]]
-      member_value_type: Union[builtins.str, builtins.float]
+      member_type: atom.scalars.Constant[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
     - member: Constant
       member_instance: Constant(factory=g, kind=(int, str, float))
-      member_type: atom.scalars.Constant[Union[builtins.str, builtins.float]]
-      member_value_type: Union[builtins.str, builtins.float]
+      member_type: atom.scalars.Constant[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
     - member: Bool
       member_instance: Bool()
       member_type: atom.scalars.Bool[builtins.bool]
@@ -141,16 +141,16 @@
       member_value_type: builtins.int
     - member: Int
       member_instance: Int(strict=False)
-      member_type: atom.scalars.Int[builtins.float]
+      member_type: atom.scalars.Int[Union[builtins.int, builtins.float]]
       member_value_type: builtins.int
     - member: Int
       member_instance: Int(factory=f, strict=False)
-      member_type: atom.scalars.Int[builtins.float]
+      member_type: atom.scalars.Int[Union[builtins.int, builtins.float]]
       member_value_type: builtins.int
     # XXX add strict cases
     - member: FloatRange
       member_instance: FloatRange()
-      member_type: atom.scalars.FloatRange[builtins.float]
+      member_type: atom.scalars.FloatRange[Union[builtins.int, builtins.float]]
       member_value_type: builtins.float
     - member: Range
       member_instance: Range()
@@ -158,6 +158,10 @@
       member_value_type: builtins.int
     - member: Float
       member_instance: Float()
+      member_type: atom.scalars.Float[Union[builtins.int, builtins.float]]
+      member_value_type: builtins.float
+    - member: Float
+      member_instance: Float(strict=True)
       member_type: atom.scalars.Float[builtins.float]
       member_value_type: builtins.float
     - member: Bytes
@@ -183,7 +187,7 @@
       pass
 
     def g() -> int:
-      pass
+      return 1
 
     class A(Atom):
       m = {{ member_instance }}

@@ -68,7 +68,7 @@
 
       @cached_property
       def m(self) -> int:
-        pass
+        return 1
 
     reveal_type(A.m)  # N: Revealed type is "atom.property.Property[builtins.int, <nothing>]"
     reveal_type(A().m)  # N: Revealed type is "builtins.int"

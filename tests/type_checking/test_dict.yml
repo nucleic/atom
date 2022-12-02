@@ -29,12 +29,12 @@
     member_value_type: builtins.dict[builtins.int, Any]
   - member: Dict
     member_instance: Dict((int, float))
-    member_type: atom.dict.Dict[builtins.float, Any]
-    member_value_type: builtins.dict[builtins.float, Any]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.float], Any]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.float], Any]
   - member: Dict
     member_instance: Dict((int, float, str))
-    member_type: atom.dict.Dict[Union[builtins.float, builtins.str], Any]
-    member_value_type: builtins.dict[Union[builtins.float, builtins.str], Any]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.float, builtins.str], Any]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.float, builtins.str], Any]
   - member: Dict, Int
     member_instance: Dict(Int())
     member_type: atom.dict.Dict[builtins.int, Any]
@@ -50,12 +50,12 @@
     member_value_type: builtins.dict[Any, builtins.int]
   - member: Dict
     member_instance: Dict(None, (int, float))
-    member_type: atom.dict.Dict[Any, builtins.float]
-    member_value_type: builtins.dict[Any, builtins.float]
+    member_type: atom.dict.Dict[Any, Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[Any, Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict(None, (int, float, str))
-    member_type: atom.dict.Dict[Any, Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[Any, Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[Any, Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[Any, Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict(None, Int())
     member_type: atom.dict.Dict[Any, builtins.int]
@@ -71,12 +71,12 @@
     member_value_type: builtins.dict[Any, builtins.int]
   - member: Dict
     member_instance: Dict(value=(int, float))
-    member_type: atom.dict.Dict[Any, builtins.float]
-    member_value_type: builtins.dict[Any, builtins.float]
+    member_type: atom.dict.Dict[Any, Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[Any, Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict(value=(int, float, str))
-    member_type: atom.dict.Dict[Any, Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[Any, Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[Any, Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[Any, Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict(value=Int())
     member_type: atom.dict.Dict[Any, builtins.int]
@@ -93,12 +93,12 @@
     member_value_type: builtins.dict[builtins.int, builtins.int]
   - member: Dict
     member_instance: Dict(int, (int, float))
-    member_type: atom.dict.Dict[builtins.int, builtins.float]
-    member_value_type: builtins.dict[builtins.int, builtins.float]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict(int, (int, float, str))
-    member_type: atom.dict.Dict[builtins.int, Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[builtins.int, Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict(int, Int())
     member_type: atom.dict.Dict[builtins.int, builtins.int]
@@ -114,12 +114,12 @@
     member_value_type: builtins.dict[builtins.int, builtins.int]
   - member: Dict
     member_instance: Dict((int,), (int, float))
-    member_type: atom.dict.Dict[builtins.int, builtins.float]
-    member_value_type: builtins.dict[builtins.int, builtins.float]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict((int,), (int, float, str))
-    member_type: atom.dict.Dict[builtins.int, Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[builtins.int, Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict((int,), Int())
     member_type: atom.dict.Dict[builtins.int, builtins.int]
@@ -135,12 +135,12 @@
     member_value_type: builtins.dict[Union[builtins.int, builtins.str], builtins.int]
   - member: Dict
     member_instance: Dict((int, str), (int, float))
-    member_type: atom.dict.Dict[Union[builtins.int, builtins.str], builtins.float]
-    member_value_type: builtins.dict[Union[builtins.int, builtins.str], builtins.float]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.str], Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.str], Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict((int, str), (int, float, str))
-    member_type: atom.dict.Dict[Union[builtins.int, builtins.str], Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[Union[builtins.int, builtins.str], Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.str], Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.str], Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict((int, str), Int())
     member_type: atom.dict.Dict[Union[builtins.int, builtins.str], builtins.int]
@@ -156,12 +156,12 @@
     member_value_type: builtins.dict[Union[builtins.int, builtins.str, builtins.bytes], builtins.int]
   - member: Dict
     member_instance: Dict((int, str, bytes), (int, float))
-    member_type: atom.dict.Dict[Union[builtins.int, builtins.str, builtins.bytes], builtins.float]
-    member_value_type: builtins.dict[Union[builtins.int, builtins.str, builtins.bytes], builtins.float]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict((int, str, bytes), (int, float, str))
-    member_type: atom.dict.Dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict((int, str, bytes), Int())
     member_type: atom.dict.Dict[Union[builtins.int, builtins.str, builtins.bytes], builtins.int]
@@ -177,12 +177,12 @@
     member_value_type: builtins.dict[builtins.int, builtins.int]
   - member: Dict, Int
     member_instance: Dict(Int(), (int, float))
-    member_type: atom.dict.Dict[builtins.int, builtins.float]
-    member_value_type: builtins.dict[builtins.int, builtins.float]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float]]
   - member: Dict, Int
     member_instance: Dict(Int(), (int, float, str))
-    member_type: atom.dict.Dict[builtins.int, Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[builtins.int, Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict(Int(), Int())
     member_type: atom.dict.Dict[builtins.int, builtins.int]
@@ -210,12 +210,12 @@
     member_value_type: builtins.dict[builtins.int, Any]
   - member: Dict
     member_instance: Dict((int, float)
-    member_type: atom.dict.Dict[builtins.float, Any]
-    member_value_type: builtins.dict[builtins.float, Any]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.float], Any]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.float], Any]
   - member: Dict
     member_instance: Dict((int, float, str)
-    member_type: atom.dict.Dict[Union[builtins.float, builtins.str], Any]
-    member_value_type: builtins.dict[Union[builtins.float, builtins.str], Any]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.float, builtins.str], Any]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.float, builtins.str], Any]
   - member: Dict, Int
     member_instance: Dict(Int()
     member_type: atom.dict.Dict[builtins.int, Any]
@@ -231,12 +231,12 @@
     member_value_type: builtins.dict[Any, builtins.int]
   - member: Dict
     member_instance: Dict(None, (int, float)
-    member_type: atom.dict.Dict[Any, builtins.float]
-    member_value_type: builtins.dict[Any, builtins.float]
+    member_type: atom.dict.Dict[Any, Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[Any, Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict(None, (int, float, str)
-    member_type: atom.dict.Dict[Any, Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[Any, Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[Any, Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[Any, Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict(None, Int()
     member_type: atom.dict.Dict[Any, builtins.int]
@@ -252,12 +252,12 @@
     member_value_type: builtins.dict[Any, builtins.int]
   - member: Dict
     member_instance: Dict(value=(int, float)
-    member_type: atom.dict.Dict[Any, builtins.float]
-    member_value_type: builtins.dict[Any, builtins.float]
+    member_type: atom.dict.Dict[Any, Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[Any, Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict(value=(int, float, str)
-    member_type: atom.dict.Dict[Any, Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[Any, Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[Any, Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[Any, Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict(value=Int()
     member_type: atom.dict.Dict[Any, builtins.int]
@@ -274,12 +274,12 @@
     member_value_type: builtins.dict[builtins.int, builtins.int]
   - member: Dict
     member_instance: Dict(int, (int, float)
-    member_type: atom.dict.Dict[builtins.int, builtins.float]
-    member_value_type: builtins.dict[builtins.int, builtins.float]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict(int, (int, float, str)
-    member_type: atom.dict.Dict[builtins.int, Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[builtins.int, Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict(int, Int()
     member_type: atom.dict.Dict[builtins.int, builtins.int]
@@ -295,12 +295,12 @@
     member_value_type: builtins.dict[builtins.int, builtins.int]
   - member: Dict
     member_instance: Dict((int,), (int, float)
-    member_type: atom.dict.Dict[builtins.int, builtins.float]
-    member_value_type: builtins.dict[builtins.int, builtins.float]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict((int,), (int, float, str)
-    member_type: atom.dict.Dict[builtins.int, Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[builtins.int, Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict((int,), Int()
     member_type: atom.dict.Dict[builtins.int, builtins.int]
@@ -316,12 +316,12 @@
     member_value_type: builtins.dict[Union[builtins.int, builtins.str], builtins.int]
   - member: Dict
     member_instance: Dict((int, str), (int, float)
-    member_type: atom.dict.Dict[Union[builtins.int, builtins.str], builtins.float]
-    member_value_type: builtins.dict[Union[builtins.int, builtins.str], builtins.float]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.str], Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.str], Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict((int, str), (int, float, str)
-    member_type: atom.dict.Dict[Union[builtins.int, builtins.str], Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[Union[builtins.int, builtins.str], Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.str], Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.str], Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict((int, str), Int()
     member_type: atom.dict.Dict[Union[builtins.int, builtins.str], builtins.int]
@@ -337,12 +337,12 @@
     member_value_type: builtins.dict[Union[builtins.int, builtins.str, builtins.bytes], builtins.int]
   - member: Dict
     member_instance: Dict((int, str, bytes), (int, float)
-    member_type: atom.dict.Dict[Union[builtins.int, builtins.str, builtins.bytes], builtins.float]
-    member_value_type: builtins.dict[Union[builtins.int, builtins.str, builtins.bytes], builtins.float]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.int, builtins.float]]
   - member: Dict
     member_instance: Dict((int, str, bytes), (int, float, str)
-    member_type: atom.dict.Dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[Union[builtins.int, builtins.str, builtins.bytes], Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict((int, str, bytes), Int()
     member_type: atom.dict.Dict[Union[builtins.int, builtins.str, builtins.bytes], builtins.int]
@@ -358,12 +358,12 @@
     member_value_type: builtins.dict[builtins.int, builtins.int]
   - member: Dict, Int
     member_instance: Dict(Int(), (int, float)
-    member_type: atom.dict.Dict[builtins.int, builtins.float]
-    member_value_type: builtins.dict[builtins.int, builtins.float]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float]]
   - member: Dict, Int
     member_instance: Dict(Int(), (int, float, str)
-    member_type: atom.dict.Dict[builtins.int, Union[builtins.float, builtins.str]]
-    member_value_type: builtins.dict[builtins.int, Union[builtins.float, builtins.str]]
+    member_type: atom.dict.Dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.dict[builtins.int, Union[builtins.int, builtins.float, builtins.str]]
   - member: Dict, Int
     member_instance: Dict(Int(), Int()
     member_type: atom.dict.Dict[builtins.int, builtins.int]

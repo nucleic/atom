@@ -144,12 +144,12 @@
       member_value_type: Union[builtins.int, None]
     - member: Instance
       member_instance: Instance((int, float))
-      member_type: atom.instance.Instance[Union[builtins.float, None]]
-      member_value_type: Union[builtins.float, None]
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float, None]]
+      member_value_type: Union[builtins.int, builtins.float, None]
     - member: Instance
       member_instance: Instance((int, float, str))
-      member_type: atom.instance.Instance[Union[builtins.float, builtins.str, None]]
-      member_value_type: Union[builtins.float, builtins.str, None]
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float, builtins.str, None]]
+      member_value_type: Union[builtins.int, builtins.float, builtins.str, None]
     - member: Instance
       member_instance: Instance(List[int])
       member_type: atom.instance.Instance[Union[builtins.list[builtins.int], None]]
@@ -164,12 +164,12 @@
       member_value_type: builtins.int
     - member: Instance
       member_instance: Instance((int, float), ())
-      member_type: atom.instance.Instance[builtins.float]
-      member_value_type: builtins.float
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.float]
     - member: Instance
       member_instance: Instance((int, float, str), ())
-      member_type: atom.instance.Instance[Union[builtins.float, builtins.str]]
-      member_value_type: Union[builtins.float, builtins.str]
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float, builtins.str]]
+      member_value_type: Union[builtins.int, builtins.float, builtins.str]
     - member: Instance
       member_instance: Instance(io.StringIO, kwargs=dict(initial_value=str(1)))
       member_type: atom.instance.Instance[io.StringIO]
@@ -278,12 +278,12 @@
       member_value_type: Union[builtins.int, None]
     - member: Instance
       member_instance: Instance((int, float), optional=True)
-      member_type: atom.instance.Instance[Union[builtins.float, None]]
-      member_value_type: Union[builtins.float, None]
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float, None]]
+      member_value_type: Union[builtins.int, builtins.float, None]
     - member: Instance
       member_instance: Instance((int, float, str), optional=True)
-      member_type: atom.instance.Instance[Union[builtins.float, builtins.str, None]]
-      member_value_type: Union[builtins.float, builtins.str, None]
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float, builtins.str, None]]
+      member_value_type: Union[builtins.int, builtins.float, builtins.str, None]
     - member: Instance
       member_instance: Instance(int, (), optional=True)
       member_type: atom.instance.Instance[Union[builtins.int, None]]
@@ -294,12 +294,12 @@
       member_value_type: Union[builtins.int, None]
     - member: Instance
       member_instance: Instance((int, float), (), optional=True)
-      member_type: atom.instance.Instance[Union[builtins.float, None]]
-      member_value_type: Union[builtins.float, None]
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float, None]]
+      member_value_type: Union[builtins.int, builtins.float, None]
     - member: Instance
       member_instance: Instance((int, float, str), (), optional=True)
-      member_type: atom.instance.Instance[Union[builtins.float, builtins.str, None]]
-      member_value_type: Union[builtins.float, builtins.str, None]
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float, builtins.str, None]]
+      member_value_type: Union[builtins.int, builtins.float, builtins.str, None]
     - member: Instance
       member_instance: Instance(io.StringIO, kwargs=dict(initial_value=str(1)), optional=True)
       member_type: atom.instance.Instance[Union[io.StringIO, None]]
@@ -408,12 +408,12 @@
       member_value_type: builtins.int
     - member: Instance
       member_instance: Instance((int, float), optional=False)
-      member_type: atom.instance.Instance[builtins.float]
-      member_value_type: builtins.float
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.float]
     - member: Instance
       member_instance: Instance((int, float, str), optional=False)
-      member_type: atom.instance.Instance[Union[builtins.float, builtins.str]]
-      member_value_type: Union[builtins.float, builtins.str]
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float, builtins.str]]
+      member_value_type: Union[builtins.int, builtins.float, builtins.str]
     - member: Instance
       member_instance: Instance(int, (), optional=False)
       member_type: atom.instance.Instance[builtins.int]
@@ -424,12 +424,12 @@
       member_value_type: builtins.int
     - member: Instance
       member_instance: Instance((int, float), (), optional=False)
-      member_type: atom.instance.Instance[builtins.float]
-      member_value_type: builtins.float
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.float]
     - member: Instance
       member_instance: Instance((int, float, str), (), optional=False)
-      member_type: atom.instance.Instance[Union[builtins.float, builtins.str]]
-      member_value_type: Union[builtins.float, builtins.str]
+      member_type: atom.instance.Instance[Union[builtins.int, builtins.float, builtins.str]]
+      member_value_type: Union[builtins.int, builtins.float, builtins.str]
     - member: Instance
       member_instance: Instance(io.StringIO, None, dict(initial_value=str(1)), optional=False)
       member_type: atom.instance.Instance[io.StringIO]

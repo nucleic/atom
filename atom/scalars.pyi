@@ -197,7 +197,7 @@ class Float(Member[float, T]):
         *,
         factory: Optional[TCallable[[], Union[int, float]]] = None,
         strict: Literal[False] = False,
-    ) -> Float[float]: ...
+    ) -> Float[Union[int, float]]: ...
     @overload
     def __new__(
         cls,
