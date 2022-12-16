@@ -130,7 +130,7 @@ jobs:
       - name: Generate C++ coverage reports
         if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
         run: |
-          bash -c "find . -type f -name 'atom/src/*.gcno' -exec gcov -pb --all-blocks --filter atom/ {} +" || true
+          bash -c "find . -type f -name '*.gcno' -exec gcov -pb --all-blocks {} +" || true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
