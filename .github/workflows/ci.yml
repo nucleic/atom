@@ -22,13 +22,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9']
+        python-version: ['3.10']
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'lint_requirements.txt'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -37,7 +39,7 @@ jobs:
           pip install -e .
       - name: Install dependencies
         run: |
-          pip install -r lint_requirements.txt
+          pip install -U -r lint_requirements.txt
       - name: Isort
         run: |
           isort atom examples tests -c
@@ -95,7 +97,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11.0-beta - 3.11.0']
+        python-version: ['3.8', '3.9', '3.10', '3.11']
     steps:
       - uses: actions/checkout@v3
       - name: Get history and tags for SCM versioning to work
@@ -106,15 +108,19 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'test_requirements.txt'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install setuptools-scm[toml]
           pip install git+https://github.com/nucleic/cppy@main
       - name: Install project
         env:
           CPPFLAGS: --coverage
+        # Build extensions manually to allow getting C coverage data
         run: |
-          pip install -e .
+          python setup.py develop
       - name: Test with pytest
         # XXX Disabled warnings check ( -W error) to be able to test on 3.11
         # (pyparsing deprecation)
@@ -127,17 +133,9 @@ jobs:
           bash -c "find . -type f -name '*.gcno' -exec gcov -pb --all-blocks {} +" || true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
-        if: (github.event_name != 'schedule' && matrix.os == 'windows-latest')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: true
+          verbose: true
