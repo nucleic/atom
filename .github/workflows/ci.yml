@@ -113,8 +113,10 @@ jobs:
       - name: Install project
         env:
           CPPFLAGS: --coverage
+        # Build extensions manually to allow getting C coverage data
         run: |
-          pip install -e .
+          python setup.py build_ext
+          pip install .
       - name: Test with pytest
         # XXX Disabled warnings check ( -W error) to be able to test on 3.11
         # (pyparsing deprecation)
