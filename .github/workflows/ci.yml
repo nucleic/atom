@@ -123,6 +123,10 @@ jobs:
         run: |
           pip install -r test_requirements.txt
           python -X dev -m pytest tests --ignore=tests/type_checking --cov --cov-report xml -v
+      - name: Generate C++ coverage reports
+        if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
+        run: |
+          bash -c "find . -type f -name '*.gcno' -exec gcov -pb --all-blocks {} +" || true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -131,4 +135,3 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: true
           verbose: true
-          gcov: true
