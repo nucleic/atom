@@ -5,7 +5,6 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-import copyreg
 from datetime import datetime
 
 import pytest
@@ -24,10 +23,8 @@ class AtomBase(Atom):
     def __getstate_py__(self):
         state = {}
         state.update(getattr(self, "__dict__", {}))
-        slots = copyreg._slotnames(type(self))
-        if slots:
-            for name in slots:
-                state[name] = getattr(self, name)
+        for name in self.__class__.__slotnames__:
+            state[name] = getattr(self, name)
         for key in self.members():
             state[key] = getattr(self, key)
         return state
@@ -62,7 +59,50 @@ def test_getstate():
         y = Int(2)
 
     t = Test()
-    t.__getstate__() == {"x": 3, "y": 2}
+    assert t.__getstate__() == {"x": 3, "y": 2}
+
+
+def test_getstate_frozen():
+    class Test(Atom):
+        x = Int(3)
+        y = Int(2)
+
+    t = Test()
+    t.freeze()
+    assert t.__getstate__() == {"x": 3, "y": 2, "__atom_flags__": 1 << 19}
+
+
+def test_setstate_frozen():
+    class Test(Atom):
+        x = Int(3)
+        y = Int(2)
+
+    t = Test()
+    t.__setstate__({"x": 3, "y": 2, "__atom_flags__": 1 << 19})
+    with pytest.raises(AttributeError):
+        t.x = 5
+
+    # Setting again does not work
+    t.__setstate__({"__atom_flags__": 0})
+    with pytest.raises(AttributeError):
+        t.x = 5
+
+
+def test_setstate_non_str_key():
+    class Test(Atom):
+        x = Int(3)
+        y = Int(2)
+
+    t = Test()
+    with pytest.raises(TypeError):
+        t.__setstate__({0: "yes"})
+
+    class Foo:
+        def __eq__(self, other):
+            raise ValueError("Do not compare me")
+
+    with pytest.raises(TypeError):
+        t.__setstate__({Foo(): "yes"})
 
 
 @pytest.mark.skipif(not BENCHMARK_INSTALLED, reason="benchmark is not installed")
