@@ -409,13 +409,23 @@ CAtom_getstate( CAtom* self )
         }
     }
 
-    cppy::ptr membersptr = selfptr.getattr("__atom_members__");
+    cppy::ptr membersptr = selfptr.getattr(atom_members);
     if ( !membersptr || !PyDict_CheckExact( membersptr.get() ) )
         return cppy::system_error( "atom members" );
 
     PyObject *name, *member;
     Py_ssize_t pos = 0;
     while ( PyDict_Next(membersptr.get(), &pos, &name, &member) ) {
+        switch (member_cast(member)->get_setattr_mode()) {
+            case SetAttr::Mode::Constant:
+            case SetAttr::Mode::ReadOnly:
+            case SetAttr::Mode::Event:
+            case SetAttr::Mode::Signal:
+            case SetAttr::Mode::Property:
+                continue;
+            default:
+                break;
+        }
         cppy::ptr value = selfptr.getattr(name);
         if (!value || PyDict_SetItem(stateptr.get(), name, value.get()) )
             return  0;
@@ -540,7 +550,7 @@ bool CAtom::Ready()
         return false;
     }
 
-    atom_flags = PyUnicode_FromString( "__atom_flags__" );
+    atom_flags = PyUnicode_FromString( "-f" );
     if( !atom_flags )
         return false;
 

@@ -9,7 +9,7 @@ from datetime import datetime
 
 import pytest
 
-from atom.api import Atom, Bool, Float, Int, List, Range, Str, Typed
+from atom.api import Atom, Bool, Constant, Float, Int, List, Range, Str, Typed
 
 try:
     import pytest_benchmark  # noqa: F401
@@ -62,6 +62,16 @@ def test_getstate():
     assert t.__getstate__() == {"x": 3, "y": 2}
 
 
+def test_getstate_constant():
+    class Test(Atom):
+        x = Int(3)
+        y = Int(2)
+        z = Constant(4)
+
+    t = Test()
+    assert "z" not in t.__getstate__()
+
+
 def test_getstate_frozen():
     class Test(Atom):
         x = Int(3)
@@ -69,7 +79,7 @@ def test_getstate_frozen():
 
     t = Test()
     t.freeze()
-    assert t.__getstate__() == {"x": 3, "y": 2, "__atom_flags__": 1 << 19}
+    assert t.__getstate__() == {"x": 3, "y": 2, "-f": 1 << 19}
 
 
 def test_setstate_frozen():
@@ -78,12 +88,12 @@ def test_setstate_frozen():
         y = Int(2)
 
     t = Test()
-    t.__setstate__({"x": 3, "y": 2, "__atom_flags__": 1 << 19})
+    t.__setstate__({"x": 3, "y": 2, "-f": 1 << 19})
     with pytest.raises(AttributeError):
         t.x = 5
 
     # Setting again does not work
-    t.__setstate__({"__atom_flags__": 0})
+    t.__setstate__({"-f": 0})
     with pytest.raises(AttributeError):
         t.x = 5
 
