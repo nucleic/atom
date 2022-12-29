@@ -426,7 +426,7 @@ CAtom_getstate( CAtom* self )
             default:
                 break;
         }
-        cppy::ptr value = selfptr.getattr(name);
+        cppy::ptr value = member_cast(member)->getattr(self);
         if (!value || PyDict_SetItem(stateptr.get(), name, value.get()) )
             return  0;
     }
