@@ -418,10 +418,8 @@ CAtom_getstate( CAtom* self )
     while ( PyDict_Next(membersptr.get(), &pos, &name, &member) ) {
         switch (member_cast(member)->get_setattr_mode()) {
             case SetAttr::Mode::Constant:
-            case SetAttr::Mode::ReadOnly:
             case SetAttr::Mode::Event:
             case SetAttr::Mode::Signal:
-            case SetAttr::Mode::Property:
                 continue;
             default:
                 break;
