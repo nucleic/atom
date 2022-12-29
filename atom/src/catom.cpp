@@ -36,7 +36,6 @@ namespace
 
 static PyObject* atom_members;
 static PyObject* atom_flags;
-static PyObject* frozen_bit;
 
 
 PyObject*
@@ -430,7 +429,7 @@ CAtom_getstate( CAtom* self )
     }
 
     // Frozen state
-    if ( self->is_frozen() && PyDict_SetItem(stateptr.get(), atom_flags, frozen_bit) )
+    if ( self->is_frozen() && PyDict_SetItem(stateptr.get(), atom_flags, Py_None) )
         return 0;
 
     return stateptr.release();
@@ -446,18 +445,24 @@ CAtom_setstate( CAtom* self, PyObject* args )
     if ( !itemsptr )
         return 0;
     cppy::ptr selfptr(pyobject_cast(self), true);
-    bool freeze = false;
+
+    // If the -f key is present freeze the object
+    bool frozen = PyMapping_HasKey(state, atom_flags);
+    if ( frozen )
+    {
+        if ( PyMapping_DelItem(state, atom_flags) == -1 )
+            return 0;
+    }
+
     for ( Py_ssize_t i = 0; i < PyMapping_Size(state); i++ ) {
         PyObject* item = PyList_GET_ITEM(itemsptr.get(), i);
         PyObject* key = PyTuple_GET_ITEM(item , 0);
         PyObject* value = PyTuple_GET_ITEM(item , 1);
-        if ( PyObject_RichCompareBool(key, atom_flags, Py_EQ) == 1 && PyLong_Check(value) )
-            freeze = ( PyLong_AsLong(value) & FROZEN_BIT ) != 0;
-        else if ( !selfptr.setattr(key, value) )
+        if ( !selfptr.setattr(key, value) )
             return 0;
     }
 
-    if ( freeze )
+    if ( frozen )
         self->set_frozen(true);
 
     Py_RETURN_NONE;
@@ -548,14 +553,9 @@ bool CAtom::Ready()
         return false;
     }
 
-    atom_flags = PyUnicode_FromString( "-f" );
+    atom_flags = PyUnicode_FromString( "--frozen" );
     if( !atom_flags )
         return false;
-
-    frozen_bit = PyLong_FromLong( FROZEN_BIT );
-    if( !frozen_bit )
-        return false;
-
 
     return true;
 }

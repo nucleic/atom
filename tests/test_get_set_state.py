@@ -79,7 +79,7 @@ def test_getstate_frozen():
 
     t = Test()
     t.freeze()
-    assert t.__getstate__() == {"x": 3, "y": 2, "-f": 1 << 19}
+    assert t.__getstate__() == {"x": 3, "y": 2, "--frozen": None}
 
 
 def test_setstate_frozen():
@@ -88,14 +88,19 @@ def test_setstate_frozen():
         y = Int(2)
 
     t = Test()
-    t.__setstate__({"x": 3, "y": 2, "-f": 1 << 19})
+    t.__setstate__({"x": 3, "y": 2, "--frozen": None})
     with pytest.raises(AttributeError):
         t.x = 5
 
     # Setting again does not work
-    t.__setstate__({"-f": 0})
+    t.__setstate__({"--frozen": 0})
     with pytest.raises(AttributeError):
         t.x = 5
+
+    # Check that it can be modified if frozen flag is missing
+    t = Test()
+    t.__setstate__({"x": 3, "y": 2})
+    t.x = 5
 
 
 def test_setstate_non_str_key():
