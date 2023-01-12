@@ -1,0 +1,36 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2021, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+#------------------------------------------------------------------------------
+- case: event
+  parametrized:
+  - member: Event
+    member_instance: Event()
+    member_type: atom.event.Event[Any]
+  - member: Event
+    member_instance: Event(int)
+    member_type: atom.event.Event[builtins.int]
+  - member: Event
+    member_instance: Event((int,))
+    member_type: atom.event.Event[builtins.int]
+  - member: Event
+    member_instance: Event((int, float))
+    member_type: atom.event.Event[Union[builtins.int, builtins.float]]
+  - member: Event
+    member_instance: Event((int, float, str))
+    member_type: atom.event.Event[Union[builtins.int, builtins.float, builtins.str]]
+  - member: Event, Int
+    member_instance: Event(Int())
+    member_type: atom.event.Event[builtins.int]
+  main: |
+    from atom.api import Atom, {{ member }}
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "atom.catom.EventBinder"
+    A().m = 1

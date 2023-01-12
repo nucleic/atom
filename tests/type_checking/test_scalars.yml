@@ -1,0 +1,229 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2021, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+#------------------------------------------------------------------------------
+- case: scalars-no-annotations
+  parametrized:
+    - member: Value
+      member_instance: Value()
+      member_type: atom.scalars.Value[Any]
+      member_value_type: Any
+    - member: ReadOnly
+      member_instance: ReadOnly()
+      member_type: atom.scalars.ReadOnly[Any]
+      member_value_type: Any
+    - member: ReadOnly
+      member_instance: ReadOnly(default=0)
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int
+    - member: ReadOnly
+      member_instance: ReadOnly(factory=g)
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int
+    - member: ReadOnly
+      member_instance: ReadOnly(int)
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int
+    - member: ReadOnly
+      member_instance: ReadOnly(int, default=0)
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int
+    - member: ReadOnly
+      member_instance: ReadOnly(int, factory=g)
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int
+    - member: ReadOnly
+      member_instance: ReadOnly((int,))
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int
+    - member: ReadOnly
+      member_instance: ReadOnly((int,), default=0)
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int
+    - member: ReadOnly
+      member_instance: ReadOnly((int,), factory=g)
+      member_type: atom.scalars.ReadOnly[builtins.int]
+      member_value_type: builtins.int
+    - member: ReadOnly
+      member_instance: ReadOnly((int, str))
+      member_type: atom.scalars.ReadOnly[Union[builtins.int, builtins.str]]
+      member_value_type: Union[builtins.int, builtins.str]
+    - member: ReadOnly
+      member_instance: ReadOnly((int, str), default=0)
+      member_type: atom.scalars.ReadOnly[Union[builtins.int, builtins.str]]
+      member_value_type: Union[builtins.int, builtins.str]
+    - member: ReadOnly
+      member_instance: ReadOnly((int, str), factory=g)
+      member_type: atom.scalars.ReadOnly[Union[builtins.int, builtins.str]]
+      member_value_type: Union[builtins.int, builtins.str]
+    - member: ReadOnly
+      member_instance: ReadOnly((int, str, float))
+      member_type: atom.scalars.ReadOnly[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
+    - member: ReadOnly
+      member_instance: ReadOnly((int, str, float), default=0)
+      member_type: atom.scalars.ReadOnly[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
+    - member: ReadOnly
+      member_instance: ReadOnly((int, str, float), factory=g)
+      member_type: atom.scalars.ReadOnly[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
+    - member: Constant
+      member_instance: Constant()
+      member_type: atom.scalars.Constant[Any]
+      member_value_type: Any
+    - member: Constant
+      member_instance: Constant(0)
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type: builtins.int
+    - member: Constant
+      member_instance: Constant(factory=g)
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type: builtins.int
+    - member: Constant
+      member_instance: Constant(kind=int)
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type: builtins.int
+    - member: Constant
+      member_instance: Constant(0, kind=int)
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type: builtins.int
+    - member: Constant
+      member_instance: Constant(factory=g, kind=int)
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type:  builtins.int
+    - member: Constant
+      member_instance: Constant(kind=(int,))
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type: builtins.int
+    - member: Constant
+      member_instance: Constant(0, kind=(int,))
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type: builtins.int
+    - member: Constant
+      member_instance: Constant(factory=g, kind=(int,))
+      member_type: atom.scalars.Constant[builtins.int]
+      member_value_type:  builtins.int
+    - member: Constant
+      member_instance: Constant(kind=(int, str))
+      member_type: atom.scalars.Constant[Union[builtins.int, builtins.str]]
+      member_value_type: Union[builtins.int, builtins.str]
+    - member: Constant
+      member_instance: Constant(0, kind=(int, str))
+      member_type: atom.scalars.Constant[Union[builtins.int, builtins.str]]
+      member_value_type: Union[builtins.int, builtins.str]
+    - member: Constant
+      member_instance: Constant(factory=g, kind=(int, str))
+      member_type: atom.scalars.Constant[Union[builtins.int, builtins.str]]
+      member_value_type: Union[builtins.int, builtins.str]
+    - member: Constant
+      member_instance: Constant(kind=(int, str, float))
+      member_type: atom.scalars.Constant[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
+    - member: Constant
+      member_instance: Constant(0, kind=(int, str, float))
+      member_type: atom.scalars.Constant[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
+    - member: Constant
+      member_instance: Constant(factory=g, kind=(int, str, float))
+      member_type: atom.scalars.Constant[Union[builtins.int, builtins.str, builtins.float]]
+      member_value_type: Union[builtins.int, builtins.str, builtins.float]
+    - member: Bool
+      member_instance: Bool()
+      member_type: atom.scalars.Bool[builtins.bool]
+      member_value_type: builtins.bool
+    - member: Int
+      member_instance: Int()
+      member_type: atom.scalars.Int[builtins.int]
+      member_value_type: builtins.int
+    - member: Int
+      member_instance: Int(strict=False)
+      member_type: atom.scalars.Int[Union[builtins.int, builtins.float]]
+      member_value_type: builtins.int
+    - member: Int
+      member_instance: Int(factory=f, strict=False)
+      member_type: atom.scalars.Int[Union[builtins.int, builtins.float]]
+      member_value_type: builtins.int
+    # XXX add strict cases
+    - member: FloatRange
+      member_instance: FloatRange()
+      member_type: atom.scalars.FloatRange[Union[builtins.int, builtins.float]]
+      member_value_type: builtins.float
+    - member: Range
+      member_instance: Range()
+      member_type: atom.scalars.Range[builtins.int]
+      member_value_type: builtins.int
+    - member: Float
+      member_instance: Float()
+      member_type: atom.scalars.Float[Union[builtins.int, builtins.float]]
+      member_value_type: builtins.float
+    - member: Float
+      member_instance: Float(strict=True)
+      member_type: atom.scalars.Float[builtins.float]
+      member_value_type: builtins.float
+    - member: Bytes
+      member_instance: Bytes(strict=False)
+      member_type: atom.scalars.Bytes[Union[builtins.bytes, builtins.str]]
+      member_value_type: builtins.bytes
+    - member: Bytes
+      member_instance: Bytes()
+      member_type: atom.scalars.Bytes[builtins.bytes]
+      member_value_type: builtins.bytes
+    - member: Str
+      member_instance: Str(strict=False)
+      member_type: atom.scalars.Str[Union[builtins.str, builtins.bytes]]
+      member_value_type: builtins.str
+    - member: Str
+      member_instance: Str()
+      member_type: atom.scalars.Str[builtins.str]
+      member_value_type: builtins.str
+  main: |
+    from atom.api import Atom, {{ member }}
+
+    def f():
+      pass
+
+    def g() -> int:
+      return 1
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
+
+- case: callable
+  main: |
+    from atom.api import Atom, Callable
+
+    class A(Atom):
+      m = Callable()
+
+    reveal_type(A.m)  # N: Revealed type is "atom.scalars.Callable[def (*Any, **Any) -> Any]"
+    reveal_type(A().m)  # N: Revealed type is "def (*Any, **Any) -> Any"
+
+- case: str-with-default
+  main: |
+    from atom.api import Atom, Str
+
+    class A(Atom):
+      m = Str('', strict=True)
+
+    reveal_type(A.m)  # N: Revealed type is "atom.scalars.Str[builtins.str]"
+    reveal_type(A().m)  # N: Revealed type is "builtins.str"
+
+- case: bytes-with-default
+  main: |
+    from atom.api import Atom, Bytes
+
+    class A(Atom):
+      m = Bytes(b"", strict=True)
+
+    reveal_type(A.m)  # N: Revealed type is "atom.scalars.Bytes[builtins.bytes]"
+    reveal_type(A().m)  # N: Revealed type is "builtins.bytes"
+
+
+# XXX add tests with explicit annotations

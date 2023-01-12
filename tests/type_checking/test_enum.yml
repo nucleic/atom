@@ -1,0 +1,43 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2021, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+#------------------------------------------------------------------------------
+- case: enum
+  parametrized:
+  - member: Enum
+    member_instance: Enum(1, 2)
+    member_type: atom.enum.Enum[builtins.int]
+    member_value_type: builtins.int
+  - member: Enum
+    member_instance: Enum(1, str(1))
+    member_type: atom.enum.Enum[builtins.object]
+    member_value_type: builtins.object
+  main: |
+    from atom.api import Atom, {{ member }}
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
+    A().m = 1
+
+- case: enum-methods
+  main: |
+    from atom.api import Atom, Enum
+
+    e = Enum(1, 2)
+
+    class A(Atom):
+      e1 = e
+      e2 = e("1")
+      e3 = e.added("1")
+      e4 = e.removed(2)
+
+    reveal_type(A.e1)  # N: Revealed type is "atom.enum.Enum[builtins.int]"
+    reveal_type(A.e2)  # N: Revealed type is "atom.enum.Enum[Union[builtins.int, builtins.str]]"
+    reveal_type(A.e3)  # N: Revealed type is "atom.enum.Enum[Union[builtins.int, builtins.str]]"
+    reveal_type(A.e4)  # N: Revealed type is "atom.enum.Enum[builtins.int]"

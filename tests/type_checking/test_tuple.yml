@@ -1,0 +1,100 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2021, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+#------------------------------------------------------------------------------
+- case: tuple
+  parametrized:
+  # Tuple with no defaults
+  - member: Tuple
+    member_instance: Tuple()
+    member_type: atom.tuple.Tuple[Any]
+    member_value_type: builtins.tuple[Any, ...]
+  - member: Tuple
+    member_instance: Tuple(int)
+    member_type: atom.tuple.Tuple[builtins.int]
+    member_value_type: builtins.tuple[builtins.int, ...]
+  - member: Tuple
+    member_instance: Tuple((int,))
+    member_type: atom.tuple.Tuple[builtins.int]
+    member_value_type: builtins.tuple[builtins.int, ...]
+  - member: Tuple
+    member_instance: Tuple((int, float))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.float]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.float], ...]
+  - member: Tuple
+    member_instance: Tuple((int, float, str))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.float, builtins.str]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.float, builtins.str], ...]
+  - member: Tuple, Int
+    member_instance: Tuple(Int())
+    member_type: atom.tuple.Tuple[builtins.int]
+    member_value_type: builtins.tuple[builtins.int, ...]
+  # Tuple with defaults
+  - member: Tuple
+    member_instance: Tuple(default=(1,))
+    member_type: atom.tuple.Tuple[Any]
+    member_value_type: builtins.tuple[Any, ...]
+  - member: Tuple
+    member_instance: Tuple(int, default=(3,))
+    member_type: atom.tuple.Tuple[builtins.int]
+    member_value_type: builtins.tuple[builtins.int, ...]
+  - member: Tuple
+    member_instance: Tuple((int,), default=(1, 2))
+    member_type: atom.tuple.Tuple[builtins.int]
+    member_value_type: builtins.tuple[builtins.int, ...]
+  # Ensure that for tuple of types any valid default works
+  - member: Tuple
+    member_instance: Tuple((int, str), default=(1,))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.str]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.str], ...]
+  - member: Tuple
+    member_instance: Tuple((int, str), default=(str(1),))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.str]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.str], ...]
+  - member: Tuple
+    member_instance: Tuple((int, str), default=(1, str(1)))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.str]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.str], ...]
+  - member: Tuple
+    member_instance: Tuple((int, str, bytes), default=(1,))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.str, builtins.bytes], ...]
+  - member: Tuple
+    member_instance: Tuple((int, str, bytes), default=(str(1),))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.str, builtins.bytes], ...]
+  - member: Tuple
+    member_instance: Tuple((int, str, bytes), default=(bytes(1),))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.str, builtins.bytes], ...]
+  - member: Tuple
+    member_instance: Tuple((int, str, bytes), default=(1, str(1),))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.str, builtins.bytes], ...]
+  - member: Tuple
+    member_instance: Tuple((int, str, bytes), default=(1, bytes(1),))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.str, builtins.bytes], ...]
+  - member: Tuple
+    member_instance: Tuple((int, str, bytes), default=(str(1), bytes(1)))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.str, builtins.bytes], ...]
+  - member: Tuple
+    member_instance: Tuple((int, str, bytes), default=(1, str(1), bytes(1)))
+    member_type: atom.tuple.Tuple[Union[builtins.int, builtins.str, builtins.bytes]]
+    member_value_type: builtins.tuple[Union[builtins.int, builtins.str, builtins.bytes], ...]
+  - member: Tuple, Int
+    member_instance: Tuple(Int(), default=(2,))
+    member_type: atom.tuple.Tuple[builtins.int]
+    member_value_type: builtins.tuple[builtins.int, ...]
+  main: |
+    from atom.api import Atom, {{ member }}
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"

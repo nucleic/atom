@@ -1,0 +1,4 @@
+sphinx>=4,<4.4
+sphinx-rtd-theme>=1
+graphviz
+git+https://github.com/nucleic/cppy@main

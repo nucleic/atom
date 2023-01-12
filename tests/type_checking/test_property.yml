@@ -1,0 +1,74 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2021, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+#------------------------------------------------------------------------------
+- case: property-empty
+  main: |
+    from atom.api import Atom, Property
+
+    class A(Atom):
+      m = Property()
+
+    reveal_type(A.m)  # N: Revealed type is "atom.property.Property[<nothing>, <nothing>]"
+    reveal_type(A().m)  # N: Revealed type is "<nothing>"
+
+
+- case: property-no-setter
+  main: |
+    from atom.api import Atom, Property
+
+    def g(a) -> int:
+      return a.b
+
+    class A(Atom):
+      m = Property(g)
+
+    reveal_type(A.m)  # N: Revealed type is "atom.property.Property[builtins.int, <nothing>]"
+    reveal_type(A().m)  # N: Revealed type is "builtins.int"
+
+- case: property
+  parametrized:
+    - member: Property
+      member_instance: Property(g, s)
+      member_type: atom.property.Property[builtins.int, Union[builtins.int, builtins.str]]
+      member_value_type: builtins.int
+    - member: Property
+      member_instance: Property(g, s, d)
+      member_type: atom.property.Property[builtins.int, Union[builtins.int, builtins.str]]
+      member_value_type: builtins.int
+  main: |
+    from typing import Union
+
+    from atom.api import Atom, {{ member }}
+
+    def g(a) -> int:
+      return a._b
+
+    def s(a, v: Union[int, str]) -> None:
+      a._b = int(v)
+
+    def d(a):
+      pass
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
+
+
+- case: cached-property
+  main: |
+    from atom.api import Atom, cached_property
+
+    class A(Atom):
+
+      @cached_property
+      def m(self) -> int:
+        return 1
+
+    reveal_type(A.m)  # N: Revealed type is "atom.property.Property[builtins.int, <nothing>]"
+    reveal_type(A().m)  # N: Revealed type is "builtins.int"

@@ -1,0 +1,24 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2022, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+#------------------------------------------------------------------------------
+- case: annotated-member
+  parametrized:
+    - member: List
+      annotation: List[int]
+      member_instance: List()
+      member_type: atom.list.List[builtins.int]
+      member_value_type: builtins.list[builtins.int]
+  main: |
+    import io
+    from typing import Type
+    from atom.api import Atom, {{ member }}
+
+    class A(Atom):
+      m: {{ annotation }} = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"

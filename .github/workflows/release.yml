@@ -1,0 +1,124 @@
+name: Build and upload wheels
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 3'
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build_sdist:
+    name: Build sdist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Build sdist
+        run: |
+          pip install --upgrade pip
+          pip install wheel build
+          python -m build . -s
+      - name: Test sdist
+        run: |
+          pip install pytest
+          pip install dist/*.tar.gz
+          cd ..
+          python -m pytest atom/tests
+      - name: Store artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: dist/*
+
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }} for Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        python: [38, 39, 310, 311]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install cibuildwheel
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install wheel cibuildwheel
+      - name: Build wheels
+        env:
+          CIBW_BUILD: cp${{ matrix.python }}-*
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: python -m pytest {package}/tests -v
+          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+          # Disable FH4 to avoid linking against VC2014_1
+          ATOM_DISABLE_FH4: 1
+        run: |
+          python -m cibuildwheel . --output-dir dist
+      - name: Store artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: dist/*.whl
+
+  release_upload:
+    name: Create Release and Upload Release Asset
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [build_wheels, build_sdist]
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: ${{ contains(github.ref, 'rc') || contains(github.ref, 'a') || contains(github.ref, 'b')}}
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: dist
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: shogo82148/actions-upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/*
+
+  upload_pypi:
+    if: github.event_name == 'push'
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}
+          # To test:
+          # repository_url: https://test.pypi.org/legacy/

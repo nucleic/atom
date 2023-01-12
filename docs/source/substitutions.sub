@@ -1,0 +1,150 @@
+..
+   This file holds some common substitutions (mainly for referencing code).
+   To use it add the directive include:: substitutions.rst at the beginning of
+   the file.
+
+.. ============================================================================
+.. Atom substitutions
+.. ============================================================================
+
+.. |Atom| replace:: :py:class:`~atom.atom.Atom`
+
+.. |Atom.observe| replace:: :py:class:`~atom.catom.CAtom.observe`
+
+.. |Atom.unobserve| replace:: :py:class:`~atom.catom.CAtom.unobserve`
+
+.. |Atom.notify| replace:: :py:meth:`~atom.catom.CAtom.freeze`
+
+.. |Atom.freeze| replace:: :py:meth:`~atom.catom.CAtom.freeze`
+
+.. |Atom.suppress_notifications| replace:: :py:class:`~atom.atom.Atom.suppress_notifications`
+
+.. |add_static_observer| replace:: :py:class:`~atom.catom.Member.add_static_observer`
+
+.. |remove_static_observer| replace:: :py:class:`~atom.catom.Member.remove_static_observer`
+
+.. |Value| replace:: :py:class:`~atom.scalars.Value`
+
+.. |Int| replace:: :py:class:`~atom.scalars.Int`
+
+.. |Range| replace:: :py:class:`~atom.scalars.Range`
+
+.. |Float| replace:: :py:class:`~atom.scalars.Float`
+
+.. |FloatRange| replace:: :py:class:`~atom.scalars.FloatRange`
+
+.. |Str| replace:: :py:class:`~atom.scalars.Str`
+
+.. |Bytes| replace:: :py:class:`~atom.scalars.Bytes`
+
+.. |Enum| replace:: :py:class:`~atom.enum.Enum`
+
+.. |Typed| replace:: :py:class:`~atom.typed.Typed`
+
+.. |ForwardTyped| replace:: :py:class:`~atom.typed.ForwardTyped`
+
+.. |Instance| replace:: :py:class:`~atom.instance.Instance`
+
+.. |ForwardInstance| replace:: :py:class:`~atom.instance.ForwardInstance`
+
+.. |Subclass| replace:: :py:class:`~atom.subclass.Subclass`
+
+.. |ForwardSubclass| replace:: :py:class:`~atom.subclass.ForwardSubclass`
+
+.. |Tuple| replace:: :py:class:`~atom.tuple.Tuple`
+
+.. |List| replace:: :py:class:`~atom.list.List`
+
+.. |ContainerList| replace:: :py:class:`~atom.list.ContainerList`
+
+.. |Dict| replace:: :py:class:`~atom.dict.Dict`
+
+.. |Delegator| replace:: :py:class:`~atom.delegator.Delegator`
+
+.. |Event| replace:: :py:class:`~atom.event.Event`
+
+.. |bind| replace:: :py:meth:`~atom.event.Event.bind`
+
+.. |unbind| replace:: :py:meth:`~atom.event.Event.unbind`
+
+.. |Signal| replace:: :py:class:`~atom.signal.Signal`
+
+.. |connect| replace:: :py:meth:`~atom.signal.Signal.connect`
+
+.. |disconnect| replace:: :py:meth:`~atom.signal.Signal.disconnect`
+
+.. |Coerced| replace:: :py:class:`~atom.coerced.Coerced`
+
+.. |Property| replace:: :py:class:`~atom.property.Property`
+
+.. |observe| replace:: :py:class:`~atom.atom.observe`
+
+.. |set_default| replace:: :py:class:`~atom.atom.set_default`
+
+.. |atomref| replace:: :py:class:`~atom.catom.atomref`
+
+.. |sortedmap| replace:: :py:class:`~atom.datastructures.sortedmap.sortedmap`
+
+.. |GetAttr| replace:: :py:class:`~atom.catom.GetAttr`
+
+.. |SetAttr| replace:: :py:class:`~atom.catom.SetAttr`
+
+.. |PostGetAttr| replace:: :py:class:`~atom.catom.PostGetAttr`
+
+.. |PostSetAttr| replace:: :py:class:`~atom.catom.PostSetAttr`
+
+.. |DefaultValue| replace:: :py:class:`~atom.catom.DefaultValue`
+
+.. |Validate| replace:: :py:class:`~atom.catom.Validate`
+
+.. |PostValidate| replace:: :py:class:`~atom.catom.PostValidate`
+
+.. |Member| replace:: :py:class:`~atom.catom.Member`
+
+.. |Member.notify| replace:: :py:meth:`~atom.catom.Member.notify`
+
+.. |Member.do_getattr| replace:: :py:meth:`~atom.catom.Member.do_getattr`
+
+.. |Member.do_setattr| replace:: :py:meth:`~atom.catom.Member.do_setattr`
+
+.. |Member.do_post_getattr| replace:: :py:meth:`~atom.catom.Member.do_post_getattr`
+
+.. |Member.do_post_setattr| replace:: :py:meth:`~atom.catom.Member.do_post_setattr`
+
+.. |Member.do_default_value| replace:: :py:meth:`~atom.catom.Member.do_default_value`
+
+.. |Member.do_validate| replace:: :py:meth:`~atom.catom.Member.do_validate`
+
+.. |Member.do_post_validate| replace:: :py:meth:`~atom.catom.Member.do_post_validate`
+
+.. |Member.do_full_validate| replace:: :py:meth:`~atom.catom.Member.do_full_validate`
+
+.. |Member.getattr_mode| replace:: :py:meth:`~atom.catom.Member.getattr_mode`
+
+.. |Member.setattr_mode| replace:: :py:meth:`~atom.catom.Member.setattr_mode`
+
+.. |Member.delattr_mode| replace:: :py:meth:`~atom.catom.Member.delattr_mode`
+
+.. |Member.post_getattr_mode| replace:: :py:meth:`~atom.catom.Member.post_getattr_mode`
+
+.. |Member.post_setattr_mode| replace:: :py:meth:`~atom.catom.Member.post_setattr_mode`
+
+.. |Member.default_value_mode| replace:: :py:meth:`~atom.catom.Member.default_value_mode`
+
+.. |Member.validate_mode| replace:: :py:meth:`~atom.catom.Member.validate_mode`
+
+.. |Member.post_validate_mode| replace:: :py:meth:`~atom.catom.Member.post_validate_mode`
+
+.. |Member.set_getattr_mode| replace:: :py:meth:`~atom.catom.Member.set_getattr_mode`
+
+.. |Member.set_setattr_mode| replace:: :py:meth:`~atom.catom.Member.set_setattr_mode`
+
+.. |Member.set_post_getattr_mode| replace:: :py:meth:`~atom.catom.Member.set_post_getattr_mode`
+
+.. |Member.set_post_setattr_mode| replace:: :py:meth:`~atom.catom.Member.set_post_setattr_mode`
+
+.. |Member.set_default_value_mode| replace:: :py:meth:`~atom.catom.Member.set_default_value_mode`
+
+.. |Member.set_validate_mode| replace:: :py:meth:`~atom.catom.Member.set_validate_mode`
+
+.. |Member.set_post_validate_mode| replace:: :py:meth:`~atom.catom.Member.set_post_validate_mode`

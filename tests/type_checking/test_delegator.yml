@@ -1,0 +1,18 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2021, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+#------------------------------------------------------------------------------
+- case: delegator
+  main: |
+    from atom.api import Atom, Delegator, Int
+
+    class A(Atom):
+
+      i = Int(strict=False)
+      m = Delegator(i)
+
+    reveal_type(A.m)  # N: Revealed type is "atom.delegator.Delegator[builtins.int, Union[builtins.int, builtins.float]]"
+    reveal_type(A().m)  # N: Revealed type is "builtins.int"

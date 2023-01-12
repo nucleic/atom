@@ -1,0 +1,141 @@
+name: Continuous Integration
+on:
+  schedule:
+    - cron: '0 0 * * 3'
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/ci.yml
+      - "atom/**"
+      - "tests/**"
+      - "examples/**"
+      - setup.py
+      - pyproject.toml
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10']
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'lint_requirements.txt'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+      - name: Install project
+        run: |
+          pip install -e .
+      - name: Install dependencies
+        run: |
+          pip install -U -r lint_requirements.txt
+      - name: Isort
+        run: |
+          isort atom examples tests -c
+      - name: Black
+        if: always()
+        run: |
+          black atom examples tests --check
+      - name: Flake8
+        if: always()
+        run: |
+          flake8 atom examples tests
+      - name: Run Mypy
+        if: always()
+        run: |
+          mypy atom examples
+  types:
+    name: Type checking
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+    if: needs.lint.result == 'success'
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9']
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+      - name: Install project
+        run: |
+          pip install .
+      - name: Run Mypy
+        run: |
+          pip install mypy pytest
+          mypy atom
+      - name: Test with pytest
+        run: |
+          pip install pytest-mypy-plugins regex
+          python -X dev -m pytest tests/type_checking -v
+  tests:
+    name: Unit tests
+    runs-on: ${{ matrix.os }}
+    needs:
+      - lint
+    if: needs.lint.result == 'success'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'test_requirements.txt'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools-scm[toml]
+          pip install git+https://github.com/nucleic/cppy@main
+      - name: Install project
+        env:
+          CPPFLAGS: --coverage
+        # Build extensions manually to allow getting C coverage data
+        run: |
+          python setup.py develop
+      - name: Test with pytest
+        # XXX Disabled warnings check ( -W error) to be able to test on 3.11
+        # (pyparsing deprecation)
+        run: |
+          pip install -r test_requirements.txt
+          python -X dev -m pytest tests --ignore=tests/type_checking --cov --cov-report xml -v
+      - name: Generate C++ coverage reports
+        if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
+        run: |
+          bash -c "find . -type f -name '*.gcno' -exec gcov -pb --all-blocks {} +" || true
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true

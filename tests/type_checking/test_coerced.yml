@@ -1,0 +1,82 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2021, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+#------------------------------------------------------------------------------
+- case: coerced-no-coercer
+  parametrized:
+    - member: Coerced
+      member_instance: Coerced(int)
+      member_type: atom.coerced.Coerced[builtins.int, builtins.int]
+      member_value_type: builtins.int
+    - member: Coerced
+      member_instance: Coerced(int, ())
+      member_type: atom.coerced.Coerced[builtins.int, builtins.int]
+      member_value_type: builtins.int
+    - member: Coerced
+      member_instance: Coerced(io.StringIO, None, dict(initial_value=str(1)))
+      member_type: atom.coerced.Coerced[io.StringIO, io.StringIO]
+      member_value_type: io.StringIO
+    - member: Coerced
+      member_instance: Coerced(io.StringIO, kwargs=dict(initial_value=str(1)))
+      member_type: atom.coerced.Coerced[io.StringIO, io.StringIO]
+      member_value_type: io.StringIO
+    - member: Coerced
+      member_instance: Coerced(io.StringIO, factory=g)
+      member_type: atom.coerced.Coerced[io.StringIO, io.StringIO]
+      member_value_type: io.StringIO
+  main: |
+    import io
+    from typing import Type
+    from atom.api import Atom, {{ member }}
+
+    def g() -> io.StringIO:
+      return io.StringIO()
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
+
+
+- case: coerced-coercer
+  parametrized:
+    - member: Coerced
+      member_instance: Coerced(io.StringIO, coercer=coercer)
+      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
+      member_value_type: io.StringIO
+    - member: Coerced
+      member_instance: Coerced(io.StringIO, (), coercer=coercer)
+      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
+      member_value_type: io.StringIO
+    - member: Coerced
+      member_instance: Coerced(io.StringIO, None, dict(initial_value=str(1)), coercer=coercer)
+      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
+      member_value_type: io.StringIO
+    - member: Coerced
+      member_instance: Coerced(io.StringIO, kwargs=dict(initial_value=str(1)), coercer=coercer)
+      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
+      member_value_type: io.StringIO
+    - member: Coerced
+      member_instance: Coerced(io.StringIO, factory=g, coercer=coercer)
+      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
+      member_value_type: io.StringIO
+  main: |
+    import io
+    from typing import Type
+    from atom.api import Atom, {{ member }}
+
+    def coercer(x: str) -> io.StringIO:
+      return io.StringIO(x)
+
+    def g() -> io.StringIO:
+      return io.StringIO()
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"

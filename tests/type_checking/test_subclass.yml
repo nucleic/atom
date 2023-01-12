@@ -1,0 +1,85 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2021, Nucleic Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+#------------------------------------------------------------------------------
+- case: subclass
+  parametrized:
+    - member: Subclass
+      member_instance: Subclass(A)
+      member_type: atom.subclass.Subclass[Type[main.A]]
+      member_value_type: Type[main.A]
+    - member: Subclass
+      member_instance: Subclass(A, B)
+      member_type: atom.subclass.Subclass[Type[main.A]]
+      member_value_type: Type[main.A]
+    - member: Subclass
+      member_instance: Subclass((A,))
+      member_type: atom.subclass.Subclass[Type[main.A]]
+      member_value_type: Type[main.A]
+    - member: Subclass
+      member_instance: Subclass((A,), B)
+      member_type: atom.subclass.Subclass[Type[main.A]]
+      member_value_type: Type[main.A]
+    - member: Subclass
+      member_instance: Subclass((int, A))
+      member_type: atom.subclass.Subclass[Union[Type[builtins.int], Type[main.A]]]
+      member_value_type: Union[Type[builtins.int], Type[main.A]]
+    - member: Subclass
+      member_instance: Subclass((int, A), B)
+      member_type: atom.subclass.Subclass[Union[Type[builtins.int], Type[main.A]]]
+      member_value_type: Union[Type[builtins.int], Type[main.A]]
+    - member: Subclass
+      member_instance: Subclass((int, A, str))
+      member_type: atom.subclass.Subclass[Union[Type[builtins.int], Type[main.A], Type[builtins.str]]]
+      member_value_type: Union[Type[builtins.int], Type[main.A], Type[builtins.str]]
+    - member: Subclass
+      member_instance: Subclass((int, A, str), B)
+      member_type: atom.subclass.Subclass[Union[Type[builtins.int], Type[main.A], Type[builtins.str]]]
+      member_value_type: Union[Type[builtins.int], Type[main.A], Type[builtins.str]]
+    - member: ForwardSubclass
+      member_instance: ForwardSubclass(resolve1)
+      member_type: atom.subclass.ForwardSubclass[Type[main.A]]
+      member_value_type: Type[main.A]
+    - member: ForwardSubclass
+      member_instance: ForwardSubclass(resolve2)
+      member_type: atom.subclass.ForwardSubclass[Type[main.A]]
+      member_value_type: Type[main.A]
+    - member: ForwardSubclass
+      member_instance: ForwardSubclass(resolve3)
+      member_type: atom.subclass.ForwardSubclass[Union[Type[builtins.int], Type[main.A]]]
+      member_value_type: Union[Type[builtins.int], Type[main.A]]
+    - member: ForwardSubclass
+      member_instance: ForwardSubclass(resolve4)
+      member_type: atom.subclass.ForwardSubclass[Union[Type[builtins.int], Type[main.A], Type[builtins.str]]]
+      member_value_type: Union[Type[builtins.int], Type[main.A], Type[builtins.str]]
+  main: |
+    import io
+    from typing import Tuple, Type
+    from atom.api import Atom, {{ member }}
+
+    class A:
+      pass
+
+    class B(A):
+      pass
+
+    def resolve1() -> Type[A]:
+      return A
+
+    def resolve2() -> Tuple[Type[A]]:
+      return A,
+
+    def resolve3() -> Tuple[Type[int], Type[A]]:
+      return int, A
+
+    def resolve4() -> Tuple[Type[int], Type[A], Type[str]]:
+      return int, A, str
+
+    class T(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(T.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(T().m)  # N: Revealed type is "{{ member_value_type }}"
