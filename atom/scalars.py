@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from .catom import DefaultValue, DelAttr, Member, SetAttr, Validate
+from .catom import DefaultValue, DelAttr, GetState, Member, SetAttr, Validate
 from .typing_utils import extract_types
 
 
@@ -52,6 +52,7 @@ class ReadOnly(Value):
         super(ReadOnly, self).__init__(default, factory=factory)
         self.set_setattr_mode(SetAttr.ReadOnly, None)
         self.set_delattr_mode(DelAttr.ReadOnly, None)
+        self.set_getstate_mode(GetState.IncludeNonDefault, None)
         if kind:
             self.set_validate_mode(Validate.Instance, extract_types(kind))
 
@@ -65,6 +66,7 @@ class Constant(Value):
         super(Constant, self).__init__(default, factory=factory)
         self.set_setattr_mode(SetAttr.Constant, None)
         self.set_delattr_mode(DelAttr.Constant, None)
+        self.set_getstate_mode(GetState.Exclude, None)
         if kind:
             self.set_validate_mode(Validate.Instance, extract_types(kind))
 

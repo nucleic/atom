@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2021, Nucleic Development Team.
+| Copyright (c) 2013-2023, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -58,6 +58,7 @@ Member_clear( Member* self )
     Py_CLEAR( self->post_setattr_context );
     Py_CLEAR( self->default_value_context );
     Py_CLEAR( self->post_validate_context );
+    Py_CLEAR( self->getstate_context );
     if( self->static_observers )
         self->static_observers->clear();
 }
@@ -75,7 +76,8 @@ Member_traverse( Member* self, visitproc visit, void* arg )
     Py_VISIT( self->post_getattr_context );
     Py_VISIT( self->post_setattr_context );
     Py_VISIT( self->default_value_context );
-    Py_VISIT( self->post_validate_context );
+    Py_CLEAR( self->post_validate_context );
+    Py_VISIT( self->getstate_context );
     if( self->static_observers )
     {
         std::vector<Observer>::iterator it;
@@ -374,6 +376,15 @@ Member_do_full_validate( Member* self, PyObject* args )
 
 
 PyObject*
+Member_do_should_getstate( Member* self, PyObject* object )
+{
+    if( !CAtom::TypeCheck( object ) )
+        return cppy::type_error( object, "CAtom" );
+    return self->should_getstate( catom_cast( object ) );
+}
+
+
+PyObject*
 Member_clone( Member* self )
 {
     // reimplement in a subclass to clone additional Python state
@@ -382,6 +393,7 @@ Member_clone( Member* self )
         return 0;
     Member* clone = member_cast( pyclone );
     clone->modes = self->modes;
+    clone->extra_modes = self->extra_modes;
     clone->index = self->index;
     clone->name = cppy::incref( self->name );
     if( self->metadata )
@@ -394,6 +406,7 @@ Member_clone( Member* self )
     clone->post_setattr_context = cppy::xincref( self->post_setattr_context );
     clone->default_value_context = cppy::xincref( self->default_value_context );
     clone->post_validate_context = cppy::xincref( self->post_validate_context );
+    clone->getstate_context = cppy::xincref( self->getstate_context );
     if( self->static_observers )
     {
         clone->static_observers = new std::vector<Observer>();
@@ -715,6 +728,38 @@ Member_set_post_validate_mode( Member* self, PyObject* args )
 
 
 PyObject*
+Member_get_getstate_mode( Member* self, void* ctxt )
+{
+    cppy::ptr tuple( PyTuple_New( 2 ) );
+    if( !tuple )
+        return 0;
+    cppy::ptr py_enum( EnumTypes::to_py_enum( self->get_getstate_mode() ) );
+    if( !py_enum )
+        return 0;
+    PyTuple_SET_ITEM( tuple.get(), 0, py_enum.release() );
+    PyObject* context = self->getstate_context;
+    PyTuple_SET_ITEM( tuple.get(), 1, cppy::incref( context ? context : Py_None ) );
+    return tuple.release();
+}
+
+
+PyObject*
+Member_set_getstate_mode( Member* self, PyObject* args )
+{
+    GetState::Mode mode;
+    PyObject* context;
+    if( !parse_mode_and_context( args, &context, mode ) )
+        return 0;
+    self->set_getstate_mode( mode );
+    PyObject* old = self->getstate_context;
+    self->getstate_context = context;
+    cppy::incref( context );
+    cppy::xdecref( old );
+    Py_RETURN_NONE;
+}
+
+
+PyObject*
 Member_notify( Member* self, PyObject* args, PyObject* kwargs )
 {
     if( PyTuple_GET_SIZE( args ) < 1 )
@@ -827,6 +872,8 @@ Member_getset[] = {
       "Get the post setattr mode for the member." },
     { "post_validate_mode", ( getter )Member_get_post_validate_mode, 0,
       "Get the post validate mode for the member." },
+    { "getstate_mode", ( getter )Member_get_getstate_mode, 0,
+      "Get the getstate mode for the member"},
     { 0 } // sentinel
 };
 
@@ -875,6 +922,8 @@ Member_methods[] = {
       "Run the post validation handler for the member." },
     { "do_full_validate", ( PyCFunction )Member_do_full_validate, METH_VARARGS,
       "Run the validation and post validation handlers for the member." },
+    { "do_should_getstate", ( PyCFunction )Member_do_should_getstate, METH_O,
+      "Run the validation and post validation handlers for the member." },
     { "set_getattr_mode", ( PyCFunction )Member_set_getattr_mode, METH_VARARGS,
       "Set the getattr mode for the member." },
     { "set_setattr_mode", ( PyCFunction )Member_set_setattr_mode, METH_VARARGS,
@@ -891,6 +940,8 @@ Member_methods[] = {
       "Set the post setattr mode for the member." },
     { "set_post_validate_mode", ( PyCFunction )Member_set_post_validate_mode, METH_VARARGS,
       "Set the post validate mode for the member." },
+    { "set_getstate_mode", ( PyCFunction )Member_set_getstate_mode, METH_VARARGS,
+      "Set the getstate mode for the member." },
     { "notify", ( PyCFunction )Member_notify, METH_VARARGS | METH_KEYWORDS,
       "Notify the static observers for the given member and atom." },
     { "tag", ( PyCFunction )Member_tag, METH_VARARGS | METH_KEYWORDS,

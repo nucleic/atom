@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from .catom import DefaultValue, Member, Validate
+from .catom import DefaultValue, GetState, Member, Validate
 from .typing_utils import extract_types, is_optional
 
 
@@ -81,6 +81,8 @@ class Typed(Member):
         )
         if optional:
             self.set_validate_mode(Validate.OptionalTyped, kind)
+            # Allow to create a pickle with an unset typed value
+            self.set_getstate_mode(GetState.IncludeNonDefault, None)
         else:
             self.set_validate_mode(Validate.Typed, kind)
 
@@ -143,6 +145,9 @@ class ForwardTyped(Typed):
             if optional is not None
             else factory is None and args is None and kwargs is None
         )
+        if self.optional:
+            # Allow to create a pickle with an unset typed value
+            self.set_getstate_mode(GetState.IncludeNonDefault, None)
 
         self.set_validate_mode(Validate.MemberMethod_ObjectOldNew, "validate")
 

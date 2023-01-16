@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2019, Nucleic Development Team.
+| Copyright (c) 2013-2023, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -21,6 +21,7 @@ extern PyObject* PyPostSetAttr;
 extern PyObject* PyDefaultValue;
 extern PyObject* PyValidate;
 extern PyObject* PyPostValidate;
+extern PyObject* PyGetState;
 
 
 bool init_enumtypes();
@@ -105,6 +106,12 @@ from_py_enum( PyObject* value, PostValidate::Mode& out )
     return _from_py_enum( value, PyPostValidate, out );
 }
 
+template<> inline bool
+from_py_enum( PyObject* value, GetState::Mode& out )
+{
+    return _from_py_enum( value, PyGetState, out );
+}
+
 
 template<typename T> inline PyObject*
 _to_py_enum( T value, PyObject* py_enum_class )
@@ -177,6 +184,13 @@ template<> inline PyObject*
 to_py_enum( PostValidate::Mode value )
 {
     return _to_py_enum( value, PyPostValidate );
+}
+
+
+template<> inline PyObject*
+to_py_enum( GetState::Mode value )
+{
+    return _to_py_enum( value, PyGetState );
 }
 
 }  // namespace EnumTypes

@@ -530,6 +530,7 @@ class AtomMeta(type):
         cls.__atom_specific_members__ = frozenset(m.name for m in specific_members)
 
         # Generate slotnames cache
+        # (using a private function that mypy does not know about).
         copyreg._slotnames(cls)  # type: ignore
 
         return cls

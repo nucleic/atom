@@ -415,17 +415,20 @@ CAtom_getstate( CAtom* self )
     PyObject *name, *member;
     Py_ssize_t pos = 0;
     while ( PyDict_Next(membersptr.get(), &pos, &name, &member) ) {
-        switch (member_cast(member)->get_setattr_mode()) {
-            case SetAttr::Mode::Constant:
-            case SetAttr::Mode::Event:
-            case SetAttr::Mode::Signal:
-                continue;
-            default:
-                break;
+        cppy::ptr should_gs = member_cast( member )->should_getstate( self );
+        if ( !should_gs ) {
+            return 0;
+        }
+        int test = PyObject_IsTrue( should_gs.get() );
+        if ( test == 1) {
+            PyObject *value = PyObject_GetAttr( selfptr.get(), name );
         }
         cppy::ptr value = member_cast(member)->getattr(self);
         if (!value || PyDict_SetItem(stateptr.get(), name, value.get()) )
             return  0;
+        else if ( test == -1 ) {
+            return 0;
+        }
     }
 
     // Frozen state

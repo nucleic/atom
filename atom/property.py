@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from .catom import DelAttr, GetAttr, Member, SetAttr, reset_property
+from .catom import DelAttr, GetAttr, GetState, Member, SetAttr, reset_property
 
 
 class Property(Member):
@@ -50,6 +50,7 @@ class Property(Member):
             )
         self.set_setattr_mode(SetAttr.Property, fset)
         self.set_delattr_mode(DelAttr.Property, fdel)
+        self.set_getstate_mode(GetState.Property, None)
 
     @property
     def fget(self):

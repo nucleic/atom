@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2021, Nucleic Development Team.
+| Copyright (c) 2013-2023, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -24,6 +24,7 @@ PyObject* PyPostSetAttr = 0;
 PyObject* PyDefaultValue = 0;
 PyObject* PyValidate = 0;
 PyObject* PyPostValidate = 0;
+PyObject* PyGetState = 0;
 PyObject* PyChangeType = 0;
 
 
@@ -309,6 +310,7 @@ bool init_enumtypes()
             return false;
         }
     }
+
     {
         using namespace ChangeType;
         cppy::ptr dict_ptr( PyDict_New() );
@@ -329,6 +331,27 @@ bool init_enumtypes()
             return false;
         }
     }
+
+    {
+        using namespace GetState;
+        cppy::ptr dict_ptr( PyDict_New() );
+        if( !dict_ptr )
+        {
+            return false;  // LCOV_EXCL_LINE
+        }
+        add_long( dict_ptr, expand_enum( Exclude ) );
+        add_long( dict_ptr, expand_enum( Include ) );
+        add_long( dict_ptr, expand_enum( IncludeNonDefault ) );
+        add_long( dict_ptr, expand_enum( Property ) );
+        add_long( dict_ptr, expand_enum( ObjectMethod_Name ) );
+        add_long( dict_ptr, expand_enum( MemberMethod_Object ) );
+        PyGetState = make_enum( enum_cls, "GetState", dict_ptr );
+        if( !PyGetState )
+        {
+            return false;
+        }
+    }
+
     return true;
 }
 

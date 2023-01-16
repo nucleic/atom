@@ -36,6 +36,7 @@ ext_modules = [
             "atom/src/enumtypes.cpp",
             "atom/src/eventbinder.cpp",
             "atom/src/getattrbehavior.cpp",
+            "atom/src/getstatebehavior.cpp",
             "atom/src/member.cpp",
             "atom/src/memberchange.cpp",
             "atom/src/methodwrapper.cpp",
