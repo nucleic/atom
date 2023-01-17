@@ -4,6 +4,11 @@ Atom Release Notes
 0.9.0 - unreleased
 ------------------
 
+- use the Typed member when a type annotation resolve to a single type whose
+  metaclass does not implement a custom ``__instancecheck__``  PR #185
+- generate Tuple member for tuple[] annotations.
+  The content of the tuple is typed check only if it is a 1-tuple or variable-length
+  tuple. PR #184
 - fix the resolution order of members in the presence of multiple inheritance
   with a common base class PR #165 #168
 
