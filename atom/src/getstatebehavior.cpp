@@ -70,7 +70,7 @@ PyObject*
 property_handler( Member* member, CAtom* atom )
 {
     // Pickle a property only if the value can be set
-    if( member->get_getstate_mode() == SetAttr::Property && member->setattr_context != Py_None ) {
+    if( member->get_setattr_mode() == SetAttr::Property && member->setattr_context != Py_None ) {
         return cppy::incref( Py_True );
     }
     else {

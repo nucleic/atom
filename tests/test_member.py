@@ -49,6 +49,7 @@ from atom.api import (
     ForwardSubclass,
     ForwardTyped,
     GetAttr,
+    GetState,
     Int,
     List,
     PostGetAttr,
@@ -250,6 +251,7 @@ def test_class_validation():
         ("do_validate", 3),
         ("do_post_validate", 3),
         ("do_full_validate", 3),
+        ("do_should_getstate", 1),
     ],
 )
 def test_handling_arg_issue_in_do_methods(method, arg_number):
@@ -289,6 +291,7 @@ def test_member_cloning():
     CloneTest.v.set_post_getattr_mode(PostGetAttr.ObjectMethod_NameValue, "a")
     CloneTest.v.set_post_setattr_mode(PostSetAttr.ObjectMethod_NameOldNew, "b")
     CloneTest.v.set_post_validate_mode(PostValidate.ObjectMethod_NameOldNew, "c")
+    CloneTest.v.set_getstate_mode(GetState.ObjectMethod_Name, "s")
     cv = CloneTest.v.clone()
     for attr in (
         "name",
@@ -302,6 +305,7 @@ def test_member_cloning():
         "post_getattr_mode",
         "post_setattr_mode",
         "post_validate_mode",
+        "getstate_mode",
     ):
         assert getattr(cv, attr) == getattr(CloneTest.v, attr)
 

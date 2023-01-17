@@ -81,10 +81,10 @@ class Typed(Member):
         )
         if optional:
             self.set_validate_mode(Validate.OptionalTyped, kind)
-            # Allow to create a pickle with an unset typed value
-            self.set_getstate_mode(GetState.IncludeNonDefault, None)
         else:
             self.set_validate_mode(Validate.Typed, kind)
+            # Allow to create a pickle with an unset typed value
+            self.set_getstate_mode(GetState.IncludeNonDefault, None)
 
 
 class ForwardTyped(Typed):
@@ -145,7 +145,7 @@ class ForwardTyped(Typed):
             if optional is not None
             else factory is None and args is None and kwargs is None
         )
-        if self.optional:
+        if not self.optional:
             # Allow to create a pickle with an unset typed value
             self.set_getstate_mode(GetState.IncludeNonDefault, None)
 

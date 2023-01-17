@@ -81,10 +81,10 @@ class Instance(Member):
         )
         if optional:
             self.set_validate_mode(Validate.OptionalInstance, kind)
-            # Allow to create a pickle with an unset typed value
-            self.set_getstate_mode(GetState.IncludeNonDefault, None)
         else:
             self.set_validate_mode(Validate.Instance, kind)
+            # Allow to create a pickle with an unset typed value
+            self.set_getstate_mode(GetState.IncludeNonDefault, None)
 
 
 class ForwardInstance(Instance):
@@ -143,7 +143,7 @@ class ForwardInstance(Instance):
             if optional is not None
             else (factory is None and args is None and kwargs is None)
         )
-        if self.optional:
+        if not self.optional:
             # Allow to create a pickle with an unset typed value
             self.set_getstate_mode(GetState.IncludeNonDefault, None)
 

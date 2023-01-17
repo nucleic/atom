@@ -200,8 +200,8 @@ enum Mode
     Exclude,
     IncludeNonDefault,
     Property,
-    MemberMethod_Object,
     ObjectMethod_Name,
+    MemberMethod_Object,
 };
 
 }  // namespace GetState

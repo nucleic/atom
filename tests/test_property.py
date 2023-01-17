@@ -238,3 +238,20 @@ def test_property_mode_args_validation(mode, func):
     with pytest.raises(TypeError) as excinfo:
         getattr(Property(), func)(getattr(mode, "Property"), 1)
     assert "callable or None" in excinfo.exconly()
+
+
+def test_property_getstate_mode():
+    def get_function(obj):
+        return obj.i
+
+    def set_function(obj, value):
+        obj.i = value
+
+    def del_function(obj):
+        del obj.i
+
+    p = Property(get_function)
+    assert p.do_should_getstate(Atom()) is False
+
+    p2 = Property(get_function, set_function)
+    assert p2.do_should_getstate(Atom()) is True
