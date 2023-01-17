@@ -76,7 +76,7 @@ Member_traverse( Member* self, visitproc visit, void* arg )
     Py_VISIT( self->post_getattr_context );
     Py_VISIT( self->post_setattr_context );
     Py_VISIT( self->default_value_context );
-    Py_CLEAR( self->post_validate_context );
+    Py_VISIT( self->post_validate_context );
     Py_VISIT( self->getstate_context );
     if( self->static_observers )
     {
