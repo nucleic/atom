@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2022, Nucleic Development Team.
+# Copyright (c) 2022-2023, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -9,7 +9,7 @@ from datetime import datetime
 
 import pytest
 
-from atom.api import Atom, Bool, Constant, Float, Int, List, Range, Str, Typed
+from atom.api import Atom, Bool, Constant, Float, GetState, Int, List, Range, Str, Typed
 
 try:
     import pytest_benchmark  # noqa: F401
@@ -46,10 +46,12 @@ def test_getstate_member_slots_error():
 
 def test_getstate_member_error():
     class Test(Atom):
-        created = Typed(datetime, factory=float)
+        created = Typed(datetime, optional=False)
+
+    Test.created.set_getstate_mode(GetState.Include, None)
 
     v = Test()
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         v.__getstate__()
 
 
