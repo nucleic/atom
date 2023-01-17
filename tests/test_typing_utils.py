@@ -8,11 +8,16 @@
 """Test typing utilities."""
 import sys
 from collections.abc import Iterable
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Set, TypeVar, Union
 
 import pytest
 
 from atom.typing_utils import extract_types, is_optional
+
+T = TypeVar("T")
+U = TypeVar("U", bound=int)
+V = TypeVar("V", int, float)
+W = TypeVar("W", contravariant=True)
 
 
 @pytest.mark.parametrize(
@@ -40,6 +45,17 @@ from atom.typing_utils import extract_types, is_optional
 )
 def test_extract_types(ty, outputs):
     assert extract_types(ty) == outputs
+
+
+def test_extract_types_for_type_vars():
+    assert extract_types(T) == (object,)
+    assert extract_types(U) == (int,)
+    with pytest.raises(ValueError) as e:
+        extract_types(V)
+    assert "Constraints" in e.exconly()
+    with pytest.raises(ValueError) as e:
+        extract_types(W)
+    assert "contravariant" in e.exconly()
 
 
 @pytest.mark.parametrize(
