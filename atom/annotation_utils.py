@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Nucleic Development Team.
+# Copyright (c) 2021-2023, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -16,6 +16,7 @@ from .scalars import Bool, Bytes, Callable as ACallable, Float, Int, Str, Value
 from .set import Set as ASet
 from .subclass import Subclass
 from .tuple import Tuple as ATuple
+from .typed import Typed
 from .typing_utils import extract_types, get_args, is_optional
 
 _NO_DEFAULT = object()
@@ -79,12 +80,18 @@ def generate_member_from_type_or_generic(
     elif all(t is type for t in types):
         m_cls = Subclass
     else:
-        # We cannot determine if a type has a trivial __instancecheck__ or not so
-        # we always use Instance since Typed will fail to validate with generic types
-        # such as collections.Iterable
-        m_cls = Instance
-
+        # Only a metaclass can implement __instancecheck__ so we check for an
+        # implementation differing from type.__instancecheck__ and use Instance
+        # if we find one and otherwise Typed.
         opt, filtered_types = is_optional(types)
+        if (
+            len(filtered_types) == 1
+            and type(filtered_types[0]).__instancecheck__ is type.__instancecheck__
+        ):
+            m_cls = Typed
+        else:
+            m_cls = Instance
+
         parameters = (filtered_types,)
         m_kwargs["optional"] = opt
         if opt and default not in (_NO_DEFAULT, None):
