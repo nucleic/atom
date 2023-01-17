@@ -421,7 +421,7 @@ CAtom_getstate( CAtom* self )
         }
         int test = PyObject_IsTrue( should_gs.get() );
         if ( test == 1) {
-            PyObject *value = PyObject_GetAttr( selfptr.get(), name );
+            PyObject *value =  member_cast( member )->getattr( selfptr.get() );
             if (!value || PyDict_SetItem( stateptr.get(), name, value ) ) {
                 Py_XDECREF( value );
                 return  0;
