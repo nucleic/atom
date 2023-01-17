@@ -15,6 +15,7 @@ from .list import List as AList
 from .scalars import Bool, Bytes, Callable as ACallable, Float, Int, Str, Value
 from .set import Set as ASet
 from .subclass import Subclass
+from .tuple import Tuple as ATuple
 from .typing_utils import extract_types, get_args, is_optional
 
 _NO_DEFAULT = object()
@@ -28,6 +29,7 @@ _TYPE_TO_MEMBER = {
     list: AList,
     dict: ADict,
     set: ASet,
+    tuple: ATuple,
     collections.abc.Callable: ACallable,
 }
 
