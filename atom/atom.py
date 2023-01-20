@@ -31,6 +31,7 @@ from .catom import (
     CAtom,
     ChangeType,
     DefaultValue,
+    GetState,
     Member,
     PostGetAttr,
     PostSetAttr,
@@ -45,6 +46,7 @@ VALIDATE_PREFIX = "_validate_"
 POST_GETATTR_PREFIX = "_post_getattr_"
 POST_SETATTR_PREFIX = "_post_setattr_"
 POST_VALIDATE_PREFIX = "_post_validate_"
+GETSTATE_PREFIX = "_getstate_"
 
 
 def observe(*names: str, change_types: ChangeType = ChangeType.ANY) -> "ObserveHandler":
@@ -294,6 +296,7 @@ class AtomMeta(type):
         post_getattrs = []  # Post getattr methods: _post_getattr_*
         post_setattrs = []  # Post setattr methods: _post_setattr_*
         post_validates = []  # Post validate methods: _post_validate_*
+        getstates = []  # Getstate methods: _getstate_*
         seen_sentinels = set()  # The set of seen sentinels
         seen_decorated = set()  # The set of seen @observe decorators
         for key, value in dct.items():
@@ -326,6 +329,8 @@ class AtomMeta(type):
                     post_getattrs.append(key)
                 elif key.startswith(POST_SETATTR_PREFIX):
                     post_setattrs.append(key)
+                elif key.startswith(GETSTATE_PREFIX):
+                    getstates.append(key)
 
         # Remove the sentinels from the dict before creating the class.
         # The sentinels for the @observe decorators are already removed.
@@ -494,6 +499,16 @@ class AtomMeta(type):
                 member.set_post_setattr_mode(PostSetAttr.ObjectMethod_OldNew, mangled)
             else:
                 _signal_missing_member(cls, mangled, members, "_post_setattr_")
+
+        # _getstate_* methods
+        n = len(GETSTATE_PREFIX)
+        for mangled in getstates:
+            target = mangled[n:]
+            if target in members:
+                member = clone_if_needed(members[target])
+                member.set_getstate_mode(GetState.ObjectMethod_Name, mangled)
+            else:
+                _signal_missing_member(cls, mangled, members, "_getstate_")
 
         # _observe_* methods
         n = len(OBSERVE_PREFIX)

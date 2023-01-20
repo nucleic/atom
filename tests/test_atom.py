@@ -213,6 +213,7 @@ class PicklingTest(Atom):
     a = b = c = Int()
 
 
+# See also test_get_set_state
 def test_pickling():
     """Test pickling an Atom instance."""
     pt = PicklingTest()
@@ -275,6 +276,7 @@ def test_traverse_atom():
         "_post_validate_x",
         "_post_getattr_",
         "_post_setattr_",
+        "_getstate_",
         "_observe_",
     ],
 )

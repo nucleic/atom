@@ -90,15 +90,17 @@ def test_using_include_non_default_handler():
 
 def test_using_object_method_name():
     """Test using object_method mode."""
-    m = Value()
-    m.set_getstate_mode(GetState.ObjectMethod_Name, "getstate")
 
     class A(Atom):
-        val = m
-        val2 = m
+        val = Value()
+        val2 = Value()
         seen = Value()
 
-        def getstate(self, name):
+        def _getstate_val(self, name: str) -> bool:
+            self.seen = name
+            return name == "val"
+
+        def _getstate_val2(self, name: str) -> bool:
             self.seen = name
             return name == "val"
 
@@ -109,7 +111,7 @@ def test_using_object_method_name():
     assert a.seen == "val2"
 
     with pytest.raises(TypeError):
-        m.set_getstate_mode(GetState.ObjectMethod_Name, 1)
+        Value().set_getstate_mode(GetState.ObjectMethod_Name, 1)
 
 
 def test_subclassing_member():
