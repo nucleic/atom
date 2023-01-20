@@ -66,7 +66,7 @@ Behaviors for custom members
 
 In order to create custom members, you can either subclass |Member| and set
 the modes in the ``__init__`` method, or set the modes after instantiating the
-member. The modes that can be used in conjuction with custom callable or
+member. The modes that can be used in conjunction with custom callable or
 methods are listed below and expected signature of the callable or the method
 can be directly inferred from the mode. When specifying a method, the second
 item of the mode should be the name of the method. In the following, **Object**
@@ -113,6 +113,10 @@ always  refers to an |Atom| subclass instance and **Name** to the member name.
     - ObjectMethod_OldNew
     - ObjectMethod_NameOldNew
     - MemberMethod_ObjectOldNew
+
+- |GetState|:
+    - ObjectMethod_Name
+    - MemberMethod_Object
 
 .. note::
 

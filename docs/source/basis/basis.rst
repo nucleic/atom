@@ -227,6 +227,12 @@ The output of this block will be:
     Atom objects can be frozen using |Atom.freeze| at any time of their
     lifetime to forbid further modifications.
 
+.. note::
+
+    Atom objects can be pickled. Starting with atom 0.9.0 only pickleable
+    members will be pickled (Constant is not pickled since it cannot be restored)
+    and the fact that an object is frozen is preserved across pickling-unpickling.
+
 
 Conclusion
 ----------

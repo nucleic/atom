@@ -20,6 +20,7 @@ one of the following prefixes depending on the operation to customize:
 - ``_post_getattr_``: to customize the post-getattr step.
 - ``_post_setattr_``: to customize the post-setattr step.
 - ``_post_validate_``: to customize the post-setattr step.
+- ``_getstate_``: to determine if a member should be pickled
 
 Default values
 --------------
@@ -106,3 +107,20 @@ member as input, and post-validate should return a valid value.
         def _post_validate_v(self, old, new):
             print('v was validated')
             return value
+
+Pickle
+------
+
+Getstate method should take as single argument the name of the member they apply
+to and return a bool indicating whether or not the member value should be included
+in the object pickle.
+
+.. code-block:: python
+
+    class MyAtom(Atom):
+
+        v = Value()
+
+        def _getstate_v(self, name):
+            print('do not pickle v')
+            return False
