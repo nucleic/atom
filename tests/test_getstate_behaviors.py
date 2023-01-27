@@ -78,11 +78,10 @@ def test_using_exclude_handler():
 
 def test_using_include_non_default_handler():
     """Test using the include handler."""
-    v = Value()
-    v.set_getstate_mode(GetState.IncludeNonDefault, None)
 
     class A(Atom):
-        val = v
+        val = Value()
+        val.set_getstate_mode(GetState.IncludeNonDefault, None)
 
     assert A.val.do_should_getstate(A()) is False
     assert A.val.do_should_getstate(A(val=1)) is True

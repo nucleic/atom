@@ -124,3 +124,26 @@ in the object pickle.
         def _getstate_v(self, name):
             print('do not pickle v')
             return False
+
+.. note::
+
+    Contrary to other operations, answering to the question whether a member
+    should be pickled or not can be done for a given Atom class and has little
+    to do with the current state of the class instance. For such cases, it
+    is possible to directly set the member getstate mode as follows:
+
+    .. code:: python
+
+        from atom.api import GetState
+
+        class A(Atom):
+
+            # This member will never be pickled.
+            unpickeable = Value()
+            unpickeable.set_getstate_mode(GetState.Exclude, None)
+
+    Useful variants from the |GetState| enum are:
+    - Include: also include the member value in the pickle
+    - Exclude: never include the member value in the pickle
+    - IncludeNonDefault: include the member value only if it already exists (i.e.
+      we won't need to invoke default to get a value).
