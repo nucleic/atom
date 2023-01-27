@@ -71,6 +71,7 @@ value and perform the *post-getattr*, and no notification will be generated.
 To summarize:
 
 .. digraph:: getattr
+    :align: center
 
     a [label="A value was previously set?"];
     a->b[label="Yes"];
@@ -105,6 +106,7 @@ Finally is any observer is attached, the observers are notified.
 To summarize:
 
 .. digraph:: setattr
+    :align: center
 
     a [label="validate the value"];
     a->b;
