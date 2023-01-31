@@ -99,6 +99,8 @@
 
 .. |PostValidate| replace:: :py:class:`~atom.catom.PostValidate`
 
+.. |GetState| replace:: :py:class:`~atom.catom.GetState`
+
 .. |Member| replace:: :py:class:`~atom.catom.Member`
 
 .. |Member.notify| replace:: :py:meth:`~atom.catom.Member.notify`

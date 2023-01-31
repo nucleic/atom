@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2019, Nucleic Development Team.
+| Copyright (c) 2013-2023, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -29,6 +29,7 @@ struct Member
 {
     PyObject_HEAD
     uint64_t modes;
+    uint64_t extra_modes;
     uint32_t index;
     PyObject* name;
     PyObject* metadata;
@@ -40,6 +41,7 @@ struct Member
     PyObject* post_setattr_context;
     PyObject* default_value_context;
     PyObject* post_validate_context;
+    PyObject* getstate_context;
     ModifyGuard<Member>* modify_guard;
     std::vector<Observer>* static_observers;
 
@@ -141,6 +143,17 @@ struct Member
         modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 56 );
     }
 
+    GetState::Mode get_getstate_mode()
+    {
+        return static_cast<GetState::Mode>( ( extra_modes ) & 0xff );
+    }
+
+    void set_getstate_mode( GetState::Mode mode )
+    {
+        uint64_t mask = UINT64_C( 0xffffffffffffff00 );
+        extra_modes = ( extra_modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) );
+    }
+
     PyObject* getattr( CAtom* atom );
 
     int setattr( CAtom* atom, PyObject* value );
@@ -158,6 +171,8 @@ struct Member
     PyObject* post_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue );
 
     PyObject* full_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue );
+
+    PyObject* should_getstate( CAtom* atom );
 
     bool has_observers()
     {
@@ -204,6 +219,8 @@ struct Member
     static bool check_context( PostValidate::Mode mode, PyObject* context );
 
     static bool check_context( DelAttr::Mode mode, PyObject* context );
+
+    static bool check_context( GetState::Mode mode, PyObject* context );
 
     static int TypeCheck( PyObject* object )
     {

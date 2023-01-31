@@ -20,6 +20,7 @@ one of the following prefixes depending on the operation to customize:
 - ``_post_getattr_``: to customize the post-getattr step.
 - ``_post_setattr_``: to customize the post-setattr step.
 - ``_post_validate_``: to customize the post-setattr step.
+- ``_getstate_``: to determine if a member should be pickled
 
 Default values
 --------------
@@ -106,3 +107,43 @@ member as input, and post-validate should return a valid value.
         def _post_validate_v(self, old, new):
             print('v was validated')
             return value
+
+Pickle
+------
+
+Getstate method should take as single argument the name of the member they apply
+to and return a bool indicating whether or not the member value should be included
+in the object pickle.
+
+.. code-block:: python
+
+    class MyAtom(Atom):
+
+        v = Value()
+
+        def _getstate_v(self, name):
+            print('do not pickle v')
+            return False
+
+.. note::
+
+    Contrary to other operations, answering to the question whether a member
+    should be pickled or not can be done for a given Atom class and has little
+    to do with the current state of the class instance. For such cases, it
+    is possible to directly set the member getstate mode as follows:
+
+    .. code:: python
+
+        from atom.api import GetState
+
+        class A(Atom):
+
+            # This member will never be pickled.
+            unpickeable = Value()
+            unpickeable.set_getstate_mode(GetState.Exclude, None)
+
+    Useful variants from the |GetState| enum are:
+    - Include: also include the member value in the pickle
+    - Exclude: never include the member value in the pickle
+    - IncludeNonDefault: include the member value only if it already exists (i.e.
+      we won't need to invoke default to get a value).

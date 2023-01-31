@@ -4,6 +4,11 @@ Atom Release Notes
 0.9.0 - unreleased
 ------------------
 
+- move getstate and setstate implementation to C and allow to customize the condition
+  under which a member value is pickled. PR #182
+  Customization is used to only pickle member value whose state can be restored
+  (for example Constant is not pickled). Whether a member is pickled can be customized
+  using a method prefixed with ``_getstate_`` on an Atom subclass.
 - use the Typed member when a type annotation resolve to a single type whose
   metaclass does not implement a custom ``__instancecheck__``  PR #185
 - generate Tuple member for tuple[] annotations.

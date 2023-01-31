@@ -21,8 +21,8 @@
 #include "methodwrapper.h"
 #include "packagenaming.h"
 #include "utils.h"
+#include "member.h"
 
-#define member_cast( o ) reinterpret_cast<Member*>( o )
 #define signal_cast( o ) reinterpret_cast<Signal*>( o )
 #define pymethod_cast( o ) reinterpret_cast<PyMethodObject*>( o )
 
@@ -35,6 +35,7 @@ namespace
 {
 
 static PyObject* atom_members;
+static PyObject* atom_flags;
 
 
 PyObject*
@@ -370,6 +371,106 @@ CAtom_sizeof( CAtom* self, PyObject* args )
     return PyLong_FromSsize_t( size );
 }
 
+PyObject*
+CAtom_getstate( CAtom* self )
+{
+    cppy::ptr stateptr = PyDict_New();
+    if ( !stateptr )
+        return PyErr_NoMemory();  // LCOV_EXCL_LINE
+
+    cppy::ptr selfptr(pyobject_cast(self), true);
+
+    // Copy __dict__ if present. Using hasattr / getattr makes it slower
+    // than the py version hence the _PyObject_GetDictPtr.
+    if ( PyObject** dict = _PyObject_GetDictPtr( selfptr.get() ) )
+    {
+        if ( PyDict_Update( stateptr.get(), dict[0] ) )
+            return 0;
+    }
+
+    // Copy __slots__ if present. This assumes copyreg._slotnames was called
+    // during AtomMeta's initialization
+    {
+        cppy::ptr typeptr = PyObject_Type(selfptr.get());
+        if (!typeptr)
+            return 0;
+        cppy::ptr slotnamesptr = typeptr.getattr("__slotnames__");
+        if (!slotnamesptr.get())
+            return 0;
+        if (!PyList_CheckExact(slotnamesptr.get()))
+            return cppy::system_error( "slot names" );
+        for ( Py_ssize_t i=0; i < PyList_GET_SIZE(slotnamesptr.get()); i++ )
+        {
+            PyObject *name = PyList_GET_ITEM(slotnamesptr.get(), i);
+            cppy::ptr value = selfptr.getattr(name);
+            if (!value || PyDict_SetItem(stateptr.get(), name, value.get()) )
+                return  0;
+        }
+    }
+
+    cppy::ptr membersptr = selfptr.getattr(atom_members);
+    if ( !membersptr || !PyDict_CheckExact( membersptr.get() ) )
+        return cppy::system_error( "atom members" );
+
+    PyObject *name, *member;
+    Py_ssize_t pos = 0;
+    while ( PyDict_Next(membersptr.get(), &pos, &name, &member) ) {
+        cppy::ptr should_gs = member_cast( member )->should_getstate( self );
+        if ( !should_gs ) {
+            return 0;
+        }
+        int test = PyObject_IsTrue( should_gs.get() );
+        if ( test == 1) {
+            PyObject *value =  member_cast( member )->getattr( self );
+            if (!value || PyDict_SetItem( stateptr.get(), name, value ) ) {
+                Py_XDECREF( value );
+                return  0;
+            }
+        }
+        else if ( test == -1 ) {
+            return 0;
+        }
+    }
+
+    // Frozen state
+    if ( self->is_frozen() && PyDict_SetItem(stateptr.get(), atom_flags, Py_None) )
+        return 0;
+
+    return stateptr.release();
+}
+
+PyObject*
+CAtom_setstate( CAtom* self, PyObject* args )
+{
+    if( PyTuple_GET_SIZE( args ) != 1 )
+        return cppy::type_error( "__setstate__() takes exactly one argument" );
+    PyObject* state = PyTuple_GET_ITEM( args, 0 );
+    cppy::ptr itemsptr = PyMapping_Items(state);
+    if ( !itemsptr )
+        return 0;
+    cppy::ptr selfptr(pyobject_cast(self), true);
+
+    // If the -f key is present freeze the object
+    bool frozen = PyMapping_HasKey(state, atom_flags);
+    if ( frozen )
+    {
+        if ( PyMapping_DelItem(state, atom_flags) == -1 )
+            return 0;
+    }
+
+    for ( Py_ssize_t i = 0; i < PyMapping_Size(state); i++ ) {
+        PyObject* item = PyList_GET_ITEM(itemsptr.get(), i);
+        PyObject* key = PyTuple_GET_ITEM(item , 0);
+        PyObject* value = PyTuple_GET_ITEM(item , 1);
+        if ( !selfptr.setattr(key, value) )
+            return 0;
+    }
+
+    if ( frozen )
+        self->set_frozen(true);
+
+    Py_RETURN_NONE;
+}
 
 static PyMethodDef
 CAtom_methods[] = {
@@ -393,6 +494,10 @@ CAtom_methods[] = {
       "Freeze the atom to prevent further modifications to its attributes." },
     { "__sizeof__", ( PyCFunction )CAtom_sizeof, METH_NOARGS,
       "__sizeof__() -> size of object in memory, in bytes" },
+    { "__getstate__", ( PyCFunction )CAtom_getstate, METH_NOARGS,
+      "The base implementation of the pickle getstate protocol." },
+    { "__setstate__", ( PyCFunction )CAtom_setstate, METH_VARARGS,
+      "The base implementation of the pickle setstate protocol." },
     { 0 } // sentinel
 };
 
@@ -451,6 +556,10 @@ bool CAtom::Ready()
     {
         return false;
     }
+
+    atom_flags = PyUnicode_FromString( "--frozen" );
+    if( !atom_flags )
+        return false;
 
     return true;
 }

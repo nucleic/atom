@@ -103,7 +103,7 @@ def test_using_object_method_mode():
     assert a.val == 2
 
     with pytest.raises(TypeError):
-        m.set_getattr_mode(GetAttr.CallObject_Object, 1)
+        m.set_getattr_mode(GetAttr.ObjectMethod, 1)
 
 
 def test_using_object_method_name_mode():
@@ -124,7 +124,7 @@ def test_using_object_method_name_mode():
     assert a.val == (2, "val")
 
     with pytest.raises(TypeError):
-        m.set_getattr_mode(GetAttr.CallObject_Object, 1)
+        m.set_getattr_mode(GetAttr.ObjectMethod_Name, 1)
 
 
 def test_subclassing_member():

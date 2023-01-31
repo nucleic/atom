@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2021, Nucleic Development Team.
+| Copyright (c) 2013-2023, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -189,5 +189,21 @@ enum Mode
 };
 
 } // namespace DelAttr
+
+
+namespace GetState
+{
+
+enum Mode
+{
+    Include,  // We want include to be the default behavior
+    Exclude,
+    IncludeNonDefault,
+    Property,
+    ObjectMethod_Name,
+    MemberMethod_Object,
+};
+
+}  // namespace GetState
 
 }  // namespace atom
