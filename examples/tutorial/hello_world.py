@@ -14,7 +14,6 @@ from atom.api import Atom, Str
 
 
 class Hello(Atom):
-
     message = Str("Hello")
 
 

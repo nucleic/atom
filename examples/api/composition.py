@@ -20,7 +20,6 @@ from atom.api import Atom, ForwardTyped, Str, Typed
 
 
 class Dog(Atom):
-
     name = Str()
 
     # note the use of lambda, because Person has not been defined
@@ -28,7 +27,6 @@ class Dog(Atom):
 
 
 class Person(Atom):
-
     name = Str()
 
     # uses static constructor

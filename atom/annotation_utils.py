@@ -125,7 +125,6 @@ def generate_members_from_cls_namespace(
         # We skip field for which a member was already provided or annotations
         # corresponding to class variables.
         if isinstance(default, (Member, set_default)):
-
             # Allow string annotations for members
             if isinstance(ann, str):
                 continue

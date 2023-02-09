@@ -36,13 +36,11 @@ def static_atom():
     """Class to test static observers."""
 
     class Extended(Atom):
-
         val = Int()
 
     obs_decorator = observe("val2", "ext.val")
 
     class ObserverTest(Atom):
-
         cls = Extended
 
         ext = Value()
@@ -80,6 +78,7 @@ def test_static_observer(static_atom):
 
 def test_manual_static_observers(static_atom):
     """Test manually managing static observers."""
+
     # Force the use of safe comparison (error cleaning and fallback)
     class Observer:
         def __eq__(self, other):
@@ -150,6 +149,7 @@ def test_manual_static_observers(static_atom):
 )
 def test_static_observers_change_types(change_type, expected_types):
     """Test manually managing static observers."""
+
     # Force the use of safe comparison (error cleaning and fallback)
     class Widget(Atom):
         val = Value()
@@ -517,7 +517,6 @@ def test_binding_event_signals():
     """Test directly binding events and signals."""
 
     class EventSignalTest(Atom):
-
         e = Event()
 
         s = Signal()
@@ -638,7 +637,6 @@ def sd_observed_atom():
             self.count += 1
 
     class NotifTest(Atom):
-
         val = Value()
 
         count = Int()

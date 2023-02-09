@@ -95,7 +95,6 @@ def test_delegator_behaviors():
     """Test that a Delegator does properly forward the behaviors."""
 
     class DelegateTest(Atom):
-
         d = Delegator(TrackedInt(True))
 
     # Test that behaviors are properly delegated
@@ -167,7 +166,6 @@ def test_delegator_methods():
     """
 
     class DelegateTest(Atom):
-
         d = Delegator(TrackedInt(True))
 
     assert DelegateTest.d.name == "d"
@@ -198,7 +196,6 @@ def test_delegator_cloning():
     """
 
     class DelegateTest(Atom):
-
         tracked_int = TrackedInt(True)
 
         d = Delegator(tracked_int)

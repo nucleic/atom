@@ -14,7 +14,7 @@ import pytest
 
 example_folder = os.path.join(os.path.dirname(__file__), "..", "examples")
 examples = list()
-for (dirpath, dirnames, filenames) in os.walk(example_folder):
+for dirpath, dirnames, filenames in os.walk(example_folder):
     examples += [os.path.join(dirpath, f) for f in filenames]
 
 

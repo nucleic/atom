@@ -46,7 +46,6 @@ def test_traverse():
     """Test traversing on deletion."""
 
     class Holder(Atom):
-
         smap = Value()
 
     h = Holder()

@@ -12,7 +12,6 @@ from atom.api import Atom, FloatRange, Range
 
 
 class Experiment(Atom):
-
     coef = FloatRange(-1.0, 1.0, 0.0)
 
     gain = Range(0, 100, 10)

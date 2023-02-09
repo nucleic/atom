@@ -140,7 +140,6 @@ def test_subclassing_member():
             return self.get_slot(obj) % 2
 
     class GetTest(Atom):
-
         mi = ModuloInt()
 
     pvt = GetTest()

@@ -20,7 +20,7 @@ class Typed(Member[T, T]):
         kwargs: None = None,
         *,
         factory: None = None,
-        optional: None = None
+        optional: None = None,
     ) -> Typed[Optional[T]]: ...
     @overload
     def __new__(
@@ -30,7 +30,7 @@ class Typed(Member[T, T]):
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
-        optional: None = None
+        optional: None = None,
     ) -> Typed[T]: ...
     @overload
     def __new__(
@@ -40,7 +40,7 @@ class Typed(Member[T, T]):
         *,
         kwargs: Dict[str, Any],
         factory: None = None,
-        optional: None = None
+        optional: None = None,
     ) -> Typed[T]: ...
     @overload
     def __new__(
@@ -50,7 +50,7 @@ class Typed(Member[T, T]):
         kwargs: None = None,
         *,
         factory: Callable[[], T],
-        optional: None = None
+        optional: None = None,
     ) -> Typed[T]: ...
     @overload
     def __new__(
@@ -60,7 +60,7 @@ class Typed(Member[T, T]):
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
-        optional: Literal[True]
+        optional: Literal[True],
     ) -> Typed[Optional[T]]: ...
     @overload
     def __new__(
@@ -70,7 +70,7 @@ class Typed(Member[T, T]):
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
-        optional: Literal[False]
+        optional: Literal[False],
     ) -> Typed[T]: ...
 
 class ForwardTyped(Member[T, T]):
@@ -82,7 +82,7 @@ class ForwardTyped(Member[T, T]):
         kwargs: None = None,
         *,
         factory: None = None,
-        optional: None = None
+        optional: None = None,
     ) -> ForwardTyped[Optional[T]]: ...
     @overload
     def __new__(
@@ -92,7 +92,7 @@ class ForwardTyped(Member[T, T]):
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
-        optional: None = None
+        optional: None = None,
     ) -> ForwardTyped[T]: ...
     @overload
     def __new__(
@@ -102,7 +102,7 @@ class ForwardTyped(Member[T, T]):
         *,
         kwargs: Dict[str, Any],
         factory: None = None,
-        optional: None = None
+        optional: None = None,
     ) -> ForwardTyped[T]: ...
     @overload
     def __new__(
@@ -112,7 +112,7 @@ class ForwardTyped(Member[T, T]):
         kwargs: None = None,
         *,
         factory: Callable[[], T],
-        optional: None = None
+        optional: None = None,
     ) -> ForwardTyped[T]: ...
     @overload
     def __new__(
@@ -122,7 +122,7 @@ class ForwardTyped(Member[T, T]):
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
-        optional: Literal[True]
+        optional: Literal[True],
     ) -> ForwardTyped[Optional[T]]: ...
     @overload
     def __new__(
@@ -132,5 +132,5 @@ class ForwardTyped(Member[T, T]):
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
-        optional: Literal[False]
+        optional: Literal[False],
     ) -> ForwardTyped[T]: ...

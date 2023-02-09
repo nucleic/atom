@@ -76,13 +76,11 @@ def test_multi_inheritance():
     """Test that multiple inheritance does not break the memory layout."""
 
     class Multi1(Atom):
-
         i1 = Int()
 
         i2 = Int()
 
     class Multi2(Atom):
-
         i3 = Int()
 
         i4 = Int()
@@ -93,7 +91,6 @@ def test_multi_inheritance():
     assert Multi1.i2.index == Multi2.i3.index or Multi1.i2.index == Multi2.i4.index
 
     class Multi(Multi1, Multi2):
-
         i4 = Int(12)  # Test that conflicts do not mess up overridden members
 
     assert Multi().i4 == 12
@@ -105,7 +102,6 @@ def test_multi_inheritance():
             assert m.index != m2.index
 
     class Mixin(Atom):
-
         i5 = Int()
 
         i6 = Int()
@@ -113,11 +109,9 @@ def test_multi_inheritance():
         i7 = Int()
 
     class MultiNext(Multi, Mixin):
-
         i1 = Int()
 
     class MultiNext2(MultiNext):
-
         i1 = Int()
 
     assert sorted(m.index for m in MultiNext2.__atom_members__.values()) == list(
@@ -187,7 +181,6 @@ def test_listing_members():
     """Test listing the members from an Atom instance."""
 
     class MembersTest(Atom):
-
         a = b = c = d = e = Int()
 
     assert sorted(MembersTest().members().keys()) == ["a", "b", "c", "d", "e"]
@@ -207,7 +200,6 @@ def test_getting_members():
 
 
 class PicklingTest(Atom):
-
     __slots__ = ("d",)
 
     a = b = c = Int()
@@ -235,7 +227,6 @@ def test_freezing():
     """Test freezing an Atom instance."""
 
     class FreezingTest(Atom):
-
         a = Int()
 
     ft = FreezingTest()
@@ -253,7 +244,6 @@ def test_traverse_atom():
     """Test that we can break reference cycles involving Atom object."""
 
     class MyAtom(Atom):
-
         val = Value()
 
     a = MyAtom()

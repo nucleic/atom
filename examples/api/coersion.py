@@ -12,7 +12,6 @@ from atom.api import Atom, Coerced
 
 
 class Demo(Atom):
-
     # The coercer could be omitted but being explicit helps static type checkers
     cint = Coerced(int, coercer=int)
     cfloat = Coerced(float, coercer=float)
