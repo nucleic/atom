@@ -209,7 +209,6 @@ def test_validation_modes(member, set_values, values, raising_values):
     """Test the validation modes."""
 
     class MemberTest(Atom):
-
         m = member
 
     tester = MemberTest()
@@ -240,7 +239,6 @@ def test_validating_container_subclasses(members, value):
     """Ensure that we can pass atom containers to members."""
 
     class MemberTest(Atom):
-
         m1 = members[0]
         m2 = members[1]
 
@@ -291,7 +289,6 @@ def test_event_validation():
     """Test validating the payload of an Event."""
 
     class EventValidationTest(Atom):
-
         ev_member = Event(Int())
 
         ev_type = Event(int)
@@ -339,7 +336,6 @@ def om_on_atom():
     """Use an object method to customize validate."""
 
     class ValidatorTest(Atom):
-
         v = Value(0)
 
         def _validate_v(self, old, new):
@@ -356,7 +352,6 @@ def om_non_atom():
     """Use an object method taking the member name to customize validate."""
 
     class ValidatorTest(Atom):
-
         v = Value(0)
         v.set_validate_mode(Validate.ObjectMethod_NameOldNew, "validate_v")
 
@@ -386,7 +381,6 @@ def mm_oon_atom():
             return new
 
     class ValidatorTest(Atom):
-
         v = CustomValue()
 
     return ValidatorTest()

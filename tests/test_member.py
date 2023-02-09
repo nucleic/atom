@@ -69,7 +69,6 @@ def test_name_managing_name():
     """Test getting/setting the name of a Member."""
 
     class NameTest(Atom):
-
         v = Value()
 
         t = Tuple(Int())
@@ -107,7 +106,6 @@ def test_managing_slot_index():
     """Test getting and setting the index of a Member."""
 
     class IndexTest(Atom):
-
         v1 = Value()
         v2 = Value()
 
@@ -156,7 +154,6 @@ def test_metadata_handling():
     assert Value().metadata is None
 
     class MetadataTest(Atom):
-
         m = Value().tag(pref=True)
 
     mt = MetadataTest()
@@ -185,7 +182,6 @@ def test_direct_slot_access():
     """Test accessing a slot directly."""
 
     class SlotTest(Atom):
-
         v = Value()
 
     st = SlotTest()

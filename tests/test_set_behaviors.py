@@ -34,7 +34,6 @@ def test_unsettable(member, mode):
     """Test that unsettable members do raise the proper error."""
 
     class Unsettable(Atom):
-
         m = member
 
     u = Unsettable()
@@ -53,7 +52,6 @@ def test_wrong_index_value(member, mode):
     """
 
     class Unsettable(Atom):
-
         m = member
 
     Unsettable.m.set_index(100)
@@ -68,7 +66,6 @@ def test_read_only_behavior():
     """Test the behavior of read only member."""
 
     class ReadOnlyTest(Atom):
-
         r = ReadOnly()
 
     rt = ReadOnlyTest()
@@ -83,7 +80,6 @@ def test_no_op():
     """Test the no-op behavior."""
 
     class Unsettable(Atom):
-
         m = Constant("1")
         m.set_setattr_mode(SetAttr.NoOp, None)
 
@@ -157,7 +153,6 @@ def mm_ov_factory():
             self.set_slot(obj, value % 2)
 
     class SetTest(Atom):
-
         mi = ModuloInt()
 
     return SetTest

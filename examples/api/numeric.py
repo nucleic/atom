@@ -14,7 +14,6 @@ from atom.api import Atom, Bool, Float, Int
 
 
 class Data(Atom):
-
     ival = Int(1)
 
     lval = Int(sys.maxsize + 1)

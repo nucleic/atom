@@ -29,7 +29,6 @@ def test_del_noop():
     member.set_delattr_mode(DelAttr.NoOp, None)
 
     class A(Atom):
-
         m = member
 
     assert A.m.delattr_mode[0] == DelAttr.NoOp
@@ -54,7 +53,6 @@ def test_undeletable(member, mode):
     """Test that unsettable members do raise the proper error."""
 
     class Undeletable(Atom):
-
         m = member
 
     assert Undeletable.m.delattr_mode[0] == mode
@@ -69,7 +67,6 @@ def test_del_slot():
     """Test deleting a member using the slot handler."""
 
     class DelSlot(Atom):
-
         i = Int(10)
 
     a = DelSlot()

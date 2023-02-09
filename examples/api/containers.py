@@ -12,7 +12,6 @@ from atom.api import Atom, ContainerList, Dict, List, Tuple
 
 
 class Data(Atom):
-
     dlist = List(default=[1, 2, 3])
 
     dcont_list = ContainerList(default=[1, 2, 3])

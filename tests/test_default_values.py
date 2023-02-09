@@ -199,7 +199,6 @@ def test_callobject_handler(member, expected, mode):
     """Test calling factory handler."""
 
     class CallTest(Atom):
-
         m = member
 
     assert CallTest.m.default_value_mode[0] == mode
@@ -214,7 +213,6 @@ def test_callobject_object_handler():
     member.set_default_value_mode(mode, lambda obj: id(obj))
 
     class A(Atom):
-
         m = member
 
     a1 = A()
@@ -231,7 +229,6 @@ def test_callobject_object_name_handler():
     member.set_default_value_mode(mode, lambda obj, name: (id(obj), name))
 
     class A(Atom):
-
         m = member
 
     a1 = A()
@@ -268,7 +265,6 @@ def test_member_method_object_handler():
             return SENTINEL
 
     class MemberTest(Atom):
-
         m = DefaultValueMember()
 
     assert MemberTest.m.default_value_mode[0] == DefaultValue.MemberMethod_Object

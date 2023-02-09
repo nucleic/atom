@@ -36,7 +36,6 @@ def test_property1():
         del obj.i
 
     class PropertyTest(Atom):
-
         p = Property(get_function, set_function, del_function)
 
         i = Int()
@@ -58,7 +57,6 @@ def test_property2():
     """Test defining a property using the decorators."""
 
     class PropertyTest(Atom):
-
         p = Property()
 
         i = Int()
@@ -88,7 +86,6 @@ def test_property3():
     """Test defining a property mangled method names."""
 
     class PropertyTest(Atom):
-
         p = Property()
 
         i = Int()
@@ -115,7 +112,6 @@ def test_property4():
     """Test handling missing function(fget, fset, fdel)"""
 
     class PropertyTest(Atom):
-
         p = Property()
 
     pt = PropertyTest()
@@ -133,7 +129,6 @@ def test_cached_property():
     """Test using a cached property."""
 
     class PropertyTest(Atom):
-
         i = Int()
 
         @cached_property
@@ -177,7 +172,6 @@ def test_observed_property():
             return other + 5
 
     class PropertyTest(Atom):
-
         i = Value(0)
 
         counter = Int()

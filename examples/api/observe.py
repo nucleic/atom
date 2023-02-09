@@ -12,7 +12,6 @@ from atom.api import Atom, ChangeDict, Range, Str, Typed, observe
 
 
 class Dog(Atom):
-
     name = Str()
 
 

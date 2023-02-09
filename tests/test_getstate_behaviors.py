@@ -54,7 +54,6 @@ def test_member_getstate_mode(member, mode):
 
 
 class A(Atom):
-
     val = Value()
 
 
@@ -125,7 +124,6 @@ def test_subclassing_member():
             return obj.pickle
 
     class A(Atom):
-
         v = CustomV()
         pickle = Bool()
 
@@ -150,7 +148,6 @@ def test_handling_exception_in_getstate():
             raise RuntimeError
 
     class A(Atom):
-
         v = CustomV()
 
     with pytest.raises(RuntimeError):
