@@ -138,7 +138,7 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
     return tuple(extracted)
 
 
-def extract_types(kind: Union[Any, Tuple[Any]]) -> Tuple[type, ...]:
+def extract_types(kind: Union[TypeLike, Tuple[TypeLike, ...]]) -> Tuple[type, ...]:
     """Extract a tuple of types from a type-like object or tuple."""
     return tuple(
         chain.from_iterable(

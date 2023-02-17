@@ -37,14 +37,14 @@ _TYPE_TO_MEMBER = {
 
 def generate_member_from_type_or_generic(
     type_generic: Any, default: Any, annotate_type_containers: int
-) -> Member[Any, Any]:
+) -> Member:
     """Generate a member from a type or generic alias."""
     types = extract_types(type_generic)
     parameters = get_args(type_generic)
 
     m_kwargs = {}
 
-    m_cls: Type[Member[Any, Any]]
+    m_cls: Type[Member]
     if any(
         isinstance(t, type) and issubclass(t, Member) for t in types
     ) and not isinstance(default, Member):
