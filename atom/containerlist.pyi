@@ -17,7 +17,7 @@ class ContainerList(Member[List[T], List[T]]):
     # No default
     @overload
     def __new__(
-        cls, kind: None = None, default: Optional[list] = None
+        cls, kind: None = None, default: Optional[List[Any]] = None
     ) -> ContainerList[Any]: ...
     @overload
     def __new__(cls, kind: Type[T], default: None = None) -> ContainerList[T]: ...

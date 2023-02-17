@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021, Nucleic Development Team.
+# Copyright (c) 2021-2023, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -16,29 +16,29 @@ T2 = TypeVar("T2")
 class Tuple(Member[TTuple[T, ...], TTuple[T, ...]]):
     @overload
     def __new__(
-        cls, kind: None = None, default: Optional[TTuple] = None
+        cls, kind: None = None, default: Optional[TTuple[Any, ...]] = None
     ) -> Tuple[Any]: ...
     @overload
     def __new__(
-        self, kind: Type[T], default: Optional[TTuple[T, ...]] = None
+        cls, kind: Type[T], default: Optional[TTuple[T, ...]] = None
     ) -> Tuple[T]: ...
     @overload
     def __new__(
-        self, kind: TTuple[Type[T]], default: Optional[TTuple[T, ...]] = None
+        cls, kind: TTuple[Type[T]], default: Optional[TTuple[T, ...]] = None
     ) -> Tuple[T]: ...
     @overload
     def __new__(
-        self,
+        cls,
         kind: TTuple[Type[T], Type[T1]],
         default: Optional[TTuple[Union[T, T1], ...]] = None,
     ) -> Tuple[Union[T, T1]]: ...
     @overload
     def __new__(
-        self,
+        cls,
         kind: TTuple[Type[T], Type[T1], Type[T2]],
         default: Optional[TTuple[Union[T, T1, T2], ...]] = None,
     ) -> Tuple[Union[T, T1, T2]]: ...
     @overload
     def __new__(
-        self, kind: Member[T, Any], default: Optional[TTuple[T]] = None
+        cls, kind: Member[T, Any], default: Optional[TTuple[T]] = None
     ) -> Tuple[T]: ...

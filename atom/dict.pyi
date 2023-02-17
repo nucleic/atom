@@ -22,19 +22,28 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
     # Untyped
     @overload
     def __new__(
-        cls, key: None = None, value: None = None, default: Optional[dict] = None
+        cls,
+        key: None = None,
+        value: None = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[Any, Any]: ...
     # No default
     # Typed keys
     # - type
     @overload
     def __new__(
-        cls, key: Type[KT], value: None = None, default: Optional[dict] = None
+        cls,
+        key: Type[KT],
+        value: None = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, Any]: ...
     # - 1-tuple
     @overload
     def __new__(
-        cls, key: Tuple[Type[KT]], value: None = None, default: Optional[dict] = None
+        cls,
+        key: Tuple[Type[KT]],
+        value: None = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, Any]: ...
     # - 2-tuple
     @overload
@@ -42,7 +51,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1]],
         value: None = None,
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1, Any]: ...
     # - 3-tuple
     @overload
@@ -50,23 +59,29 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: None = None,
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1 | KT2, Any]: ...
     # - member
     @overload
     def __new__(
-        cls, key: Member[KT, Any], value: None = None, default: Optional[dict] = None
+        cls,
+        key: Member[KT, Any],
+        value: None = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, Any]: ...
     # Typed values
     # - type
     @overload
     def __new__(
-        cls, key: None, value: Type[VT], default: Optional[dict] = None
+        cls, key: None, value: Type[VT], default: Optional[TDict[Any, Any]] = None
     ) -> Dict[Any, VT]: ...
     # - 1-tuple
     @overload
     def __new__(
-        cls, key: None, value: Tuple[Type[VT]], default: Optional[dict] = None
+        cls,
+        key: None,
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[Any, VT]: ...
     # - 2-tuple
     @overload
@@ -74,7 +89,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: None,
         value: Tuple[Type[VT], Type[VT1]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[Any, VT | VT1]: ...
     # - 3-tuple
     @overload
@@ -82,23 +97,34 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: None,
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[Any, VT | VT1 | VT2]: ...
     # - member
     @overload
     def __new__(
-        cls, key: None, value: Member[VT, Any], default: Optional[dict] = None
+        cls,
+        key: None,
+        value: Member[VT, Any],
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[Any, VT]: ...
     # Typed value through keyword
     # - type
     @overload
     def __new__(
-        cls, key: None = None, *, value: Type[VT], default: Optional[dict] = None
+        cls,
+        key: None = None,
+        *,
+        value: Type[VT],
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[Any, VT]: ...
     # - 1-tuple
     @overload
     def __new__(
-        cls, key: None = None, *, value: Tuple[Type[VT]], default: Optional[dict] = None
+        cls,
+        key: None = None,
+        *,
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[Any, VT]: ...
     # - 2-tuple
     @overload
@@ -107,7 +133,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         key: None = None,
         *,
         value: Tuple[Type[VT], Type[VT1]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[Any, VT | VT1]: ...
     # - 3-tuple
     @overload
@@ -116,7 +142,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         key: None = None,
         *,
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[Any, VT | VT1 | VT2]: ...
     # - member
     @overload
@@ -125,19 +151,22 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         key: None = None,
         *,
         value: Member[VT, Any],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[Any, VT]: ...
     # Typed key and value
     # - value simple type
     #    - key type
     @overload
     def __new__(
-        cls, key: Type[KT], value: Type[VT], default: Optional[dict] = None
+        cls, key: Type[KT], value: Type[VT], default: Optional[TDict[Any, Any]] = None
     ) -> Dict[KT, VT]: ...
     #    - key 1-tuple
     @overload
     def __new__(
-        cls, key: Tuple[Type[KT]], value: Type[VT], default: Optional[dict] = None
+        cls,
+        key: Tuple[Type[KT]],
+        value: Type[VT],
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT]: ...
     #    - key 2-tuple
     @overload
@@ -145,7 +174,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1]],
         value: Type[VT],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1, VT]: ...
     #    - key 3-tuple
     @overload
@@ -153,18 +182,24 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: Type[VT],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1 | KT2, VT]: ...
     #    - key member
     @overload
     def __new__(
-        cls, key: Member[KT, Any], value: Type[VT], default: Optional[dict] = None
+        cls,
+        key: Member[KT, Any],
+        value: Type[VT],
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT]: ...
     # - Value as single element tuple
     #    - key type
     @overload
     def __new__(
-        cls, key: Type[KT], value: Tuple[Type[VT]], default: Optional[dict] = None
+        cls,
+        key: Type[KT],
+        value: Tuple[Type[VT]],
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT]: ...
     #    - key 1-tuple
     @overload
@@ -172,7 +207,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT]],
         value: Tuple[Type[VT]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT]: ...
     #    - key 2-tuple
     @overload
@@ -180,7 +215,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1]],
         value: Tuple[Type[VT]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1, VT]: ...
     #    - key 3-tuple
     @overload
@@ -188,7 +223,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: Tuple[Type[VT]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1 | KT2, VT]: ...
     #    - key member
     @overload
@@ -196,7 +231,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Member[KT, Any],
         value: Tuple[Type[VT]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT]: ...
     # - Value as 2-tuple
     #    - key type
@@ -205,7 +240,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Type[KT],
         value: Tuple[Type[VT], Type[VT1]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT | VT1]: ...
     #    - key 1-tuple
     @overload
@@ -213,7 +248,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT]],
         value: Tuple[Type[VT], Type[VT1]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT | VT1]: ...
     #    - key 2-tuple
     @overload
@@ -221,7 +256,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1]],
         value: Tuple[Type[VT], Type[VT1]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1, VT | VT1]: ...
     #    - key 3-tuple
     @overload
@@ -229,7 +264,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: Tuple[Type[VT], Type[VT1]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1 | KT2, VT | VT1]: ...
     #    - key member
     @overload
@@ -237,7 +272,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Member[KT, Any],
         value: Tuple[Type[VT], Type[VT1]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT | VT1]: ...
     # - Value as 3-tuple
     #   - key type
@@ -246,7 +281,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Type[KT],
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT | VT1 | VT2]: ...
     #   - key 1-tuple
     @overload
@@ -254,7 +289,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT]],
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT | VT1 | VT2]: ...
     #   - key 2-tuple
     @overload
@@ -262,7 +297,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1]],
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1, VT | VT1 | VT2]: ...
     #   - key 3-tuple
     @overload
@@ -270,7 +305,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1 | KT2, VT | VT1 | VT2]: ...
     #   - key member
     @overload
@@ -278,13 +313,16 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Member[KT, Any],
         value: Tuple[Type[VT], Type[VT1], Type[VT2]],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT | VT1 | VT2]: ...
     # - value as member
     #   - key type
     @overload
     def __new__(
-        cls, key: Type[KT], value: Member[VT, Any], default: Optional[dict] = None
+        cls,
+        key: Type[KT],
+        value: Member[VT, Any],
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT]: ...
     #   - key 1-tuple
     @overload
@@ -292,7 +330,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT]],
         value: Member[VT, Any],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT]: ...
     #   - key 2-tuple
     @overload
@@ -300,7 +338,7 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1]],
         value: Member[VT, Any],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1, VT]: ...
     #   - key 3-tuple
     @overload
@@ -308,10 +346,13 @@ class Dict(Member[TDict[KT, VT], TDict[KT, VT]]):
         cls,
         key: Tuple[Type[KT], Type[KT1], Type[KT2]],
         value: Member[VT, VT],
-        default: Optional[dict] = None,
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT | KT1 | KT2, VT]: ...
     #   - key member
     @overload
     def __new__(
-        cls, key: Member[KT, KT], value: Member[VT, VT], default: Optional[dict] = None
+        cls,
+        key: Member[KT, KT],
+        value: Member[VT, VT],
+        default: Optional[TDict[Any, Any]] = None,
     ) -> Dict[KT, VT]: ...

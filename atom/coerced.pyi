@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------------------
 from typing import Any, Callable, Dict, Optional, Tuple, Type, TypeVar, overload
 
-from .atom import Atom
 from .catom import Member
 
 T = TypeVar("T")
@@ -23,7 +22,7 @@ class Coerced(Member[T, S]):
     def __new__(
         cls,
         kind: Type[T],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -33,18 +32,18 @@ class Coerced(Member[T, S]):
     def __new__(
         cls,
         kind: Type[T],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
         coercer: Callable[[S], T],
     ) -> Coerced[T, T | S]: ...
-    # - 1-tuple
+    # - 1-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
         kind: Tuple[Type[T]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -54,18 +53,18 @@ class Coerced(Member[T, S]):
     def __new__(
         cls,
         kind: Tuple[Type[T]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
         coercer: Callable[[S], T],
     ) -> Coerced[T, T | S]: ...
-    # - 2-tuple
+    # - 2-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -75,18 +74,18 @@ class Coerced(Member[T, S]):
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
         coercer: Callable[[S], T | T1],
     ) -> Coerced[T | T1, T | T1 | S]: ...
-    # - 3-tuple
+    # - 3-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -96,7 +95,7 @@ class Coerced(Member[T, S]):
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -124,7 +123,7 @@ class Coerced(Member[T, S]):
         factory: Callable[[], T | S],
         coercer: Callable[[S], T],
     ) -> Coerced[T, T | S]: ...
-    # - 1-tuple
+    # - 1-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
@@ -145,7 +144,7 @@ class Coerced(Member[T, S]):
         factory: Callable[[], T | S],
         coercer: Callable[[S], T],
     ) -> Coerced[T, T | S]: ...
-    # - 2-tuple
+    # - 2-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
@@ -166,7 +165,7 @@ class Coerced(Member[T, S]):
         factory: Callable[[], T | T1 | S],
         coercer: Callable[[S], T | T1],
     ) -> Coerced[T | T1, T | T1 | S]: ...
-    # - 3-tuple
+    # - 3-Tuple[Any, ...]
     @overload
     def __new__(
         cls,

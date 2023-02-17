@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021, Nucleic Development Team.
+# Copyright (c) 2021-2023, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -15,7 +15,9 @@ T2 = TypeVar("T2")
 
 class Set(Member[TSet[T], TSet[T]]):
     @overload
-    def __new__(cls, item: None = None, default: Optional[set] = None) -> Set[Any]: ...
+    def __new__(
+        cls, item: None = None, default: Optional[TSet[Any]] = None
+    ) -> Set[Any]: ...
     @overload
     def __new__(cls, item: Type[T], default: None = None) -> Set[T]: ...
     @overload

@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021, Nucleic Development Team.
+# Copyright (c) 2021-2023, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -39,7 +39,7 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Type[T],
-        args: tuple,
+        args: Tuple[Any, ...],
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -69,7 +69,7 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Type[T],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
@@ -79,13 +79,13 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Type[T],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[False],
     ) -> Instance[T]: ...
-    # 1-tuple
+    # 1-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
@@ -100,7 +100,7 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Tuple[Type[T]],
-        args: tuple,
+        args: Tuple[Any, ...],
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -130,7 +130,7 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Tuple[Type[T]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
@@ -140,13 +140,13 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Tuple[Type[T]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[False],
     ) -> Instance[T]: ...
-    # 2-tuple
+    # 2-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
@@ -161,7 +161,7 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1]],
-        args: tuple,
+        args: Tuple[Any, ...],
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -191,7 +191,7 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
@@ -203,7 +203,7 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
@@ -211,7 +211,7 @@ class Instance(Member[T, T]):
         ] = None,
         optional: Literal[False],
     ) -> Instance[T | T1]: ...
-    # 3-tuple
+    # 3-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
@@ -226,7 +226,7 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: tuple,
+        args: Tuple[Any, ...],
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -262,7 +262,7 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
@@ -280,7 +280,7 @@ class Instance(Member[T, T]):
     def __new__(
         cls,
         kind: Tuple[Type[T], Type[T1], Type[T2]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
@@ -311,7 +311,7 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Type[T]],
-        args: tuple,
+        args: Tuple[Any, ...],
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -341,7 +341,7 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Type[T]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
@@ -351,13 +351,13 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Type[T]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[False],
     ) -> ForwardInstance[T]: ...
-    # 1-tuple
+    # 1-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
@@ -372,7 +372,7 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T]]],
-        args: tuple,
+        args: Tuple[Any, ...],
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -402,7 +402,7 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T]]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
@@ -412,13 +412,13 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T]]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[Callable[[], T]] = None,
         optional: Literal[False],
     ) -> ForwardInstance[T]: ...
-    # 2-tuple
+    # 2-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
@@ -433,7 +433,7 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1]]],
-        args: tuple,
+        args: Tuple[Any, ...],
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -463,7 +463,7 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1]]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
@@ -475,7 +475,7 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1]]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
@@ -483,7 +483,7 @@ class ForwardInstance(Member[T, T]):
         ] = None,
         optional: Literal[False],
     ) -> ForwardInstance[T | T1]: ...
-    # 3-tuple
+    # 3-Tuple[Any, ...]
     @overload
     def __new__(
         cls,
@@ -498,7 +498,7 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
-        args: tuple,
+        args: Tuple[Any, ...],
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: None = None,
@@ -534,7 +534,7 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
@@ -552,7 +552,7 @@ class ForwardInstance(Member[T, T]):
     def __new__(
         cls,
         kind: Callable[[], Tuple[Type[T], Type[T1], Type[T2]]],
-        args: Optional[tuple] = None,
+        args: Optional[Tuple[Any, ...]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
         *,
         factory: Optional[
