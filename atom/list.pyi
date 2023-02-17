@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021, Nucleic Development Team.
+# Copyright (c) 2021-2023, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -17,7 +17,7 @@ class List(Member[TList[T], TList[T]]):
     # No default
     @overload
     def __new__(
-        cls, kind: None = None, default: Optional[list] = None
+        cls, kind: None = None, default: Optional[TList[Any]] = None
     ) -> List[Any]: ...
     @overload
     def __new__(cls, kind: Type[T], default: None = None) -> List[T]: ...

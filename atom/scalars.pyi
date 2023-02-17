@@ -122,23 +122,23 @@ class Constant(Member[T, NoReturn]):  # FIXME over-write del ?
         kind: Tuple[Type[T], Type[T1], Type[T2]],
     ) -> Constant[T | T1 | T2]: ...
 
-C = TypeVar("C", bound=TCallable)
+C = TypeVar("C", bound=TCallable[..., Any])
 
 class Callable(Member[T, T]):
     @overload
     def __new__(
-        self, default: None = None, *, factory: TCallable[[], C]
+        cls, default: None = None, *, factory: TCallable[[], C]
     ) -> Callable[C]: ...
     @overload
-    def __new__(self, default: C, *, factory: None = None) -> Callable[C]: ...
+    def __new__(cls, default: C, *, factory: None = None) -> Callable[C]: ...
     @overload
     def __new__(
-        self, default: None = None, *, factory: None = None
-    ) -> Callable[TCallable]: ...
+        cls, default: None = None, *, factory: None = None
+    ) -> Callable[TCallable[..., Any]]: ...
 
 class Bool(Member[bool, T]):
     def __new__(
-        self, default: bool = False, *, factory: Optional[TCallable[[], bool]] = None
+        cls, default: bool = False, *, factory: Optional[TCallable[[], bool]] = None
     ) -> Bool[bool]: ...
 
 class Int(Member[int, T]):
@@ -164,7 +164,7 @@ class Int(Member[int, T]):
 class FloatRange(Member[float, T]):
     @overload
     def __new__(
-        self,
+        cls,
         low: Optional[float] = None,
         high: Optional[float] = None,
         value: Optional[float] = None,
@@ -173,7 +173,7 @@ class FloatRange(Member[float, T]):
     ) -> FloatRange[int | float]: ...
     @overload
     def __new__(
-        self,
+        cls,
         low: Optional[float] = None,
         high: Optional[float] = None,
         value: Optional[float] = None,
@@ -183,7 +183,7 @@ class FloatRange(Member[float, T]):
 
 class Range(Member[int, T]):
     def __new__(
-        self,
+        cls,
         low: Optional[int] = None,
         high: Optional[int] = None,
         value: Optional[int] = None,
