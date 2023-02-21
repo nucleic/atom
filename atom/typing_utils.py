@@ -134,7 +134,7 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
 
             if t.__contravariant__:
                 raise ValueError("TypeVar used in Atom object cannot be contravariant")
-                
+
         elif t is Any:
             extracted.append(object)
         else:
