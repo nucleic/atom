@@ -4,6 +4,7 @@ Atom Release Notes
 0.9.0 - unreleased
 ------------------
 
+- fix the generation of Subclass from type annotations PR #193
 - move getstate and setstate implementation to C and allow to customize the condition
   under which a member value is pickled. PR #182
   Customization is used to only pickle member value whose state can be restored
@@ -17,7 +18,7 @@ Atom Release Notes
 - fix the resolution order of members in the presence of multiple inheritance
   with a common base class PR #165 #168
 
-  Due to the above changes, adding a member after the class definition extra_requires
+  Due to the above changes, adding a member after the class definition requires
   more work than before. As a consequence a new helper function ``add_member`` has
   been added.
 
