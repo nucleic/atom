@@ -129,6 +129,8 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
                 extracted.append(b)
             elif t.__constraints__:
                 raise ValueError("Constraints in type var are not supported.")
+            else:
+                extracted.append(object)
         elif t is Any:
             extracted.append(object)
         else:

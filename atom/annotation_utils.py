@@ -79,6 +79,8 @@ def generate_member_from_type_or_generic(
     # The value was annotated with Type[T] so we use a subclass
     elif all(t is type for t in types):
         m_cls = Subclass
+        assert len(parameters) == 1
+        parameters = extract_types(parameters[0])
     else:
         # Only a metaclass can implement __instancecheck__ so we check for an
         # implementation differing from type.__instancecheck__ and use Instance

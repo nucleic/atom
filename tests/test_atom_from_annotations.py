@@ -20,6 +20,8 @@ from typing import (
     Optional,
     Set as TSet,
     Tuple as TTuple,
+    Type,
+    TypeVar,
     Union,
 )
 
@@ -38,6 +40,7 @@ from atom.api import (
     Member,
     Set,
     Str,
+    Subclass,
     Tuple,
     Typed,
     Value,
@@ -147,6 +150,8 @@ def test_reject_non_member_annotated_set_default():
         (TCallable[[int], int], Callable),
         (logging.Logger, Typed),
         (Iterable, Instance),
+        (Type[int], Subclass),
+        (Type[TypeVar("T")], Subclass),
     ],
 )
 def test_annotation_use(annotation, member):
@@ -158,6 +163,11 @@ def test_annotation_use(annotation, member):
         assert A.a.validate_mode[1] == annotation
     elif member is Instance:
         assert A.a.validate_mode[1] == (annotation.__origin__,)
+    elif member is Subclass:
+        if isinstance(annotation.__args__[0], TypeVar):
+            assert A.a.validate_mode[1] == object
+        else:
+            assert A.a.validate_mode[1] == annotation.__args__[0]
     else:
         assert A.a.default_value_mode == member().default_value_mode
 
@@ -234,6 +244,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (TSet, Set, {1}),
         (TDict, Dict, {1: 2}),
         (Optional[Iterable], Instance, None),
+        (Type[int], Subclass, int),
     ],
 )
 def test_annotations_with_default(annotation, member, default):
@@ -241,7 +252,9 @@ def test_annotations_with_default(annotation, member, default):
         a: annotation = default
 
     assert isinstance(A.a, member)
-    if member is not Instance:
+    if member is Subclass:
+        assert A.a.default_value_mode == member(int, default=default).default_value_mode
+    elif member is not Instance:
         assert A.a.default_value_mode == member(default=default).default_value_mode
 
 
