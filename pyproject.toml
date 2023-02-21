@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2022, Nucleic Development Team.
+# Copyright (c) 2013-2023, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -25,6 +25,7 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 dependencies = [
@@ -50,7 +51,7 @@ package-data = {atom = ["py.typed", "*.pyi"]}
 write_to = "atom/version.py"
 write_to_template = """
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2021, Nucleic Development Team.
+# Copyright (c) 2013-2023, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #

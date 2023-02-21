@@ -23,7 +23,7 @@ from atom.version import version_info
 # -- Project information -----------------------------------------------------
 
 project = "atom"
-copyright = "2013-2021, Nucleic Development Team"
+copyright = "2013-2023, Nucleic Development Team"
 author = "Nucleic Development Team"
 
 # The short X.Y version.
