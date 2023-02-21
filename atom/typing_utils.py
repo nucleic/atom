@@ -131,6 +131,10 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
                 raise ValueError("Constraints in type var are not supported.")
             else:
                 extracted.append(object)
+
+            if t.__contravariant__:
+                raise ValueError("TypeVar used in Atom object cannot be contravariant")
+
         elif t is Any:
             extracted.append(object)
         else:
