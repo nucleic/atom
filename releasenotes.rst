@@ -1,7 +1,7 @@
 Atom Release Notes
 ==================
 
-0.9.0 - unreleased
+0.9.0 - 21/02/2023
 ------------------
 
 - fix the generation of Subclass from type annotations PR #193
