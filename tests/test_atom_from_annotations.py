@@ -252,7 +252,9 @@ def test_annotations_with_default(annotation, member, default):
         a: annotation = default
 
     assert isinstance(A.a, member)
-    if member is not Instance:
+    if member is Subclass:
+        assert A.a.default_value_mode == member(int, default=default).default_value_mode
+    elif member is not Instance:
         assert A.a.default_value_mode == member(default=default).default_value_mode
 
 
