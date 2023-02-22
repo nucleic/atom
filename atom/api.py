@@ -8,7 +8,7 @@
 """Module exporting the public interface to atom.
 
 """
-from .atom import Atom, AtomMeta, MissingMemberWarning, add_member, observe, set_default
+from .atom import Atom
 from .catom import (
     CAtom,
     ChangeType,
@@ -35,6 +35,7 @@ from .enum import Enum
 from .event import Event
 from .instance import ForwardInstance, Instance
 from .list import List
+from .meta import AtomMeta, MissingMemberWarning, add_member, observe, set_default
 from .property import Property, cached_property
 from .scalars import (
     Bool,

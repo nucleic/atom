@@ -8,16 +8,17 @@
 import collections.abc
 from typing import Any, ClassVar, MutableMapping, Type
 
-from .catom import Member
-from .dict import Dict as ADict
-from .instance import Instance
-from .list import List as AList
-from .scalars import Bool, Bytes, Callable as ACallable, Float, Int, Str, Value
-from .set import Set as ASet
-from .subclass import Subclass
-from .tuple import Tuple as ATuple
-from .typed import Typed
-from .typing_utils import extract_types, get_args, is_optional
+from ..catom import Member
+from ..dict import Dict as ADict
+from ..instance import Instance
+from ..list import List as AList
+from ..scalars import Bool, Bytes, Callable as ACallable, Float, Int, Str, Value
+from ..set import Set as ASet
+from ..subclass import Subclass
+from ..tuple import Tuple as ATuple
+from ..typed import Typed
+from ..typing_utils import extract_types, get_args, is_optional
+from .member_modifiers import set_default
 
 _NO_DEFAULT = object()
 
@@ -120,7 +121,6 @@ def generate_members_from_cls_namespace(
 ) -> None:
     """Generate the member corresponding to a type annotation."""
     annotations = namespace["__annotations__"]
-    from .atom import set_default
 
     for name, ann in annotations.items():
         default = namespace.get(name, _NO_DEFAULT)
