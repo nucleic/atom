@@ -86,14 +86,14 @@ def _signal_missing_member(
     )
 
 
-def _compute_mro(bases: Sequence[type]) -> list[type]:
+def _compute_mro(bases: Sequence[type]) -> List[type]:
     """Compute the MRO from a sequence of base classes using the C3 algorithm.
 
     Adapted from https://www.python.org/download/releases/2.3/mro/.
 
     """
     sequences = [b.mro() for b in bases]
-    computed_mro: list[type] = []
+    computed_mro: List[type] = []
 
     while True:
         sequences = list(filter(None, sequences))
