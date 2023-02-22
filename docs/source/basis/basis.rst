@@ -233,6 +233,13 @@ The output of this block will be:
     members will be pickled (Constant is not pickled since it cannot be restored)
     and the fact that an object is frozen is preserved across pickling-unpickling.
 
+.. note::
+
+    Starting with atom 0.10.0, ``__init_subclass__`` can be used to further
+    customize an Atom class. It can for example comes in handy to customize
+    pickling to be limited to public members in a way that applies to all
+    subclasses. See :ref:`advanced-customization` for more details.
+
 
 Conclusion
 ----------

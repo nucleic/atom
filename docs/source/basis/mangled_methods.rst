@@ -143,6 +143,7 @@ in the object pickle.
             unpickeable.set_getstate_mode(GetState.Exclude, None)
 
     Useful variants from the |GetState| enum are:
+
     - Include: also include the member value in the pickle
     - Exclude: never include the member value in the pickle
     - IncludeNonDefault: include the member value only if it already exists (i.e.
