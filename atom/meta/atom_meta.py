@@ -551,6 +551,7 @@ class AtomMeta(type):
         # should not be too costly
         owned_members = {members[k] for k in cls.__atom_specific_members__}
         m = _clone_if_needed(member, members, specific_members, owned_members)
+        setattr(cls, m.name, m)
         cls.__atom_members__ = members
         cls.__atom_specific_members__ = frozenset(specific_members)
         return m
