@@ -271,8 +271,6 @@ class _AtomMetaHelper:
         # Compute the class MRO.
         cls_mro = _compute_mro(self.bases)
 
-        print(self.name, cls_mro)
-
         # Walk the mro of the class, excluding itself, in reverse order
         # collecting all of the members into a single dict. The reverse
         # update preserves the mro of overridden members. We use only known
