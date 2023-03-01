@@ -69,6 +69,25 @@ def add_member(cls: "AtomMeta", name: str, member: Member) -> None:
     setattr(cls, name, member)
 
 
+def clone_if_needed(cls: "AtomMeta", member: M) -> M:
+    """Clone a member if is not owned by a class.
+
+    This function is meant to be used in __init__subclass__ to safely
+    customize members static behaviors.
+
+    """
+    members = dict(cls.__atom_members__)
+    specific_members = set(cls.__atom_specific_members__)
+    # This may lead to cloning some members that do not need to be but it
+    # should not be too costly
+    owned_members = {members[k] for k in cls.__atom_specific_members__}
+    m = _clone_if_needed(member, members, specific_members, owned_members)
+    setattr(cls, m.name, m)
+    cls.__atom_members__ = members
+    cls.__atom_specific_members__ = frozenset(specific_members)
+    return m
+
+
 class MissingMemberWarning(UserWarning):
     """Signal an expected member is not present."""
 
@@ -535,21 +554,3 @@ class AtomMeta(type):
         helper.apply_members_static_behaviors()
 
         return helper.create_class(meta)
-
-    def clone_if_needed(cls, member: M) -> M:
-        """Clone a member if is not owned by this class.
-
-        This method is meant to be used in __init__subclass__ to safely
-        customize members static behaviors.
-
-        """
-        members = dict(cls.__atom_members__)
-        specific_members = set(cls.__atom_specific_members__)
-        # This may lead to cloning some members that do not need to be but it
-        # should not be too costly
-        owned_members = {members[k] for k in cls.__atom_specific_members__}
-        m = _clone_if_needed(member, members, specific_members, owned_members)
-        setattr(cls, m.name, m)
-        cls.__atom_members__ = members
-        cls.__atom_specific_members__ = frozenset(specific_members)
-        return m

@@ -19,7 +19,7 @@
 
 .. |Atom.suppress_notifications| replace:: :py:class:`~atom.atom.Atom.suppress_notifications`
 
-.. |clone_if_needed| replace:: :py:class:`~atom.meta.atom_meta.AtomMeta.clone_if_needed`
+.. |clone_if_needed| replace:: :py:func:`~atom.meta.atom_meta.clone_if_needed`
 
 .. |add_static_observer| replace:: :py:class:`~atom.catom.Member.add_static_observer`
 

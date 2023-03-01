@@ -132,6 +132,6 @@ customize members as illustrated in :ref:`ex-pickling`.
 When accessing members in ``__init_subclass__`` one should however be careful
 to only modify members that belong to the class being customized. Otherwise
 a parent class could see its behavior change which is definitively undesirable.
-|Atom| provides the classmethod |clone_if_needed| that will clone the provided
-member if it does not belong to the class and update the class to use the
-clone. It returns the original member or its clone.
+To avoid this issue |clone_if_needed| can be used to clone a member if it does
+not belong to a class and update the class to use the clone. It returns the
+original member or its clone.

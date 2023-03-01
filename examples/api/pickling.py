@@ -10,7 +10,7 @@
 """
 import pickle
 
-from atom.api import Atom, GetState
+from atom.api import Atom, GetState, clone_if_needed
 
 
 class PicklePublicOnly(Atom):
@@ -18,7 +18,7 @@ class PicklePublicOnly(Atom):
         super().__init_subclass__()
         for k, m in cls.members().items():
             if k.startswith("_"):
-                m = cls.clone_if_needed(m)
+                m = clone_if_needed(cls, m)
                 m.set_getstate_mode(GetState.Exclude, None)
 
 

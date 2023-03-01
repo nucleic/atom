@@ -35,7 +35,14 @@ from .enum import Enum
 from .event import Event
 from .instance import ForwardInstance, Instance
 from .list import List
-from .meta import AtomMeta, MissingMemberWarning, add_member, observe, set_default
+from .meta import (
+    AtomMeta,
+    MissingMemberWarning,
+    add_member,
+    clone_if_needed,
+    observe,
+    set_default,
+)
 from .property import Property, cached_property
 from .scalars import (
     Bool,
@@ -64,6 +71,7 @@ __all__ = [
     "add_member",
     "observe",
     "set_default",
+    "clone_if_needed",
     "CAtom",
     "ChangeType",
     "DefaultValue",

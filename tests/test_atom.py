@@ -27,6 +27,7 @@ from atom.api import (
     Value,
     add_member,
     atomref,
+    clone_if_needed,
     observe,
     set_default,
 )
@@ -329,7 +330,7 @@ def test_clone_if_needed():
     class A(Atom):
         def __init_subclass__(cls) -> None:
             for m in cls.members().values():
-                cls.clone_if_needed(m)
+                clone_if_needed(cls, m)
 
     class B(A):
         a = Int()
