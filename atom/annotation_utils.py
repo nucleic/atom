@@ -54,6 +54,7 @@ def generate_member_from_type_or_generic(
         )
     elif object in types or Any in types:
         m_cls = Value
+        parameters = ()
     # Int, Float, Str, Bytes, List, Dict, Set, Tuple, Bool, Callable
     elif len(types) == 1 and types[0] in _TYPE_TO_MEMBER:
         t = types[0]
