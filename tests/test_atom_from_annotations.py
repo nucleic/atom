@@ -238,6 +238,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (str, Str, "a"),
         (bytes, Bytes, b"a"),
         (Any, Value, 1),
+        (Union[Any, None], Value, None),
         (object, Value, 2),
         (TCallable, Callable, lambda x: x),
         (TList, List, [1]),
