@@ -1,6 +1,11 @@
 Atom Release Notes
 ==================
 
+0.9.1 - unreleased
+------------------
+
+- fix generation of Value member from union containing object/Any PR #198
+
 0.9.0 - 21/02/2023
 ------------------
 
