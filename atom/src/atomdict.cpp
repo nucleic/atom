@@ -157,7 +157,8 @@ PyObject* AtomDict_setdefault( AtomDict* self, PyObject* args )
 	{
 		return 0;
 	}
-	return cppy::incref( dfv );
+	// Get the dictionary from the dict itself in case it was corced.
+	return cppy::incref( PyDict_GetItem( pyobject_cast( self ), key ) );
 }
 
 

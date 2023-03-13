@@ -11,7 +11,7 @@
 """
 import pytest
 
-from atom.api import Atom, Dict, Int, atomdict
+from atom.api import Atom, Dict, Int, List, atomdict, atomlist
 
 
 @pytest.fixture
@@ -147,6 +147,16 @@ def test_setdefault(atom_dict):
         atom_dict.fullytyped.setdefault("", 1)
     with pytest.raises(TypeError):
         atom_dict.fullytyped.setdefault(2, "")
+
+
+def test_setdefault_coercion():
+    class A(Atom):
+        d = Dict(int, List(int))
+
+    a = A()
+    content = a.d.setdefault(1, [])
+    assert isinstance(content, atomlist)
+    assert content is a.d[1]
 
 
 def test_update(atom_dict):
