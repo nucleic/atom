@@ -5,6 +5,7 @@ Atom Release Notes
 ------------------
 
 - fix generation of Value member from union containing object/Any PR #198
+- fix setdefault method of atomdict to return the actually stored item PR #197
 
 0.9.0 - 21/02/2023
 ------------------
