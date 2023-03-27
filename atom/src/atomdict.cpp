@@ -226,6 +226,69 @@ static PyType_Slot AtomDict_Type_slots[] = {
 };
 
 
+// DefaultAtomDict
+
+int DefaultAtomDict_clear( DefaultAtomDict* self )
+{
+	Py_CLEAR( self->factory );
+	return AtomDict_clear( atomdict_cast( self ) );
+}
+
+
+int DefaultAtomDict_traverse( DefaultAtomDict* self, visitproc visit, void* arg )
+{
+	Py_VISIT( self->factory );
+	return AtomDict_traverse( atomdict_cast( self ) );
+}
+
+
+void DefaultAtomDict_dealloc( AtomDict* self )
+{
+	cppy::clear( &self->factory );
+	AtomDict_dealloc( atomdict_cast( self ) );
+}
+
+static PyObject* DefaultAtomDict_missing( DefaultAtomDict* self, PyObject* args )
+{
+	PyObject* key;
+	if( !PyArg_UnpackTuple( args, "__missing__", 1, 1, &key ) )
+	{
+		return 0;
+	}
+	cppy::ptr value_ptr( PyObject_CallNoArgs( self->factory ) );
+	if( !value )
+	{
+		return 0;
+	}
+	if( should_validate( self ) )
+	{
+        value_ptr = validate_value( self, value_ptr.get() );
+		if( !value_ptr )
+		{
+			return -1;
+		}
+	}
+	return value_ptr.release()
+}
+
+static PyMethodDef DefaultAtomDict_methods[] = {
+	{ "__missing___=",
+		( PyCFunction )DefaultAtomDict_missing,
+		METH_VARARGS,
+		"Called when a key is absent from the dictionary" },
+	{ 0 } // sentinel
+};
+
+static PyType_Slot DefaultAtomDict_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( DefaultAtomDict_dealloc ) },       /* tp_dealloc */
+    { Py_tp_traverse, void_cast( DefaultAtomDict_traverse ) },     /* tp_traverse */
+    { Py_tp_clear, void_cast( DefaultAtomDict_clear ) },           /* tp_clear */
+    { Py_tp_methods, void_cast( DefaultAtomDict_methods ) },       /* tp_methods */
+    /* tp_base cannot be set at this stage */
+    { 0, 0 },
+};
+
+
 } // namespace
 
 
@@ -301,6 +364,54 @@ int AtomDict::Update( AtomDict* dict, PyObject* value )
 
 bool AtomDict::Ready()
 {
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
+}
+
+// Initialize static variables (otherwise the compiler eliminates them)
+PyTypeObject* DefaultAtomDict::TypeObject = NULL;
+
+
+PyType_Spec DefaultAtomDict::TypeObject_Spec = {
+	PACKAGE_TYPENAME( "defaultatomdict" ),      /* tp_name */
+	sizeof( DefaultAtomDict ),                  /* tp_basicsize */
+	0,                                          /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT
+	| Py_TPFLAGS_BASETYPE
+	| Py_TPFLAGS_HAVE_GC
+	| Py_TPFLAGS_HAVE_VERSION_TAG,              /* tp_flags */
+    DefaultAtomDict_Type_slots                  /* slots */
+};
+
+
+PyObject* DefaultAtomDict::New( CAtom* atom, Member* key_validator, Member* value_validator, PyObject* factory)
+{
+    cppy::ptr self( PyDict_Type.tp_new( DefaultAtomDict::TypeObject, 0, 0 ) );
+	if( !self )
+	{
+		return 0;
+	}
+    cppy::xincref( pyobject_cast( key_validator ) );
+    defaultatomdict_cast( self.get() )->m_key_validator = key_validator;
+    cppy::xincref( pyobject_cast( value_validator ) );
+    defaultatomdict_cast( self.get() )->m_value_validator = value_validator;
+    defaultatomdict_cast( self.get() )->pointer = new CAtomPointer( atom );
+    cppy::incref( pyobject_cast( factory ) );
+	// XXX validate we do get a callable taking 0 arg
+    defaultatomdict_cast( self.get() )->factory = factory;
+    return self.release();
+}
+
+
+bool DefaultAtomDict::Ready()
+{
+	// This will work only if we create this type after the standard AtomDict
+	TypeObject_Spec.tp_base = AtomDict::TypeObject
     // The reference will be handled by the module to which we will add the type
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
