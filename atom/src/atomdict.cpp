@@ -238,11 +238,11 @@ int DefaultAtomDict_clear( DefaultAtomDict* self )
 int DefaultAtomDict_traverse( DefaultAtomDict* self, visitproc visit, void* arg )
 {
 	Py_VISIT( self->factory );
-	return AtomDict_traverse( atomdict_cast( self ) );
+	return AtomDict_traverse( atomdict_cast( self ), visit, arg );
 }
 
 
-void DefaultAtomDict_dealloc( AtomDict* self )
+void DefaultAtomDict_dealloc( DefaultAtomDict* self )
 {
 	cppy::clear( &self->factory );
 	AtomDict_dealloc( atomdict_cast( self ) );
@@ -256,19 +256,19 @@ static PyObject* DefaultAtomDict_missing( DefaultAtomDict* self, PyObject* args 
 		return 0;
 	}
 	cppy::ptr value_ptr( PyObject_CallNoArgs( self->factory ) );
-	if( !value )
+	if( !value_ptr )
 	{
 		return 0;
 	}
-	if( should_validate( self ) )
+	if( should_validate( atomdict_cast( self ) ) )
 	{
-        value_ptr = validate_value( self, value_ptr.get() );
+        value_ptr = validate_value( atomdict_cast( self ), value_ptr.get() );
 		if( !value_ptr )
 		{
-			return -1;
+			return 0;
 		}
 	}
-	return value_ptr.release()
+	return value_ptr.release();
 }
 
 static PyMethodDef DefaultAtomDict_methods[] = {
@@ -397,10 +397,10 @@ PyObject* DefaultAtomDict::New( CAtom* atom, Member* key_validator, Member* valu
 		return 0;
 	}
     cppy::xincref( pyobject_cast( key_validator ) );
-    defaultatomdict_cast( self.get() )->m_key_validator = key_validator;
+    atomdict_cast( self.get() )->m_key_validator = key_validator;
     cppy::xincref( pyobject_cast( value_validator ) );
-    defaultatomdict_cast( self.get() )->m_value_validator = value_validator;
-    defaultatomdict_cast( self.get() )->pointer = new CAtomPointer( atom );
+    atomdict_cast( self.get() )->m_value_validator = value_validator;
+    atomdict_cast( self.get() )->pointer = new CAtomPointer( atom );
     cppy::incref( pyobject_cast( factory ) );
 	// XXX validate we do get a callable taking 0 arg
     defaultatomdict_cast( self.get() )->factory = factory;
@@ -411,9 +411,10 @@ PyObject* DefaultAtomDict::New( CAtom* atom, Member* key_validator, Member* valu
 bool DefaultAtomDict::Ready()
 {
 	// This will work only if we create this type after the standard AtomDict
-	TypeObject_Spec.tp_base = AtomDict::TypeObject
     // The reference will be handled by the module to which we will add the type
-	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+	TypeObject = pytype_cast(
+		PyType_FromSpecWithBases( &TypeObject_Spec, pyobject_cast( AtomDict::TypeObject ) )
+	);
     if( !TypeObject )
     {
         return false;
