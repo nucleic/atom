@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2014-2019, Nucleic
+| Copyright (c) 2014-2023, Nucleic
 |
 | Distributed under the terms of the BSD 3-Clause License.
 |
@@ -272,7 +272,7 @@ static PyObject* DefaultAtomDict_missing( DefaultAtomDict* self, PyObject* args 
 }
 
 static PyMethodDef DefaultAtomDict_methods[] = {
-	{ "__missing___=",
+	{ "__missing__",
 		( PyCFunction )DefaultAtomDict_missing,
 		METH_VARARGS,
 		"Called when a key is absent from the dictionary" },
@@ -412,8 +412,10 @@ bool DefaultAtomDict::Ready()
 {
 	// This will work only if we create this type after the standard AtomDict
     // The reference will be handled by the module to which we will add the type
+	PyObject* bases = PyTuple_New( 1 );
+	PyTuple_SET_ITEM( bases, 0, pyobject_cast( AtomDict::TypeObject ) );
 	TypeObject = pytype_cast(
-		PyType_FromSpecWithBases( &TypeObject_Spec, pyobject_cast( AtomDict::TypeObject ) )
+		PyType_FromSpecWithBases( &TypeObject_Spec, bases )
 	);
     if( !TypeObject )
     {

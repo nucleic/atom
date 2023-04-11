@@ -233,6 +233,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( List ) );
         add_long( dict_ptr, expand_enum( Set ) );
         add_long( dict_ptr, expand_enum( Dict ) );
+        add_long( dict_ptr, expand_enum( DefaultDict ) );
         add_long( dict_ptr, expand_enum( NonOptional ) );
         add_long( dict_ptr, expand_enum( Delegate ) );
         add_long( dict_ptr, expand_enum( CallObject ) );
@@ -270,6 +271,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( ContainerList ) );
         add_long( dict_ptr, expand_enum( Set ) );
         add_long( dict_ptr, expand_enum( Dict ) );
+        add_long( dict_ptr, expand_enum( DefaultDict ) );
         add_long( dict_ptr, expand_enum( OptionalInstance ) );
         add_long( dict_ptr, expand_enum( Instance ) );
         add_long( dict_ptr, expand_enum( OptionalTyped ) );

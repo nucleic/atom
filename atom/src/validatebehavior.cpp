@@ -93,6 +93,43 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             break;
         }
+        case Validate::DefaultDict:
+        {
+            if( !PyTuple_Check( context ) )
+            {
+                cppy::type_error( context, "3-tuple: Member|None, Member|None, Callable[[], Any]" );
+                return false;
+            }
+            if( PyTuple_GET_SIZE( context ) != 3 )
+            {
+                cppy::type_error( context, "3-tuple: Member|None, Member|None, Callable[[], Any]" );
+                return false;
+            }
+            PyObject* k = PyTuple_GET_ITEM( context, 0 );
+            PyObject* v = PyTuple_GET_ITEM( context, 1 );
+            PyObject* f = PyTuple_GET_ITEM( context, 2 );
+            if( k != Py_None && !Member::TypeCheck( k ) )
+            {
+                cppy::type_error( context, "3-tuple: Member|None, Member|None, Callable[[], Any]" );
+                return false;
+            }
+            if( v != Py_None && !Member::TypeCheck( v ) )
+            {
+                cppy::type_error( context, "3-tuple: Member|None, Member|None, Callable[[], Any]" );
+                return false;
+            }
+            if( PyCallable_Check( f ) == 0)
+            {
+                cppy::type_error( context, "3-tuple: Member|None, Member|None, Callable[[], Any]" );
+                return false;
+            }
+            cppy::ptr temp( PyObject_CallNoArgs( f ) );
+            if( !temp )
+            {
+                return false;
+            }
+            break;
+        }
         case Validate::OptionalInstance:
         case Validate::Instance:
         case Validate::Subclass:
@@ -572,6 +609,48 @@ dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
 
 
 PyObject*
+default_dict_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( !PyDict_Check( newvalue ) )
+        return validate_type_fail( member, atom, newvalue, "dict" );
+
+    // Get the key validator if it exists
+    PyObject* k = PyTuple_GET_ITEM( member->validate_context, 0 );
+    Member* key_validator = 0;
+    if( k != Py_None )
+    {
+        key_validator = member_cast( k );
+    }
+
+    // Get the value validator if it exists
+    PyObject* v = PyTuple_GET_ITEM( member->validate_context, 1 );
+    Member* value_validator = 0;
+    if( v != Py_None )
+    {
+        value_validator = member_cast( v );
+    }
+
+    // Get the value factory if it exists
+    PyObject* factory = PyTuple_GET_ITEM( member->validate_context, 2 );
+
+    // Create a new atom dict and update it.
+    cppy::ptr newdict( atom::DefaultAtomDict::New( atom, key_validator, value_validator, factory) );
+    if( !newdict )
+    {
+        std::cout << "Failed to create atomdefaultdict" << std::flush;
+        return 0;
+    }
+
+    if( atom::AtomDict::Update( atomdict_cast( newdict.get() ), newvalue ) < 0 )
+    {
+        return 0;
+    }
+
+    return newdict.release();
+}
+
+
+PyObject*
 non_optional_instance_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
     int res = PyObject_IsInstance( newvalue, member->validate_context );
@@ -842,6 +921,7 @@ handlers[] = {
     container_list_handler,
     set_handler,
     dict_handler,
+    default_dict_handler,
     instance_handler,
     non_optional_instance_handler,
     typed_handler,
