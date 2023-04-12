@@ -157,7 +157,7 @@ PyObject* AtomDict_setdefault( AtomDict* self, PyObject* args )
 	{
 		return 0;
 	}
-	// Get the dictionary from the dict itself in case it was corced.
+	// Get the dictionary from the dict itself in case it was coerced.
 	return cppy::incref( PyDict_GetItem( pyobject_cast( self ), key ) );
 }
 
@@ -255,18 +255,21 @@ static PyObject* DefaultAtomDict_missing( DefaultAtomDict* self, PyObject* args 
 	{
 		return 0;
 	}
-	cppy::ptr value_ptr( PyObject_CallNoArgs( self->factory ) );
+	cppy::ptr value_ptr( PyObject_CallOneArg( self->factory, pyobject_cast( self->dict.pointer->data() ) ) );
 	if( !value_ptr )
 	{
 		return 0;
 	}
 	if( should_validate( atomdict_cast( self ) ) )
 	{
-        value_ptr = validate_value( atomdict_cast( self ), value_ptr.get() );
-		if( !value_ptr )
+		// We cannot simply validate the value as it will be re-validated when
+		// it is set which leads to creating a different object.
+        if( AtomDict_ass_subscript( atomdict_cast( self ), key, value_ptr.get() ) < 0 )
 		{
 			return 0;
 		}
+		// Get the dictionary from the dict itself in case it was coerced.
+		value_ptr = cppy::incref( PyDict_GetItem( pyobject_cast( self ), key ) );
 	}
 	return value_ptr.release();
 }

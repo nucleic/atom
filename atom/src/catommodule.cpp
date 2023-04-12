@@ -100,7 +100,7 @@ bool add_objects( PyObject* mod )
 
     // defaultatomdict
     cppy::ptr defaultatom_dict( pyobject_cast( DefaultAtomDict::TypeObject ) );
-	if( PyModule_AddObject( mod, "defaumtatomdict", defaultatom_dict.get() ) < 0 )
+	if( PyModule_AddObject( mod, "defaultatomdict", defaultatom_dict.get() ) < 0 )
 	{
 		return false;
 	}

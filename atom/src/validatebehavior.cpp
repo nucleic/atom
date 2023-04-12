@@ -123,11 +123,6 @@ Member::check_context( Validate::Mode mode, PyObject* context )
                 cppy::type_error( context, "3-tuple: Member|None, Member|None, Callable[[], Any]" );
                 return false;
             }
-            cppy::ptr temp( PyObject_CallNoArgs( f ) );
-            if( !temp )
-            {
-                return false;
-            }
             break;
         }
         case Validate::OptionalInstance:

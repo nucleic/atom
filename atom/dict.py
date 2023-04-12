@@ -5,6 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
+from collections import defaultdict
+
 from .catom import DefaultValue, Member, Validate
 from .instance import Instance
 from .typing_utils import extract_types, is_optional
@@ -97,7 +99,7 @@ class DefaultDict(Member):
 
     __slots__ = ()
 
-    def __init__(self, key=None, value=None, default=None, *, factory=None):
+    def __init__(self, key=None, value=None, default=None, *, missing=None):
         """Initialize a DefaultDict.
 
         Parameters
@@ -118,8 +120,8 @@ class DefaultDict(Member):
             The default dict of items. A new copy of this dict will be
             created for each atom instance.
 
-        factory : Callable[[], Any] or None, optional
-            XXX
+        missing : Callable[[], Any] or None, optional
+            Factory to build a default value for a missing key in the dictionary.
 
         """
         self.set_default_value_mode(DefaultValue.DefaultDict, default)
@@ -130,9 +132,46 @@ class DefaultDict(Member):
             opt, types = is_optional(extract_types(value))
             value = Instance(types, optional=opt)
 
-        assert factory is not None
+        if missing is not None:
+            if not callable(missing):
+                raise ValueError(
+                    f"The missing argument expect a callable, got {missing}"
+                )
+            try:
+                missing()
+            except Exception as e:
+                raise ValueError(
+                    "The missing argument expect a callable taking no argument. "
+                    "Trying to call it with not argument failed with the chained "
+                    "exception."
+                ) from e
+            origin = missing
+            missing = lambda atom: origin()
 
-        self.set_validate_mode(Validate.DefaultDict, (key, value, factory))
+        if isinstance(default, defaultdict):
+            if missing is not None:
+                raise ValueError(
+                    "Both a missing factory and a default value which is a default "
+                    "dictionary were specified. When using a default dict as default "
+                    "value missing should be omitted."
+                )
+            missing = lambda atom: default.default_factory
+
+        if (
+            missing is None
+            and value is not None
+            and value.default_value_mode[0]
+            not in (DefaultValue.NoOp, DefaultValue.NonOptional)
+        ):
+            missing = value.do_default_value
+
+        if missing is None:
+            raise ValueError(
+                "No missing value factory was specified and none could be "
+                "deduced from the value member."
+            )
+
+        self.set_validate_mode(Validate.DefaultDict, (key, value, missing))
 
     def set_name(self, name):
         """Assign the name to this member.
@@ -171,8 +210,8 @@ class DefaultDict(Member):
 
         """
         clone = super().clone()
-        mode, (key, value, factory) = self.validate_mode
+        mode, (key, value, missing) = self.validate_mode
         key_clone = key.clone() if key is not None else None
         value_clone = value.clone() if value is not None else None
-        clone.set_validate_mode(mode, (key_clone, value_clone, factory))
+        clone.set_validate_mode(mode, (key_clone, value_clone, missing))
         return clone
