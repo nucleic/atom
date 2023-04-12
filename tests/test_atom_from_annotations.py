@@ -10,6 +10,7 @@
 """
 import logging
 import sys
+from collections import defaultdict
 from typing import (
     Any,
     Callable as TCallable,
@@ -32,6 +33,7 @@ from atom.api import (
     Bool,
     Bytes,
     Callable,
+    DefaultDict,
     Dict,
     Float,
     Instance,
@@ -198,6 +200,7 @@ def test_union_in_annotation(annotation, member, validate_mode):
         (TSet[int], Set(Int()), 1),
         (TDict[int, int], Dict(), 0),
         (TDict[int, int], Dict(Int(), Int()), 1),
+        (defaultdict[int, int], DefaultDict(Int(), Int()), 1),
         (TTuple[int], Tuple(), 0),
         (TTuple[int], Tuple(Int()), 1),
         (TTuple[int, ...], Tuple(Int()), 1),
@@ -222,7 +225,13 @@ def test_annotated_containers_no_default(annotation, member, depth):
             ):
                 assert type(k) is type(mk)
                 assert type(v) is type(mv)
-
+        elif isinstance(member, DefaultDict):
+            for (k, v, f), (mk, mv, mf) in zip(
+                A.a.validate_mode[1:], member.validate_mode[1:]
+            ):
+                assert type(k) is type(mk)
+                assert type(v) is type(mv)
+                assert f(A()) == mf(A())
         else:
             assert type(A.a.item) is type(member.item)  # noqa: E721
             if isinstance(member.item, List):
@@ -244,6 +253,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (TList, List, [1]),
         (TSet, Set, {1}),
         (TDict, Dict, {1: 2}),
+        (defaultdict, DefaultDict, defaultdict(int, {1: 2})),
         (Optional[Iterable], Instance, None),
         (Type[int], Subclass, int),
     ],
