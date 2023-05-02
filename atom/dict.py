@@ -95,7 +95,6 @@ class Dict(Member):
 
 
 class _DefaultWrapper:
-
     __slots__ = ("wrapped",)
 
     def __init__(self, wrapped):

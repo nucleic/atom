@@ -117,6 +117,7 @@ def test_copy(default_atom_dict, member):
 
 def test_bad_missing_callable():
     with pytest.raises(ValueError) as exc:
+
         class DA(Atom):
             broken_d = DefaultDict(missing=lambda: int(""))
 
