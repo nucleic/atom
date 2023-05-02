@@ -67,9 +67,10 @@ def test_instance(default_atom_dict, member):
 @pytest.mark.parametrize("member", MEMBERS)
 def test_repr(default_atom_dict, member):
     """Test the repr."""
-    d = getattr(default_atom_dict.__class__, member).default_value_mode[1]
-    if not d:
-        d = {i: i**2 for i in range(10)}
+    m = getattr(default_atom_dict.__class__, member)
+    d = m.default_value_mode[1]
+    if not d or not isinstance(d, defaultdict):
+        d = defaultdict(m.validate_mode[1][2], {i: i**2 for i in range(10)})
         setattr(default_atom_dict, member, d)
     assert repr(getattr(default_atom_dict, member)) == repr(d)
 
@@ -115,7 +116,11 @@ def test_copy(default_atom_dict, member):
 
 
 def test_bad_missing_callable():
-    pass
+    with pytest.raises(ValueError) as exc:
+        class DA(Atom):
+            broken_d = DefaultDict(missing=lambda: int(""))
+
+    assert "The missing argument expect a callable taking no argument" in exc.exconly()
 
 
 def test_setitem(default_atom_dict):
@@ -209,9 +214,9 @@ def test_update(default_atom_dict):
         default_atom_dict.fullytyped.update({"": ""})
 
 
-def test_missing(default_atom_dict):
-    for k in MEMBERS:
-        assert getattr(default_atom_dict, k)[-1] == 0
+@pytest.mark.parametrize("member_name", MEMBERS)
+def test_missing(default_atom_dict, member_name):
+    assert getattr(default_atom_dict, member_name)[-1] == 0
 
 
 def test_coerced_missing():

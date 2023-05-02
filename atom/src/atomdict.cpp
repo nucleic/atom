@@ -5,6 +5,8 @@
 |
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include <iostream>
+#include <sstream>
 #include <cppy/cppy.h>
 #include "atomdict.h"
 #include "packagenaming.h"
@@ -248,6 +250,27 @@ void DefaultAtomDict_dealloc( DefaultAtomDict* self )
 	AtomDict_dealloc( atomdict_cast( self ) );
 }
 
+static PyObject* DefaultAtomDict_repr( DefaultAtomDict* self )
+{
+	std::ostringstream ostr;
+    ostr << "defaultdict(";
+	cppy::ptr repr( PyObject_Repr( pyobject_cast( self->factory ) ) );
+	if( !repr )
+	{
+		return 0;
+	}
+	ostr << PyUnicode_AsUTF8( repr.get() );
+	ostr << ", ";
+	repr = PyDict_Type.tp_repr( pyobject_cast( self ) );
+	if( !repr )
+	{
+		return 0;
+	}
+	ostr << PyUnicode_AsUTF8( repr.get() );
+    ostr << ")";
+    return PyUnicode_FromString( ostr.str().c_str() );
+}
+
 static PyObject* DefaultAtomDict_missing( DefaultAtomDict* self, PyObject* args )
 {
 	PyObject* key;
@@ -286,6 +309,7 @@ static PyType_Slot DefaultAtomDict_Type_slots[] = {
     { Py_tp_dealloc, void_cast( DefaultAtomDict_dealloc ) },       /* tp_dealloc */
     { Py_tp_traverse, void_cast( DefaultAtomDict_traverse ) },     /* tp_traverse */
     { Py_tp_clear, void_cast( DefaultAtomDict_clear ) },           /* tp_clear */
+	{ Py_tp_repr, void_cast( DefaultAtomDict_repr ) },             /* tp_repr */
     { Py_tp_methods, void_cast( DefaultAtomDict_methods ) },       /* tp_methods */
     /* tp_base cannot be set at this stage */
     { 0, 0 },

@@ -94,6 +94,20 @@ class Dict(Member):
         return clone
 
 
+class _DefaultWrapper:
+
+    __slots__ = ("wrapped",)
+
+    def __init__(self, wrapped):
+        self.wrapped = wrapped
+
+    def __call__(self, atom):
+        return self.wrapped()
+
+    def __repr__(self):
+        return repr(self.wrapped)
+
+
 class DefaultDict(Member):
     """A value of type `dict` implementing __missing__"""
 
@@ -145,8 +159,7 @@ class DefaultDict(Member):
                     "Trying to call it with not argument failed with the chained "
                     "exception."
                 ) from e
-            origin = missing
-            missing = lambda atom: origin()
+            missing = _DefaultWrapper(missing)
 
         if isinstance(default, defaultdict):
             if missing is not None:
@@ -155,7 +168,7 @@ class DefaultDict(Member):
                     "dictionary were specified. When using a default dict as default "
                     "value missing should be omitted."
                 )
-            missing = lambda atom: default.default_factory
+            missing = _DefaultWrapper(default.default_factory)
 
         if (
             missing is None
