@@ -61,6 +61,8 @@
 
 .. |Dict| replace:: :py:class:`~atom.dict.Dict`
 
+.. |DefaultDict| replace:: :py:class:`~atom.dict.DefaultDict`
+
 .. |Delegator| replace:: :py:class:`~atom.delegator.Delegator`
 
 .. |Event| replace:: :py:class:`~atom.event.Event`

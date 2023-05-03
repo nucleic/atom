@@ -146,8 +146,9 @@ Containers and type validation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Atom also provides members for three basic containers tuple, list and
-dictionaries: |Tuple|, |List|, |Dict|. In each case, you can specify the type
-of the values (key and value for dict), using members, as follows:
+dictionaries: |Tuple|, |List|, |Dict|, |DefaultDict|. In each case, you can
+specify the type of the values (key and value for dict), using members, as
+follows:
 
 .. code-block:: python
 
@@ -156,6 +157,7 @@ of the values (key and value for dict), using members, as follows:
         t = Tuple(Int())
         l = List(Float())
         d = Dict(Str(), Int())
+        d = DefaultDict(Str(), Int())
 
 Alternatively, you can pass simple Python types. In this cases they will be
 wrapped in an |Instance| member that will be introduced in the next section.
@@ -167,11 +169,17 @@ wrapped in an |Instance| member that will be introduced in the next section.
         t = Tuple(int)
         l = List(float)
         d = Dict(str, int)
+        dd = DefaultDict(str, int)
 
 .. note::
 
     Note that you cannot (by default) enforce a specific number of items in
     a tuple.
+
+.. note::
+
+    For |DefaultDict|, the default value factory can be inferred from the value
+    member. It can also be specified using the ``missing`` keyword argument.
 
 .. note::
 
