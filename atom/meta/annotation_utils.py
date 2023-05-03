@@ -152,12 +152,12 @@ def generate_members_from_cls_namespace(
         elif getattr(ann, "__origin__", None) is ClassVar:
             continue
 
-        # try:
-        namespace[name] = generate_member_from_type_or_generic(
-            ann, default, annotate_type_containers
-        )
-        # except ValueError as e:
-        #     raise ValueError(
-        #         "Encountered an issue when generating a member for field "
-        #         f"'{name}' of '{cls_name}'."
-        #     ) from e
+        try:
+            namespace[name] = generate_member_from_type_or_generic(
+                ann, default, annotate_type_containers
+            )
+        except ValueError as e:
+            raise ValueError(
+                "Encountered an issue when generating a member for field "
+                f"'{name}' of '{cls_name}'."
+            ) from e
