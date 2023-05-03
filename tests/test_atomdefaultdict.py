@@ -230,6 +230,7 @@ def test_missing_with_trivial_instance():
     with pytest.raises(RuntimeError):
         A().d[1]
 
+
 def test_coerced_missing():
     class A(Atom):
         d = DefaultDict(int, List(int))
