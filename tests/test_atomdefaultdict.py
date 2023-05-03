@@ -13,7 +13,7 @@ from collections import defaultdict
 
 import pytest
 
-from atom.api import Atom, DefaultDict, Int, List, atomlist, defaultatomdict
+from atom.api import Atom, DefaultDict, Instance, Int, List, atomlist, defaultatomdict
 
 
 @pytest.fixture
@@ -219,6 +219,16 @@ def test_update(default_atom_dict):
 def test_missing(default_atom_dict, member_name):
     assert getattr(default_atom_dict, member_name)[-1] == 0
 
+
+def test_missing_with_trivial_instance():
+    class A(Atom):
+        d = DefaultDict(int, int)
+
+    assert isinstance(A.d.validate_mode[1][1], Instance)
+    a = A()
+    assert a.d[1] == 0
+    with pytest.raises(RuntimeError):
+        A().d[1]
 
 def test_coerced_missing():
     class A(Atom):

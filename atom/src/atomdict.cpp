@@ -278,7 +278,15 @@ static PyObject* DefaultAtomDict_missing( DefaultAtomDict* self, PyObject* args 
 	{
 		return 0;
 	}
-	cppy::ptr value_ptr( PyObject_CallOneArg( self->factory, pyobject_cast( self->dict.pointer->data() ) ) );
+    CAtom* atom = self->dict.pointer->data();
+	if( !atom )
+	{
+		return cppy::runtime_error(
+			"Atom object to which this default dict is not alive anymore, "
+			"so missing value cannot be built."
+		);
+	}
+	cppy::ptr value_ptr( PyObject_CallOneArg( self->factory, pyobject_cast( atom ) ) );
 	if( !value_ptr )
 	{
 		return 0;

@@ -143,7 +143,9 @@ class DefaultDict(Member):
             key = Instance(types, optional=opt)
         if value is not None and not isinstance(value, Member):
             opt, types = is_optional(extract_types(value))
-            value = Instance(types, optional=opt)
+            # Assume a default value can be created to avoid the need to specify a
+            # missing factory in simple case even for custom types.
+            value = Instance(types, optional=opt, args=())
 
         if missing is not None:
             if not callable(missing):
