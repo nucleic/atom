@@ -3,6 +3,8 @@
   Do not edit it directly.
   See docs/source/examples/example_doc_generator.py
 
+.. _ex-coersion:
+
 Coersion Example
 ===============================================================================
 

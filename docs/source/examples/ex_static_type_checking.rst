@@ -3,10 +3,12 @@
   Do not edit it directly.
   See docs/source/examples/example_doc_generator.py
 
+.. _ex-static_type_checking:
+
 Static Type Checking Example
 ===============================================================================
 
-Simple atom typing example.
+Demonstration of the interaction between static and dynamic type validation.
 
 .. TIP:: To see this example in action, download it from
  :download:`static_type_checking <../../../examples/typehints/static_type_checking.py>`

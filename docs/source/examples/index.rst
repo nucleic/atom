@@ -30,5 +30,6 @@ API Examples
     ex_metadata
     ex_numeric
     ex_observe
+    ex_pickling
     ex_property
     ex_range

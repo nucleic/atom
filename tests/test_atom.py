@@ -27,6 +27,7 @@ from atom.api import (
     Value,
     add_member,
     atomref,
+    clone_if_needed,
     observe,
     set_default,
 )
@@ -308,3 +309,36 @@ def test_enable_weakref():
         pass
 
     assert "__weakref__" in WA.__slots__
+
+
+def test_init_subclass():
+    members = {}
+
+    class A(Atom):
+        def __init_subclass__(cls) -> None:
+            super().__init_subclass__()
+            nonlocal members
+            members = cls.members()
+
+    class B(A):
+        a = Int()
+
+    assert members == {"a": B.a}
+
+
+def test_clone_if_needed():
+    class A(Atom):
+        def __init_subclass__(cls) -> None:
+            for m in cls.members().values():
+                clone_if_needed(cls, m)
+
+    class B(A):
+        a = Int()
+
+    i = Int()
+
+    class C(B):
+        b = i
+
+    assert C.a is not B.a
+    assert C.b is i

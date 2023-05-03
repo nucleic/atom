@@ -122,3 +122,16 @@ always  refers to an |Atom| subclass instance and **Name** to the member name.
 
     It is recommended to avoid customizing specialized members that may make
     some assumptions regarding the values of the other modes.
+
+Using ``__init_subclass__``
+---------------------------
+
+Starting with atom 0.10.0, ``__init_subclass__`` can be meaningfully used to
+customize members as illustrated in :ref:`ex-pickling`.
+
+When accessing members in ``__init_subclass__`` one should however be careful
+to only modify members that belong to the class being customized. Otherwise
+a parent class could see its behavior change which is definitively undesirable.
+To avoid this issue |clone_if_needed| can be used to clone a member if it does
+not belong to a class and update the class to use the clone. It returns the
+original member or its clone.

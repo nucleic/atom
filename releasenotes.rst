@@ -1,6 +1,15 @@
 Atom Release Notes
 ==================
 
+0.10.0 - unreleased
+-------------------
+
+- AtomMeta: create the class only once all members have been customized PR #510
+  This allows to use ``__init_subclass__`` since previously the ``__atom_members__``
+  was not set when ``__init_subclass__`` was called
+- illustrate the use of ``__init_subclass__`` to customize pickling PR #510
+- refactor the metaclass to make it easier to reason about PR #510
+
 0.9.1 - 13/03/2023
 ------------------
 

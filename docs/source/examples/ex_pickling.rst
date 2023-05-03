@@ -3,20 +3,20 @@
   Do not edit it directly.
   See docs/source/examples/example_doc_generator.py
 
-.. _ex-employee:
+.. _ex-pickling:
 
-Employee Example
+Pickling Example
 ===============================================================================
 
-Simple example of a class hierarchy built on atom.
+Demonstration of the basic use of the Coerced member.
 
 .. TIP:: To see this example in action, download it from
- :download:`employee <../../../examples/tutorial/employee.py>`
+ :download:`pickling <../../../examples/api/pickling.py>`
  and run::
 
-   $ python employee.py
+   $ python pickling.py
 
 Example Atom Code
 -------------------------------------------------------------------------------
-.. literalinclude:: ../../../examples/tutorial/employee.py
+.. literalinclude:: ../../../examples/api/pickling.py
     :language: python

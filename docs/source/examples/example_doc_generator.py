@@ -43,6 +43,8 @@ EXAMPLE_DOC_RST_TEMPLATE = dedent(
       Do not edit it directly.
       See docs/source/examples/example_doc_generator.py
 
+    .. _ex-{name}:
+
     {title} Example
     ===============================================================================
 

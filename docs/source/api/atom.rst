@@ -11,6 +11,8 @@ Subpackages
 .. toctree::
 
     atom.datastructures
+    atom.meta
+
 
 Submodules
 ----------
@@ -19,6 +21,7 @@ Submodules
 
    atom.api
    atom.atom
+   atom.meta
    atom.catom
    atom.coerced
    atom.containerlist
@@ -34,3 +37,4 @@ Submodules
    atom.subclass
    atom.tuple
    atom.typed
+   atom.typing_utils

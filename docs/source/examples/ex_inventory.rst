@@ -3,15 +3,12 @@
   Do not edit it directly.
   See docs/source/examples/example_doc_generator.py
 
+.. _ex-inventory:
+
 Inventory Example
 ===============================================================================
 
-Class for keeping track of an item in inventory.
-
-    This example demonstrates creating an Atom using python type hints
-    and using ``observe`` to detect when an item goes on sale.
-
-    Expected output: `Save $0.99 now on widgets!`
+Example on using type hints to create Atom subclasses.
 
 .. TIP:: To see this example in action, download it from
  :download:`inventory <../../../examples/typehints/inventory.py>`
