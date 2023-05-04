@@ -286,7 +286,12 @@ static PyObject* DefaultAtomDict_missing( DefaultAtomDict* self, PyObject* args 
 			"so missing value cannot be built."
 		);
 	}
+#if PY_VERSION_HEX >= 0x03090000
 	cppy::ptr value_ptr( PyObject_CallOneArg( self->factory, pyobject_cast( atom ) ) );
+#else
+	cppy::ptr temp( PyTuple_Pack(1, pyobject_cast( atom ) ) );
+	cppy::ptr value_ptr( PyObject_Call( self->factory, temp.get(), 0 ) );
+#endif
 	if( !value_ptr )
 	{
 		return 0;
