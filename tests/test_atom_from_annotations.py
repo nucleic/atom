@@ -16,6 +16,7 @@ from typing import (
     Callable as TCallable,
     ClassVar,
     Dict as TDict,
+    DefaultDict as TDefaultDict,
     Iterable,
     List as TList,
     Optional,
@@ -200,13 +201,33 @@ def test_union_in_annotation(annotation, member, validate_mode):
         (TSet[int], Set(Int()), 1),
         (TDict[int, int], Dict(), 0),
         (TDict[int, int], Dict(Int(), Int()), 1),
-        (defaultdict[int, int], DefaultDict(Int(), Int()), 1),
+        (TDefaultDict[int, int], DefaultDict(Int(), Int()), 1),
         (TTuple[int], Tuple(), 0),
         (TTuple[int], Tuple(Int()), 1),
         (TTuple[int, ...], Tuple(Int()), 1),
         (TTuple[int, float], Tuple(), 1),
         (TTuple[tuple, int], Tuple(), 1),
-    ],
+    ]
+    + (
+        [
+            (list[int], List(), 0),
+            (list[int], List(Int()), 1),
+            (list[list[int]], List(List()), 1),
+            (list[list[int]], List(List(Int())), -1),
+            (set[int], Set(), 0),
+            (set[int], Set(Int()), 1),
+            (dict[int, int], Dict(), 0),
+            (dict[int, int], Dict(Int(), Int()), 1),
+            (defaultdict[int, int], DefaultDict(Int(), Int()), 1),
+            (tuple[int], Tuple(), 0),
+            (tuple[int], Tuple(Int()), 1),
+            (tuple[int, ...], Tuple(Int()), 1),
+            (tuple[int, float], Tuple(), 1),
+            (tuple[tuple, int], Tuple(), 1),
+        ]
+        if sys.version_info >= (3, 9)
+        else []
+    ),
 )
 def test_annotated_containers_no_default(annotation, member, depth):
     class A(Atom, use_annotations=True, type_containers=depth):
@@ -253,10 +274,20 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (TList, List, [1]),
         (TSet, Set, {1}),
         (TDict, Dict, {1: 2}),
-        (defaultdict, DefaultDict, defaultdict(int, {1: 2})),
+        (TDefaultDict, DefaultDict, defaultdict(int, {1: 2})),
         (Optional[Iterable], Instance, None),
         (Type[int], Subclass, int),
-    ],
+    ]
+    + (
+        [
+            (list, List, [1]),
+            (set, Set, {1}),
+            (dict, Dict, {1: 2}),
+            (defaultdict, DefaultDict, defaultdict(int, {1: 2})),
+        ]
+        if sys.version_info >= (3, 9)
+        else []
+    ),
 )
 def test_annotations_with_default(annotation, member, default):
     class A(Atom, use_annotations=True):
