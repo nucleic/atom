@@ -6,10 +6,11 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 import collections.abc
+from collections import defaultdict
 from typing import Any, ClassVar, MutableMapping, Type
 
 from ..catom import Member
-from ..dict import Dict as ADict
+from ..dict import DefaultDict, Dict as ADict
 from ..instance import Instance
 from ..list import List as AList
 from ..scalars import Bool, Bytes, Callable as ACallable, Float, Int, Str, Value
@@ -30,6 +31,7 @@ _TYPE_TO_MEMBER = {
     bytes: Bytes,
     list: AList,
     dict: ADict,
+    defaultdict: DefaultDict,
     set: ASet,
     tuple: ATuple,
     collections.abc.Callable: ACallable,
@@ -60,7 +62,13 @@ def generate_member_from_type_or_generic(
     elif len(types) == 1 and types[0] in _TYPE_TO_MEMBER:
         t = types[0]
         m_cls = _TYPE_TO_MEMBER[t]
-        if annotate_type_containers and t in (list, dict, set, tuple):
+        if annotate_type_containers and t in (
+            list,
+            dict,
+            collections.defaultdict,
+            set,
+            tuple,
+        ):
             # We can only validate homogeneous tuple so far so we ignore other cases
             if t is tuple:
                 if (...) in parameters or len(set(parameters)) == 1:

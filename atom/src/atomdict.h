@@ -13,6 +13,7 @@
 
 
 #define atomdict_cast( o ) ( reinterpret_cast<atom::AtomDict*>( o ) )
+#define defaultatomdict_cast( o ) ( reinterpret_cast<atom::DefaultAtomDict*>( o ) )
 
 
 namespace atom
@@ -35,6 +36,29 @@ struct AtomDict
     static PyObject* New( CAtom* atom, Member* key_validator, Member* value_validator );
 
     static int Update( AtomDict* dict, PyObject* value );
+
+    static bool TypeCheck( PyObject* ob )
+	{
+		return PyObject_TypeCheck( ob, TypeObject ) != 0;
+	}
+
+};
+
+// POD struct - all member fields are considered private
+struct DefaultAtomDict
+{
+	AtomDict dict;
+	PyObject* factory;
+
+	static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+
+    static PyObject* New(
+		CAtom* atom, Member* key_validator, Member* value_validator, PyObject* factory
+	);
 
     static bool TypeCheck( PyObject* ob )
 	{

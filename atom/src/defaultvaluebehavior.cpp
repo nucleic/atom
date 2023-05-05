@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2021, Nucleic Development Team.
+| Copyright (c) 2013-2023, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -33,6 +33,7 @@ Member::check_context( DefaultValue::Mode mode, PyObject* context )
             }
             break;
         case DefaultValue::Dict:
+        case DefaultValue::DefaultDict:
             if( context != Py_None && !PyDict_Check( context ) )
             {
                 cppy::type_error( context, "dict or None" );
@@ -226,6 +227,7 @@ handlers[] = {
     static_handler,
     list_handler,
     set_handler,
+    dict_handler,
     dict_handler,
     non_optional_handler,
     delegate_handler,

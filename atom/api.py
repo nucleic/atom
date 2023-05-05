@@ -26,11 +26,12 @@ from .catom import (
     atomlist,
     atomref,
     atomset,
+    defaultatomdict,
 )
 from .coerced import Coerced
 from .containerlist import ContainerList
 from .delegator import Delegator
-from .dict import Dict
+from .dict import DefaultDict, Dict
 from .enum import Enum
 from .event import Event
 from .instance import ForwardInstance, Instance
@@ -85,6 +86,7 @@ __all__ = [
     "Validate",
     "atomclist",
     "atomdict",
+    "defaultatomdict",
     "atomlist",
     "atomref",
     "atomset",
@@ -92,6 +94,7 @@ __all__ = [
     "ContainerList",
     "Delegator",
     "Dict",
+    "DefaultDict",
     "Enum",
     "Event",
     "ForwardInstance",

@@ -9,6 +9,11 @@ Atom Release Notes
   was not set when ``__init_subclass__`` was called
 - illustrate the use of ``__init_subclass__`` to customize pickling PR #510
 - refactor the metaclass to make it easier to reason about PR #510
+- add a ``DefaultDict`` member which enforce the value to be a dictionary and
+  use a factory for missing keys. The factory is set at the member level and
+  a normal dict can be provided as value. When possible the factory is deduced
+  from the member used for validation.
+- infer the use of ``DefaultDict`` from a ``collections.defaultdict`` annotation
 
 0.9.1 - 13/03/2023
 ------------------
