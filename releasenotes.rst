@@ -1,7 +1,7 @@
 Atom Release Notes
 ==================
 
-0.10.0 - unreleased
+0.10.0 - 05/05/2023
 -------------------
 
 - AtomMeta: create the class only once all members have been customized PR #510
