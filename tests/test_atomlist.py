@@ -396,8 +396,8 @@ class TestStandardList(ListTestBase):
         self.model = None
 
     def test_list_types(self):
-        assert type(self.model.untyped) == atomlist
-        assert type(self.model.typed) == atomlist
+        assert type(self.model.untyped) is atomlist
+        assert type(self.model.typed) is atomlist
 
     def test_pickle(self):
         data = list(range(10))
@@ -454,8 +454,8 @@ class TestContainerList(TestStandardList):
         self.model = None
 
     def test_list_types(self):
-        assert type(self.model.untyped) == atomclist
-        assert type(self.model.typed) == atomclist
+        assert type(self.model.untyped) is atomclist
+        assert type(self.model.typed) is atomclist
 
 
 @pytest.fixture
