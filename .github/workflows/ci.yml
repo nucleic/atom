@@ -120,7 +120,7 @@ jobs:
           CPPFLAGS: --coverage
         # Build extensions manually to allow getting C coverage data
         run: |
-          python setup.py develop
+          pip install -e .
       - name: Test with pytest
         # XXX Disabled warnings check ( -W error) to be able to test on 3.11
         # (pyparsing deprecation)
