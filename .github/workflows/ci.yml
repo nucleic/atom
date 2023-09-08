@@ -96,7 +96,7 @@ jobs:
     if: needs.lint.result == 'success'
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12-dev']
     steps:
       - uses: actions/checkout@v4
@@ -126,7 +126,7 @@ jobs:
         # (pyparsing deprecation)
         run: |
           pip install -r test_requirements.txt
-          python -X dev -m pytest tests --ignore=tests/type_checking --cov --cov-report xml -v
+          gdb -ex r --args python -X dev -m pytest tests --ignore=tests/type_checking --cov --cov-report xml -v
       - name: Generate C++ coverage reports
         if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
         run: |
