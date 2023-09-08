@@ -125,6 +125,7 @@ jobs:
         # XXX Disabled warnings check ( -W error) to be able to test on 3.11
         # (pyparsing deprecation)
         run: |
+          sudo apt-get install gdb
           pip install -r test_requirements.txt
           gdb -ex r --args python -X dev -m pytest tests --ignore=tests/type_checking --cov --cov-report xml -v
       - name: Generate C++ coverage reports
