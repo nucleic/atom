@@ -96,7 +96,7 @@ jobs:
     if: needs.lint.result == 'success'
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12-dev']
     steps:
       - uses: actions/checkout@v4
@@ -125,9 +125,8 @@ jobs:
         # XXX Disabled warnings check ( -W error) to be able to test on 3.11
         # (pyparsing deprecation)
         run: |
-          sudo apt-get install gdb
           pip install -r test_requirements.txt
-          gdb -ex r --args python -X dev -m pytest tests --ignore=tests/type_checking --cov --cov-report xml -v
+          python -X dev -m pytest tests --ignore=tests/type_checking --cov --cov-report xml -v
       - name: Generate C++ coverage reports
         if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
         run: |
