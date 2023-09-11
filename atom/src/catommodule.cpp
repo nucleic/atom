@@ -178,6 +178,10 @@ catom_modexec( PyObject *mod )
     {
         return -1;
     }
+    if( !atom::init_containerlistchange() )
+    {
+        return -1;
+    }
     if( !add_objects( mod ) )
     {
         return -1;

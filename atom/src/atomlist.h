@@ -41,6 +41,9 @@ struct AtomList
 
 };
 
+bool
+init_containerlistchange();
+
 
 // POD struct - all member fields are considered private
 struct AtomCList
