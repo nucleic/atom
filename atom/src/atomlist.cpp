@@ -466,62 +466,166 @@ bool AtomList::Ready()
 namespace PySStr
 {
 
-    class PyStringMaker
-    {
-
-    public:
-
-        PyStringMaker( const char* string ) : m_pystring( 0 )
-        {
-            m_pystring = PyUnicode_FromString( string );
-        }
-
-        PyObject* operator()()
-        {
-            return m_pystring.get();
-        }
-
-    private:
-
-        PyStringMaker();
-        cppy::ptr m_pystring;
-    };
-
-
-    #define _STATIC_STRING( name )                \
-        static PyObject*                          \
-        name()                                    \
-        {                                         \
-            static PyStringMaker string( #name ); \
-            return string();                      \
-        }
-
-    _STATIC_STRING( type )
-    _STATIC_STRING( name )
-    _STATIC_STRING( object )
-    _STATIC_STRING( value )
-    _STATIC_STRING( operation )
-    _STATIC_STRING( item )
-    _STATIC_STRING( items )
-    _STATIC_STRING( index )
-    _STATIC_STRING( key )
-    _STATIC_STRING( reverse )
-    _STATIC_STRING( container )
-    _STATIC_STRING( __delitem__ )
-    _STATIC_STRING( __iadd__ )
-    _STATIC_STRING( __imul__ )
-    _STATIC_STRING( __setitem__ )
-    _STATIC_STRING( append )
-    _STATIC_STRING( extend )
-    _STATIC_STRING( insert )
-    _STATIC_STRING( pop )
-    _STATIC_STRING( remove )
-    _STATIC_STRING( sort )
-    _STATIC_STRING( olditem )
-    _STATIC_STRING( newitem )
-    _STATIC_STRING( count )
+    static PyObject* typestr;
+    static PyObject* namestr;
+    static PyObject* objectstr;
+    static PyObject* valuestr ;
+    static PyObject* operationstr ;
+    static PyObject* itemstr ;
+    static PyObject* itemsstr ;
+    static PyObject* indexstr ;
+    static PyObject* keystr ;
+    static PyObject* reversestr ;
+    static PyObject* containerstr ;
+    static PyObject* __delitem__str ;
+    static PyObject* __iadd__str ;
+    static PyObject* __imul__str ;
+    static PyObject* __setitem__str ;
+    static PyObject* appendstr ;
+    static PyObject* extendstr ;
+    static PyObject* insertstr ;
+    static PyObject* popstr ;
+    static PyObject* removestr ;
+    static PyObject* sortstr ;
+    static PyObject* olditemstr ;
+    static PyObject* newitemstr ;
+    static PyObject* countstr ;
 
 }  // namespace PySStr
+
+
+bool
+init_containerlistchange()
+{
+    static bool alloced = false;
+    if( alloced )
+    {
+        return true;
+    }
+
+    PySStr::typestr = PyUnicode_InternFromString( "type" );
+    if( !PySStr::typestr )
+    {
+        return false;
+    }
+    PySStr::namestr = PyUnicode_InternFromString( "name" );
+    if( !PySStr::namestr )
+    {
+        return false;
+    }
+    PySStr::objectstr = PyUnicode_InternFromString( "object" );
+    if( !PySStr::objectstr )
+    {
+        return false;
+    }
+    PySStr::valuestr = PyUnicode_InternFromString( "value" );
+    if( !PySStr::valuestr )
+    {
+        return false;
+    }
+    PySStr::operationstr = PyUnicode_InternFromString( "operation" );
+    if( !PySStr::operationstr )
+    {
+        return false;
+    }
+    PySStr::itemstr = PyUnicode_InternFromString( "item" );
+    if( !PySStr::itemstr )
+    {
+        return false;
+    }
+    PySStr::itemsstr = PyUnicode_InternFromString( "items" );
+    if( !PySStr::itemsstr )
+    {
+        return false;
+    }
+    PySStr::indexstr = PyUnicode_InternFromString( "index" );
+    if( !PySStr::indexstr )
+    {
+        return false;
+    }
+    PySStr::keystr = PyUnicode_InternFromString( "key" );
+    if( !PySStr::keystr )
+    {
+        return false;
+    }
+    PySStr::reversestr = PyUnicode_InternFromString( "reverse" );
+    if( !PySStr::reversestr )
+    {
+        return false;
+    }
+    PySStr::containerstr = PyUnicode_InternFromString( "container" );
+    if( !PySStr::containerstr )
+    {
+        return false;
+    }
+    PySStr::__delitem__str = PyUnicode_InternFromString( "__delitem__" );
+    if( !PySStr::typestr )
+    {
+        return false;
+    }
+    PySStr::__iadd__str = PyUnicode_InternFromString( "__iadd__" );
+    if( !PySStr::__iadd__str )
+    {
+        return false;
+    }
+    PySStr::__imul__str = PyUnicode_InternFromString( "__imul__" );
+    if( !PySStr::__imul__str )
+    {
+        return false;
+    }
+    PySStr::__setitem__str = PyUnicode_InternFromString( "__setitem__" );
+    if( !PySStr::__setitem__str )
+    {
+        return false;
+    }
+    PySStr::appendstr = PyUnicode_InternFromString( "append" );
+    if( !PySStr::appendstr )
+    {
+        return false;
+    }
+    PySStr::extendstr = PyUnicode_InternFromString( "extend" );
+    if( !PySStr::extendstr )
+    {
+        return false;
+    }
+    PySStr::insertstr = PyUnicode_InternFromString( "insert" );
+    if( !PySStr::insertstr )
+    {
+        return false;
+    }
+    PySStr::popstr = PyUnicode_InternFromString( "pop" );
+    if( !PySStr::popstr )
+    {
+        return false;
+    }
+    PySStr::removestr = PyUnicode_InternFromString( "remove" );
+    if( !PySStr::removestr )
+    {
+        return false;
+    }
+    PySStr::sortstr = PyUnicode_InternFromString( "sort" );
+    if( !PySStr::sortstr )
+    {
+        return false;
+    }
+    PySStr::olditemstr = PyUnicode_InternFromString( "olditem" );
+    if( !PySStr::olditemstr )
+    {
+        return false;
+    }
+    PySStr::newitemstr = PyUnicode_InternFromString( "newitem" );
+    if( !PySStr::newitemstr )
+    {
+        return false;
+    }
+    PySStr::countstr = PyUnicode_InternFromString( "count" );
+    if( !PySStr::countstr )
+    {
+        return false;
+    }
+    alloced = true;
+    return true;
+}
 
 
 namespace
@@ -559,9 +663,9 @@ public:
             cppy::ptr c( prepare_change() );
             if( !c )
                 return 0;  // LCOV_EXCL_LINE
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::append() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::appendstr ) != 0 )
                 return 0;
-            if( PyDict_SetItem( c.get(), PySStr::item(), m_validated.get() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::itemstr, m_validated.get() ) != 0 )
                 return 0;
             if( !post_change( c ) )
                 return 0;
@@ -580,15 +684,15 @@ public:
             cppy::ptr c( prepare_change() );
             if( !c )
                 return 0;  // LCOV_EXCL_LINE
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::insert() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::insertstr ) != 0 )
                 return 0;
             // if the superclass call succeeds, then this is safe.
             Py_ssize_t where = PyLong_AsSsize_t( PyTuple_GET_ITEM( args, 0 ) );
             clip_index( where, size );
             cppy::ptr index( PyLong_FromSsize_t( where ) );
-            if( PyDict_SetItem( c.get(), PySStr::index(), index.get() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::indexstr, index.get() ) != 0 )
                 return 0;
-            if( PyDict_SetItem( c.get(), PySStr::item(), m_validated.get() ) != 0)
+            if( PyDict_SetItem( c.get(), PySStr::itemstr, m_validated.get() ) != 0)
                 return 0;
             if( !post_change( c ) )
                 return 0;
@@ -606,9 +710,9 @@ public:
             cppy::ptr c( prepare_change() );
             if( !c )
                 return 0;  // LCOV_EXCL_LINE
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::extend() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::extendstr ) != 0 )
                 return 0;
-            if( PyDict_SetItem( c.get(), PySStr::items(), m_validated.get() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::itemsstr, m_validated.get() ) != 0 )
                 return 0;
             if( !post_change( c ) )
                 return 0;
@@ -633,7 +737,7 @@ public:
             cppy::ptr c( prepare_change() );
             if( !c )
                 return 0;  // LCOV_EXCL_LINE
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::pop() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::popstr ) != 0 )
                 return 0;
             // if the superclass call succeeds, then this is safe.
             Py_ssize_t i = -1;
@@ -642,9 +746,9 @@ public:
             if( i < 0 )
                 i += size;
             cppy::ptr index( PyLong_FromSsize_t( i ) );
-            if( PyDict_SetItem( c.get(), PySStr::index(), index.get() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::indexstr, index.get() ) != 0 )
                 return 0;
-            if( PyDict_SetItem( c.get(), PySStr::item(), res.get() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::itemstr, res.get() ) != 0 )
                 return 0;
             if( !post_change( c ) )
                 return 0;
@@ -662,9 +766,9 @@ public:
             cppy::ptr c( prepare_change() );
             if( !c )
                 return 0;  // LCOV_EXCL_LINE
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::remove() ) != 0)
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::removestr ) != 0)
                 return 0;
-            if( PyDict_SetItem( c.get(), PySStr::item(), value ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::itemstr, value ) != 0 )
                 return 0;
             if( !post_change( c ) )
                 return 0;
@@ -682,7 +786,7 @@ public:
             cppy::ptr c( prepare_change() );
             if( !c )
                 return 0;  // LCOV_EXCL_LINE
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::reverse() ) != 0)
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::reversestr ) != 0)
                 return 0;
             if( !post_change( c ) )
                 return 0;
@@ -713,16 +817,16 @@ public:
             cppy::ptr c( prepare_change() );
             if( !c )
                 return 0;  // LCOV_EXCL_LINE
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::sort() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::sortstr ) != 0 )
                 return 0;
             PyObject* key = Py_None;
             int rev = 0;
             if( !PyArg_ParseTupleAndKeywords(
                 args, kwargs, "|Oi", kwlist, &key, &rev ) )
                 return 0;
-            if( PyDict_SetItem( c.get(), PySStr::key(), key ) != 0)
+            if( PyDict_SetItem( c.get(), PySStr::keystr, key ) != 0)
                 return 0;
-            if( PyDict_SetItem( c.get(), PySStr::reverse(), rev ? Py_True : Py_False ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::reversestr, rev ? Py_True : Py_False ) != 0 )
                 return 0;
             if( !post_change( c ) )
                 return 0;
@@ -740,9 +844,9 @@ public:
             cppy::ptr c( prepare_change() );
             if( !c )
                 return 0;  // LCOV_EXCL_LINE
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::__iadd__() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::__iadd__str ) != 0 )
                 return 0;
-            if( PyDict_SetItem( c.get(), PySStr::items(), m_validated.get() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::itemsstr, m_validated.get() ) != 0 )
                 return 0;
             if( !post_change( c ) )
                 return 0;
@@ -761,12 +865,12 @@ public:
             cppy::ptr c( prepare_change() );
             if( !c )
                 return 0;  // LCOV_EXCL_LINE
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::__imul__() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::__imul__str ) != 0 )
                 return 0;
             cppy::ptr pycount( PyLong_FromSsize_t( count ) );
             if( !pycount )
                 return 0;
-            if( PyDict_SetItem( c.get(), PySStr::count(), pycount.get() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::countstr, pycount.get() ) != 0 )
                 return 0;
             if( !post_change( c ) )
                 return 0;
@@ -848,13 +952,13 @@ private:
         cppy::ptr c( PyDict_New() );
         if( !c )
             return 0;
-        if( PyDict_SetItem( c.get(), PySStr::type(), PySStr::container() ) != 0 )
+        if( PyDict_SetItem( c.get(), PySStr::typestr, PySStr::containerstr ) != 0 )
             return 0;
-        if( PyDict_SetItem( c.get(), PySStr::name(), member()->name ) != 0 )
+        if( PyDict_SetItem( c.get(), PySStr::namestr, member()->name ) != 0 )
             return 0;
-        if( PyDict_SetItem( c.get(), PySStr::object(), pyobject_cast( atom() ) ) != 0 )
+        if( PyDict_SetItem( c.get(), PySStr::objectstr, pyobject_cast( atom() ) ) != 0 )
             return 0;
-        if( PyDict_SetItem( c.get(), PySStr::value(), m_list.get() ) != 0 )
+        if( PyDict_SetItem( c.get(), PySStr::valuestr, m_list.get() ) != 0 )
             return 0;
         return c.release();
     }
@@ -885,21 +989,21 @@ private:
             return -1;
         if( n )
         {
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::__setitem__() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::__setitem__str ) != 0 )
                 return -1;
-            if( PyDict_SetItem( c.get(), PySStr::olditem(), o.get() ) != 0)
+            if( PyDict_SetItem( c.get(), PySStr::olditemstr, o.get() ) != 0)
                 return -1;
-            if( PyDict_SetItem( c.get(), PySStr::newitem(), n.get() ) != 0)
+            if( PyDict_SetItem( c.get(), PySStr::newitemstr, n.get() ) != 0)
                 return -1;
         }
         else
         {
-            if( PyDict_SetItem( c.get(), PySStr::operation(), PySStr::__delitem__() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::__delitem__str ) != 0 )
                 return -1;
-            if( PyDict_SetItem( c.get(), PySStr::item(), o.get() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::itemstr, o.get() ) != 0 )
                 return -1;
         }
-        if( PyDict_SetItem( c.get(), PySStr::index(), i.get() ) != 0 )
+        if( PyDict_SetItem( c.get(), PySStr::indexstr, i.get() ) != 0 )
             return -1;
         if( !post_change( c ) )
             return -1;
