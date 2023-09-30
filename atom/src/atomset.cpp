@@ -95,7 +95,10 @@ int AtomSet_traverse( AtomSet* self, visitproc visit, void* arg )
 
 void AtomSet_dealloc( AtomSet* self )
 {
+	PyObject_GC_UnTrack( self );
 	cppy::clear( &self->m_value_validator );
+	delete atomset_cast( self )->pointer;
+    atomset_cast( self )->pointer = 0;
 	PySet_Type.tp_dealloc( pyobject_cast( self ) );
 }
 
