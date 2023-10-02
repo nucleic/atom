@@ -5,6 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
+import gc
 import time
 from multiprocessing import Process
 
@@ -19,7 +20,7 @@ try:
 except ImportError:
     PSUTIL_UNAVAILABLE = True
 
-TIMEOUT = 2
+TIMEOUT = 4
 
 
 class DictObj(Atom):
@@ -58,6 +59,7 @@ def memtest(cls):
         obj = cls()
         obj.data  # Force creation
         del obj
+        gc.collect()
 
 
 def atomreftest(cls):
@@ -66,6 +68,7 @@ def atomreftest(cls):
     while True:
         ref = atomref(obj)  # noqa
         del ref
+        gc.collect()
 
 
 @pytest.mark.skipif(PSUTIL_UNAVAILABLE, reason="psutil is not installed")
