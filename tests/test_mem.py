@@ -19,7 +19,7 @@ try:
 except ImportError:
     PSUTIL_UNAVAILABLE = True
 
-TIMEOUT = 10
+TIMEOUT = 2
 
 
 class DictObj(Atom):
@@ -27,7 +27,7 @@ class DictObj(Atom):
 
 
 class DefaultDictObj(Atom):
-    data = DefaultDict(value=Int(), default={1: 1})  # type: ignore
+    data = DefaultDict(value=Int(), default={1: 1})
 
 
 class ListObj(Atom):
@@ -53,26 +53,19 @@ MEM_TESTS = {
 
 def memtest(cls):
     # Create object in a loop
-    # Memory usage should settle out and not cange
-    t = time.time()
-
+    # Memory usage should settle out and not change
     while True:
         obj = cls()
         obj.data  # Force creation
         del obj
-        if time.time() - t > TIMEOUT:
-            break
 
 
 def atomreftest(cls):
-    t = time.time()
     obj = cls()
     obj.data
     while True:
         ref = atomref(obj)  # noqa
         del ref
-        if time.time() - t > TIMEOUT:
-            break
 
 
 @pytest.mark.skipif(PSUTIL_UNAVAILABLE, reason="psutil is not installed")
@@ -97,3 +90,4 @@ def test_mem_usage(label):
         )
     finally:
         p.kill()
+        p.join()
