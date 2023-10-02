@@ -27,7 +27,7 @@ class DictObj(Atom):
 
 
 class DefaultDictObj(Atom):
-    data = DefaultDict(value=Int(), default={1: 1})
+    data = DefaultDict(value=Int(), default={1: 1})  # type: ignore
 
 
 class ListObj(Atom):
@@ -69,7 +69,7 @@ def atomreftest(cls):
     obj = cls()
     obj.data
     while True:
-        ref = atomref(obj)
+        ref = atomref(obj)  # noqa
         del ref
         if time.time() - t > TIMEOUT:
             break
