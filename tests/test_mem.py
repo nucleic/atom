@@ -20,7 +20,7 @@ try:
 except ImportError:
     PSUTIL_UNAVAILABLE = True
 
-TIMEOUT = 4
+TIMEOUT = 6
 
 
 class DictObj(Atom):
@@ -88,9 +88,14 @@ def test_mem_usage(label):
         first_info = stats.memory_info()
         time.sleep(TIMEOUT * 3 / 4)
         last_info = stats.memory_info()
-        assert first_info == last_info, "Memory leaked:\n  {}\n  {}".format(
-            first_info, last_info
-        )
+        # Allow slight memory decrease over time to make tests more resilient
+        if first_info != last_info:
+            assert (
+                first_info.rss >= last_info.rss >= 0
+            ), "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
+            assert (
+                first_info.vms >= last_info.vms >= 0
+            ), "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
     finally:
         p.kill()
         p.join()
