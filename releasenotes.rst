@@ -1,6 +1,13 @@
 Atom Release Notes
 ==================
 
+0.10.2 - 02/10/2023
+-------------------
+
+- fix a memory leak caused by Dict, Defaultdict and Set members #202
+
+  A huge thanks to @frmdstryr for the report and fix
+
 0.10.1 - 11/09/2023
 -------------------
 
