@@ -310,9 +310,9 @@ void
 AtomList_dealloc( AtomList* self )
 {
     PyObject_GC_UnTrack( self );
+    cppy::clear( &self->validator );
     delete self->pointer;
     self->pointer = 0;
-    Py_CLEAR( self->validator );
     PyList_Type.tp_dealloc( pyobject_cast( self ) );
 }
 
@@ -1040,10 +1040,10 @@ void
 AtomCList_dealloc( AtomCList* self )
 {
     PyObject_GC_UnTrack( self );
-    Py_CLEAR( self->member );
+    cppy::clear( &self->member );
+    cppy::clear( &atomlist_cast( self )->validator );
     delete atomlist_cast( self )->pointer;
     atomlist_cast( self )->pointer = 0;
-    Py_CLEAR( atomlist_cast( self )->validator );
     PyList_Type.tp_dealloc( pyobject_cast( self ) );
 }
 

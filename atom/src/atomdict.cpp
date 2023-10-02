@@ -114,8 +114,11 @@ int AtomDict_traverse( AtomDict* self, visitproc visit, void* arg )
 
 void AtomDict_dealloc( AtomDict* self )
 {
+	PyObject_GC_UnTrack( self );
 	cppy::clear( &self->m_key_validator );
 	cppy::clear( &self->m_value_validator );
+    delete atomdict_cast( self )->pointer;
+    atomdict_cast( self )->pointer = 0;
 	PyDict_Type.tp_dealloc( pyobject_cast( self ) );
 }
 
