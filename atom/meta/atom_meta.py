@@ -55,8 +55,8 @@ def add_member(cls: "AtomMeta", name: str, member: Member) -> None:
     """Add or override a member after the class creation."""
     existing = cls.__atom_members__.get(name)
     if existing is not None:
-        member.set_index(member.index)
-        member.copy_static_observers(member)
+        member.set_index(existing.index)
+        member.copy_static_observers(existing)
     else:
         member.set_index(len(cls.__atom_members__))
 
