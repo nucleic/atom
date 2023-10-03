@@ -342,3 +342,22 @@ def test_clone_if_needed():
 
     assert C.a is not B.a
     assert C.b is i
+
+
+def test_overridden_member():
+    class A(Atom):
+        a = Int()
+        b = Int()
+
+    class B(A):
+        c = Int()
+
+    new = Str()
+    add_member(B, "b", new)
+
+    r = B(a=1, b="abc")
+    assert r.a == 1
+    assert r.b == "abc"
+    assert B.a.index == 0
+    assert B.b.index == 1
+    assert B.c.index == 2
