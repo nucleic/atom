@@ -1,6 +1,13 @@
 Atom Release Notes
 ==================
 
+0.10.3 - 04/10/2023
+-------------------
+
+- fix a an issue when using add_member to override an existing member PR #204
+
+  Once again a huge thanks to @frmdstryr for the report and fix
+
 0.10.2 - 02/10/2023
 -------------------
 
