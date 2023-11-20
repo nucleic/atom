@@ -66,7 +66,7 @@ def atomreftest(cls):
     obj = cls()
     obj.data
     while True:
-        ref = atomref(obj)  # noqa
+        ref = atomref(obj)
         del ref
         gc.collect()
 

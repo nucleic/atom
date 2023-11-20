@@ -10,6 +10,9 @@ Welcome to Atom
 .. image:: https://readthedocs.org/projects/atom/badge/?version=latest
     :target: https://atom.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Ruff
 
 Atom is a framework for creating memory efficient Python objects with enhanced
 features such as dynamic initialization, validation, and change notification for

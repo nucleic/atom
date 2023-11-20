@@ -180,7 +180,9 @@ def test_delegator_methods():
     assert DelegateTest.d.index == new_index
     assert DelegateTest.d.delegate.index == new_index
 
-    observer = lambda s, c: None
+    def observer(s, c):
+        return None
+
     assert not DelegateTest.d.delegate.static_observers()
     DelegateTest.d.add_static_observer(observer)
     assert DelegateTest.d.delegate.static_observers()

@@ -303,10 +303,10 @@ def test_annotations_with_default(annotation, member, default):
 def test_annotations_no_default_for_instance():
     with pytest.raises(ValueError):
 
-        class A(Atom, use_annotations=True):  # noqa
+        class A(Atom, use_annotations=True):
             a: Iterable = []
 
     with pytest.raises(ValueError):
 
-        class B(Atom, use_annotations=True):  # noqa
+        class B(Atom, use_annotations=True):
             a: Optional[Iterable] = []

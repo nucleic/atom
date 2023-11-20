@@ -140,7 +140,7 @@ class ListTestBase(object):
 
     def test_untyped_iterate(self):
         self.model.untyped = list(range(10))
-        data = [i for i in self.model.untyped]
+        data = list(self.model.untyped)
         assert data == list(range(10))
 
     def test_untyped_copy_on_assign(self):
@@ -160,7 +160,7 @@ class ListTestBase(object):
     def test_untyped_insert(self):
         self.model.untyped = list(range(10))
         self.model.untyped.insert(0, 19)
-        assert self.model.untyped == [19] + list(range(10))
+        assert self.model.untyped == [19, *list(range(10))]
 
     def test_untyped_remove(self):
         self.model.untyped = list(range(10))
@@ -267,7 +267,7 @@ class ListTestBase(object):
 
     def test_typed_iterate(self):
         self.model.typed = list(range(10))
-        data = [i for i in self.model.typed]
+        data = list(self.model.typed)
         assert data == list(range(10))
 
     def test_typed_copy_on_assign(self):
@@ -287,7 +287,7 @@ class ListTestBase(object):
     def test_typed_insert(self):
         self.model.typed = list(range(10))
         self.model.typed.insert(0, 19)
-        assert self.model.typed == [19] + list(range(10))
+        assert self.model.typed == [19, *list(range(10))]
 
     def test_typed_remove(self):
         self.model.typed = list(range(10))
@@ -554,7 +554,10 @@ def test_container_sort(container_model, kind):
 @pytest.mark.parametrize("kind", ("untyped", "typed"))
 def test_container_key_sort(container_model, kind):
     mlist = getattr(container_model, kind)
-    key = lambda i: i
+
+    def key(i):
+        return i
+
     mlist.sort(key=key, reverse=True)
     verify_base_change(container_model, kind)
     for change in (container_model.change, container_model.get_static_change(kind)):

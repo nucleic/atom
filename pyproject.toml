@@ -7,18 +7,14 @@
 # --------------------------------------------------------------------------------------
 
 [project]
-name = "atom"
-description = "Memory efficient Python objects"
-readme = "README.rst"
-requires-python = ">=3.8"
-license = {file = "LICENSE"}
-authors = [
-  {name = "The Nucleic Development Team", email = "sccolbert@gmail.com"}
-]
-maintainers = [
-  {name = "Matthieu C. Dartiailh", email = "m.dartiailh@gmail.com"}
-]
-classifiers = [
+  name = "atom"
+  description = "Memory efficient Python objects"
+  readme = "README.rst"
+  requires-python = ">=3.8"
+  license = { file = "LICENSE" }
+  authors = [{ name = "The Nucleic Development Team", email = "sccolbert@gmail.com" }]
+  maintainers = [{ name = "Matthieu C. Dartiailh", email = "m.dartiailh@gmail.com" }]
+  classifiers = [
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -27,29 +23,27 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: Implementation :: CPython",
-]
-dependencies = [
-  "typing_extensions;python_version<'3.11'"
-]
-dynamic=["version"]
+  ]
+  dependencies = ["typing_extensions;python_version<'3.11'"]
+  dynamic = ["version"]
 
-[project.urls]
-homepage = "https://github.com/nucleic/atom"
-documentation = "https://atom.readthedocs.io/en/latest/"
-repository = "https://github.com/nucleic/atom"
-changelog = "https://github.com/nucleic/atom/blob/main/releasenotes.rst"
+  [project.urls]
+    homepage = "https://github.com/nucleic/atom"
+    documentation = "https://atom.readthedocs.io/en/latest/"
+    repository = "https://github.com/nucleic/atom"
+    changelog = "https://github.com/nucleic/atom/blob/main/releasenotes.rst"
 
 [build-system]
-requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.2.0"]
-build-backend = "setuptools.build_meta"
+  requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3", "cppy>=1.2.0"]
+  build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-include-package-data = false
-package-data = {atom = ["py.typed", "*.pyi"]}
+  include-package-data = false
+  package-data = { atom = ["py.typed", "*.pyi"] }
 
 [tool.setuptools_scm]
-write_to = "atom/version.py"
-write_to_template = """
+  write_to = "atom/version.py"
+  write_to_template = """
 # --------------------------------------------------------------------------------------
 # Copyright (c) 2013-2023, Nucleic Development Team.
 #
@@ -78,20 +72,23 @@ del namedtuple, _version_info, parts
 __version__ = "{version}"
 """
 
-[tool.black]
-line-length = 88  # Enforce the default value
+[tool.ruff]
+  src = ["src"]
+  select = ["C", "E", "F", "W", "I", "C90", "RUF"]
+  extend-exclude = ["tests/instruments/hardware/nifpga/scope_based"]
+  extend-ignore = ["E501", "RUF012"]
+  line-length = 88
 
-[tool.pytest.ini_options]
-minversion = "6.0"
+  [tool.ruff.isort]
+    combine-as-imports = true
+    known-first-party = ["atom"]
+
+  [tool.ruff.mccabe]
+    max-complexity = 20
 
 [tool.mypy]
-follow_imports = "normal"
-strict_optional = true
+  follow_imports = "normal"
+  strict_optional = true
 
-[tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-combine_as_imports = true
-force_grid_wrap = 0
-use_parentheses = true
-line_length = 88
+[tool.pytest.ini_options]
+  minversion = "6.0"

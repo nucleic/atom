@@ -144,7 +144,7 @@ def test_dict_handler():
         default = Dict(default={"a": 1})
 
     assert DictTest.no_default.default_value_mode[0] == DefaultValue.Dict
-    assert DictTest().no_default == dict()
+    assert DictTest().no_default == {}
 
     assert DictTest.default.default_value_mode[0] == DefaultValue.Dict
     default_value = DictTest.default.default_value_mode[1]
@@ -171,18 +171,18 @@ def test_set_handler():
 @pytest.mark.parametrize(
     "member, expected, mode",
     [
-        (Typed(int, ("101",), dict(base=2)), 5, DefaultValue.CallObject),
+        (Typed(int, ("101",), {"base": 2}), 5, DefaultValue.CallObject),
         (Typed(int, factory=lambda: int(5)), 5, DefaultValue.CallObject),
         (
-            ForwardTyped(lambda: int, ("101",), dict(base=2)),
+            ForwardTyped(lambda: int, ("101",), {"base": 2}),
             5,
             DefaultValue.MemberMethod_Object,
         ),
         (ForwardTyped(lambda: int, factory=lambda: int(5)), 5, DefaultValue.CallObject),
-        (Instance(int, ("101",), dict(base=2)), 5, DefaultValue.CallObject),
+        (Instance(int, ("101",), {"base": 2}), 5, DefaultValue.CallObject),
         (Instance(int, factory=lambda: int(5)), 5, DefaultValue.CallObject),
         (
-            ForwardInstance(lambda: int, ("101",), dict(base=2)),
+            ForwardInstance(lambda: int, ("101",), {"base": 2}),
             5,
             DefaultValue.MemberMethod_Object,
         ),

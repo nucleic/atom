@@ -69,7 +69,10 @@ class Typed(Member):
         elif args is not None or kwargs is not None:
             args = args or ()
             kwargs = kwargs or {}
-            factory = lambda: kind(*args, **kwargs)
+
+            def factory():
+                return kind(*args, **kwargs)
+
             self.set_default_value_mode(DefaultValue.CallObject, factory)
         elif optional is False:
             self.set_default_value_mode(DefaultValue.NonOptional, None)
@@ -162,7 +165,10 @@ class ForwardTyped(Typed):
         (kind,) = extract_types(self.resolve())
         args = self.args or ()
         kwargs = self.kwargs or {}
-        factory = lambda: kind(*args, **kwargs)
+
+        def factory():
+            return kind(*args, **kwargs)
+
         self.set_default_value_mode(DefaultValue.CallObject, factory)
         return kind(*args, **kwargs)
 
