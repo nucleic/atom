@@ -40,17 +40,14 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -U -r lint_requirements.txt
-      - name: Isort
-        run: |
-          isort atom examples tests -c
-      - name: Black
+      - name: Formatting
         if: always()
         run: |
-          black atom examples tests --check
-      - name: Flake8
+          ruff format atom examples tests --check
+      - name: Linting
         if: always()
         run: |
-          flake8 atom examples tests
+          ruff atom examples tests
       - name: Run Mypy
         if: always()
         run: |
