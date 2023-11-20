@@ -48,7 +48,7 @@ jobs:
         if: always()
         run: |
           ruff atom examples tests
-      - name: Run Mypy
+      - name: Typing
         if: always()
         run: |
           mypy atom examples
