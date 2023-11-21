@@ -6,6 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 import gc
+import os
+import sys
 import time
 from multiprocessing import Process
 
@@ -71,6 +73,7 @@ def atomreftest(cls):
         gc.collect()
 
 
+@pytest.mark.skipif("CI" in os.environ and sys.platform.startswith("darwin"))
 @pytest.mark.skipif(PSUTIL_UNAVAILABLE, reason="psutil is not installed")
 @pytest.mark.parametrize("label", MEM_TESTS.keys())
 def test_mem_usage(label):
