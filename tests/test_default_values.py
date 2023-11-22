@@ -205,6 +205,8 @@ def test_callobject_handler(member, expected, mode):
 
     assert CallTest.m.default_value_mode[0] == mode
     assert CallTest().m == expected
+    # Called twice to call the resolved version of the default for forward members
+    assert CallTest().m == expected
     assert CallTest.m.default_value_mode[0] == DefaultValue.CallObject
 
 
