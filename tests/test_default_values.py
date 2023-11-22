@@ -192,7 +192,7 @@ def test_set_handler():
             DefaultValue.CallObject,
         ),
         (Value(factory=lambda: 5), 5, DefaultValue.CallObject),
-        (Coerced(int | None), None, DefaultValue.CallObject),
+        (Coerced((int, type(None)), coercer=int), None, DefaultValue.CallObject),
         (Coerced(int, ()), 0, DefaultValue.CallObject),
         (Coerced(int, factory=lambda: 5), 5, DefaultValue.CallObject),
     ],
