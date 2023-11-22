@@ -16,7 +16,7 @@
     call_object_object_handler: advanced used case not used internally
     call_object_object_name_handler: advanced used case not used internally
     object_method_handler
-    object_method_name_handler: uadvanced used case not used internally
+    object_method_name_handler: advanced used case not used internally
     member_method_object_handler
 
 """
@@ -192,6 +192,8 @@ def test_set_handler():
             DefaultValue.CallObject,
         ),
         (Value(factory=lambda: 5), 5, DefaultValue.CallObject),
+        (Coerced(int | None), None, DefaultValue.CallObject),
+        (Coerced(int, ()), 0, DefaultValue.CallObject),
         (Coerced(int, factory=lambda: 5), 5, DefaultValue.CallObject),
     ],
 )
