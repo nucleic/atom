@@ -517,7 +517,7 @@ class AtomMeta(type):
     __atom_members__: Mapping[str, Member]
     __atom_specific_members__: FrozenSet[str]
 
-    def __new__(  # noqa: C901
+    def __new__(
         meta,
         name: str,
         bases: Tuple[type, ...],

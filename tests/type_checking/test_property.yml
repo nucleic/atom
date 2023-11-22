@@ -12,8 +12,8 @@
     class A(Atom):
       m = Property()
 
-    reveal_type(A.m)  # N: Revealed type is "atom.property.Property[<nothing>, <nothing>]"
-    reveal_type(A().m)  # N: Revealed type is "<nothing>"
+    reveal_type(A.m)  # N: Revealed type is "atom.property.Property[Never, Never]"
+    reveal_type(A().m)  # N: Revealed type is "Never"
 
 
 - case: property-no-setter
@@ -26,7 +26,7 @@
     class A(Atom):
       m = Property(g)
 
-    reveal_type(A.m)  # N: Revealed type is "atom.property.Property[builtins.int, <nothing>]"
+    reveal_type(A.m)  # N: Revealed type is "atom.property.Property[builtins.int, Never]"
     reveal_type(A().m)  # N: Revealed type is "builtins.int"
 
 - case: property
@@ -70,5 +70,5 @@
       def m(self) -> int:
         return 1
 
-    reveal_type(A.m)  # N: Revealed type is "atom.property.Property[builtins.int, <nothing>]"
+    reveal_type(A.m)  # N: Revealed type is "atom.property.Property[builtins.int, Never]"
     reveal_type(A().m)  # N: Revealed type is "builtins.int"

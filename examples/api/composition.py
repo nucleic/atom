@@ -38,7 +38,7 @@ class Person(Atom):
     # uses kwargs provided in the definition
     # When the member is provided a way to build a default value, it assumes it
     # is not optional by default, i.e. None is not a valid value.
-    fluffy = Typed(Dog, kwargs=dict(name="Fluffy"))
+    fluffy = Typed(Dog, kwargs={"name": "Fluffy"})
 
     # uses an object provided in Person constructor
     new_dog = Typed(Dog)

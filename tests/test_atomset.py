@@ -42,7 +42,7 @@ def test_repr(atom_set, member):
     """Test the repr."""
     s = getattr(atom_set.__class__, member).default_value_mode[1]
     if not s:
-        s = {i for i in range(10)}
+        s = set(range(10))
         setattr(atom_set, member, s)
     assert repr(s) in repr(getattr(atom_set, member))
 
@@ -52,7 +52,7 @@ def test_len(atom_set, member):
     """Test the len."""
     s = getattr(atom_set.__class__, member).default_value_mode[1]
     if not s:
-        s = {i for i in range(10)}
+        s = set(range(10))
         setattr(atom_set, member, s)
     assert len(getattr(atom_set, member)) == len(s)
 
@@ -60,7 +60,7 @@ def test_len(atom_set, member):
 @pytest.mark.parametrize("member", MEMBERS)
 def test_contains(atom_set, member):
     """Test __contains__."""
-    s = {i for i in range(10)}
+    s = set(range(10))
     setattr(atom_set, member, s)
     assert 5 in getattr(atom_set, member)
 

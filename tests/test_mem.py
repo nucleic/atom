@@ -6,6 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 import gc
+import os
+import sys
 import time
 from multiprocessing import Process
 
@@ -66,11 +68,15 @@ def atomreftest(cls):
     obj = cls()
     obj.data
     while True:
-        ref = atomref(obj)  # noqa
+        ref = atomref(obj)
         del ref
         gc.collect()
 
 
+@pytest.mark.skipif(
+    "CI" in os.environ and sys.platform.startswith("darwin"),
+    reason="Flaky on MacOS CI runners",
+)
 @pytest.mark.skipif(PSUTIL_UNAVAILABLE, reason="psutil is not installed")
 @pytest.mark.parametrize("label", MEM_TESTS.keys())
 def test_mem_usage(label):

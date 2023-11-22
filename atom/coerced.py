@@ -60,9 +60,14 @@ class Coerced(Member):
             args = args or ()
             kwargs = kwargs or {}
             if opt:
-                factory = lambda: None
+
+                def factory():
+                    return None
             else:
-                factory = lambda: kind[0](*args, **kwargs)
+
+                def factory():
+                    return kind[0](*args, **kwargs)
+
             self.set_default_value_mode(DefaultValue.CallObject, factory)
 
         if not coercer and (isinstance(origin, tuple) or len(temp) > 1):

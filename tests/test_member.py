@@ -159,8 +159,8 @@ def test_metadata_handling():
     mt = MetadataTest()
     m = mt.get_member("m")
     assert m.metadata == {"pref": True}
-    m.metadata = dict(a=1, b=2)
-    assert m.metadata == dict(a=1, b=2)
+    m.metadata = {"a": 1, "b": 2}
+    assert m.metadata == {"a": 1, "b": 2}
 
     m.metadata = None
     assert m.metadata is None

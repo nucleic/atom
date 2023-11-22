@@ -749,12 +749,12 @@ def test_manually_notifying(sd_observed_atom):
     assert nt.count == 1
 
     # Check only dynamic notifiers are called
-    nt.notify("val", dict(name="val"))
+    nt.notify("val", {"name": "val"})
     assert ob.count == 2
     assert nt.count == 1
 
     # Check that only static notifiers are called
-    type(nt).val.notify(nt, dict())
+    type(nt).val.notify(nt, {})
     assert ob.count == 2
     assert nt.count == 2
 

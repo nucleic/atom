@@ -18,7 +18,7 @@ class Data(Atom):
 
     dtuple = Tuple(default=(5, 4, 3))
 
-    ddict = Dict(default=dict(foo=1, bar="a"))
+    ddict = Dict(default={"foo": 1, "bar": "a"})
 
     def _observe_dcont_list(self, change):
         print("container list change: {0}".format(change["value"]))

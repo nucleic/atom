@@ -271,7 +271,7 @@ def test_traverse_atom():
         val = Value()
 
     a = MyAtom()
-    l1 = list()
+    l1 = []
     a.val = l1
     a.val.append(a)
 

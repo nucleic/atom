@@ -16,7 +16,7 @@
     call_object_object_handler: advanced used case not used internally
     call_object_object_name_handler: advanced used case not used internally
     object_method_handler
-    object_method_name_handler: uadvanced used case not used internally
+    object_method_name_handler: advanced used case not used internally
     member_method_object_handler
 
 """
@@ -144,7 +144,7 @@ def test_dict_handler():
         default = Dict(default={"a": 1})
 
     assert DictTest.no_default.default_value_mode[0] == DefaultValue.Dict
-    assert DictTest().no_default == dict()
+    assert DictTest().no_default == {}
 
     assert DictTest.default.default_value_mode[0] == DefaultValue.Dict
     default_value = DictTest.default.default_value_mode[1]
@@ -171,18 +171,18 @@ def test_set_handler():
 @pytest.mark.parametrize(
     "member, expected, mode",
     [
-        (Typed(int, ("101",), dict(base=2)), 5, DefaultValue.CallObject),
+        (Typed(int, ("101",), {"base": 2}), 5, DefaultValue.CallObject),
         (Typed(int, factory=lambda: int(5)), 5, DefaultValue.CallObject),
         (
-            ForwardTyped(lambda: int, ("101",), dict(base=2)),
+            ForwardTyped(lambda: int, ("101",), {"base": 2}),
             5,
             DefaultValue.MemberMethod_Object,
         ),
         (ForwardTyped(lambda: int, factory=lambda: int(5)), 5, DefaultValue.CallObject),
-        (Instance(int, ("101",), dict(base=2)), 5, DefaultValue.CallObject),
+        (Instance(int, ("101",), {"base": 2}), 5, DefaultValue.CallObject),
         (Instance(int, factory=lambda: int(5)), 5, DefaultValue.CallObject),
         (
-            ForwardInstance(lambda: int, ("101",), dict(base=2)),
+            ForwardInstance(lambda: int, ("101",), {"base": 2}),
             5,
             DefaultValue.MemberMethod_Object,
         ),
@@ -192,6 +192,8 @@ def test_set_handler():
             DefaultValue.CallObject,
         ),
         (Value(factory=lambda: 5), 5, DefaultValue.CallObject),
+        (Coerced((int, type(None)), coercer=int), None, DefaultValue.CallObject),
+        (Coerced(int, ()), 0, DefaultValue.CallObject),
         (Coerced(int, factory=lambda: 5), 5, DefaultValue.CallObject),
     ],
 )
@@ -202,6 +204,8 @@ def test_callobject_handler(member, expected, mode):
         m = member
 
     assert CallTest.m.default_value_mode[0] == mode
+    assert CallTest().m == expected
+    # Called twice to call the resolved version of the default for forward members
     assert CallTest().m == expected
     assert CallTest.m.default_value_mode[0] == DefaultValue.CallObject
 

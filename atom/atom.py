@@ -77,7 +77,7 @@ class Atom(CAtom, metaclass=AtomMeta):
         fully understands the rammifications.
 
         """
-        args = (type(self),) + self.__getnewargs__()
+        args = (type(self), *self.__getnewargs__())
         return (__newobj__, args, self.__getstate__())
 
     def __getnewargs__(self):
