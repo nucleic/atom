@@ -75,7 +75,6 @@ __version__ = "{version}"
 [tool.ruff]
   src = ["src"]
   select = ["C", "E", "F", "W", "I", "C90", "RUF"]
-  extend-exclude = ["tests/instruments/hardware/nifpga/scope_based"]
   extend-ignore = ["E501", "RUF012"]
   line-length = 88
 
