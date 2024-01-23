@@ -125,8 +125,7 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
                     raise ValueError(
                         "Forward reference in type var bounds are not supported."
                     )
-                assert isinstance(b, type)
-                extracted.append(b)
+                extracted.extend(_extract_types(b))
             elif t.__constraints__:
                 raise ValueError("Constraints in type var are not supported.")
             else:
