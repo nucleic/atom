@@ -16,6 +16,7 @@ from atom.typing_utils import extract_types, is_optional
 
 T = TypeVar("T")
 U = TypeVar("U", bound=int)
+UU = TypeVar("UU", bound=int | str)
 V = TypeVar("V", int, float)
 W = TypeVar("W", contravariant=True)
 
@@ -50,6 +51,7 @@ def test_extract_types(ty, outputs):
 def test_extract_types_for_type_vars():
     assert extract_types(T) == (object,)
     assert extract_types(U) == (int,)
+    assert extract_types(UU) == (int, str)
     with pytest.raises(ValueError) as e:
         extract_types(V)
     assert "Constraints" in e.exconly()
