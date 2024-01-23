@@ -16,7 +16,7 @@ from atom.typing_utils import extract_types, is_optional
 
 T = TypeVar("T")
 U = TypeVar("U", bound=int)
-UU = TypeVar("UU", bound=int | str)
+UU = TypeVar("UU", bound=Union[int, str])
 V = TypeVar("V", int, float)
 W = TypeVar("W", contravariant=True)
 
