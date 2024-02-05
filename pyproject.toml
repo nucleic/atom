@@ -74,16 +74,18 @@ __version__ = "{version}"
 
 [tool.ruff]
   src = ["src"]
-  select = ["C", "E", "F", "W", "I", "C90", "RUF"]
-  extend-ignore = ["E501", "RUF012"]
   line-length = 88
 
-  [tool.ruff.isort]
-    combine-as-imports = true
-    known-first-party = ["atom"]
+  [tool.ruff.lint]
+    select = ["C", "E", "F", "W", "I", "C90", "RUF"]
+    extend-ignore = ["E501", "RUF012"]
 
-  [tool.ruff.mccabe]
-    max-complexity = 20
+    [tool.ruff.lint.isort]
+      combine-as-imports = true
+      known-first-party = ["atom"]
+
+    [tool.ruff.lint.mccabe]
+      max-complexity = 20
 
 [tool.mypy]
   follow_imports = "normal"
