@@ -42,3 +42,38 @@ class Tuple(Member[TTuple[T, ...], TTuple[T, ...]]):
     def __new__(
         cls, kind: Member[T, Any], default: Optional[TTuple[T]] = None
     ) -> Tuple[T]: ...
+
+TT = TypeVar("TT", bound=tuple)
+
+# FIXME technically we can allow tuple of types in place of just types but that
+# is not expected to serve often.
+
+class FixedTuple(Member[TT, TT]):
+    @overload
+    def __new__(
+        cls, *items: *TTuple[T], default: Optional[TTuple[T]] = None
+    ) -> FixedTuple[TTuple[T]]: ...
+    @overload
+    def __new__(
+        cls, *items: *TTuple[T, T1], default: Optional[TTuple[T, T1]] = None
+    ) -> FixedTuple[TTuple[T, T1]]: ...
+    @overload
+    def __new__(
+        cls, *items: *TTuple[T, T1, T2], default: Optional[TTuple[T, T1, T2]] = None
+    ) -> FixedTuple[TTuple[T, T1, T2]]: ...
+    @overload
+    def __new__(
+        cls, *items: *TTuple[Member[T, Any]], default: Optional[TTuple[T]] = None
+    ) -> FixedTuple[TTuple[T]]: ...
+    @overload
+    def __new__(
+        cls,
+        *items: *TTuple[Member[T, Any], Member[T1, Any]],
+        default: Optional[TTuple[T, T1]] = None,
+    ) -> FixedTuple[TTuple[T, T1, T2]]: ...
+    @overload
+    def __new__(
+        cls,
+        *items: *TTuple[Member[T, Any], Member[T1, Any], Member[T2, Any]],
+        default: Optional[TTuple[T, T1, T2]] = None,
+    ) -> FixedTuple[TTuple[T, T1, T2]]: ...
