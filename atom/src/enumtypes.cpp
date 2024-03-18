@@ -267,6 +267,7 @@ bool init_enumtypes()
         add_long( dict_ptr, expand_enum( Str ) );
         add_long( dict_ptr, expand_enum( StrPromote ) );
         add_long( dict_ptr, expand_enum( Tuple ) );
+        add_long( dict_ptr, expand_enum( FixedTuple ) );
         add_long( dict_ptr, expand_enum( List ) );
         add_long( dict_ptr, expand_enum( ContainerList ) );
         add_long( dict_ptr, expand_enum( Set ) );
