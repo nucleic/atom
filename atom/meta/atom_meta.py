@@ -24,6 +24,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    dataclass_transform,
 )
 
 from ..catom import (
@@ -36,6 +37,31 @@ from ..catom import (
     PostValidate,
     Validate,
 )
+from ..coerced import Coerced
+from ..containerlist import ContainerList
+from ..dict import DefaultDict, Dict as MDict
+from ..enum import Enum
+from ..event import Event
+from ..instance import Instance
+from ..list import List as MList
+from ..property import Property
+from ..scalars import (
+    Bool,
+    Bytes,
+    Callable as MCallable,
+    Constant,
+    Float,
+    FloatRange,
+    Int,
+    Range,
+    ReadOnly,
+    Str,
+    Value,
+)
+from ..set import Set as MSet
+from ..signal import Signal
+from ..tuple import Tuple as MTuple
+from ..typed import Typed
 from .annotation_utils import generate_members_from_cls_namespace
 from .member_modifiers import set_default
 from .observation import ExtendedObserver, ObserveHandler
@@ -501,6 +527,40 @@ class _AtomMetaHelper:
         return cls
 
 
+@dataclass_transform(
+    eq_default=False,
+    order_default=False,
+    kw_only_default=True,
+    field_specifiers=(
+        set_default,
+        Member,
+        Coerced,
+        ContainerList,
+        DefaultDict,
+        MDict,
+        Enum,
+        Event,
+        Instance,
+        MList,
+        Property,
+        Bool,
+        Bytes,
+        MCallable,
+        Constant,
+        Float,
+        FloatRange,
+        Int,
+        Range,
+        ReadOnly,
+        Str,
+        Value,
+        MSet,
+        Signal,
+        MTuple,
+        Typed,
+    ),
+    slots=True,
+)
 class AtomMeta(type):
     """The metaclass for classes derived from Atom.
 
