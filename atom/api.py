@@ -61,7 +61,7 @@ from .scalars import (
 from .set import Set
 from .signal import Signal
 from .subclass import ForwardSubclass, Subclass
-from .tuple import Tuple, FixedTuple
+from .tuple import FixedTuple, Tuple
 from .typed import ForwardTyped, Typed
 from .typing_utils import ChangeDict
 
