@@ -7,37 +7,38 @@
 # ------------------------------------------------------------------------------------------------------
 """Tests for member validation handlers:
 
-    no_op_handler
-    bool_handler
-    int_handler
-    int_promote_handler
-    long_handler
-    long_promote_handler
-    float_handler
-    float_promote_handler
-    str_handler
-    str_promote_handler
-    unicode_handler
-    unicode_promote_handler
-    tuple_handler
-    list_handler
-    container_list_handler
-    set_handler
-    dict_handler
-    instance_handler
-    typed_handler
-    subclass_handler
-    enum_handler
-    callable_handler
-    float_range_handler
-    range_handler
-    coerced_handler
-    delegate_handler: not tested here
-    object_method_old_new_handler: used when defining validate on Atom subclass
-    object_method_name_old_new_handler: unused as far as I can tell
-    member_method_object_old_new_handler: used in ForwardType/Instance/Subclass
+no_op_handler
+bool_handler
+int_handler
+int_promote_handler
+long_handler
+long_promote_handler
+float_handler
+float_promote_handler
+str_handler
+str_promote_handler
+unicode_handler
+unicode_promote_handler
+tuple_handler
+list_handler
+container_list_handler
+set_handler
+dict_handler
+instance_handler
+typed_handler
+subclass_handler
+enum_handler
+callable_handler
+float_range_handler
+range_handler
+coerced_handler
+delegate_handler: not tested here
+object_method_old_new_handler: used when defining validate on Atom subclass
+object_method_name_old_new_handler: unused as far as I can tell
+member_method_object_old_new_handler: used in ForwardType/Instance/Subclass
 
 """
+
 import sys
 from typing import List as TList, Optional, Sequence, Set as TSet, Union
 

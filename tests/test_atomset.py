@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Test the typed dictionary.
+"""Test the typed dictionary."""
 
-"""
 from operator import iand, ior, isub, ixor
 
 import pytest

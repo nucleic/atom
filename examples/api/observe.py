@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Demonstration of the use of static and dynamic observers.
+"""Demonstration of the use of static and dynamic observers."""
 
-"""
 from atom.api import Atom, ChangeDict, Range, Str, Typed, observe
 
 

@@ -7,14 +7,15 @@
 # --------------------------------------------------------------------------------------
 """Test the getstate behaviors
 
-    include_handler: tested here
-    exclude_handler: tested here
-    include_non_default_handler: tested here
-    property_handler: tested in test_property
-    member_method_object_handler: tested here
-    object_method_name_handler: tested here
+include_handler: tested here
+exclude_handler: tested here
+include_non_default_handler: tested here
+property_handler: tested in test_property
+member_method_object_handler: tested here
+object_method_name_handler: tested here
 
 """
+
 import pickle
 
 import pytest

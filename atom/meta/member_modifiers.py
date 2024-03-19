@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 """Custom marker objects used to modify the default settings of a member."""
+
 from typing import Any, Optional
 
 
@@ -28,3 +29,9 @@ class set_default(object):
     def clone(self) -> "set_default":
         """Create a clone of the sentinel."""
         return type(self)(self.value)
+
+
+# XXX add more sentinels here to allow customizing members without using the
+# members themselves:
+# - tag
+#

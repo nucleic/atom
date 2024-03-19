@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ------------------------------------------------------------------------------
-"""Test defining an atom class using typing annotations.
+"""Test defining an atom class using typing annotations."""
 
-"""
 import logging
 import sys
 from collections import defaultdict

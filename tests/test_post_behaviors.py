@@ -16,6 +16,7 @@ All of them have the following handlers:
     member_method_object_old_new_handler: Method defined on a Member subclass
 
 """
+
 import pytest
 
 from atom.api import Int, PostGetAttr, PostSetAttr, PostValidate

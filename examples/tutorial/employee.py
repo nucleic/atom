@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Simple example of a class hierarchy built on atom.
+"""Simple example of a class hierarchy built on atom."""
 
-"""
 import datetime
 
 from atom.api import (

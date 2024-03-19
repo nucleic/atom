@@ -7,21 +7,22 @@
 # --------------------------------------------------------------------------------------
 """Test the set behaviors
 
-    no_op_handler: do nothing on setting
-    slot_handler: standard one tested through other tests (post_set, ...)
-    constant_handler: prevent to set a value
-    read_only_handler: allow a single set
-    event_handler: not tested here (see test_observe.py)
-    signal_handler: siganls are not settable
-    delegate_handler: not tested here (see test_delegate.py)
-    property_handler: not tested here (see test_property.py)
-    call_object_object_value_handler: use a custom function
-    call_object_object_name_value_handler: use a custom function
-    object_method_value_handler: use an object method
-    object_method_name_value_handler: use an object method
-    member_method_object_value_handler: method defined on a Member subclass
+no_op_handler: do nothing on setting
+slot_handler: standard one tested through other tests (post_set, ...)
+constant_handler: prevent to set a value
+read_only_handler: allow a single set
+event_handler: not tested here (see test_observe.py)
+signal_handler: siganls are not settable
+delegate_handler: not tested here (see test_delegate.py)
+property_handler: not tested here (see test_property.py)
+call_object_object_value_handler: use a custom function
+call_object_object_name_value_handler: use a custom function
+object_method_value_handler: use an object method
+object_method_name_value_handler: use an object method
+member_method_object_value_handler: method defined on a Member subclass
 
 """
+
 import pytest
 
 from atom.api import Atom, Constant, Int, ReadOnly, SetAttr, Signal

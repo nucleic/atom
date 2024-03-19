@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Test the enum member.
+"""Test the enum member."""
 
-"""
 import pytest
 
 from atom.api import Enum

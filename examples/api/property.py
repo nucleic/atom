@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Demonstration of the basics of the Property member.
+"""Demonstration of the basics of the Property member."""
 
-"""
 from atom.api import Atom, Int, Property, Str
 
 

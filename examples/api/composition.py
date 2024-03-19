@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-""" Demonstrate the use of Compostion of Atom objects.
+"""Demonstrate the use of Compostion of Atom objects.
 
 1. If the class has not been declared, use a ForwardTyped
    - Note the use of lambda, because "Person" is not yet defined
@@ -16,6 +16,7 @@
    - Provide a pre-created object in the constructor
 
 """
+
 from atom.api import Atom, ForwardTyped, Str, Typed
 
 

@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Test the property and cached property member
+"""Test the property and cached property member"""
 
-"""
 import pytest
 
 from atom.api import (

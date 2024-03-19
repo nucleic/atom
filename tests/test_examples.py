@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Test the examples.
+"""Test the examples."""
 
-"""
 import os
 
 import pytest

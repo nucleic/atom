@@ -7,16 +7,17 @@
 # --------------------------------------------------------------------------------------
 """Test the del behaviors
 
-    no_op_handler:  not sure it is used
-    slot_handler: behavior leading to calling the default factory on next get
-    constant_handler
-    read_only_handler
-    event_handler
-    signal_handler
-    delegate_handler: not tested here (see test_delegate.py)
-    property_handler: not tested here (see test_property.py)
+no_op_handler:  not sure it is used
+slot_handler: behavior leading to calling the default factory on next get
+constant_handler
+read_only_handler
+event_handler
+signal_handler
+delegate_handler: not tested here (see test_delegate.py)
+property_handler: not tested here (see test_property.py)
 
 """
+
 import pytest
 
 from atom.api import Atom, Constant, Event, Int, Member, ReadOnly, Signal

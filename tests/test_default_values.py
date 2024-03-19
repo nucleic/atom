@@ -7,19 +7,20 @@
 # --------------------------------------------------------------------------------------
 """Tests for member validation handlers:
 
-    no_op_handler: unused as far as I can tell
-    static_handler
-    list_handler
-    dict_handler
-    delegate_handler: not tested here
-    call_object_handler: used for factory function or Typed/Instance with args
-    call_object_object_handler: advanced used case not used internally
-    call_object_object_name_handler: advanced used case not used internally
-    object_method_handler
-    object_method_name_handler: advanced used case not used internally
-    member_method_object_handler
+no_op_handler: unused as far as I can tell
+static_handler
+list_handler
+dict_handler
+delegate_handler: not tested here
+call_object_handler: used for factory function or Typed/Instance with args
+call_object_object_handler: advanced used case not used internally
+call_object_object_name_handler: advanced used case not used internally
+object_method_handler
+object_method_name_handler: advanced used case not used internally
+member_method_object_handler
 
 """
+
 import pytest
 
 from atom.api import (

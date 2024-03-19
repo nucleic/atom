@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 """Demonstration of the use of static and dynamic observers."""
+
 from typing import Optional
 
 from atom.api import Atom, ChangeDict, observe

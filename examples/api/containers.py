@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Demonstration of the member handling containers.
+"""Demonstration of the member handling containers."""
 
-"""
 from atom.api import Atom, ContainerList, Dict, List, Tuple
 
 

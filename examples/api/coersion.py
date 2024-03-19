@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Demonstration of the basic use of the Coerced member.
+"""Demonstration of the basic use of the Coerced member."""
 
-"""
 from atom.api import Atom, Coerced
 
 

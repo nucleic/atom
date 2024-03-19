@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Module exporting the public interface to atom.
+"""Module exporting the public interface to atom."""
 
-"""
 from .atom import Atom
 from .catom import (
     CAtom,

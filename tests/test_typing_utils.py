@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 """Test typing utilities."""
+
 import sys
 from collections.abc import Iterable
 from typing import Dict, List, Optional, Set, TypeVar, Union

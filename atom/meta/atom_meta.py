@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 """Metaclass implementing atom members customization."""
+
 import copyreg
 import warnings
 from types import FunctionType

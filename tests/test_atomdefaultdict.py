@@ -5,10 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Test the typed dictionary.
+"""Test the typed dictionary."""
 
-
-"""
 from collections import defaultdict
 
 import pytest

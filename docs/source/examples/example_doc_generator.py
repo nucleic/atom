@@ -5,11 +5,12 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-""" Generate the Example Documentation for the Atom Examples
+"""Generate the Example Documentation for the Atom Examples
 
 Run as part of the documentation build script.
 
 """
+
 import os
 import re
 import sys

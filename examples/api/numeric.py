@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Demonstration of the member handling numeric values.
+"""Demonstration of the member handling numeric values."""
 
-"""
 import sys
 
 from atom.api import Atom, Bool, Float, Int
