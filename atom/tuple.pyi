@@ -5,7 +5,17 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Any, Optional, Tuple as TTuple, Type, TypeVar, Union, overload
+from typing import (
+    Any,
+    Optional,
+    Tuple as TTuple,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
+
+from typing_extensions import Unpack
 
 from .catom import Member
 
@@ -51,29 +61,31 @@ TT = TypeVar("TT", bound=tuple)
 class FixedTuple(Member[TT, TT]):
     @overload
     def __new__(
-        cls, *items: *TTuple[Member[T, Any]], default: Optional[TTuple[T]] = None
+        cls, *items: Unpack[TTuple[Member[T, Any]]], default: Optional[TTuple[T]] = None
     ) -> FixedTuple[TTuple[T]]: ...
     @overload
     def __new__(
         cls,
-        *items: *TTuple[Member[T, Any], Member[T1, Any]],
+        *items: Unpack[TTuple[Member[T, Any], Member[T1, Any]]],
         default: Optional[TTuple[T, T1]] = None,
     ) -> FixedTuple[TTuple[T, T1]]: ...
     @overload
     def __new__(
         cls,
-        *items: *TTuple[Member[T, Any], Member[T1, Any], Member[T2, Any]],
+        *items: Unpack[TTuple[Member[T, Any], Member[T1, Any], Member[T2, Any]]],
         default: Optional[TTuple[T, T1, T2]] = None,
     ) -> FixedTuple[TTuple[T, T1, T2]]: ...
     @overload
     def __new__(
-        cls, *items: *TTuple[T], default: Optional[TTuple[T]] = None
+        cls, *items: Unpack[TTuple[T]], default: Optional[TTuple[T]] = None
     ) -> FixedTuple[TTuple[T]]: ...
     @overload
     def __new__(
-        cls, *items: *TTuple[T, T1], default: Optional[TTuple[T, T1]] = None
+        cls, *items: Unpack[TTuple[T, T1]], default: Optional[TTuple[T, T1]] = None
     ) -> FixedTuple[TTuple[T, T1]]: ...
     @overload
     def __new__(
-        cls, *items: *TTuple[T, T1, T2], default: Optional[TTuple[T, T1, T2]] = None
+        cls,
+        *items: Unpack[TTuple[T, T1, T2]],
+        default: Optional[TTuple[T, T1, T2]] = None,
     ) -> FixedTuple[TTuple[T, T1, T2]]: ...
