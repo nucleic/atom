@@ -14,7 +14,7 @@
 
     reveal_type(m)  # N: Revealed type is "atom.catom.Member[builtins.int, builtins.str]"
 
-- case: generic-alias-as-type
+- case: generic_alias_as_type
   skip: sys.version_info < (3, 9)
   parametrized:
     - member: Typed

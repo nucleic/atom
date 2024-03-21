@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
-- case: scalars-no-annotations
+- case: scalars_no_annotations
   parametrized:
     - member: Value
       member_instance: Value()
@@ -205,7 +205,7 @@
     reveal_type(A.m)  # N: Revealed type is "atom.scalars.Callable[def (*Any, **Any) -> Any]"
     reveal_type(A().m)  # N: Revealed type is "def (*Any, **Any) -> Any"
 
-- case: str-with-default
+- case: str_with_default
   main: |
     from atom.api import Atom, Str
 
@@ -215,7 +215,7 @@
     reveal_type(A.m)  # N: Revealed type is "atom.scalars.Str[builtins.str]"
     reveal_type(A().m)  # N: Revealed type is "builtins.str"
 
-- case: bytes-with-default
+- case: bytes_with_default
   main: |
     from atom.api import Atom, Bytes
 

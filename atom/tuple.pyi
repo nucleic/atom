@@ -77,15 +77,17 @@ class FixedTuple(Member[TT, TT]):
     ) -> FixedTuple[TTuple[T, T1, T2]]: ...
     @overload
     def __new__(
-        cls, *items: Unpack[TTuple[T]], default: Optional[TTuple[T]] = None
+        cls, *items: Unpack[TTuple[Type[T]]], default: Optional[TTuple[T]] = None
     ) -> FixedTuple[TTuple[T]]: ...
     @overload
     def __new__(
-        cls, *items: Unpack[TTuple[T, T1]], default: Optional[TTuple[T, T1]] = None
+        cls,
+        *items: Unpack[TTuple[Type[T], Type[T1]]],
+        default: Optional[TTuple[T, T1]] = None,
     ) -> FixedTuple[TTuple[T, T1]]: ...
     @overload
     def __new__(
         cls,
-        *items: Unpack[TTuple[T, T1, T2]],
+        *items: Unpack[TTuple[Type[T], Type[T1], Type[T2]]],
         default: Optional[TTuple[T, T1, T2]] = None,
     ) -> FixedTuple[TTuple[T, T1, T2]]: ...

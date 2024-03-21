@@ -25,7 +25,7 @@
     reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
     A().m = 1
 
-- case: enum-methods
+- case: enum_methods
   main: |
     from atom.api import Atom, Enum
 

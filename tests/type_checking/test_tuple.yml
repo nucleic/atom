@@ -104,25 +104,25 @@
   # Tuple with no defaults
   - member: FixedTuple
     member_instance: FixedTuple(int)
-    member_type: atom.tuple.FixedTuple[builtins.tuple[builtins.int]]
-    member_value_type: builtins.tuple[builtins.int]
+    member_type: atom.tuple.FixedTuple[Tuple[builtins.int]]
+    member_value_type: Tuple[builtins.int]
   - member: FixedTuple
     member_instance: FixedTuple(int, float)
-    member_type: atom.tuple.FixedTuple[builtins.tuple[builtins.int, builtins.float]]
-    member_value_type: builtins.tuple[builtins.int, builtins.float]
+    member_type: atom.tuple.FixedTuple[Tuple[builtins.int, builtins.float]]
+    member_value_type: Tuple[builtins.int, builtins.float]
   - member: FixedTuple
     member_instance: FixedTuple(int, float, str)
-    member_type: atom.tuple.Tuple[builtins.tuple[builtins.int, builtins.float, builtins.str]]
-    member_value_type: builtins.tuple[builtins.int, builtins.float, builtins.str]
+    member_type: atom.tuple.FixedTuple[Tuple[builtins.int, builtins.float, builtins.str]]
+    member_value_type: Tuple[builtins.int, builtins.float, builtins.str]
   - member: FixedTuple, Int
     member_instance: FixedTuple(Int())
-    member_type: atom.tuple.Tuple[builtins.tuple[builtins.int]]
-    member_value_type: builtins.tuple[builtins.int]
+    member_type: atom.tuple.FixedTuple[Tuple[builtins.int]]
+    member_value_type: Tuple[builtins.int]
   # Tuple with defaults
   - member: FixedTuple
     member_instance: FixedTuple(int, default=(3,))
-    member_type: atom.tuple.FixedTuple[builtins.tuple[builtins.int]]
-    member_value_type: builtins.tuple[builtins.int]
+    member_type: atom.tuple.FixedTuple[Tuple[builtins.int]]
+    member_value_type: Tuple[builtins.int]
   main: |
     from atom.api import Atom, {{ member }}
 
