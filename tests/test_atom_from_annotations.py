@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Copyright (c) 2021-2023, Nucleic Development Team.
+# Copyright (c) 2021-2024, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -35,6 +35,7 @@ from atom.api import (
     Callable,
     DefaultDict,
     Dict,
+    FixedTuple,
     Float,
     Instance,
     Int,
@@ -48,6 +49,8 @@ from atom.api import (
     Value,
 )
 from atom.atom import set_default
+
+# XXX fixed tuple from annotations
 
 
 def test_ignore_annotations():
@@ -202,10 +205,11 @@ def test_union_in_annotation(annotation, member, validate_mode):
         (TDict[int, int], Dict(Int(), Int()), 1),
         (TDefaultDict[int, int], DefaultDict(Int(), Int()), 1),
         (TTuple[int], Tuple(), 0),
-        (TTuple[int], Tuple(Int()), 1),
+        (TTuple[int], FixedTuple(Int()), 1),
         (TTuple[int, ...], Tuple(Int()), 1),
-        (TTuple[int, float], Tuple(), 1),
-        (TTuple[tuple, int], Tuple(), 1),
+        (TTuple[int, float], FixedTuple(Int(), Float()), 1),
+        (TTuple[tuple, int], FixedTuple(Tuple(), Int()), 1),
+        (TTuple[tuple[int, int], int], FixedTuple(FixedTuple(Int(), Int()), Int()), -1),
     ]
     + (
         [
@@ -219,10 +223,15 @@ def test_union_in_annotation(annotation, member, validate_mode):
             (dict[int, int], Dict(Int(), Int()), 1),
             (defaultdict[int, int], DefaultDict(Int(), Int()), 1),
             (tuple[int], Tuple(), 0),
-            (tuple[int], Tuple(Int()), 1),
+            (tuple[int], FixedTuple(Int()), 1),
             (tuple[int, ...], Tuple(Int()), 1),
-            (tuple[int, float], Tuple(), 1),
-            (tuple[tuple, int], Tuple(), 1),
+            (tuple[int, float], FixedTuple(Int(), Float()), 1),
+            (tuple[tuple, int], FixedTuple(Tuple(), Int()), 1),
+            (
+                tuple[tuple[int, int], int],
+                FixedTuple(FixedTuple(Int(), Int()), Int()),
+                -1,
+            ),
         ]
         if sys.version_info >= (3, 9)
         else []
@@ -236,6 +245,8 @@ def test_annotated_containers_no_default(annotation, member, depth):
     if depth == 0:
         if isinstance(member, Dict):
             assert A.a.validate_mode[1] == (None, None)
+        elif isinstance(member, FixedTuple):
+            assert A.a.items == ()
         else:
             assert A.a.item is None
     else:
@@ -252,6 +263,9 @@ def test_annotated_containers_no_default(annotation, member, depth):
                 assert type(k) is type(mk)
                 assert type(v) is type(mv)
                 assert f(A()) == mf(A())
+        elif isinstance(member, FixedTuple):
+            for v, mv in zip(A.a.validate_mode[1], member.validate_mode[1]):
+                assert type(v) is type(mv)
         else:
             assert type(A.a.item) is type(member.item)  # noqa: E721
             if isinstance(member.item, List):
@@ -270,6 +284,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (Union[Any, None], Value, None),
         (object, Value, 2),
         (TCallable, Callable, lambda x: x),
+        (TTuple[int], FixedTuple(Int()), (1,)),
         (TList, List, [1]),
         (TSet, Set, {1}),
         (TDict, Dict, {1: 2}),
@@ -279,6 +294,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
     ]
     + (
         [
+            (tuple[int], FixedTuple(Int()), (1,)),
             (list, List, [1]),
             (set, Set, {1}),
             (dict, Dict, {1: 2}),

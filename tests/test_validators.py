@@ -20,6 +20,7 @@ str_promote_handler
 unicode_handler
 unicode_promote_handler
 tuple_handler
+fixed_tuple_handler
 list_handler
 container_list_handler
 set_handler
@@ -57,6 +58,7 @@ from atom.api import (
     Dict,
     Enum,
     Event,
+    FixedTuple,
     Float,
     FloatRange,
     ForwardInstance,
@@ -133,6 +135,10 @@ def c(x: object) -> int:
         (Tuple(int), [(1,)], [(1,)], [(1.0,), (None,)]),
         (Tuple(TSet[int]), [({1},)], [({1},)], [(1.0,), (None,)]),
         (Tuple(Optional[int]), [(1, None)], [(1, None)], [("",)]),
+        (FixedTuple(Int()), [(1,)], [(1,)], [(None,), (1, 2)]),
+        (FixedTuple(Int(), Str()), [(1, "")], [(1, "")], [(None,), (1, 2)]),
+        (FixedTuple(int), [(1,)], [(1,)], [(None,), (1, 2)]),
+        (FixedTuple(TSet[int]), [({1},)], [({1},)], [(None,), (1, 2)]),
         (List(), [[1]], [[1]], [(1,)]),
         (List(Int()), [[1]], [[1]], [[1.0]]),
         (List(float), [[1.0]], [[1.0]], [[1], [None]]),
@@ -253,6 +259,7 @@ def test_validating_container_subclasses(members, value):
     [
         (List(), "List", 1, "Member or None"),
         (Tuple(), "Tuple", 1, "Member or None"),
+        (FixedTuple(int), "FixedTuple", 1, "tuple of types or Members"),
         (ContainerList(), "ContainerList", 1, "Member or None"),
         (Set(), "Set", 1, "Member or None"),
         (Dict(), "Dict", 1, "2-tuple of Member or None"),
