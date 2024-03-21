@@ -16,7 +16,7 @@ from ..list import List as AList
 from ..scalars import Bool, Bytes, Callable as ACallable, Float, Int, Str, Value
 from ..set import Set as ASet
 from ..subclass import Subclass
-from ..tuple import Tuple as ATuple
+from ..tuple import FixedTuple, Tuple as ATuple
 from ..typed import Typed
 from ..typing_utils import extract_types, get_args, is_optional
 from .member_modifiers import set_default
@@ -71,10 +71,10 @@ def generate_member_from_type_or_generic(
         ):
             # We can only validate homogeneous tuple so far so we ignore other cases
             if t is tuple:
-                if (...) in parameters or len(set(parameters)) == 1:
+                if (...) in parameters:
                     parameters = (parameters[0],)
                 else:
-                    parameters = ()
+                    m_cls = FixedTuple
             parameters = tuple(
                 generate_member_from_type_or_generic(
                     t, _NO_DEFAULT, annotate_type_containers - 1
