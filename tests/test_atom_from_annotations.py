@@ -50,8 +50,6 @@ from atom.api import (
 )
 from atom.atom import set_default
 
-# XXX fixed tuple from annotations
-
 
 def test_ignore_annotations():
     class A(Atom, use_annotations=False):
@@ -209,7 +207,11 @@ def test_union_in_annotation(annotation, member, validate_mode):
         (TTuple[int, ...], Tuple(Int()), 1),
         (TTuple[int, float], FixedTuple(Int(), Float()), 1),
         (TTuple[tuple, int], FixedTuple(Tuple(), Int()), 1),
-        (TTuple[tuple[int, int], int], FixedTuple(FixedTuple(Int(), Int()), Int()), -1),
+        (
+            TTuple[TTuple[int, int], int],
+            FixedTuple(FixedTuple(Int(), Int()), Int()),
+            -1,
+        ),
     ]
     + (
         [
