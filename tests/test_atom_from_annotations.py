@@ -286,7 +286,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (Union[Any, None], Value, None),
         (object, Value, 2),
         (TCallable, Callable, lambda x: x),
-        (TTuple[int], FixedTuple(Int()), (1,)),
+        (TTuple[int], FixedTuple, (1,)),
         (TList, List, [1]),
         (TSet, Set, {1}),
         (TDict, Dict, {1: 2}),
@@ -296,7 +296,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
     ]
     + (
         [
-            (tuple[int], FixedTuple(Int()), (1,)),
+            (tuple[int], FixedTuple, (1,)),
             (list, List, [1]),
             (set, Set, {1}),
             (dict, Dict, {1: 2}),
