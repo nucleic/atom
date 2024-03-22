@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-from typing import Tuple
+from typing import Tuple as TTuple
 
 from .catom import DefaultValue, Member, Validate
 from .instance import Instance
@@ -92,7 +92,7 @@ class FixedTuple(Member):
     """
 
     #: Members used to validate each element of the tuple.
-    items: Tuple[Member, ...]
+    items: TTuple[Member, ...]
 
     __slots__ = ("items",)
 
