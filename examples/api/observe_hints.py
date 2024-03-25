@@ -23,7 +23,7 @@ class Person(Atom):
 
     age: int
 
-    dog: Optional[Dog]
+    dog: Optional[Dog] = None
 
     def _observe_age(self, change: ChangeDict) -> None:
         print("Age changed: {0}".format(change["value"]))

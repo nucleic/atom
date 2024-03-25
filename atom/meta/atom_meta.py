@@ -559,7 +559,6 @@ class _AtomMetaHelper:
         MTuple,
         Typed,
     ),
-    slots=True,
 )
 class AtomMeta(type):
     """The metaclass for classes derived from Atom.
