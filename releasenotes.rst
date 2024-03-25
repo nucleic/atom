@@ -1,6 +1,12 @@
 Atom Release Notes
 ==================
 
+0.11.0 - unreleased
+-------------------
+
+- add FixedTuple member to validate inhomogeneous tuple with fixed number of
+  elements PR #211
+
 0.10.4 - 23/01/2024
 -------------------
 

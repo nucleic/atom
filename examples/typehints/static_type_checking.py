@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 """Demonstration of the interaction between static and dynamic type validation."""
+
 from typing import List, Optional
 
 from atom.api import Atom, Int

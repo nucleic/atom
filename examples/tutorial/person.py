@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Simple class using atom and static observers.
+"""Simple class using atom and static observers."""
 
-"""
 from atom.api import Atom, Bool, ChangeDict, Range, Str, observe
 
 

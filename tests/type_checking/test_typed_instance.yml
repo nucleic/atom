@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ------------------------------------------------------------------------------------------------------
-- case: typed-no-annotations
+- case: typed_no_annotations
   parametrized:
     # Typed inferred optional
     - member: Typed
@@ -131,7 +131,7 @@
     reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
 
 
-- case: instance-no-annotations
+- case: instance_no_annotations
   parametrized:
     # Instance inferred optional
     - member: Instance

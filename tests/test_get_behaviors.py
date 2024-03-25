@@ -7,21 +7,22 @@
 # --------------------------------------------------------------------------------------
 """Test the get behaviors
 
-    no_op_handler: : tested here
-    slot_handler: standard one tested through other tests (post_get, ...)
-    event_handler: not tested here (see test_observe.py and
-                                    test_event_binder.py)
-    signal_handler: not tested here (see test_observe.py)
-    delegate_handler: not tested here (see test_delegate.py)
-    property_handler: not tested here (see test_property.py)
-    cached_property_handler: not tested here (see test_property.py)
-    call_object_object_handler: tested here
-    call_object_object_name_handler: tested here
-    object_method_handler: tested here
-    object_method_name_handler: tested here
-    member_method_object_handler: method defined on a Member subclass
+no_op_handler: : tested here
+slot_handler: standard one tested through other tests (post_get, ...)
+event_handler: not tested here (see test_observe.py and
+                                test_event_binder.py)
+signal_handler: not tested here (see test_observe.py)
+delegate_handler: not tested here (see test_delegate.py)
+property_handler: not tested here (see test_property.py)
+cached_property_handler: not tested here (see test_property.py)
+call_object_object_handler: tested here
+call_object_object_name_handler: tested here
+object_method_handler: tested here
+object_method_name_handler: tested here
+member_method_object_handler: method defined on a Member subclass
 
 """
+
 import pytest
 
 from atom.api import Atom, GetAttr, Int, Value

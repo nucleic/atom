@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
-- case: property-empty
+- case: property_empty
   main: |
     from atom.api import Atom, Property
 
@@ -16,7 +16,7 @@
     reveal_type(A().m)  # N: Revealed type is "Never"
 
 
-- case: property-no-setter
+- case: property_no_setter
   main: |
     from atom.api import Atom, Property
 
@@ -60,7 +60,7 @@
     reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
 
 
-- case: cached-property
+- case: cached_property
   main: |
     from atom.api import Atom, cached_property
 

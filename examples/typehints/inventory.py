@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 """Example on using type hints to create Atom subclasses."""
+
 from atom.api import Atom, ChangeDict, observe
 
 

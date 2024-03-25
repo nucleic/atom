@@ -38,6 +38,7 @@ Methods:
 
 
 """
+
 import pytest
 
 from atom.api import (
@@ -45,6 +46,7 @@ from atom.api import (
     DefaultValue,
     Dict,
     Event,
+    FixedTuple,
     ForwardInstance,
     ForwardSubclass,
     ForwardTyped,
@@ -328,6 +330,16 @@ def test_cloning_containers_member(untyped, typed):
     validators = [typed.item] if hasattr(typed, "item") else typed.validate_mode[1]
     c_validators = [cl2.item] if hasattr(typed, "item") else cl2.validate_mode[1]
     for v, cv in zip(validators, c_validators):
+        assert cv is not v
+        assert isinstance(cv, type(v))
+
+
+def test_cloning_fixed_tuple():
+    typed = FixedTuple(int)
+    typed.set_index(5)
+    cl2 = typed.clone()
+    assert cl2.index == typed.index
+    for v, cv in zip(typed.items, cl2.items):
         assert cv is not v
         assert isinstance(cv, type(v))
 

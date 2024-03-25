@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Test the sortedmap that acts like an ordered dictionary.
+"""Test the sortedmap that acts like an ordered dictionary."""
 
-"""
 import gc
 
 import pytest

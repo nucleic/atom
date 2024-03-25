@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Example demonstrating the use of metadata to filter members.
+"""Example demonstrating the use of metadata to filter members."""
 
-"""
 import sys
 
 from atom.api import Atom, Int, Str

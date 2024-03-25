@@ -7,37 +7,39 @@
 # ------------------------------------------------------------------------------------------------------
 """Tests for member validation handlers:
 
-    no_op_handler
-    bool_handler
-    int_handler
-    int_promote_handler
-    long_handler
-    long_promote_handler
-    float_handler
-    float_promote_handler
-    str_handler
-    str_promote_handler
-    unicode_handler
-    unicode_promote_handler
-    tuple_handler
-    list_handler
-    container_list_handler
-    set_handler
-    dict_handler
-    instance_handler
-    typed_handler
-    subclass_handler
-    enum_handler
-    callable_handler
-    float_range_handler
-    range_handler
-    coerced_handler
-    delegate_handler: not tested here
-    object_method_old_new_handler: used when defining validate on Atom subclass
-    object_method_name_old_new_handler: unused as far as I can tell
-    member_method_object_old_new_handler: used in ForwardType/Instance/Subclass
+no_op_handler
+bool_handler
+int_handler
+int_promote_handler
+long_handler
+long_promote_handler
+float_handler
+float_promote_handler
+str_handler
+str_promote_handler
+unicode_handler
+unicode_promote_handler
+tuple_handler
+fixed_tuple_handler
+list_handler
+container_list_handler
+set_handler
+dict_handler
+instance_handler
+typed_handler
+subclass_handler
+enum_handler
+callable_handler
+float_range_handler
+range_handler
+coerced_handler
+delegate_handler: not tested here
+object_method_old_new_handler: used when defining validate on Atom subclass
+object_method_name_old_new_handler: unused as far as I can tell
+member_method_object_old_new_handler: used in ForwardType/Instance/Subclass
 
 """
+
 import sys
 from typing import List as TList, Optional, Sequence, Set as TSet, Union
 
@@ -56,6 +58,7 @@ from atom.api import (
     Dict,
     Enum,
     Event,
+    FixedTuple,
     Float,
     FloatRange,
     ForwardInstance,
@@ -132,6 +135,10 @@ def c(x: object) -> int:
         (Tuple(int), [(1,)], [(1,)], [(1.0,), (None,)]),
         (Tuple(TSet[int]), [({1},)], [({1},)], [(1.0,), (None,)]),
         (Tuple(Optional[int]), [(1, None)], [(1, None)], [("",)]),
+        (FixedTuple(Int()), [(1,)], [(1,)], [(None,), (1, 2)]),
+        (FixedTuple(Int(), Str()), [(1, "")], [(1, "")], [(None,), (1, 2)]),
+        (FixedTuple(int), [(1,)], [(1,)], [(None,), (1, 2)]),
+        (FixedTuple(TSet[int]), [({1},)], [({1},)], [(None,), (1, 2)]),
         (List(), [[1]], [[1]], [(1,)]),
         (List(Int()), [[1]], [[1]], [[1.0]]),
         (List(float), [[1.0]], [[1.0]], [[1], [None]]),
@@ -252,6 +259,7 @@ def test_validating_container_subclasses(members, value):
     [
         (List(), "List", 1, "Member or None"),
         (Tuple(), "Tuple", 1, "Member or None"),
+        (FixedTuple(int), "FixedTuple", 1, "tuple of types or Members"),
         (ContainerList(), "ContainerList", 1, "Member or None"),
         (Set(), "Set", 1, "Member or None"),
         (Dict(), "Dict", 1, "2-tuple of Member or None"),

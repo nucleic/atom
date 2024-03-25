@@ -98,3 +98,39 @@
 
     reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
     reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
+
+- case: fixed_tuple
+  # 3.8 uses Tuple in response 3.9+ tuple
+  skip: sys.version_info < (3, 9)
+  parametrized:
+  # Tuple with no defaults
+  - member: FixedTuple
+    member_instance: FixedTuple(int)
+    member_type: atom.tuple.FixedTuple[tuple[builtins.int]]
+    member_value_type: tuple[builtins.int]
+  - member: FixedTuple
+    member_instance: FixedTuple(int, float)
+    member_type: atom.tuple.FixedTuple[tuple[builtins.int, builtins.float]]
+    member_value_type: tuple[builtins.int, builtins.float]
+  - member: FixedTuple
+    member_instance: FixedTuple(int, float, str)
+    member_type: atom.tuple.FixedTuple[tuple[builtins.int, builtins.float, builtins.str]]
+    member_value_type: tuple[builtins.int, builtins.float, builtins.str]
+  - member: FixedTuple, Int
+    member_instance: FixedTuple(Int())
+    member_type: atom.tuple.FixedTuple[tuple[builtins.int]]
+    member_value_type: tuple[builtins.int]
+  # Tuple with defaults
+  - member: FixedTuple
+    member_instance: FixedTuple(int, default=(3,))
+    member_type: atom.tuple.FixedTuple[tuple[builtins.int]]
+    member_value_type: tuple[builtins.int]
+  main: |
+    from atom.api import Atom, {{ member }}
+
+    class A(Atom):
+      m = {{ member_instance }}
+
+    reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
+    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
+

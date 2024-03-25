@@ -197,7 +197,7 @@
     reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
 
 
-- case: dict-with-default
+- case: dict_with_default
   parametrized:
   # Dict with typed key
   - member: Dict

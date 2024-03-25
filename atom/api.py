@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Module exporting the public interface to atom.
+"""Module exporting the public interface to atom."""
 
-"""
 from .atom import Atom
 from .catom import (
     CAtom,
@@ -61,7 +60,7 @@ from .scalars import (
 from .set import Set
 from .signal import Signal
 from .subclass import ForwardSubclass, Subclass
-from .tuple import Tuple
+from .tuple import FixedTuple, Tuple
 from .typed import ForwardTyped, Typed
 from .typing_utils import ChangeDict
 
@@ -120,5 +119,6 @@ __all__ = [
     "Tuple",
     "ForwardTyped",
     "Typed",
+    "FixedTuple",
     "ChangeDict",
 ]

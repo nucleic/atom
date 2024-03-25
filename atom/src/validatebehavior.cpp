@@ -67,6 +67,25 @@ Member::check_context( Validate::Mode mode, PyObject* context )
                 return false;
             }
             break;
+        case Validate::FixedTuple:
+        {    
+            if( !PyTuple_Check( context ) )
+            {
+                cppy::type_error( context, "tuple of types or Members" );
+                return false;
+            }
+            Py_ssize_t len = PyTuple_GET_SIZE( context );
+            for( Py_ssize_t i = 0; i < len; i++ )
+            {
+                PyObject* t = PyTuple_GET_ITEM( context, i );
+                if( !Member::TypeCheck( t ) )
+                {
+                    cppy::type_error( context, "tuple of types or Members" );
+                    return false;
+                }
+            }
+            break;
+        }
         case Validate::Dict:
         {
             if( !PyTuple_Check( context ) )
@@ -459,6 +478,56 @@ tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
         }
         tupleptr = tuplecopy;
     }
+    return tupleptr.release();
+}
+
+
+PyObject*
+fixed_tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
+{
+    if( !PyTuple_Check( newvalue ) )
+    {
+        return validate_type_fail( member, atom, newvalue, "tuple" );
+    }
+    cppy::ptr tupleptr( cppy::incref( newvalue ) );
+
+    // Create a copy in which to store the validated values
+    Py_ssize_t size = PyTuple_GET_SIZE( newvalue );
+    cppy::ptr tuplecopy = PyTuple_New( size );
+    if( !tuplecopy )
+    {
+        return 0;
+    }
+
+    // Check the size match the expected size
+    Py_ssize_t expected_size = PyTuple_GET_SIZE( member->validate_context );
+    if( size != expected_size )
+    {
+        PyErr_Format(
+            PyExc_TypeError,
+            "The '%s' member on the '%s' object must be of a '%d-tuple'. "
+            "Got tuple of length %d instead",
+            PyUnicode_AsUTF8( member->name ),
+            Py_TYPE( pyobject_cast( atom ) )->tp_name,
+            expected_size,
+            size
+        );
+        return 0;
+    }
+
+    // Validate each single item
+    for( Py_ssize_t i = 0; i < size; ++i )
+    {
+        Member* item_member = member_cast( PyTuple_GET_ITEM( member->validate_context, i ) );
+        cppy::ptr item( cppy::incref( PyTuple_GET_ITEM( tupleptr.get(), i ) ) );
+        cppy::ptr valid_item( item_member->full_validate( atom, Py_None, item.get() ) );
+        if( !valid_item )
+        {
+            return 0;
+        }
+        PyTuple_SET_ITEM( tuplecopy.get(), i, valid_item.release() );
+    }
+    tupleptr = tuplecopy;
     return tupleptr.release();
 }
 
@@ -912,6 +981,7 @@ handlers[] = {
     str_handler,
     str_promote_handler,
     tuple_handler,
+    fixed_tuple_handler,
     list_handler,
     container_list_handler,
     set_handler,

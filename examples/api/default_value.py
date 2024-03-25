@@ -5,7 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-""" Demonstrate all the ways to initialize a value
+"""Demonstrate all the ways to initialize a value
 
 1. Pass the value directly
 2. Assign the default value explicitly
@@ -14,6 +14,7 @@
 5. Use a _default_* static method
 
 """
+
 import sys
 
 from atom.api import Atom, Int, Str

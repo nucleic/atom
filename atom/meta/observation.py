@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 """Tools to declare static observers in Atom subclasses"""
+
 from types import FunctionType
 from typing import (
     TYPE_CHECKING,

@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Test the signal connectors.
+"""Test the signal connectors."""
 
-"""
 import gc
 import operator
 import sys

@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Tests getting the version.
+"""Tests getting the version."""
 
-"""
 from atom import version
 
 

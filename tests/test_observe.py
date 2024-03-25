@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Test the notification mechanisms.
+"""Test the notification mechanisms."""
 
-"""
 import pytest
 
 from atom.api import (

@@ -5,9 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-"""Demonstration of the ranges members.
+"""Demonstration of the ranges members."""
 
-"""
 from atom.api import Atom, FloatRange, Range
 
 

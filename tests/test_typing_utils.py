@@ -6,9 +6,10 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 """Test typing utilities."""
+
 import sys
 from collections.abc import Iterable
-from typing import Dict, List, Optional, Set, TypeVar, Union
+from typing import Dict, List, Optional, Set, Tuple, TypeVar, Union
 
 import pytest
 
@@ -24,6 +25,7 @@ W = TypeVar("W", contravariant=True)
 @pytest.mark.parametrize(
     "ty, outputs",
     [
+        (Tuple[int], (tuple,)),
         (List[int], (list,)),
         (Dict[str, int], (dict,)),
         (Set[int], (set,)),
@@ -34,6 +36,7 @@ W = TypeVar("W", contravariant=True)
     ]
     + (
         [
+            (tuple[int], (tuple,)),
             (list[int], (list,)),
             (dict[str, int], (dict,)),
             (set[int], (set,)),

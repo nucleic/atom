@@ -13,6 +13,7 @@ in the test dedicated to the associated behaviors.
 The methods related to member observation are tested in test_observe.py
 
 """
+
 import gc
 import pickle
 from textwrap import dedent

@@ -103,7 +103,7 @@
     reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
 
 
-- case: container-list
+- case: container_list
   parametrized:
   # List with no defaults
   - member: ContainerList
