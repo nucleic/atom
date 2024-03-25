@@ -40,6 +40,7 @@ from .meta import (
     MissingMemberWarning,
     add_member,
     clone_if_needed,
+    member,
     observe,
     set_default,
 )
@@ -69,6 +70,7 @@ __all__ = [
     "AtomMeta",
     "MissingMemberWarning",
     "add_member",
+    "member",
     "observe",
     "set_default",
     "clone_if_needed",

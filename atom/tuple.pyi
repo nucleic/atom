@@ -5,6 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
+import sys
 from typing import (
     Any,
     Optional,
@@ -15,7 +16,10 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Unpack
+if sys.version_info < (3, 11):
+    from typing_extensions import Unpack
+else:
+    from typing import Unpack
 
 from .catom import Member
 
