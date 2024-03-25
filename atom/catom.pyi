@@ -5,6 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
+import sys
 from enum import IntEnum, IntFlag
 from typing import (
     Any,
@@ -22,7 +23,10 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Self
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
 
 from .atom import Atom
 from .property import Property

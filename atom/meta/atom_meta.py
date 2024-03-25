@@ -8,6 +8,7 @@
 """Metaclass implementing atom members customization."""
 
 import copyreg
+import sys
 import warnings
 from types import FunctionType
 from typing import (
@@ -24,8 +25,12 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    dataclass_transform,
 )
+
+if sys.version_info < (3, 11):
+    from typing_extensions import dataclass_transform
+else:
+    from typing import dataclass_transform
 
 from ..catom import (
     CAtom,
