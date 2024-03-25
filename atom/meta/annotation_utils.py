@@ -10,6 +10,7 @@ from collections import defaultdict
 from typing import Any, ClassVar, Literal, MutableMapping, Type
 
 from ..catom import Member
+from ..coerced import Coerced
 from ..dict import DefaultDict, Dict as ADict
 from ..enum import Enum
 from ..instance import Instance
@@ -20,7 +21,7 @@ from ..subclass import Subclass
 from ..tuple import FixedTuple, Tuple as ATuple
 from ..typed import Typed
 from ..typing_utils import extract_types, get_args, get_origin, is_optional
-from .member_modifiers import set_default
+from .member_modifiers import _SENTINEL, member
 
 _NO_DEFAULT = object()
 
@@ -51,16 +52,20 @@ def generate_member_from_type_or_generic(
         types = extract_types(type_generic)
     parameters = get_args(type_generic)
 
-    m_kwargs = {}
+    m_kwargs: dict[str, Any] = {}
 
     m_cls: Type[Member]
     if any(
         isinstance(t, type) and issubclass(t, Member) for t in types
-    ) and not isinstance(default, Member):
+    ) and not isinstance(default, (Member, member)):
         raise ValueError(
             "Member subclasses cannot be used as annotations without "
             "specifying a default value for the attribute."
         )
+    elif isinstance(default, member) and default.coercer is not None:
+        m_cls = Coerced
+        parameters = (types,)
+        m_kwargs["coercer"] = default.coercer
     elif object in types or Any in types:
         m_cls = Value
         parameters = ()
@@ -124,22 +129,41 @@ def generate_member_from_type_or_generic(
 
         parameters = (filtered_types,)
         m_kwargs["optional"] = opt
-        if opt and default not in (_NO_DEFAULT, None):
+        if (
+            opt
+            and not isinstance(default, member)
+            and default not in (_NO_DEFAULT, None)
+        ):
             raise ValueError(
                 "Members requiring Instance(optional=True) cannot have "
                 "a non-None default value."
             )
-        elif not opt and default is not _NO_DEFAULT:
+        elif not opt and not isinstance(default, member) and default is not _NO_DEFAULT:
             raise ValueError("Members requiring Instance cannot have a default value.")
 
         # Instance does not have a default keyword so turn a None default into the
         # equivalent no default.
-        default = _NO_DEFAULT
+        if default is None:
+            default = _NO_DEFAULT
 
-    if default is not _NO_DEFAULT:
+    if isinstance(default, member):
+        if default.default_value is not _SENTINEL:
+            m_kwargs["default"] = default.default_value
+        elif default.default_factory is not None:
+            m_kwargs["factory"] = default.default_factory
+        if default.default_args is not None:
+            m_kwargs["args"] = default.default_args
+        if default.default_kwargs is not None:
+            m_kwargs["kwargs"] = default.default_kwargs
+
+    elif default is not _NO_DEFAULT:
         m_kwargs["default"] = default
 
-    return m_cls(*parameters, **m_kwargs)
+    new = m_cls(*parameters, **m_kwargs)
+    if isinstance(default, member) and default.metadata:
+        new.metadata = default.metadata
+
+    return new
 
 
 def generate_members_from_cls_namespace(
@@ -153,7 +177,7 @@ def generate_members_from_cls_namespace(
 
         # We skip field for which a member was already provided or annotations
         # corresponding to class variables.
-        if isinstance(default, (Member, set_default)):
+        if isinstance(default, Member):
             # Allow string annotations for members
             if isinstance(ann, str):
                 continue

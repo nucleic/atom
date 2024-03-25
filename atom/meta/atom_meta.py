@@ -68,7 +68,7 @@ from ..signal import Signal
 from ..tuple import Tuple as MTuple
 from ..typed import Typed
 from .annotation_utils import generate_members_from_cls_namespace
-from .member_modifiers import set_default
+from .member_modifiers import _SENTINEL, member
 from .observation import ExtendedObserver, ObserveHandler
 
 OBSERVE_PREFIX = "_observe_"
@@ -172,7 +172,7 @@ def _compute_mro(bases: Sequence[type]) -> List[type]:
 
 def _clone_if_needed(
     member: M,
-    members: Dict[str, Member],
+    members: MutableMapping[str, Member],
     specific_members: Set[str],
     owned_members: Set[Member],
 ) -> M:
@@ -208,8 +208,8 @@ class _AtomMetaHelper:
     #: The set of seen @observe decorators
     seen_decorated: Set[ObserveHandler]
 
-    #: set_default() sentinel
-    set_defaults: List[set_default]
+    #: member() sentinel
+    member_modifiers: List[member]
 
     #: Static observer methods: _observe_*
     observes: List[str]
@@ -236,10 +236,14 @@ class _AtomMetaHelper:
         "bases",
         "dct",
         "decorated",
+        "decorated",
+        "defaults",
         "defaults",
         "getstates",
+        "member_modifiers",
         "members",
         "name",
+        "observes",
         "observes",
         "owned_members",
         "post_getattrs",
@@ -248,6 +252,8 @@ class _AtomMetaHelper:
         "seen_decorated",
         "set_defaults",
         "specific_members",
+        "specific_members",
+        "validates",
         "validates",
     )
 
@@ -262,7 +268,7 @@ class _AtomMetaHelper:
         self.defaults = []
         self.validates = []
         self.decorated = []
-        self.set_defaults = []
+        self.member_modifiers = []
         self.post_getattrs = []
         self.post_setattrs = []
         self.post_validates = []
@@ -279,11 +285,11 @@ class _AtomMetaHelper:
         dct = self.dct
         seen_sentinels = set()  # The set of seen sentinels
         for key, value in dct.items():
-            if isinstance(value, set_default):
+            if isinstance(value, member):
                 if value in seen_sentinels:
                     value = value.clone()
                 value.name = key
-                self.set_defaults.append(value)
+                self.member_modifiers.append(value)
                 seen_sentinels.add(value)
                 continue
             if isinstance(value, ObserveHandler):
@@ -413,20 +419,42 @@ class _AtomMetaHelper:
         """
         members = self.members
 
-        def clone_if_needed(m):
+        def clone_if_needed(m: Member) -> Member:
             m = _clone_if_needed(m, members, self.specific_members, self.owned_members)
             self.dct[m.name] = m
             return m
 
-        # set_default() sentinels
-        for sd in self.set_defaults:
+        # member() sentinels
+        for sd in self.member_modifiers:
             assert sd.name  # At this point the name has been set
             if sd.name not in members:
                 msg = "Invalid call to set_default(). '%s' is not a member "
                 msg += "on the '%s' class."
                 raise TypeError(msg % (sd.name, self.name))
             member = clone_if_needed(members[sd.name])
-            member.set_default_value_mode(DefaultValue.Static, sd.value)
+            if sd.default_value is not _SENTINEL:
+                member.set_default_value_mode(DefaultValue.Static, sd.default_value)
+            elif sd.default_factory is not None:
+                member.set_default_value_mode(
+                    DefaultValue.CallObject, sd.default_factory
+                )
+            elif sd.default_args is not None or sd.default_kwargs is not None:
+                if not isinstance(member, (Typed, Instance, Coerced)):
+                    raise TypeError(
+                        "Can specify default args and kwargs only for "
+                        f"Typed, Instance and Coerced member, got {member}."
+                    )
+                t = member.validate_mode[1]
+                if isinstance(t, tuple):
+                    t = t[0]
+                member.set_default_value_mode(
+                    DefaultValue.CallObject,
+                    lambda: t(*sd.default_args, **sd.default_kwargs),
+                )
+            if sd.metadata:
+                if member.metadata is None:
+                    member.metadata = {}
+                member.metadata |= sd.metadata
 
         # _default_* methods
         for prefix, method_names, mode_setter in [
@@ -537,7 +565,7 @@ class _AtomMetaHelper:
     order_default=False,
     kw_only_default=True,
     field_specifiers=(
-        set_default,
+        member,
         Member,
         Coerced,
         ContainerList,
