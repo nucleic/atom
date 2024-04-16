@@ -15,7 +15,19 @@ from ..dict import DefaultDict, Dict as ADict
 from ..enum import Enum
 from ..instance import Instance
 from ..list import List as AList
-from ..scalars import Bool, Bytes, Callable as ACallable, Float, Int, Str, Value
+from ..scalars import (
+    Bool,
+    Bytes,
+    Callable as ACallable,
+    Float,
+    Int,
+    ReadOnly,
+    Str,
+    Value,
+    Constant,
+    Range,
+    FloatRange,
+)
 from ..set import Set as ASet
 from ..subclass import Subclass
 from ..tuple import FixedTuple, Tuple as ATuple
@@ -38,6 +50,9 @@ _TYPE_TO_MEMBER = {
     tuple: ATuple,
     collections.abc.Callable: ACallable,
 }
+
+# XXX handle member as annotation
+# XXX handle str as annotation with default
 
 
 def generate_member_from_type_or_generic(
@@ -62,10 +77,20 @@ def generate_member_from_type_or_generic(
             "Member subclasses cannot be used as annotations without "
             "specifying a default value for the attribute."
         )
-    elif isinstance(default, member) and default.coercer is not None:
-        m_cls = Coerced
-        parameters = (types,)
-        m_kwargs["coercer"] = default.coercer
+    elif isinstance(default, member) and any(
+        (default._constant, default._coercer, default._read_only)
+    ):
+        if default._coercer is not None:
+            m_cls = Coerced
+            parameters = (types,)
+            m_kwargs["coercer"] = default._coercer
+        if default._read_only:
+            m_cls = ReadOnly
+            parameters = (types,)
+        if default._constant:
+            m_cls = Constant
+            m_kwargs["kind"] = types
+
     elif object in types or Any in types:
         m_cls = Value
         parameters = ()

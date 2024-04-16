@@ -35,6 +35,8 @@ from atom.api import (
     Bool,
     Bytes,
     Callable,
+    Coerced,
+    Constant,
     DefaultDict,
     Dict,
     Enum,
@@ -44,14 +46,22 @@ from atom.api import (
     Int,
     List,
     Member,
+    ReadOnly,
     Set,
     Str,
     Subclass,
     Tuple,
     Typed,
     Value,
+    member,
+    set_default,
 )
-from atom.atom import set_default
+
+
+class Dummy:
+    def __init__(self, a=1, b=2) -> None:
+        self.a = a
+        self.b = b
 
 
 def test_ignore_annotations():
@@ -130,16 +140,6 @@ def test_reject_non_member_annotated_member():
 
         class A(Atom, use_annotations=True):
             a: TList[int] = List(int, default=[1, 2, 3])
-
-
-def test_reject_non_member_annotated_set_default():
-    class A(Atom, use_annotations=True):
-        a = Value()
-
-    with pytest.raises(TypeError):
-
-        class B(A, use_annotations=True):
-            a: int = set_default(1)
 
 
 @pytest.mark.parametrize(
@@ -279,7 +279,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
 
 
 @pytest.mark.parametrize(
-    "annotation, member, default",
+    "annotation, member_cls, default",
     [
         (bool, Bool, True),
         (int, Int, 1),
@@ -303,19 +303,35 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (dict, Dict, {1: 2}),
         (defaultdict, DefaultDict, defaultdict(int, {1: 2})),
         (Literal[1, 2, "a"], Enum, 2),
-    ],
+        (Dummy, Typed, member(default_args=(5,), default_kwargs={"b": 1})),
+        (Dummy, Coerced, member().coerce(lambda v: Dummy(v, 5))),
+        (Dummy, ReadOnly, member(1).read_only()),
+        (Dummy, Constant, member(1).constant()),
+    ]
 )
-def test_annotations_with_default(annotation, member, default):
+def test_annotations_with_default(annotation, member_cls, default):
     class A(Atom, use_annotations=True):
         a: annotation = default
 
-    assert isinstance(A.a, member)
-    if member is Subclass:
-        assert A.a.default_value_mode == member(int, default=default).default_value_mode
-    elif member is Enum:
+    assert isinstance(A.a, member_cls)
+    if member_cls is Subclass:
+        assert (
+            A.a.default_value_mode
+            == member_cls(int, default=default).default_value_mode
+        )
+    elif member_cls is Enum:
         assert A.a.default_value_mode[1] == default
-    elif member is not Instance:
-        assert A.a.default_value_mode == member(default=default).default_value_mode
+    elif member_cls not in (Instance, Typed, Coerced):
+        d = default.default_value if isinstance(default, member) else default
+        assert A.a.default_value_mode == member_cls(default=d).default_value_mode
+
+    if annotation is Dummy and default.default_args:
+        assert A().a.a == 5
+        assert A().a.b == 1
+    elif annotation is Dummy and default._coercer:
+        t = A()
+        t.a = 8
+        assert t.a.a == 8
 
 
 def test_annotations_no_default_for_instance():
@@ -330,8 +346,16 @@ def test_annotations_no_default_for_instance():
             a: Optional[Iterable] = []
 
 
+<<<<<<< HEAD
 def test_annotations_invalid_default_for_literal():
     with pytest.raises(ValueError):
 
         class A(Atom, use_annotations=True):
             a: Literal["a", "b"] = "c"
+=======
+def test_setting_metadata():
+    class A(Atom, use_annotations=True):
+        a: Iterable = member().tag(a=1)
+
+    assert A.a.metadata == {"a": 1}
+>>>>>>> 228bee9 (allow to mark a member as read_only, constant, or coerced using the member class)

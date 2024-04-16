@@ -16,7 +16,9 @@ class member(object):
     """An object used to configure a member defined by a type annotation."""
 
     __slots__ = (
-        "coercer",
+        "_coercer",
+        "_constant",
+        "_read_only",
         "default_args",
         "default_factory",
         "default_kwargs",
@@ -41,9 +43,6 @@ class member(object):
     #: Keyword arguments to create a default value.
     default_kwargs: Optional[dict]
 
-    #: Coercing function to use.
-    coercer: Optional[Callable[[Any], Any]]
-
     #: Metadata to set on the member
     metadata: dict[str, Any]
 
@@ -53,7 +52,6 @@ class member(object):
         default_factory: Optional[Callable[[], Any]] = None,
         default_args: Optional[tuple] = None,
         default_kwargs: Optional[dict] = None,
-        coercer: Optional[Callable[[Any], Any]] = None,
     ) -> None:
         if default_value is not _SENTINEL:
             if (
@@ -72,7 +70,9 @@ class member(object):
         self.default_factory = default_factory
         self.default_args = default_args
         self.default_kwargs = default_kwargs
-        self.coercer = coercer
+        self._coercer = None
+        self._read_only = False
+        self._constant = False
         self.metadata = {}
 
     def clone(self) -> Self:
@@ -82,15 +82,40 @@ class member(object):
             self.default_factory,
             self.default_args,
             self.default_kwargs,
-            self.coercer,
         )
+        new._coercer = self._coercer
+        new._read_only = self._read_only
+        new._constant = self._constant
         new.metadata = self.metadata.copy()
         return new
+
+    def coerce(self, coercer: Callable[[Any], Any]) -> Self:
+        self._coercer = coercer
+        return self
+
+    def read_only(self) -> Self:
+        self._read_only = True
+        return self
+
+    def constant(self) -> Self:
+        self._constant = True
+        return self
 
     def tag(self, **meta: Any) -> Self:
         """Add new metadata to the member."""
         self.metadata |= meta
         return self
+
+    # --- Private API
+
+    #: Coercing function to use.
+    _coercer: Optional[Callable[[Any], Any]]
+
+    #: Should the member be read only.
+    _read_only: bool
+
+    #: Should the member be constant
+    _constant: bool
 
 
 def set_default(value: Any) -> member:
