@@ -7,7 +7,9 @@
 # --------------------------------------------------------------------------------------
 """Custom marker objects used to modify the default settings of a member."""
 
-from typing import Any, Callable, Optional, Self
+from typing import Any, Callable, Dict, Optional
+
+from typing_extensions import Self
 
 _SENTINEL = object()
 
@@ -44,7 +46,7 @@ class member(object):
     default_kwargs: Optional[dict]
 
     #: Metadata to set on the member
-    metadata: dict[str, Any]
+    metadata: Dict[str, Any]
 
     def __init__(
         self,
@@ -103,7 +105,7 @@ class member(object):
 
     def tag(self, **meta: Any) -> Self:
         """Add new metadata to the member."""
-        self.metadata |= meta
+        self.metadata.update(meta)
         return self
 
     # --- Private API
