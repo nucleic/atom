@@ -20,10 +20,10 @@ from typing import (
     Mapping,
     MutableMapping,
     Optional,
-    Type,
     Sequence,
     Set,
     Tuple,
+    Type,
     TypeVar,
     Union,
 )
@@ -352,13 +352,13 @@ class _AtomMetaHelper:
         # with multiple inheritance where the indices of multiple base
         # classes will overlap. When this happens, the members which
         # conflict must be cloned in order to occupy a unique index.
-        conflicts = []
+        conflicts: list[Member] = []
         occupied = set()
-        for member in members.values():
-            if member.index in occupied:
-                conflicts.append(member)
+        for m in members.values():
+            if m.index in occupied:
+                conflicts.append(m)
             else:
-                occupied.add(member.index)
+                occupied.add(m.index)
 
         # Track the first available index
         i = 0
@@ -374,8 +374,8 @@ class _AtomMetaHelper:
         # Do not blow away an overridden item on the current class.
         owned_members = self.owned_members
         cloned = {}
-        for member in conflicts:
-            clone = member.clone()
+        for m in conflicts:
+            clone = m.clone()
             clone.set_index(get_first_free_index())
             owned_members.add(clone)
             members[clone.name] = clone

@@ -19,14 +19,12 @@ from ..scalars import (
     Bool,
     Bytes,
     Callable as ACallable,
+    Constant,
     Float,
     Int,
     ReadOnly,
     Str,
     Value,
-    Constant,
-    Range,
-    FloatRange,
 )
 from ..set import Set as ASet
 from ..subclass import Subclass
@@ -55,7 +53,7 @@ _TYPE_TO_MEMBER = {
 # XXX handle str as annotation with default
 
 
-def generate_member_from_type_or_generic(
+def generate_member_from_type_or_generic(  # noqa C901
     type_generic: Any, default: Any, annotate_type_containers: int
 ) -> Member:
     """Generate a member from a type or generic alias."""
