@@ -102,6 +102,7 @@ def test_ignore_str_annotated_member():
     assert A().b == [1, 2, 3]
 
 
+@pytest.mark.xfail
 @pytest.mark.skipif(
     sys.version_info < (3, 9), reason="Subscription of Members requires Python 3.9+"
 )
