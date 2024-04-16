@@ -20,6 +20,7 @@ from typing import (
     Mapping,
     MutableMapping,
     Optional,
+    Type,
     Sequence,
     Set,
     Tuple,
@@ -79,7 +80,7 @@ POST_SETATTR_PREFIX = "_post_setattr_"
 POST_VALIDATE_PREFIX = "_post_validate_"
 GETSTATE_PREFIX = "_getstate_"
 
-
+T = TypeVar("T")
 M = TypeVar("M", bound=Member)
 
 
@@ -533,7 +534,7 @@ class _AtomMetaHelper:
                         self.name, name, members, "observe decorated"
                     )
 
-    def create_class(self, meta: type) -> type:
+    def create_class(self, meta: Type[T], freeze: bool) -> T:
         """Create the class after adding class variables."""
 
         # Put a reference to the members dict on the class. This is used
@@ -547,11 +548,14 @@ class _AtomMetaHelper:
             m for m in self.specific_members
         )
 
+        # Store wether or not to freeze the new instance after initialization
+        self.dct["__atom_freeze__"] = freeze
+
         # Create the class object.
         # We do it once everything else has been setup so that if users wants
         # to use __init__subclass__ they have access to fully initialized
         # Atom type.
-        cls: type = type.__new__(meta, self.name, self.bases, self.dct)
+        cls: T = type.__new__(meta, self.name, self.bases, self.dct)
 
         # Generate slotnames cache
         # (using a private function that mypy does not know about).
@@ -609,16 +613,18 @@ class AtomMeta(type):
 
     __atom_members__: Mapping[str, Member]
     __atom_specific_members__: FrozenSet[str]
+    __atom_freeze__: bool
 
     def __new__(
-        meta,
+        meta: Type[T],
         name: str,
         bases: Tuple[type, ...],
         dct: Dict[str, Any],
         enable_weakrefs: bool = False,
         use_annotations: bool = True,
         type_containers: int = 1,
-    ):
+        freeze: bool = False,
+    ) -> T:
         # Ensure there is no weird mro calculation and that we can use our
         # re-implementation of C3
         assert meta.mro is type.mro, "Custom MRO calculation are not supported"
@@ -646,4 +652,12 @@ class AtomMeta(type):
         # Customize the members based on the specified static modifiers
         helper.apply_members_static_behaviors()
 
-        return helper.create_class(meta)
+        return helper.create_class(meta, freeze)
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        new = super().__call__(*args, **kwds)
+        if self.__atom_freeze__:
+            # We get a Atom instance here, so freeze exists
+            new.freeze()  # type: ignore
+
+        return new
