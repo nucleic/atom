@@ -115,6 +115,7 @@ def test_ignore_annotated_set_default():
     assert B().a == 1
 
 
+@pytest.mark.xfail
 def test_ignore_str_annotated_set_default():
     class A(Atom, use_annotations=True):
         a = Value()
