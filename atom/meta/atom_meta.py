@@ -352,7 +352,7 @@ class _AtomMetaHelper:
         # with multiple inheritance where the indices of multiple base
         # classes will overlap. When this happens, the members which
         # conflict must be cloned in order to occupy a unique index.
-        conflicts: list[Member] = []
+        conflicts: List[Member] = []
         occupied = set()
         for m in members.values():
             if m.index in occupied:
@@ -455,7 +455,7 @@ class _AtomMetaHelper:
             if sd.metadata:
                 if member.metadata is None:
                     member.metadata = {}
-                member.metadata |= sd.metadata
+                member.metadata.update(sd.metadata)
 
         # _default_* methods
         for prefix, method_names, mode_setter in [
@@ -638,7 +638,7 @@ class AtomMeta(type):
             dct["__slots__"] += ("__weakref__",)
 
         if use_annotations and "__annotations__" in dct:
-            generate_members_from_cls_namespace(name, dct, type_containers)
+            generate_members_from_cls_namespace(name, bases, dct, type_containers)
 
         # Create the helper used to analyze the namespace and customize members
         helper = _AtomMetaHelper(name, bases, dct)
