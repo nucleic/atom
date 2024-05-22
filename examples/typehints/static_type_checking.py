@@ -17,7 +17,7 @@ class MyAtom(Atom):
 
     s: str = "Hello"
     lst: List[int] = [1, 2, 3]  # On Python >= 3.9 list[int] can be used
-    num: Optional[float]
+    num: Optional[float] = None
     n = Int()
 
 
