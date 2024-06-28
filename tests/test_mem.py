@@ -7,6 +7,7 @@
 # --------------------------------------------------------------------------------------
 import gc
 import os
+import pickle
 import sys
 import time
 from multiprocessing import Process
@@ -91,9 +92,9 @@ def test_mem_usage(label):
     try:
         stats = psutil.Process(p.pid)
         time.sleep(TIMEOUT * 1 / 4)
-        first_info = stats.memory_info()
+        first_info = stats.memory_full_info()
         time.sleep(TIMEOUT * 3 / 4)
-        last_info = stats.memory_info()
+        last_info = stats.memory_full_info()
         # Allow slight memory decrease over time to make tests more resilient
         if first_info != last_info:
             assert (
@@ -102,6 +103,39 @@ def test_mem_usage(label):
             assert (
                 first_info.vms >= last_info.vms >= 0
             ), "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
+            assert (
+                first_info.uss >= last_info.uss >= 0
+            ), "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
     finally:
         p.kill()
         p.join()
+
+# Those tests can be informative but are flaky
+# @pytest.mark.skipif(
+#     "CI" in os.environ and sys.platform.startswith("darwin"),
+#     reason="Flaky on MacOS CI runners",
+# )
+# @pytest.mark.skipif(PSUTIL_UNAVAILABLE, reason="psutil is not installed")
+# @pytest.mark.parametrize("label", PICKLE_MEM_TESTS.keys())
+# def test_pickle_mem_usage(label):
+#     TestClass = PICKLE_MEM_TESTS[label]
+
+#     obj = TestClass()
+#     proc = psutil.Process()
+
+#     for _ in range(20):
+#         pickle.loads(pickle.dumps(obj))
+
+#     gc.collect()
+#     ref = proc.memory_full_info().uss
+#     for _ in range(100):
+#         pck = pickle.dumps(obj)
+#         del pck
+#         gc.collect()
+#     assert proc.memory_full_info().uss - ref == 0
+#     for i in range(100):
+#         pck = pickle.dumps(obj)
+#         pickle.loads(pck)
+#         del pck
+#         gc.collect()
+#     assert proc.memory_full_info().uss - ref == 0
