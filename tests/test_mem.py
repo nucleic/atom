@@ -54,6 +54,13 @@ MEM_TESTS = {
     "atomref": RefObj,
 }
 
+PICKLE_MEM_TESTS = {
+    "dict": DictObj,
+    "defaultdict": DefaultDictObj,
+    "list": ListObj,
+    "set": SetObj,
+}
+
 
 def memtest(cls):
     # Create object in a loop
@@ -111,31 +118,31 @@ def test_mem_usage(label):
         p.join()
 
 # Those tests can be informative but are flaky
-# @pytest.mark.skipif(
-#     "CI" in os.environ and sys.platform.startswith("darwin"),
-#     reason="Flaky on MacOS CI runners",
-# )
-# @pytest.mark.skipif(PSUTIL_UNAVAILABLE, reason="psutil is not installed")
-# @pytest.mark.parametrize("label", PICKLE_MEM_TESTS.keys())
-# def test_pickle_mem_usage(label):
-#     TestClass = PICKLE_MEM_TESTS[label]
+@pytest.mark.skipif(
+    "CI" in os.environ and sys.platform.startswith("darwin"),
+    reason="Flaky on MacOS CI runners",
+)
+@pytest.mark.skipif(PSUTIL_UNAVAILABLE, reason="psutil is not installed")
+@pytest.mark.parametrize("label", PICKLE_MEM_TESTS.keys())
+def test_pickle_mem_usage(label):
+    TestClass = PICKLE_MEM_TESTS[label]
 
-#     obj = TestClass()
-#     proc = psutil.Process()
+    obj = TestClass()
+    proc = psutil.Process()
 
-#     for _ in range(20):
-#         pickle.loads(pickle.dumps(obj))
+    for _ in range(100):
+        pickle.loads(pickle.dumps(obj))
 
-#     gc.collect()
-#     ref = proc.memory_full_info().uss
-#     for _ in range(100):
-#         pck = pickle.dumps(obj)
-#         del pck
-#         gc.collect()
-#     assert proc.memory_full_info().uss - ref == 0
-#     for i in range(100):
-#         pck = pickle.dumps(obj)
-#         pickle.loads(pck)
-#         del pck
-#         gc.collect()
-#     assert proc.memory_full_info().uss - ref == 0
+    gc.collect()
+    ref = proc.memory_full_info().uss
+    for _ in range(100):
+        pck = pickle.dumps(obj)
+        del pck
+        gc.collect()
+    assert proc.memory_full_info().uss - ref == 0
+    for i in range(100):
+        pck = pickle.dumps(obj)
+        pickle.loads(pck)
+        del pck
+        gc.collect()
+    assert proc.memory_full_info().uss - ref == 0
