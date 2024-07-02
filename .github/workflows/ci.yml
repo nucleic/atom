@@ -47,7 +47,7 @@ jobs:
       - name: Linting
         if: always()
         run: |
-          ruff atom examples tests
+          ruff check atom examples tests
       - name: Typing
         if: always()
         run: |

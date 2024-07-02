@@ -7,6 +7,7 @@
 # --------------------------------------------------------------------------------------
 import gc
 import os
+import pickle
 import sys
 import time
 from multiprocessing import Process
@@ -51,6 +52,13 @@ MEM_TESTS = {
     "list": ListObj,
     "set": SetObj,
     "atomref": RefObj,
+}
+
+PICKLE_MEM_TESTS = {
+    "dict": DictObj,
+    "defaultdict": DefaultDictObj,
+    "list": ListObj,
+    "set": SetObj,
 }
 
 
@@ -105,3 +113,35 @@ def test_mem_usage(label):
     finally:
         p.kill()
         p.join()
+
+
+# Those tests can be informative but are flaky
+@pytest.mark.skipif(
+    "CI" in os.environ and sys.platform.startswith("darwin"),
+    reason="Flaky on MacOS CI runners",
+)
+@pytest.mark.skipif(PSUTIL_UNAVAILABLE, reason="psutil is not installed")
+@pytest.mark.parametrize("label", PICKLE_MEM_TESTS.keys())
+def test_pickle_mem_usage(label):
+    TestClass = PICKLE_MEM_TESTS[label]
+
+    obj = TestClass()
+    obj.data
+    proc = psutil.Process()
+
+    for _ in range(100):
+        pickle.loads(pickle.dumps(obj))
+
+    gc.collect()
+    ref = proc.memory_full_info().uss
+    for _ in range(10000):
+        pck = pickle.dumps(obj)
+        del pck
+    gc.collect()
+    assert abs(proc.memory_full_info().uss - ref) < 10_000
+    for i in range(10000):
+        pck = pickle.dumps(obj)
+        pickle.loads(pck)
+        del pck
+    gc.collect()
+    assert abs(proc.memory_full_info().uss - ref) < 10_000
