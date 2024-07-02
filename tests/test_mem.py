@@ -117,6 +117,7 @@ def test_mem_usage(label):
         p.kill()
         p.join()
 
+
 # Those tests can be informative but are flaky
 @pytest.mark.skipif(
     "CI" in os.environ and sys.platform.startswith("darwin"),
