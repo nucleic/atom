@@ -126,6 +126,7 @@ def test_pickle_mem_usage(label):
     TestClass = PICKLE_MEM_TESTS[label]
 
     obj = TestClass()
+    obj.data
     proc = psutil.Process()
 
     for _ in range(100):
