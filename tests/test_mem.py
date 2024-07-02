@@ -133,14 +133,14 @@ def test_pickle_mem_usage(label):
 
     gc.collect()
     ref = proc.memory_full_info().uss
-    for _ in range(100):
+    for _ in range(10000):
         pck = pickle.dumps(obj)
         del pck
-        gc.collect()
-    assert proc.memory_full_info().uss - ref == 0
-    for i in range(100):
+    gc.collect()
+    assert abs(proc.memory_full_info().uss - ref) < 10_000
+    for i in range(10000):
         pck = pickle.dumps(obj)
         pickle.loads(pck)
         del pck
-        gc.collect()
-    assert proc.memory_full_info().uss - ref == 0
+    gc.collect()
+    assert abs(proc.memory_full_info().uss - ref) < 10_000
