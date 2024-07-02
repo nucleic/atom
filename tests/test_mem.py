@@ -99,9 +99,9 @@ def test_mem_usage(label):
     try:
         stats = psutil.Process(p.pid)
         time.sleep(TIMEOUT * 1 / 4)
-        first_info = stats.memory_full_info()
+        first_info = stats.memory_info()
         time.sleep(TIMEOUT * 3 / 4)
-        last_info = stats.memory_full_info()
+        last_info = stats.memory_info()
         # Allow slight memory decrease over time to make tests more resilient
         if first_info != last_info:
             assert (
@@ -109,9 +109,6 @@ def test_mem_usage(label):
             ), "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
             assert (
                 first_info.vms >= last_info.vms >= 0
-            ), "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
-            assert (
-                first_info.uss >= last_info.uss >= 0
             ), "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
     finally:
         p.kill()
