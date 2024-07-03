@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2023, Nucleic Development Team.
+# Copyright (c) 2023-2024, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -10,6 +10,7 @@ import os
 import pickle
 import sys
 import time
+import tracemalloc
 from multiprocessing import Process
 
 import pytest
@@ -115,33 +116,26 @@ def test_mem_usage(label):
         p.join()
 
 
-# Those tests can be informative but are flaky
-@pytest.mark.skipif(
-    "CI" in os.environ and sys.platform.startswith("darwin"),
-    reason="Flaky on MacOS CI runners",
-)
-@pytest.mark.skipif(PSUTIL_UNAVAILABLE, reason="psutil is not installed")
 @pytest.mark.parametrize("label", PICKLE_MEM_TESTS.keys())
 def test_pickle_mem_usage(label):
     TestClass = PICKLE_MEM_TESTS[label]
 
     obj = TestClass()
-    obj.data
-    proc = psutil.Process()
 
     for _ in range(100):
         pickle.loads(pickle.dumps(obj))
 
     gc.collect()
-    ref = proc.memory_full_info().uss
-    for _ in range(10000):
-        pck = pickle.dumps(obj)
-        del pck
-    gc.collect()
-    assert abs(proc.memory_full_info().uss - ref) < 10_000
+    tracemalloc.start()
     for i in range(10000):
         pck = pickle.dumps(obj)
         pickle.loads(pck)
         del pck
     gc.collect()
-    assert abs(proc.memory_full_info().uss - ref) < 10_000
+    for stat in tracemalloc.take_snapshot().filter_traces(
+            [tracemalloc.Filter(True, "*/atom/*"), tracemalloc.Filter(False, "*/tests/*")]
+        ).statistics("lineno"):
+        # not sure why I sometimes see a 2 here but the original buggy version
+        # reported values > 50
+        assert stat.count < 5
+
