@@ -132,10 +132,16 @@ def test_pickle_mem_usage(label):
         pickle.loads(pck)
         del pck
     gc.collect()
-    for stat in tracemalloc.take_snapshot().filter_traces(
-            [tracemalloc.Filter(True, "*/atom/*"), tracemalloc.Filter(False, "*/tests/*")]
-        ).statistics("lineno"):
+    for stat in (
+        tracemalloc.take_snapshot()
+        .filter_traces(
+            [
+                tracemalloc.Filter(True, "*/atom/*"),
+                tracemalloc.Filter(False, "*/tests/*"),
+            ]
+        )
+        .statistics("lineno")
+    ):
         # not sure why I sometimes see a 2 here but the original buggy version
         # reported values > 50
         assert stat.count < 5
-
