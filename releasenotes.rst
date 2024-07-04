@@ -7,6 +7,11 @@ Atom Release Notes
 - add FixedTuple member to validate inhomogeneous tuple with fixed number of
   elements PR #211
 
+0.10.5 - 04-07-2024
+-------------------
+
+- fix a memory when pickling atom objects PR #213
+
 0.10.4 - 23/01/2024
 -------------------
 
