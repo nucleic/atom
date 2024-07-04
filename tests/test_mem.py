@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2023, Nucleic Development Team.
+# Copyright (c) 2023-2024, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -7,8 +7,10 @@
 # --------------------------------------------------------------------------------------
 import gc
 import os
+import pickle
 import sys
 import time
+import tracemalloc
 from multiprocessing import Process
 
 import pytest
@@ -51,6 +53,13 @@ MEM_TESTS = {
     "list": ListObj,
     "set": SetObj,
     "atomref": RefObj,
+}
+
+PICKLE_MEM_TESTS = {
+    "dict": DictObj,
+    "defaultdict": DefaultDictObj,
+    "list": ListObj,
+    "set": SetObj,
 }
 
 
@@ -105,3 +114,34 @@ def test_mem_usage(label):
     finally:
         p.kill()
         p.join()
+
+
+@pytest.mark.parametrize("label", PICKLE_MEM_TESTS.keys())
+def test_pickle_mem_usage(label):
+    TestClass = PICKLE_MEM_TESTS[label]
+
+    obj = TestClass()
+
+    for _ in range(100):
+        pickle.loads(pickle.dumps(obj))
+
+    gc.collect()
+    tracemalloc.start()
+    for i in range(10000):
+        pck = pickle.dumps(obj)
+        pickle.loads(pck)
+        del pck
+    gc.collect()
+    for stat in (
+        tracemalloc.take_snapshot()
+        .filter_traces(
+            [
+                tracemalloc.Filter(True, "*/atom/*"),
+                tracemalloc.Filter(False, "*/tests/*"),
+            ]
+        )
+        .statistics("lineno")
+    ):
+        # not sure why I sometimes see a 2 here but the original buggy version
+        # reported values > 50
+        assert stat.count < 5

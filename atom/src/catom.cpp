@@ -375,8 +375,9 @@ PyObject*
 CAtom_getstate( CAtom* self )
 {
     cppy::ptr stateptr = PyDict_New();
-    if ( !stateptr )
+    if ( !stateptr ) {
         return PyErr_NoMemory();  // LCOV_EXCL_LINE
+    }
 
     cppy::ptr selfptr(pyobject_cast(self), true);
 
@@ -391,26 +392,33 @@ CAtom_getstate( CAtom* self )
     // Copy __slots__ if present. This assumes copyreg._slotnames was called
     // during AtomMeta's initialization
     {
-        cppy::ptr typeptr = PyObject_Type(selfptr.get());
-        if (!typeptr)
+        PyObject* typedict = Py_TYPE(selfptr.get())->tp_dict;
+        cppy::ptr slotnamesptr(PyDict_GetItemString(typedict, "__slotnames__"), true);
+        if ( !slotnamesptr ) {
             return 0;
-        cppy::ptr slotnamesptr = typeptr.getattr("__slotnames__");
-        if (!slotnamesptr.get())
-            return 0;
-        if (!PyList_CheckExact(slotnamesptr.get()))
+        }
+        if ( !PyList_CheckExact(slotnamesptr.get()) ) {
             return cppy::system_error( "slot names" );
+        }
         for ( Py_ssize_t i=0; i < PyList_GET_SIZE(slotnamesptr.get()); i++ )
         {
             PyObject *name = PyList_GET_ITEM(slotnamesptr.get(), i);
             cppy::ptr value = selfptr.getattr(name);
-            if (!value || PyDict_SetItem(stateptr.get(), name, value.get()) )
+            if (!value ) {
+                // Following CPython impl it is not an error if the attribute is
+                // not present.
+                continue;
+            }
+            else if ( PyDict_SetItem(stateptr.get(), name, value.get()) ) {
                 return  0;
+            }
         }
     }
 
     cppy::ptr membersptr = selfptr.getattr(atom_members);
-    if ( !membersptr || !PyDict_CheckExact( membersptr.get() ) )
+    if ( !membersptr || !PyDict_CheckExact( membersptr.get() ) ) {
         return cppy::system_error( "atom members" );
+    }
 
     PyObject *name, *member;
     Py_ssize_t pos = 0;
@@ -421,9 +429,8 @@ CAtom_getstate( CAtom* self )
         }
         int test = PyObject_IsTrue( should_gs.get() );
         if ( test == 1) {
-            PyObject *value =  member_cast( member )->getattr( self );
-            if (!value || PyDict_SetItem( stateptr.get(), name, value ) ) {
-                Py_XDECREF( value );
+            cppy::ptr value =  member_cast( member )->getattr( self );
+            if (!value || PyDict_SetItem( stateptr.get(), name, value.get() ) ) {
                 return  0;
             }
         }
@@ -433,8 +440,9 @@ CAtom_getstate( CAtom* self )
     }
 
     // Frozen state
-    if ( self->is_frozen() && PyDict_SetItem(stateptr.get(), atom_flags, Py_None) )
+    if ( self->is_frozen() && PyDict_SetItem(stateptr.get(), atom_flags, Py_None) ) {
         return 0;
+    }
 
     return stateptr.release();
 }
