@@ -168,7 +168,7 @@ def test_annotation_use(annotation, member):
         assert A.a.validate_mode[1] == (annotation.__origin__,)
     elif member is Subclass:
         if isinstance(annotation.__args__[0], TypeVar):
-            assert A.a.validate_mode[1] == object
+            assert A.a.validate_mode[1] is object
         else:
             assert A.a.validate_mode[1] == annotation.__args__[0]
     else:
@@ -254,9 +254,9 @@ def test_annotated_containers_no_default(annotation, member, depth):
                 assert type(v) is type(mv)
                 assert f(A()) == mf(A())
         else:
-            assert type(A.a.item) is type(member.item)  # noqa: E721
+            assert type(A.a.item) is type(member.item)
             if isinstance(member.item, List):
-                assert type(A.a.item.item) is type(member.item.item)  # noqa: E721
+                assert type(A.a.item.item) is type(member.item.item)
 
 
 @pytest.mark.parametrize(

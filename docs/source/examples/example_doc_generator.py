@@ -87,7 +87,7 @@ def generate_example_doc(docs_path, script_path):
 
     # Add the script to the Python Path
     old_python_path = sys.path
-    sys.path = sys.path + [os.path.dirname(script_path)]
+    sys.path = [*sys.path, os.path.dirname(script_path)]
 
     # Restore Python path.
     sys.path = old_python_path
