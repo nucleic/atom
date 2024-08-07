@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2021, Nucleic Development Team.
+| Copyright (c) 2013-2024, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -68,7 +68,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             break;
         case Validate::FixedTuple:
-        {    
+        {
             if( !PyTuple_Check( context ) )
             {
                 cppy::type_error( context, "tuple of types or Members" );
