@@ -81,9 +81,12 @@ PyObject* validate_set( AtomSet* set, PyObject* value )
 {
     cppy::ptr val_set( PySet_New( 0 ) );
 	cppy::ptr value_iter = PyObject_GetIter(value);
+	if( !value_iter ) {
+		return 0;
+	}
     cppy::ptr temp;
     cppy::ptr validated;
-	while( temp = PyIter_Next( value_iter.get() ) )
+	while( ( temp = PyIter_Next( value_iter.get() ) ) )
 	{
         validated = validate_value( set, temp.get() );
 		if( !validated )
@@ -355,9 +358,14 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 	cppy::ptr r_temp;
 	if( !should_validate( set ) )
 	{
+		cppy::ptr args = PyTuple_Pack(1, value);
+		if( !args ) {
+			return -1;
+		}
+		PyObject **stack = &PyTuple_GET_ITEM(args.get(), 0);
 		// Method call return Py_None or 0. We make sure to decref Py_None and
 		// return -1 in case of error.
-		r_temp = SetMethods::update( pyobject_cast( set ), &value, 1);
+		r_temp = SetMethods::update( pyobject_cast( set ), stack, 1);
 		return !r_temp ? -1 : 0;
 	}
 	cppy::ptr temp( cppy::incref( value ) );
@@ -370,10 +378,14 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 	{
 		return -1;
 	}
-	PyObject* py_temp = temp.get();
+	cppy::ptr args = PyTuple_Pack(1, temp.get());
+	if( !args ) {
+		return -1;
+	}
+	PyObject **stack = &PyTuple_GET_ITEM(args.get(), 0);
 	// Method call return Py_None or 0. We make sure to decref Py_None and
 	// return -1 in case of error.
-	r_temp = SetMethods::update( pyobject_cast( set ), &py_temp, 1);
+	r_temp = SetMethods::update( pyobject_cast( set ), stack, 1);
 	return !r_temp ? -1 : 0;
 }
 

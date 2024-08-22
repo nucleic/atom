@@ -32,7 +32,7 @@ MEMBERS = ["untyped", "typed", "untyped_default", "typed_default"]
 
 @pytest.mark.parametrize("member", MEMBERS)
 def test_instance(atom_set, member):
-    """Test the repr."""
+    """Test the type of the returned ."""
     assert isinstance(getattr(atom_set, member), atomset)
 
 
