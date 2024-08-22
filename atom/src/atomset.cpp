@@ -1,10 +1,14 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2019, Nucleic
+| Copyright (c) 2019-2024, Nucleic
 |
 | Distributed under the terms of the BSD 3-Clause License.
 |
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
+#define Py_BUILD_CORE
+#if PY_VERSION_HEX >= 0x03120000
+#include <internal/pycore_setobject.h>
+#endif
 #include <cppy/cppy.h>
 #include "atomset.h"
 #include "packagenaming.h"
@@ -12,44 +16,31 @@
 namespace atom
 {
 
-
 typedef PyCFunction pycfunc;
 typedef _PyCFunctionFast pycfunc_f;
 
 namespace SetMethods
 {
-    static pycfunc_f update = 0;
+    static PyObject* update;
 
-    inline PyCFunction
-    lookup_method( PyTypeObject* type, const char* name )
+bool
+init_methods()
+{
+    static bool alloced = false;
+    if( alloced )
     {
-        PyMethodDef* method = type->tp_methods;
-        for( ; method->ml_name != 0; ++method )
-        {
-            if( strcmp( method->ml_name, name ) == 0 )
-                return method->ml_meth;
-        }
-        return 0;
-    }
-
-    static bool
-    init_methods()
-    {
-
-        update = reinterpret_cast<pycfunc_f>( lookup_method( &PySet_Type, "update" ) );
-        if( !update )
-        {
-    // LCOV_EXCL_START
-            cppy::system_error( "failed to load set 'update' method" );
-            return false;
-    // LCOV_EXCL_STOP
-        }
         return true;
     }
 
-}  // namespace SetMethods
+    update = PyObject_GetAttrString( pyobject_cast( &PySet_Type ),  "update" );
+    if( !update )
+    {
+        return false;
+    }
+    return true;
+}
 
-
+}  // namespace PySStr
 namespace
 {
 
@@ -333,8 +324,7 @@ PyType_Spec AtomSet::TypeObject_Spec = {
 	0,                                         /* tp_itemsize */
 	Py_TPFLAGS_DEFAULT
 	| Py_TPFLAGS_BASETYPE
-	| Py_TPFLAGS_HAVE_GC
-	| Py_TPFLAGS_HAVE_VERSION_TAG,              /* tp_flags */
+	| Py_TPFLAGS_HAVE_GC,                       /* tp_flags */
     AtomSet_Type_slots                          /* slots */
 };
 
@@ -358,15 +348,16 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 	cppy::ptr r_temp;
 	if( !should_validate( set ) )
 	{
-		cppy::ptr args = PyTuple_Pack(1, value);
-		if( !args ) {
-			return -1;
-		}
-		PyObject **stack = &PyTuple_GET_ITEM(args.get(), 0);
-		// Method call return Py_None or 0. We make sure to decref Py_None and
-		// return -1 in case of error.
-		r_temp = SetMethods::update( pyobject_cast( set ), stack, 1);
-		return !r_temp ? -1 : 0;
+		return _PySet_Update( pyobject_cast( set ), value );
+		// // Method call return Py_None or 0. We make sure to decref Py_None and
+		// // return -1 in case of error.
+		// if( PyObject_Print( pyobject_cast( set ), stdout, 0 ) < 0)
+		// 	return -1;
+		// if( PyObject_Print( value, stdout, 0 ) < 0 )
+		// 	return -1;
+		// return 0;
+		// r_temp = PyObject_CallFunctionObjArgs( SetMethods::update, pyobject_cast( set ), value );
+		// return !r_temp ? -1 : 0;
 	}
 	cppy::ptr temp( cppy::incref( value ) );
 	if( !PyAnySet_Check( value ) && !( temp = PySet_New( value ) ) )
@@ -378,15 +369,11 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 	{
 		return -1;
 	}
-	cppy::ptr args = PyTuple_Pack(1, temp.get());
-	if( !args ) {
-		return -1;
-	}
-	PyObject **stack = &PyTuple_GET_ITEM(args.get(), 0);
 	// Method call return Py_None or 0. We make sure to decref Py_None and
 	// return -1 in case of error.
-	r_temp = SetMethods::update( pyobject_cast( set ), stack, 1);
-	return !r_temp ? -1 : 0;
+	return _PySet_Update( pyobject_cast( set ), value );
+	// r_temp = PyObject_CallFunctionObjArgs( SetMethods::update, pyobject_cast( set ), temp.get() );
+	// return !r_temp ? -1 : 0;
 }
 
 
