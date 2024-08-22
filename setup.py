@@ -17,10 +17,6 @@ except ImportError as e:
         "Installing through pip as recommended ensure one never hits this issue."
     ) from e
 
-# Use the env var ATOM_DISABLE_FH4 to disable linking against VCRUNTIME140_1.dll
-if "ATOM_DISABLE_FH4" in os.environ:
-    os.environ.setdefault("CPPY_DISABLE_FH4", "1")
-
 ext_modules = [
     Extension(
         "atom.catom",
