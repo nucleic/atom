@@ -12,6 +12,44 @@
 namespace atom
 {
 
+
+typedef PyCFunction pycfunc;
+typedef _PyCFunctionFast pycfunc_f;
+
+namespace SetMethods
+{
+    static pycfunc_f update = 0;
+
+    inline PyCFunction
+    lookup_method( PyTypeObject* type, const char* name )
+    {
+        PyMethodDef* method = type->tp_methods;
+        for( ; method->ml_name != 0; ++method )
+        {
+            if( strcmp( method->ml_name, name ) == 0 )
+                return method->ml_meth;
+        }
+        return 0;
+    }
+
+    static bool
+    init_methods()
+    {
+
+        update = reinterpret_cast<pycfunc_f>( lookup_method( &PyList_Type, "update" ) );
+        if( !update )
+        {
+    // LCOV_EXCL_START
+            cppy::system_error( "failed to load set 'update' method" );
+            return false;
+    // LCOV_EXCL_STOP
+        }
+        return true;
+    }
+
+}  // namespace SetMethods
+
+
 namespace
 {
 
@@ -41,19 +79,18 @@ PyObject* validate_value( AtomSet* set, PyObject* value )
 
 PyObject* validate_set( AtomSet* set, PyObject* value )
 {
-	PyObject* key;
-	Py_hash_t hash;
-	Py_ssize_t pos = 0;
     cppy::ptr val_set( PySet_New( 0 ) );
+	cppy::ptr value_iter = PyObject_GetIter(value);
     cppy::ptr temp;
-	while( _PySet_NextEntry( value, &pos, &key, &hash ) )
+    cppy::ptr validated;
+	while( temp = PyIter_Next( value_iter.get() ) )
 	{
-        temp = validate_value( set, key );
-		if( !temp )
+        validated = validate_value( set, temp.get() );
+		if( !validated )
 		{
 			return 0;
 		}
-        if( PySet_Add( val_set.get(), temp.get() ) < 0 )
+        if( PySet_Add( val_set.get(), validated.get() ) < 0 )
         {
             return 0;
         }
@@ -315,9 +352,13 @@ PyObject* AtomSet::New( CAtom* atom, Member* validator )
 
 int AtomSet::Update( AtomSet* set, PyObject* value )
 {
+	cppy::ptr r_temp;
 	if( !should_validate( set ) )
 	{
-		return _PySet_Update( pyobject_cast( set ), value );
+		// Method call return Py_None or 0. We make sure to decref Py_None and
+		// return -1 in case of error.
+		r_temp = SetMethods::update( pyobject_cast( set ), &value, 1);
+		return !r_temp ? -1 : 0;
 	}
 	cppy::ptr temp( cppy::incref( value ) );
 	if( !PyAnySet_Check( value ) && !( temp = PySet_New( value ) ) )
@@ -329,12 +370,19 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 	{
 		return -1;
 	}
-	return _PySet_Update( pyobject_cast( set ), temp.get() );
+	PyObject* py_temp = temp.get();
+	// Method call return Py_None or 0. We make sure to decref Py_None and
+	// return -1 in case of error.
+	r_temp = SetMethods::update( pyobject_cast( set ), &py_temp, 1);
+	return !r_temp ? -1 : 0;
 }
 
 
 bool AtomSet::Ready()
 {
+	if( !SetMethods::init_methods() ) {
+        return false;
+    }
     // The reference will be handled by the module to which we will add the type
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )

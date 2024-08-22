@@ -23,19 +23,13 @@ namespace atom
 
 typedef PyCFunction pycfunc;
 typedef PyCFunctionWithKeywords pycfunc_kw;
-#if PY_VERSION_HEX >= 0x03070000
 typedef _PyCFunctionFast pycfunc_f;
 typedef _PyCFunctionFastWithKeywords pycfunc_fkw;
-#endif
 
 namespace ListMethods
 {
     pycfunc extend = 0;
-    #if PY_VERSION_HEX >= 0x03070000
     static pycfunc_f pop = 0;
-    #else
-    static pycfunc pop = 0;
-    #endif
     static pycfunc remove = 0;
 
     inline PyCFunction
@@ -62,11 +56,7 @@ namespace ListMethods
             return false;
     // LCOV_EXCL_STOP
         }
-    #if PY_VERSION_HEX >= 0x03070000
         pop = reinterpret_cast<pycfunc_f>( lookup_method( &PyList_Type, "pop" ) );
-    #else
-        pop = lookup_method( &PyList_Type, "pop" );
-    #endif
         if( !pop )
         {
     // LCOV_EXCL_START
@@ -448,8 +438,9 @@ AtomList::New( Py_ssize_t size, CAtom* atom, Member* validator )
 
 bool AtomList::Ready()
 {
-    if( !ListMethods::init_methods() )
+    if( !ListMethods::init_methods() ) {
         return false;
+    }
     // The reference will be handled by the module to which we will add the type
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
@@ -723,13 +714,9 @@ public:
     PyObject* pop( PyObject* args )
     {
         Py_ssize_t size = PyList_GET_SIZE( m_list.get() );
-#if PY_VERSION_HEX >= 0x03070000
         int nargs = (int)PyTuple_GET_SIZE( args);
         PyObject **stack = &PyTuple_GET_ITEM(args, 0);
         cppy::ptr res( ListMethods::pop( m_list.get(), stack, nargs ) );
-#else
-        cppy::ptr res( ListMethods::pop( m_list.get(), args ) );
-#endif
         if( !res )
             return 0;
         if( observer_check() )
