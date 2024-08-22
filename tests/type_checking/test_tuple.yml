@@ -100,8 +100,6 @@
     reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
 
 - case: fixed_tuple
-  # 3.8 uses Tuple in response 3.9+ tuple
-  skip: sys.version_info < (3, 9)
   parametrized:
   # Tuple with no defaults
   - member: FixedTuple

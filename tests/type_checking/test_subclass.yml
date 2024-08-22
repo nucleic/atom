@@ -6,7 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
 - case: subclass
-  skip: sys.version_info < (3, 9)  # 3.8 uses Type[] while 3.9+ uses type[]
   parametrized:
     - member: Subclass
       member_instance: Subclass(A)
