@@ -36,7 +36,7 @@ namespace SetMethods
     init_methods()
     {
 
-        update = reinterpret_cast<pycfunc_f>( lookup_method( &PyList_Type, "update" ) );
+        update = reinterpret_cast<pycfunc_f>( lookup_method( &PySet_Type, "update" ) );
         if( !update )
         {
     // LCOV_EXCL_START
