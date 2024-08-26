@@ -6,7 +6,7 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #define Py_BUILD_CORE
-#if PY_VERSION_HEX >= 0x03120000
+#if PY_VERSION_HEX >= 0x030C0000
 #include <internal/pycore_setobject.h>
 #endif
 #include <cppy/cppy.h>
