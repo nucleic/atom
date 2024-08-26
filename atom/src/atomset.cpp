@@ -5,10 +5,6 @@
 |
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
-#define Py_BUILD_CORE
-#if PY_VERSION_HEX >= 0x030C0000
-#include <internal/pycore_setobject.h>
-#endif
 #include <cppy/cppy.h>
 #include "atomset.h"
 #include "packagenaming.h"
@@ -348,16 +344,10 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 	cppy::ptr r_temp;
 	if( !should_validate( set ) )
 	{
-		return _PySet_Update( pyobject_cast( set ), value );
-		// // Method call return Py_None or 0. We make sure to decref Py_None and
-		// // return -1 in case of error.
-		// if( PyObject_Print( pyobject_cast( set ), stdout, 0 ) < 0)
-		// 	return -1;
-		// if( PyObject_Print( value, stdout, 0 ) < 0 )
-		// 	return -1;
-		// return 0;
-		// r_temp = PyObject_CallFunctionObjArgs( SetMethods::update, pyobject_cast( set ), value );
-		// return !r_temp ? -1 : 0;
+		// Method call return Py_None or 0. We make sure to decref Py_None and
+		// return -1 in case of error.
+		r_temp = PyObject_CallFunctionObjArgs( SetMethods::update, pyobject_cast( set ), value, NULL );
+		return !r_temp ? -1 : 0;
 	}
 	cppy::ptr temp( cppy::incref( value ) );
 	if( !PyAnySet_Check( value ) && !( temp = PySet_New( value ) ) )
@@ -371,9 +361,8 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 	}
 	// Method call return Py_None or 0. We make sure to decref Py_None and
 	// return -1 in case of error.
-	return _PySet_Update( pyobject_cast( set ), value );
-	// r_temp = PyObject_CallFunctionObjArgs( SetMethods::update, pyobject_cast( set ), temp.get() );
-	// return !r_temp ? -1 : 0;
+	r_temp = PyObject_CallFunctionObjArgs( SetMethods::update, pyobject_cast( set ), temp.get(), NULL );
+	return !r_temp ? -1 : 0;
 }
 
 
