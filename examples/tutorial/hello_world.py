@@ -7,8 +7,6 @@
 # --------------------------------------------------------------------------------------
 """Hello world example: how to write an atom class."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from atom.api import Atom, Str
 
 

@@ -4,6 +4,8 @@ Atom Release Notes
 0.11.0 - unreleased
 -------------------
 
+- drop support for Python 3.8 and 3.9
+- add support for Python 3.13
 - add FixedTuple member to validate inhomogeneous tuple with fixed number of
   elements PR #211
 
