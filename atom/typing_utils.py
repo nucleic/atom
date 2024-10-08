@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021-2023, Nucleic Development Team.
+# Copyright (c) 2021-2024, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -39,16 +39,9 @@ else:
 
 # Type checker consider that typing.List and typing.List[int] are types even though
 # there are not at runtime.
-if sys.version_info >= (3, 10):
-    from types import GenericAlias, UnionType
+from types import GenericAlias, UnionType
 
-    TypeLike = Union[type, TypeVar, UnionType, GenericAlias]
-elif sys.version_info >= (3, 9):
-    from types import GenericAlias
-
-    TypeLike = Union[type, TypeVar, GenericAlias]
-else:  # 3.8
-    TypeLike = Union[type, TypeVar]
+TypeLike = Union[type, TypeVar, UnionType, GenericAlias]
 
 if TYPE_CHECKING:
     from .atom import Atom

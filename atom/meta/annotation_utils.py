@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021-2023, Nucleic Development Team.
+# Copyright (c) 2021-2024, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -69,7 +69,6 @@ def generate_member_from_type_or_generic(
             set,
             tuple,
         ):
-            # We can only validate homogeneous tuple so far so we ignore other cases
             if t is tuple:
                 if (...) in parameters:
                     parameters = (parameters[0],)
@@ -80,7 +79,7 @@ def generate_member_from_type_or_generic(
                     t, _NO_DEFAULT, annotate_type_containers - 1
                 )
                 if t not in (Any, object)
-                else None
+                else Value()
                 for t in parameters
             )
         else:

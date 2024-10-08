@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2019-2023, Nucleic Development Team.
+# Copyright (c) 2019-2024, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -32,7 +32,7 @@ MEMBERS = ["untyped", "typed", "untyped_default", "typed_default"]
 
 @pytest.mark.parametrize("member", MEMBERS)
 def test_instance(atom_set, member):
-    """Test the repr."""
+    """Test the type of the returned ."""
     assert isinstance(getattr(atom_set, member), atomset)
 
 

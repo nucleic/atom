@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2023, Nucleic Development Team.
+# Copyright (c) 2013-2024, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -16,10 +16,6 @@ except ImportError as e:
         "Missing setup required dependencies: cppy. "
         "Installing through pip as recommended ensure one never hits this issue."
     ) from e
-
-# Use the env var ATOM_DISABLE_FH4 to disable linking against VCRUNTIME140_1.dll
-if "ATOM_DISABLE_FH4" in os.environ:
-    os.environ.setdefault("CPPY_DISABLE_FH4", "1")
 
 ext_modules = [
     Extension(

@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2019, Nucleic
+| Copyright (c) 2019-2024, Nucleic
 |
 | Distributed under the terms of the BSD 3-Clause License.
 |
@@ -12,6 +12,31 @@
 namespace atom
 {
 
+typedef PyCFunction pycfunc;
+typedef _PyCFunctionFast pycfunc_f;
+
+namespace SetMethods
+{
+    static PyObject* update;
+
+bool
+init_methods()
+{
+    static bool alloced = false;
+    if( alloced )
+    {
+        return true;
+    }
+
+    update = PyObject_GetAttrString( pyobject_cast( &PySet_Type ),  "update" );
+    if( !update )
+    {
+        return false;
+    }
+    return true;
+}
+
+}  // namespace PySStr
 namespace
 {
 
@@ -41,19 +66,21 @@ PyObject* validate_value( AtomSet* set, PyObject* value )
 
 PyObject* validate_set( AtomSet* set, PyObject* value )
 {
-	PyObject* key;
-	Py_hash_t hash;
-	Py_ssize_t pos = 0;
     cppy::ptr val_set( PySet_New( 0 ) );
+	cppy::ptr value_iter = PyObject_GetIter(value);
+	if( !value_iter ) {
+		return 0;
+	}
     cppy::ptr temp;
-	while( _PySet_NextEntry( value, &pos, &key, &hash ) )
+    cppy::ptr validated;
+	while( ( temp = PyIter_Next( value_iter.get() ) ) )
 	{
-        temp = validate_value( set, key );
-		if( !temp )
+        validated = validate_value( set, temp.get() );
+		if( !validated )
 		{
 			return 0;
 		}
-        if( PySet_Add( val_set.get(), temp.get() ) < 0 )
+        if( PySet_Add( val_set.get(), validated.get() ) < 0 )
         {
             return 0;
         }
@@ -293,8 +320,7 @@ PyType_Spec AtomSet::TypeObject_Spec = {
 	0,                                         /* tp_itemsize */
 	Py_TPFLAGS_DEFAULT
 	| Py_TPFLAGS_BASETYPE
-	| Py_TPFLAGS_HAVE_GC
-	| Py_TPFLAGS_HAVE_VERSION_TAG,              /* tp_flags */
+	| Py_TPFLAGS_HAVE_GC,                       /* tp_flags */
     AtomSet_Type_slots                          /* slots */
 };
 
@@ -315,9 +341,13 @@ PyObject* AtomSet::New( CAtom* atom, Member* validator )
 
 int AtomSet::Update( AtomSet* set, PyObject* value )
 {
+	cppy::ptr r_temp;
 	if( !should_validate( set ) )
 	{
-		return _PySet_Update( pyobject_cast( set ), value );
+		// Method call return Py_None or 0. We make sure to decref Py_None and
+		// return -1 in case of error.
+		r_temp = PyObject_CallFunctionObjArgs( SetMethods::update, pyobject_cast( set ), value, NULL );
+		return !r_temp ? -1 : 0;
 	}
 	cppy::ptr temp( cppy::incref( value ) );
 	if( !PyAnySet_Check( value ) && !( temp = PySet_New( value ) ) )
@@ -329,12 +359,18 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 	{
 		return -1;
 	}
-	return _PySet_Update( pyobject_cast( set ), temp.get() );
+	// Method call return Py_None or 0. We make sure to decref Py_None and
+	// return -1 in case of error.
+	r_temp = PyObject_CallFunctionObjArgs( SetMethods::update, pyobject_cast( set ), temp.get(), NULL );
+	return !r_temp ? -1 : 0;
 }
 
 
 bool AtomSet::Ready()
 {
+	if( !SetMethods::init_methods() ) {
+        return false;
+    }
     // The reference will be handled by the module to which we will add the type
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )

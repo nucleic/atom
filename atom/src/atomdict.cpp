@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2014-2023, Nucleic
+| Copyright (c) 2014-2024,, Nucleic
 |
 | Distributed under the terms of the BSD 3-Clause License.
 |

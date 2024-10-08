@@ -101,7 +101,7 @@ class FixedTuple(Member):
 
         Parameters
         ----------
-        items : Member, type, or tuple of types
+        items : Iterable[Member | type | tuple[type, ...]]
             A member to use for validating the types of items allowed in
             the tuple. This can also be a type object or a tuple of types,
             in which case it will be wrapped with an Instance member.

@@ -84,19 +84,8 @@ Since Atom does not enforce the length of a tuple, its type hint looks like
 type conversion occurs. If we want to go further we need a type hint and this is where
 things get a bit more complicated.
 
-Member is actually defined in C and does not inherit from Protocol. As a consequence,
-it does not implement `__getitem__` in Python 3.7 and 3.8 and writing `Member[int, int]`
-is not valid in those versions. Python 3.9 introduced generic aliases
-(see `PEP 585 <https://www.python.org/dev/peps/pep-0585/>`_) which allows to circumvent
-this limitation and atom members implement `__getitem__` using generic aliases for
-Python 3.9+.
-
-As a consequence, we need the quote around `Member[Tuple[int, int], Tuple[int, int]]`
-for Python 3.7 and 3.8 and the type checkers will use the definition found in the
-.pyi file which do define |Member| as inheriting from Protocol. Under Python 3.9+
-the quotes are not necessary. Finally type checker will both infer the type of `t` and
-see the manual annotation however they disagree and hence we need the type ignore
-comment.
+Member is actually defined in C and does not inherit from Protocol. However,
+atom members implement `__getitem__` allowing the the use of generic aliases.
 
 .. note::
 

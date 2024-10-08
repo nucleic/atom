@@ -205,6 +205,8 @@ def test_union_in_annotation(annotation, member, validate_mode):
         (TTuple[int], Tuple(), 0),
         (TTuple[int], FixedTuple(Int()), 1),
         (TTuple[int, ...], Tuple(Int()), 1),
+        (TTuple[int, object], FixedTuple(Int(), Value()), 1),
+        (TTuple[int, Any], FixedTuple(Int(), Value()), 1),
         (TTuple[int, float], FixedTuple(Int(), Float()), 1),
         (TTuple[tuple, int], FixedTuple(Tuple(), Int()), 1),
         (
