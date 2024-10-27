@@ -1,7 +1,7 @@
 Atom Release Notes
 ==================
 
-0.11.0 - unreleased
+0.11.0 - 27/10/2024
 -------------------
 
 - drop support for Python 3.8 and 3.9
