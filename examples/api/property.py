@@ -13,7 +13,8 @@ from atom.api import Atom, Int, Property, Str
 class Person(Atom):
     """A simple class representing a person object."""
 
-    first_name = Str()
+    # Attribute that can be used as argument must have an annotation
+    first_name: Str = Str()
 
     # Static type checker cannot infer from the magic method that the property
     # is read/write so a type annotation helps.
@@ -29,7 +30,7 @@ class Person(Atom):
 
 
 if __name__ == "__main__":
-    bob = Person(first_name="Bob")
+    bob = Person(first_name="Bob")  # type: ignore
     print(bob.age)
     bob.age = -10
     print(bob.age)

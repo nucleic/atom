@@ -83,6 +83,8 @@
 
 .. |observe| replace:: :py:class:`~atom.atom.observe`
 
+.. |member| replace:: :py:class:`~atom.atom.member`
+
 .. |set_default| replace:: :py:class:`~atom.atom.set_default`
 
 .. |atomref| replace:: :py:class:`~atom.catom.atomref`
