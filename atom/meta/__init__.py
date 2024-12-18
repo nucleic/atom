@@ -13,9 +13,9 @@ from .observation import observe
 
 __all__ = [
     "AtomMeta",
-    "observe",
     "MissingMemberWarning",
     "add_member",
-    "set_default",
     "clone_if_needed",
+    "observe",
+    "set_default",
 ]
