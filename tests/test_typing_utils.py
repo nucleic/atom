@@ -7,9 +7,8 @@
 # --------------------------------------------------------------------------------------
 """Test typing utilities."""
 
-import sys
 from collections.abc import Iterable
-from typing import Dict, List, Optional, Set, Tuple, TypeVar, Union
+from typing import Dict, List, NewType, Optional, Set, Tuple, TypeVar, Union
 
 import pytest
 
@@ -20,6 +19,7 @@ U = TypeVar("U", bound=int)
 UU = TypeVar("UU", bound=Union[int, str])
 V = TypeVar("V", int, float)
 W = TypeVar("W", contravariant=True)
+NT = NewType("NT", int)
 
 
 @pytest.mark.parametrize(
@@ -33,19 +33,13 @@ W = TypeVar("W", contravariant=True)
         (Union[int, str], (int, str)),
         (Union[int, Optional[str]], (int, str, type(None))),
         (Union[int, Union[str, bytes]], (int, str, bytes)),
-    ]
-    + (
-        [
-            (tuple[int], (tuple,)),
-            (list[int], (list,)),
-            (dict[str, int], (dict,)),
-            (set[int], (set,)),
-            (Iterable[int], (Iterable,)),
-        ]
-        if sys.version_info >= (3, 9)
-        else []
-    )
-    + ([(int | str, (int, str))] if sys.version_info >= (3, 10) else []),
+        (list[int], (list,)),
+        (dict[str, int], (dict,)),
+        (set[int], (set,)),
+        (Iterable[int], (Iterable,)),
+        (int | str, (int, str)),
+        (NT, (int,))
+    ],
 )
 def test_extract_types(ty, outputs):
     assert extract_types(ty) == outputs
