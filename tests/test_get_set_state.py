@@ -227,7 +227,7 @@ def test_bench_getstate_dict(benchmark, fn):
 @pytest.mark.parametrize("fn", ("c", "py"))
 def test_bench_getstate_slots(benchmark, fn):
     class Test(AtomBase):
-        __slots__ = ("foo", "bar")
+        __slots__ = ("bar", "foo")
         name = Str("Name")
         enabled = Bool(True)
         rating = Float()

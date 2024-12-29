@@ -16,24 +16,24 @@
       member_type: atom.coerced.Coerced[builtins.int, builtins.int]
       member_value_type: builtins.int
     - member: Coerced
-      member_instance: Coerced(io.StringIO, None, dict(initial_value=str(1)))
-      member_type: atom.coerced.Coerced[io.StringIO, io.StringIO]
-      member_value_type: io.StringIO
+      member_instance: Coerced(_io.StringIO, None, dict(initial_value=str(1)))
+      member_type: atom.coerced.Coerced[_io.StringIO, _io.StringIO]
+      member_value_type: _io.StringIO
     - member: Coerced
-      member_instance: Coerced(io.StringIO, kwargs=dict(initial_value=str(1)))
-      member_type: atom.coerced.Coerced[io.StringIO, io.StringIO]
-      member_value_type: io.StringIO
+      member_instance: Coerced(_io.StringIO, kwargs=dict(initial_value=str(1)))
+      member_type: atom.coerced.Coerced[_io.StringIO, _io.StringIO]
+      member_value_type: _io.StringIO
     - member: Coerced
-      member_instance: Coerced(io.StringIO, factory=g)
-      member_type: atom.coerced.Coerced[io.StringIO, io.StringIO]
-      member_value_type: io.StringIO
+      member_instance: Coerced(_io.StringIO, factory=g)
+      member_type: atom.coerced.Coerced[_io.StringIO, _io.StringIO]
+      member_value_type: _io.StringIO
   main: |
-    import io
+    import _io
     from typing import Type
     from atom.api import Atom, {{ member }}
 
-    def g() -> io.StringIO:
-      return io.StringIO()
+    def g() -> _io.StringIO:
+      return _io.StringIO()
 
     class A(Atom):
       m = {{ member_instance }}
@@ -45,35 +45,35 @@
 - case: coerced_coercer
   parametrized:
     - member: Coerced
-      member_instance: Coerced(io.StringIO, coercer=coercer)
-      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
-      member_value_type: io.StringIO
+      member_instance: Coerced(_io.StringIO, coercer=coercer)
+      member_type: atom.coerced.Coerced[_io.StringIO, Union[_io.StringIO, builtins.str]]
+      member_value_type: _io.StringIO
     - member: Coerced
-      member_instance: Coerced(io.StringIO, (), coercer=coercer)
-      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
-      member_value_type: io.StringIO
+      member_instance: Coerced(_io.StringIO, (), coercer=coercer)
+      member_type: atom.coerced.Coerced[_io.StringIO, Union[_io.StringIO, builtins.str]]
+      member_value_type: _io.StringIO
     - member: Coerced
-      member_instance: Coerced(io.StringIO, None, dict(initial_value=str(1)), coercer=coercer)
-      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
-      member_value_type: io.StringIO
+      member_instance: Coerced(_io.StringIO, None, dict(initial_value=str(1)), coercer=coercer)
+      member_type: atom.coerced.Coerced[_io.StringIO, Union[_io.StringIO, builtins.str]]
+      member_value_type: _io.StringIO
     - member: Coerced
-      member_instance: Coerced(io.StringIO, kwargs=dict(initial_value=str(1)), coercer=coercer)
-      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
-      member_value_type: io.StringIO
+      member_instance: Coerced(_io.StringIO, kwargs=dict(initial_value=str(1)), coercer=coercer)
+      member_type: atom.coerced.Coerced[_io.StringIO, Union[_io.StringIO, builtins.str]]
+      member_value_type: _io.StringIO
     - member: Coerced
-      member_instance: Coerced(io.StringIO, factory=g, coercer=coercer)
-      member_type: atom.coerced.Coerced[io.StringIO, Union[io.StringIO, builtins.str]]
-      member_value_type: io.StringIO
+      member_instance: Coerced(_io.StringIO, factory=g, coercer=coercer)
+      member_type: atom.coerced.Coerced[_io.StringIO, Union[_io.StringIO, builtins.str]]
+      member_value_type: _io.StringIO
   main: |
-    import io
+    import _io
     from typing import Type
     from atom.api import Atom, {{ member }}
 
-    def coercer(x: str) -> io.StringIO:
-      return io.StringIO(x)
+    def coercer(x: str) -> _io.StringIO:
+      return _io.StringIO(x)
 
-    def g() -> io.StringIO:
-      return io.StringIO()
+    def g() -> _io.StringIO:
+      return _io.StringIO()
 
     class A(Atom):
       m = {{ member_instance }}

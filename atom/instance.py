@@ -99,7 +99,7 @@ class ForwardInstance(Instance):
 
     """
 
-    __slots__ = ("resolve", "args", "kwargs", "optional")
+    __slots__ = ("args", "kwargs", "optional", "resolve")
 
     def __init__(self, resolve, args=None, kwargs=None, *, factory=None, optional=None):
         """Initialize a ForwardInstance.

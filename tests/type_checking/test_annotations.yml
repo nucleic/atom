@@ -13,7 +13,7 @@
       member_type: atom.list.List[builtins.int]
       member_value_type: builtins.list[builtins.int]
   main: |
-    import io
+    import _io
     from typing import Type
     from atom.api import Atom, {{ member }}
 

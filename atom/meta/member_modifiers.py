@@ -13,7 +13,7 @@ from typing import Any, Optional
 class set_default(object):
     """An object used to set the default value of a base class member."""
 
-    __slots__ = ("value", "name")
+    __slots__ = ("name", "value")
 
     #: Name of the member for which a new default value should be set. Used by
     #: the metaclass.

@@ -202,22 +202,22 @@ class _AtomMetaHelper:
     getstates: List[str]
 
     __slots__ = (
-        "name",
         "bases",
         "dct",
-        "members",
-        "owned_members",
-        "specific_members",
-        "observes",
-        "defaults",
-        "validates",
         "decorated",
-        "set_defaults",
+        "defaults",
+        "getstates",
+        "members",
+        "name",
+        "observes",
+        "owned_members",
         "post_getattrs",
         "post_setattrs",
         "post_validates",
-        "getstates",
         "seen_decorated",
+        "set_defaults",
+        "specific_members",
+        "validates",
     )
 
     def __init__(self, name: str, bases: Tuple[type, ...], dct: Dict[str, Any]) -> None:

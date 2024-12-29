@@ -65,7 +65,7 @@ T = TypeVar("T", bound="Atom")
 class ObserveHandler(object):
     """An object used to temporarily store observe decorator state."""
 
-    __slots__ = ("pairs", "func", "funcname", "change_types")
+    __slots__ = ("change_types", "func", "funcname", "pairs")
 
     #: List of 2-tuples which stores the pair information for the observers.
     pairs: List[Tuple[str, Optional[str]]]
@@ -132,7 +132,7 @@ class ObserveHandler(object):
 class ExtendedObserver(object):
     """A callable object used to implement extended observers."""
 
-    __slots__ = ("funcname", "attr")
+    __slots__ = ("attr", "funcname")
 
     #: Name of the function on the owner object which should be used as the observer.
     funcname: str
