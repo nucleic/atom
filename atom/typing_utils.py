@@ -42,7 +42,7 @@ else:
 # there are not at runtime.
 from types import GenericAlias, UnionType
 
-TypeLike = Union[type, TypeVar, UnionType, GenericAlias]
+TypeLike = Union[type, TypeVar, UnionType, GenericAlias, NewType]
 
 if TYPE_CHECKING:
     from .atom import Atom
