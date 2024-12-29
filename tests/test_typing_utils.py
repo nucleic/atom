@@ -20,6 +20,7 @@ UU = TypeVar("UU", bound=Union[int, str])
 V = TypeVar("V", int, float)
 W = TypeVar("W", contravariant=True)
 NT = NewType("NT", int)
+NNT = NewType("NNT", NT)
 
 
 @pytest.mark.parametrize(
@@ -38,7 +39,8 @@ NT = NewType("NT", int)
         (set[int], (set,)),
         (Iterable[int], (Iterable,)),
         (int | str, (int, str)),
-        (NT, (int,))
+        (NT, (int,)),
+        (NNT, (int,)),
     ],
 )
 def test_extract_types(ty, outputs):

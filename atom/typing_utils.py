@@ -130,7 +130,7 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
         # NewType only exists for the sake of type checkers so we fall back to
         # the supertype for runtime checks.
         elif isinstance(t, NewType):
-            extracted.append(t.__supertype__)
+            extracted.extend(_extract_types(t.__supertype__))
         elif t is Any:
             extracted.append(object)
         else:
