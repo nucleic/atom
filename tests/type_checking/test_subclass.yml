@@ -56,7 +56,7 @@
       member_type: atom.subclass.ForwardSubclass[Union[type[builtins.int], type[main.A], type[builtins.str]]]
       member_value_type: Union[type[builtins.int], type[main.A], type[builtins.str]]
   main: |
-    import io
+    import _io
     from typing import Tuple, Type
     from atom.api import Atom, {{ member }}
 
