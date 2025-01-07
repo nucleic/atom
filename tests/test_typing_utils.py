@@ -79,6 +79,7 @@ def test_reject_str_annotations():
     with pytest.raises(TypeError):
         extract_types("int")
 
+
 def test_reject_literal():
     with pytest.raises(TypeError):
         extract_types(Literal[1])

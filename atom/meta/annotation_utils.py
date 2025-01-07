@@ -44,6 +44,7 @@ def generate_member_from_type_or_generic(
 ) -> Member:
     """Generate a member from a type or generic alias."""
     # Here we special case Literal to generate an Enum member.
+    types: tuple[type, ...]
     if get_origin(type_generic) is Literal:
         types = ()
     else:

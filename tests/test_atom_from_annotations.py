@@ -303,7 +303,6 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (dict, Dict, {1: 2}),
         (defaultdict, DefaultDict, defaultdict(int, {1: 2})),
         (Literal[1, 2, "a"], Enum, 2),
-
     ],
 )
 def test_annotations_with_default(annotation, member, default):
