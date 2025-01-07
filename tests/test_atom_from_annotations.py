@@ -18,12 +18,14 @@ from typing import (
     Dict as TDict,
     Iterable,
     List as TList,
+    Literal,
     Optional,
     Set as TSet,
     Tuple as TTuple,
     Type,
     TypeVar,
     Union,
+    get_args,
 )
 
 import pytest
@@ -35,6 +37,7 @@ from atom.api import (
     Callable,
     DefaultDict,
     Dict,
+    Enum,
     FixedTuple,
     Float,
     Instance,
@@ -155,6 +158,7 @@ def test_reject_non_member_annotated_set_default():
         (Iterable, Instance),
         (Type[int], Subclass),
         (Type[TypeVar("T")], Subclass),
+        (Literal[1, 2, "a"], Enum),
     ],
 )
 def test_annotation_use(annotation, member):
@@ -167,10 +171,12 @@ def test_annotation_use(annotation, member):
     elif member is Instance:
         assert A.a.validate_mode[1] == (annotation.__origin__,)
     elif member is Subclass:
-        if isinstance(annotation.__args__[0], TypeVar):
+        if isinstance(a_args := get_args(annotation)[0], TypeVar):
             assert A.a.validate_mode[1] is object
         else:
-            assert A.a.validate_mode[1] == annotation.__args__[0]
+            assert A.a.validate_mode[1] == a_args
+    elif member is Enum:
+        assert A.a.validate_mode[1] == get_args(annotation)
     else:
         assert A.a.default_value_mode == member().default_value_mode
 
@@ -180,6 +186,7 @@ def test_annotation_use(annotation, member):
     [
         (Atom, Typed, Atom),
         (Union[int, str], Instance, (int, str)),
+        (int | str, Instance, (int, str)),
     ],
 )
 def test_union_in_annotation(annotation, member, validate_mode):
@@ -195,6 +202,7 @@ def test_union_in_annotation(annotation, member, validate_mode):
     [
         (TList[int], List(), 0),
         (TList[int], List(Int()), 1),
+        (TList[Literal[1, 2, 3]], List(Enum(1, 2, 3)), 1),
         (TList[TList[int]], List(List()), 1),
         (TList[TList[int]], List(List(Int())), -1),
         (TSet[int], Set(), 0),
@@ -214,32 +222,26 @@ def test_union_in_annotation(annotation, member, validate_mode):
             FixedTuple(FixedTuple(Int(), Int()), Int()),
             -1,
         ),
-    ]
-    + (
-        [
-            (list[int], List(), 0),
-            (list[int], List(Int()), 1),
-            (list[list[int]], List(List()), 1),
-            (list[list[int]], List(List(Int())), -1),
-            (set[int], Set(), 0),
-            (set[int], Set(Int()), 1),
-            (dict[int, int], Dict(), 0),
-            (dict[int, int], Dict(Int(), Int()), 1),
-            (defaultdict[int, int], DefaultDict(Int(), Int()), 1),
-            (tuple[int], Tuple(), 0),
-            (tuple[int], FixedTuple(Int()), 1),
-            (tuple[int, ...], Tuple(Int()), 1),
-            (tuple[int, float], FixedTuple(Int(), Float()), 1),
-            (tuple[tuple, int], FixedTuple(Tuple(), Int()), 1),
-            (
-                tuple[tuple[int, int], int],
-                FixedTuple(FixedTuple(Int(), Int()), Int()),
-                -1,
-            ),
-        ]
-        if sys.version_info >= (3, 9)
-        else []
-    ),
+        (list[int], List(), 0),
+        (list[int], List(Int()), 1),
+        (list[list[int]], List(List()), 1),
+        (list[list[int]], List(List(Int())), -1),
+        (set[int], Set(), 0),
+        (set[int], Set(Int()), 1),
+        (dict[int, int], Dict(), 0),
+        (dict[int, int], Dict(Int(), Int()), 1),
+        (defaultdict[int, int], DefaultDict(Int(), Int()), 1),
+        (tuple[int], Tuple(), 0),
+        (tuple[int], FixedTuple(Int()), 1),
+        (tuple[int, ...], Tuple(Int()), 1),
+        (tuple[int, float], FixedTuple(Int(), Float()), 1),
+        (tuple[tuple, int], FixedTuple(Tuple(), Int()), 1),
+        (
+            tuple[tuple[int, int], int],
+            FixedTuple(FixedTuple(Int(), Int()), Int()),
+            -1,
+        ),
+    ],
 )
 def test_annotated_containers_no_default(annotation, member, depth):
     class A(Atom, use_annotations=True, type_containers=depth):
@@ -295,18 +297,14 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (TDefaultDict, DefaultDict, defaultdict(int, {1: 2})),
         (Optional[Iterable], Instance, None),
         (Type[int], Subclass, int),
-    ]
-    + (
-        [
-            (tuple[int], FixedTuple, (1,)),
-            (list, List, [1]),
-            (set, Set, {1}),
-            (dict, Dict, {1: 2}),
-            (defaultdict, DefaultDict, defaultdict(int, {1: 2})),
-        ]
-        if sys.version_info >= (3, 9)
-        else []
-    ),
+        (tuple[int], FixedTuple, (1,)),
+        (list, List, [1]),
+        (set, Set, {1}),
+        (dict, Dict, {1: 2}),
+        (defaultdict, DefaultDict, defaultdict(int, {1: 2})),
+        (Literal[1, 2, "a"], Enum, 2),
+
+    ],
 )
 def test_annotations_with_default(annotation, member, default):
     class A(Atom, use_annotations=True):
