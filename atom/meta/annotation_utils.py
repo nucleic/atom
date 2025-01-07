@@ -67,6 +67,14 @@ def generate_member_from_type_or_generic(
     # We are dealing with a Literal, so use an Enum member
     elif not types:
         m_cls = Enum
+        if default is not _NO_DEFAULT:
+            if default not in parameters:
+                raise ValueError("Default value does not appear in Literal")
+            # Make the default value the first in the enum arguments.
+            p = list(parameters)
+            p.pop(p.index(default))
+            parameters = (default, *p)
+            default = _NO_DEFAULT
     # Int, Float, Str, Bytes, List, Dict, Set, Tuple, Bool, Callable
     elif len(types) == 1 and types[0] in _TYPE_TO_MEMBER:
         t = types[0]

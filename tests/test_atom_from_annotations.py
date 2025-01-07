@@ -312,6 +312,8 @@ def test_annotations_with_default(annotation, member, default):
     assert isinstance(A.a, member)
     if member is Subclass:
         assert A.a.default_value_mode == member(int, default=default).default_value_mode
+    elif member is Enum:
+        assert A.a.default_value_mode[1] == default
     elif member is not Instance:
         assert A.a.default_value_mode == member(default=default).default_value_mode
 
