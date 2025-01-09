@@ -166,6 +166,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             break;
         case Validate::FloatRange:
+        case Validate::FloatRangePromote:
         {
             if( !PyTuple_Check( context ) )
             {
@@ -859,8 +860,6 @@ float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
 PyObject*
 float_range_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( PyFloat_Check( newvalue ) )
-        return float_range_handler( member, atom, oldvalue, newvalue );
     if( PyLong_Check( newvalue ) )
     {
         double value = PyLong_AsDouble( newvalue );
@@ -869,7 +868,7 @@ float_range_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, Py
         cppy::ptr convertedvalue( PyFloat_FromDouble( value ) );
         return float_range_handler( member, atom, oldvalue, convertedvalue.get() );
     }
-    return validate_type_fail( member, atom, newvalue, "float" );
+    return float_range_handler( member, atom, oldvalue, newvalue );
 }
 
 
