@@ -46,7 +46,7 @@ class Property(Member):
         self.set_getattr_mode(gm, fget)
         if cached and fset is not None:
             raise ValueError(
-                "Cached property are read-only, but a setter was " "specified."
+                "Cached property are read-only, but a setter was specified."
             )
         self.set_setattr_mode(SetAttr.Property, fset)
         self.set_delattr_mode(DelAttr.Property, fdel)
@@ -104,7 +104,7 @@ class Property(Member):
         """
         if self.cached:
             raise ValueError(
-                "Cached property are read-only, but a setter was " "specified."
+                "Cached property are read-only, but a setter was specified."
             )
         self.set_setattr_mode(SetAttr.Property, func)
         return func

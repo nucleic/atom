@@ -105,12 +105,12 @@ def test_mem_usage(label):
         last_info = stats.memory_info()
         # Allow slight memory decrease over time to make tests more resilient
         if first_info != last_info:
-            assert (
-                first_info.rss >= last_info.rss >= 0
-            ), "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
-            assert (
-                first_info.vms >= last_info.vms >= 0
-            ), "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
+            assert first_info.rss >= last_info.rss >= 0, (
+                "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
+            )
+            assert first_info.vms >= last_info.vms >= 0, (
+                "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
+            )
     finally:
         p.kill()
         p.join()
