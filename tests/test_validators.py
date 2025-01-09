@@ -224,13 +224,15 @@ def test_validation_modes(member, set_values, values, raising_values):
         assert tester.m == v
 
     for rv in raising_values:
-        with pytest.raises(
-            OverflowError
-            if (isinstance(member, Int) and isinstance(rv, float) and rv > 2**32)
-            else ValueError
-            if isinstance(member, Enum)
-            else TypeError
-        ):
+        if (isinstance(member, Int) and isinstance(rv, float) and rv > 2**32):
+            error_type = OverflowError
+        elif isinstance(member, Enum):
+            error_type = ValueError
+        elif isinstance(member, (Range, FloatRange)):
+            error_type = (ValueError, TypeError)
+        else:
+            error_type = TypeError
+        with pytest.raises(error_type):
             tester.m = rv
 
 

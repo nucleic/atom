@@ -804,7 +804,12 @@ enum_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
         return 0;
     if( res == 1 )
         return cppy::incref( newvalue );
-    return cppy::value_error( "invalid enum value" );
+    return PyErr_Format(
+        PyExc_ValueError,
+        "invalid enum value for '%s' of '%s'",
+        PyUnicode_AsUTF8( member->name ),
+        Py_TYPE( pyobject_cast( atom ) )->tp_name
+    );
 }
 
 
@@ -830,12 +835,22 @@ float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
     if( low != Py_None )
     {
         if( PyFloat_AS_DOUBLE( low ) > value )
-            return cppy::type_error( "range value too small" );
+            return  PyErr_Format(
+                PyExc_ValueError,
+                "range value for '%s' of '%s' too small",
+                PyUnicode_AsUTF8( member->name ),
+                Py_TYPE( pyobject_cast( atom ) )->tp_name
+            );
     }
     if( high != Py_None )
     {
         if( PyFloat_AS_DOUBLE( high ) < value )
-            return cppy::type_error( "range value too large" );
+            return  PyErr_Format(
+                PyExc_ValueError,
+                "range value for '%s' of '%s' too large",
+                PyUnicode_AsUTF8( member->name ),
+                Py_TYPE( pyobject_cast( atom ) )->tp_name
+            );
     }
     return cppy::incref( newvalue );
 }
@@ -868,12 +883,22 @@ range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
     if( low != Py_None )
     {
         if( PyObject_RichCompareBool( low , newvalue, Py_GT ) )
-            return cppy::type_error( "range value too small" );
+            return  PyErr_Format(
+                PyExc_ValueError,
+                "range value for '%s' of '%s' too small",
+                PyUnicode_AsUTF8( member->name ),
+                Py_TYPE( pyobject_cast( atom ) )->tp_name
+            );
     }
     if( high != Py_None )
     {
         if( PyObject_RichCompareBool( high , newvalue, Py_LT ) )
-            return cppy::type_error( "range value too large" );
+            return  PyErr_Format(
+                PyExc_ValueError,
+                "range value for '%s' of '%s' too large",
+                PyUnicode_AsUTF8( member->name ),
+                Py_TYPE( pyobject_cast( atom ) )->tp_name
+            );
     }
     return cppy::incref( newvalue );
 }
