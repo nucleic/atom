@@ -155,17 +155,7 @@ _mangled_property_handler( Member* member, CAtom* atom )
     cppy::ptr name( PyUnicode_FromFormat( "_del_%s", suffix ) );
     if( !name )
         return -1;
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), name.get() ) );
-    if( !callable )
-    {
-        if( PyErr_ExceptionMatches( PyExc_AttributeError ) )
-            PyErr_SetString( PyExc_AttributeError, "can't delete attribute" );
-        return -1;
-    }
-    cppy::ptr args( PyTuple_New( 0 ) );
-    if( !args )
-        return -1;
-    cppy::ptr ok( callable.call( args ) );
+    cppy::ptr ok( PyObject_CallMethodNoArgs( pyobject_cast( atom ), name.get() ) );
     if( !ok )
         return -1;
     return 0;
@@ -177,11 +167,7 @@ property_handler( Member* member, CAtom* atom )
 {
     if( member->delattr_context != Py_None )
     {
-        cppy::ptr args( PyTuple_New( 1 ) );
-        if( !args )
-            return -1;
-        PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-        cppy::ptr ok( PyObject_Call( member->delattr_context, args.get(), 0 ) );
+        cppy::ptr ok( PyObject_CallOneArg( member->delattr_context, pyobject_cast( atom ) ) );
         if( !ok )
             return -1;
         return 0;
