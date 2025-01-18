@@ -297,7 +297,8 @@ call_object_object_value_handler( Member* member, CAtom* atom, PyObject* value )
     if( !valueptr )
         return -1;
     PyObject* args[] = { pyobject_cast( atom ), valueptr.get() };
-    if( !PyObject_Vectorcall( member->setattr_context, args, 2, 0 ) )
+    cppy::ptr ok( PyObject_Vectorcall( member->setattr_context, args, 2, 0 ) );
+    if( !ok )
         return -1;
     return 0;
 }
@@ -310,7 +311,8 @@ call_object_object_name_value_handler( Member* member, CAtom* atom, PyObject* va
     if( !valueptr )
         return -1;
     PyObject* args[] = { pyobject_cast( atom ), member->name, valueptr.get() };
-    if( !PyObject_Vectorcall( member->setattr_context, args, 3, 0 ) )
+    cppy::ptr ok( PyObject_Vectorcall( member->setattr_context, args, 3, 0 ) );
+    if( !ok )
         return -1;
     return 0;
 }
@@ -322,7 +324,8 @@ object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
     cppy::ptr valueptr( member->full_validate( atom, Py_None, value ) );
     if( !valueptr )
         return -1;
-    if( !PyObject_CallMethodOneArg( pyobject_cast( atom ), member->setattr_context, valueptr.get() ) )
+    cppy::ptr ok( PyObject_CallMethodOneArg( pyobject_cast( atom ), member->setattr_context, valueptr.get() ) );
+    if ( !ok )
         return -1;
     return 0;
 }
@@ -335,7 +338,8 @@ object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
     if( !valueptr )
         return -1;
     PyObject* args[] = { pyobject_cast( atom ), member->name, valueptr.get() };
-    if( !PyObject_VectorcallMethod( member->setattr_context, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 ) )
+    cppy::ptr ok( PyObject_VectorcallMethod( member->setattr_context, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 ) );
+    if( !ok )
         return -1;
     return 0;
 }
@@ -348,7 +352,8 @@ member_method_object_value_handler( Member* member, CAtom* atom, PyObject* value
     if( !valueptr )
         return -1;
     PyObject* args[] = { pyobject_cast( member ), pyobject_cast( atom ), valueptr.get() };
-    if( !PyObject_VectorcallMethod( member->setattr_context, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 ) )
+    cppy::ptr ok( PyObject_VectorcallMethod( member->setattr_context, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 ) );
+    if( !ok )
         return -1;
     return 0;
 }
