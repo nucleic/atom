@@ -63,44 +63,23 @@ delegate_handler( Member* member, CAtom* atom, PyObject* value )
 PyObject*
 object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_getattr_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 1 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( value ) );
-    return callable.call( args );
+    return PyObject_CallMethodOneArg( pyobject_cast( atom ), member->post_getattr_context, value );
 }
 
 
 PyObject*
 object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_getattr_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 2 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( member->name ) );
-    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( value ) );
-    return callable.call( args );
+    PyObject* args[] = { pyobject_cast( atom ), member->name, value };
+    return PyObject_VectorcallMethod( member->post_getattr_context, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 );
 }
 
 
 PyObject*
 member_method_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->post_getattr_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 2 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( value ) );
-    return callable.call( args );
+    PyObject* args[] = { pyobject_cast( member ), pyobject_cast( atom ), value };
+    return PyObject_VectorcallMethod( member->post_getattr_context, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 );
 }
 
 
