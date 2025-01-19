@@ -912,13 +912,8 @@ coerced_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newv
         return cppy::incref( newvalue );
     if( res == -1 )
         return 0;
-    cppy::ptr argsptr( PyTuple_New( 1 ) );
-    if( !argsptr )
-        return 0;
-    PyTuple_SET_ITEM(argsptr.get(), 0, cppy::incref( newvalue ) );
     PyObject* coercer = PyTuple_GET_ITEM( member->validate_context, 1 );
-    cppy::ptr callable( cppy::incref( coercer ) );
-    cppy::ptr coerced( callable.call( argsptr ) );
+    cppy::ptr coerced( PyObject_CallOneArg( coercer, newvalue ) );
     if( !coerced )
         return 0;
     res = PyObject_IsInstance( coerced.get(), type );
@@ -942,15 +937,8 @@ PyObject*
 object_method_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->validate_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 2 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM(args.get(), 0, cppy::incref( oldvalue ) );
-    PyTuple_SET_ITEM(args.get(), 1, cppy::incref( newvalue ) );
-    return callable.call( args );
+    PyObject* args[] = { pyobject_cast( atom ), oldvalue, newvalue };
+    return PyObject_VectorcallMethod( member->validate_context, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 );
 }
 
 
@@ -958,16 +946,8 @@ PyObject*
 object_method_name_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->validate_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 3 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM(args.get(), 0, cppy::incref( member->name ) );
-    PyTuple_SET_ITEM(args.get(), 1, cppy::incref( oldvalue ) );
-    PyTuple_SET_ITEM(args.get(), 2, cppy::incref( newvalue ) );
-    return callable.call( args );
+    PyObject* args[] = { pyobject_cast( atom ), member->name, oldvalue, newvalue };
+    return PyObject_VectorcallMethod( member->validate_context, args, 4 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 );
 }
 
 
@@ -975,16 +955,8 @@ PyObject*
 member_method_object_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->validate_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 3 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM(args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-    PyTuple_SET_ITEM(args.get(), 1, cppy::incref( oldvalue ) );
-    PyTuple_SET_ITEM(args.get(), 2, cppy::incref( newvalue ) );
-    return callable.call( args );
+    PyObject* args[] = { pyobject_cast( member ), pyobject_cast( atom ), oldvalue, newvalue };
+    return PyObject_VectorcallMethod( member->validate_context, args, 4 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 );
 }
 
 
