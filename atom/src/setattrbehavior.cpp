@@ -268,18 +268,7 @@ _mangled_property_handler( Member* member, CAtom* atom, PyObject* value )
     cppy::ptr name( PyUnicode_FromFormat( "_set_%s", suffix ) );
     if( !name )
         return -1;
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), name.get() ) );
-    if( !callable )
-    {
-        if( PyErr_ExceptionMatches( PyExc_AttributeError ) )
-            PyErr_SetString( PyExc_AttributeError, "can't set attribute" );
-        return -1;
-    }
-    cppy::ptr argsptr( PyTuple_New( 1 ) );
-    if( !argsptr )
-        return -1;
-    PyTuple_SET_ITEM( argsptr.get(), 0, cppy::incref( value ) );
-    cppy::ptr ok( PyObject_Call( callable.get(), argsptr.get(), 0 ) );
+    cppy::ptr ok( PyObject_CallMethodOneArg( pyobject_cast( atom ), name.get(), value ) );
     if( !ok )
         return -1;
     return 0;
@@ -291,12 +280,8 @@ property_handler( Member* member, CAtom* atom, PyObject* value )
 {
     if( member->setattr_context != Py_None )
     {
-        cppy::ptr argsptr( PyTuple_New( 2 ) );
-        if( !argsptr )
-            return -1;
-        PyTuple_SET_ITEM( argsptr.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-        PyTuple_SET_ITEM( argsptr.get(), 1, cppy::incref( pyobject_cast( value ) ) );
-        cppy::ptr ok( PyObject_Call( member->setattr_context, argsptr.get(), 0 ) );
+        PyObject* args[] = { pyobject_cast( atom ), value };
+        cppy::ptr ok( PyObject_Vectorcall( member->setattr_context, args, 2, 0 ) );
         if( !ok )
             return -1;
         return 0;
@@ -308,17 +293,12 @@ property_handler( Member* member, CAtom* atom, PyObject* value )
 int
 call_object_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    cppy::ptr valueptr( cppy::incref( value ) );
-    valueptr = member->full_validate( atom, Py_None, valueptr.get() );
+    cppy::ptr valueptr( member->full_validate( atom, Py_None, value ) );
     if( !valueptr )
         return -1;
-    cppy::ptr callable( cppy::incref( member->setattr_context ) );
-    cppy::ptr argsptr( PyTuple_New( 2 ) );
-    if( !argsptr )
-        return -1;
-    PyTuple_SET_ITEM( argsptr.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-    PyTuple_SET_ITEM( argsptr.get(), 1, valueptr.release() );
-    if( !callable.call( argsptr ) )
+    PyObject* args[] = { pyobject_cast( atom ), valueptr.get() };
+    cppy::ptr ok( PyObject_Vectorcall( member->setattr_context, args, 2, 0 ) );
+    if( !ok )
         return -1;
     return 0;
 }
@@ -327,18 +307,12 @@ call_object_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 int
 call_object_object_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    cppy::ptr valueptr( cppy::incref( value ) );
-    valueptr = member->full_validate( atom, Py_None, valueptr.get() );
+    cppy::ptr valueptr( member->full_validate( atom, Py_None, value ) );
     if( !valueptr )
         return -1;
-    cppy::ptr callable( cppy::incref( member->setattr_context ) );
-    cppy::ptr argsptr( PyTuple_New( 3 ) );
-    if( !argsptr )
-        return -1;
-    PyTuple_SET_ITEM( argsptr.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-    PyTuple_SET_ITEM( argsptr.get(), 1, cppy::incref( member->name ) );
-    PyTuple_SET_ITEM( argsptr.get(), 2, valueptr.release() );
-    if( !callable.call( argsptr ) )
+    PyObject* args[] = { pyobject_cast( atom ), member->name, valueptr.get() };
+    cppy::ptr ok( PyObject_Vectorcall( member->setattr_context, args, 3, 0 ) );
+    if( !ok )
         return -1;
     return 0;
 }
@@ -347,18 +321,11 @@ call_object_object_name_value_handler( Member* member, CAtom* atom, PyObject* va
 int
 object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    cppy::ptr valueptr( cppy::incref( value ) );
-    valueptr = member->full_validate( atom, Py_None, valueptr.get() );
+    cppy::ptr valueptr( member->full_validate( atom, Py_None, value ) );
     if( !valueptr )
         return -1;
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->setattr_context ) );
-    if( !callable )
-        return -1;
-    cppy::ptr argsptr( PyTuple_New( 1 ) );
-    if( !argsptr )
-        return -1;
-    PyTuple_SET_ITEM( argsptr.get(), 0, valueptr.release() );
-    if( !callable.call( argsptr ) )
+    cppy::ptr ok( PyObject_CallMethodOneArg( pyobject_cast( atom ), member->setattr_context, valueptr.get() ) );
+    if ( !ok )
         return -1;
     return 0;
 }
@@ -367,19 +334,12 @@ object_method_value_handler( Member* member, CAtom* atom, PyObject* value )
 int
 object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    cppy::ptr valueptr( cppy::incref( value ) );
-    valueptr = member->full_validate( atom, Py_None, valueptr.get() );
+    cppy::ptr valueptr( member->full_validate( atom, Py_None, value ) );
     if( !valueptr )
         return -1;
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->setattr_context ) );
-    if( !callable )
-        return -1;
-    cppy::ptr argsptr( PyTuple_New( 2 ) );
-    if( !argsptr )
-        return -1;
-    PyTuple_SET_ITEM( argsptr.get(), 0, cppy::incref( member->name ) );
-    PyTuple_SET_ITEM( argsptr.get(), 1, valueptr.release() );
-    if( !callable.call( argsptr ) )
+    PyObject* args[] = { pyobject_cast( atom ), member->name, valueptr.get() };
+    cppy::ptr ok( PyObject_VectorcallMethod( member->setattr_context, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 ) );
+    if( !ok )
         return -1;
     return 0;
 }
@@ -388,19 +348,12 @@ object_method_name_value_handler( Member* member, CAtom* atom, PyObject* value )
 int
 member_method_object_value_handler( Member* member, CAtom* atom, PyObject* value )
 {
-    cppy::ptr valueptr( cppy::incref( value ) );
-    valueptr = member->full_validate( atom, Py_None, valueptr.get() );
+    cppy::ptr valueptr( member->full_validate( atom, Py_None, value ) );
     if( !valueptr )
         return -1;
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->setattr_context ) );
-    if( !callable )
-        return -1;
-    cppy::ptr argsptr( PyTuple_New( 2 ) );
-    if( !argsptr )
-        return -1;
-    PyTuple_SET_ITEM( argsptr.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-    PyTuple_SET_ITEM( argsptr.get(), 1, valueptr.release() );
-    if( !callable.call( argsptr ) )
+    PyObject* args[] = { pyobject_cast( member ), pyobject_cast( atom ), valueptr.get() };
+    cppy::ptr ok( PyObject_VectorcallMethod( member->setattr_context, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 ) );
+    if( !ok )
         return -1;
     return 0;
 }
