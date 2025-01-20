@@ -5,8 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
-import sys
 from itertools import chain
+from types import GenericAlias, UnionType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -22,25 +22,9 @@ from typing import (
     get_origin,
 )
 
-# In Python 3.9+, List is a _SpecialGenericAlias and does not inherit from
-# _GenericAlias which is the type of List[int] for example
-if sys.version_info >= (3, 9):
-    from types import GenericAlias
+GENERICS = (type(List), type(List[int]), GenericAlias)
 
-    GENERICS = (type(List), type(List[int]), GenericAlias)
-else:
-    GENERICS = (type(List), type(List[int]))
-
-if sys.version_info >= (3, 10):
-    from types import UnionType
-
-    UNION = (UnionType,)
-else:
-    UNION = ()
-
-# Type checker consider that typing.List and typing.List[int] are types even though
-# there are not at runtime.
-from types import GenericAlias, UnionType
+UNION = (UnionType,)
 
 TypeLike = Union[type, TypeVar, UnionType, GenericAlias, NewType]
 
@@ -134,7 +118,14 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
         elif t is Any:
             extracted.append(object)
         else:
-            assert isinstance(t, type)
+            if not isinstance(t, type):
+                raise TypeError(
+                    f"Failed to extract types from {kind}. "
+                    f"The extraction yielded {t} which is not a type. "
+                    "One case in which this can occur is when using unions of "
+                    "Literal, and the issues can be worked around by using a "
+                    "single literal containing all the values."
+                )
             extracted.append(t)
 
     return tuple(extracted)

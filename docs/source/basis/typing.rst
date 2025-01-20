@@ -68,12 +68,8 @@ a runtime ``TypeError`` exception.
         class MyAtom(Atom):
             s = Str("Hello")
             lst = List(Int(), default=[1, 2, 3])
-            num = Instance(float)
+            num = Typed(float)
             n = Int()
-
-    One can note that when inferring members from annotations, |Instance| will
-    always be preferred over |Typed| since the object to check may define a
-    custom instance check.
 
 .. note::
 
@@ -100,4 +96,9 @@ a runtime ``TypeError`` exception.
             s = Str("Hello")
             lst = List(default=[1, 2, 3])
 
+.. versionadded:: 0.12.0
 
+    ``Literal`` are now supported and represented using the |Enum| member.
+    However ``Literal`` cannot appear in union since it is not a "real" type. If
+    your union is only composed of ``Literal``, you can use a single ``Literal``
+    in an equivalent manner.

@@ -7,10 +7,11 @@
 # --------------------------------------------------------------------------------------
 import collections.abc
 from collections import defaultdict
-from typing import Any, ClassVar, MutableMapping, Type
+from typing import Any, ClassVar, Literal, MutableMapping, Type
 
 from ..catom import Member
 from ..dict import DefaultDict, Dict as ADict
+from ..enum import Enum
 from ..instance import Instance
 from ..list import List as AList
 from ..scalars import Bool, Bytes, Callable as ACallable, Float, Int, Str, Value
@@ -18,7 +19,7 @@ from ..set import Set as ASet
 from ..subclass import Subclass
 from ..tuple import FixedTuple, Tuple as ATuple
 from ..typed import Typed
-from ..typing_utils import extract_types, get_args, is_optional
+from ..typing_utils import extract_types, get_args, get_origin, is_optional
 from .member_modifiers import set_default
 
 _NO_DEFAULT = object()
@@ -42,7 +43,12 @@ def generate_member_from_type_or_generic(
     type_generic: Any, default: Any, annotate_type_containers: int
 ) -> Member:
     """Generate a member from a type or generic alias."""
-    types = extract_types(type_generic)
+    # Here we special case Literal to generate an Enum member.
+    types: tuple[type, ...]
+    if get_origin(type_generic) is Literal:
+        types = ()
+    else:
+        types = extract_types(type_generic)
     parameters = get_args(type_generic)
 
     m_kwargs = {}
@@ -58,6 +64,19 @@ def generate_member_from_type_or_generic(
     elif object in types or Any in types:
         m_cls = Value
         parameters = ()
+    # We are dealing with a Literal, so use an Enum member
+    elif not types:
+        m_cls = Enum
+        if default is not _NO_DEFAULT:
+            if default not in parameters:
+                raise ValueError(
+                    f"Default value {default} does not appear in Literal: {parameters}"
+                )
+            # Make the default value the first in the enum arguments.
+            p = list(parameters)
+            p.pop(p.index(default))
+            parameters = (default, *p)
+            default = _NO_DEFAULT
     # Int, Float, Str, Bytes, List, Dict, Set, Tuple, Bool, Callable
     elif len(types) == 1 and types[0] in _TYPE_TO_MEMBER:
         t = types[0]

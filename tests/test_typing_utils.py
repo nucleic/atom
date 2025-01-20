@@ -8,7 +8,7 @@
 """Test typing utilities."""
 
 from collections.abc import Iterable
-from typing import Dict, List, NewType, Optional, Set, Tuple, TypeVar, Union
+from typing import Dict, List, Literal, NewType, Optional, Set, Tuple, TypeVar, Union
 
 import pytest
 
@@ -74,3 +74,8 @@ def test_is_optional(ty, outputs):
 def test_reject_str_annotations():
     with pytest.raises(TypeError):
         extract_types("int")
+
+
+def test_reject_literal():
+    with pytest.raises(TypeError):
+        extract_types(Literal[1])
