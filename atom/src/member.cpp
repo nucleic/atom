@@ -454,18 +454,18 @@ Member_set_index( Member* self, PyObject* value )
 }
 
 
-// Returns borrowed reference to context or null
-template<typename T> PyObject*
-parse_mode_and_context( PyObject*const *args, Py_ssize_t n, T& mode )
+template<typename T> bool
+parse_mode_and_context( PyObject*const *args, Py_ssize_t n, PyObject** context, T& mode )
 {
 
     if( n != 2 )
-        return 0;
+        return false;
     if( !EnumTypes::from_py_enum( args[0], mode ) )
-        return 0;
-    if( !Member::check_context( mode, args[1] ) )
-        return 0;
-    return args[1];
+        return false;
+    *context = args[1];
+    if( !Member::check_context( mode, *context ) )
+        return false;
+    return true;
 }
 
 
@@ -489,8 +489,8 @@ PyObject*
 Member_set_getattr_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     GetAttr::Mode mode;
-    PyObject* context = parse_mode_and_context( args, n, mode );
-    if( !context )
+    PyObject* context;
+    if( !parse_mode_and_context( args, n, &context, mode ) )
         return 0;
     self->set_getattr_mode( mode );
     cppy::replace( &self->getattr_context, context );
@@ -518,8 +518,8 @@ PyObject*
 Member_set_setattr_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     SetAttr::Mode mode;
-    PyObject* context = parse_mode_and_context( args, n, mode );
-    if( !context )
+    PyObject* context;
+    if( !parse_mode_and_context( args, n, &context, mode ) )
         return 0;
     self->set_setattr_mode( mode );
     cppy::replace( &self->setattr_context, context );
@@ -547,8 +547,8 @@ PyObject*
 Member_set_delattr_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     DelAttr::Mode mode;
-    PyObject* context = parse_mode_and_context( args, n, mode );
-    if( !context )
+    PyObject* context;
+    if( !parse_mode_and_context( args, n, &context, mode ) )
         return 0;
     self->set_delattr_mode( mode );
     cppy::replace( &self->delattr_context, context );
@@ -576,8 +576,8 @@ PyObject*
 Member_set_post_getattr_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     PostGetAttr::Mode mode;
-    PyObject* context = parse_mode_and_context( args, n, mode );
-    if( !context )
+    PyObject* context;
+    if( !parse_mode_and_context( args, n, &context, mode ) )
         return 0;
     self->set_post_getattr_mode( mode );
     cppy::replace(&self->post_getattr_context, context);
@@ -605,8 +605,8 @@ PyObject*
 Member_set_post_setattr_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     PostSetAttr::Mode mode;
-    PyObject* context = parse_mode_and_context( args, n, mode );
-    if( !context )
+    PyObject* context;
+    if( !parse_mode_and_context( args, n, &context, mode ) )
         return 0;
     self->set_post_setattr_mode( mode );
     cppy::replace( &self->post_setattr_context, context );
@@ -634,8 +634,8 @@ PyObject*
 Member_set_default_value_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     DefaultValue::Mode mode;
-    PyObject* context = parse_mode_and_context( args, n, mode );
-    if( !context )
+    PyObject* context;
+    if( !parse_mode_and_context( args, n, &context, mode ) )
         return 0;
     self->set_default_value_mode( mode );
     cppy::replace( &self->default_value_context, context );
@@ -663,8 +663,8 @@ PyObject*
 Member_set_validate_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     Validate::Mode mode;
-    PyObject* context = parse_mode_and_context( args, n, mode );
-    if( !context )
+    PyObject* context;
+    if( !parse_mode_and_context( args, n, &context, mode ) )
         return 0;
     self->set_validate_mode( mode );
     cppy::replace( &self->validate_context, context );
@@ -692,8 +692,8 @@ PyObject*
 Member_set_post_validate_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     PostValidate::Mode mode;
-    PyObject* context = parse_mode_and_context( args, n, mode );
-    if( !context )
+    PyObject* context;
+    if( !parse_mode_and_context( args, n, &context, mode ) )
         return 0;
     self->set_post_validate_mode( mode );
     cppy::replace( &self->post_validate_context, context );
@@ -721,8 +721,8 @@ PyObject*
 Member_set_getstate_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     GetState::Mode mode;
-    PyObject* context = parse_mode_and_context( args, n, mode );
-    if( !context )
+    PyObject* context;
+    if( !parse_mode_and_context( args, n, &context, mode ) )
         return 0;
     self->set_getstate_mode( mode );
     cppy::replace( &self->getstate_context, context );
