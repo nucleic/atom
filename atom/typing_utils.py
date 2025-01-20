@@ -12,6 +12,7 @@ from typing import (
     Any,
     List,
     Literal,
+    NewType,
     Sequence,
     Tuple,
     TypedDict,
@@ -41,7 +42,7 @@ else:
 # there are not at runtime.
 from types import GenericAlias, UnionType
 
-TypeLike = Union[type, TypeVar, UnionType, GenericAlias]
+TypeLike = Union[type, TypeVar, UnionType, GenericAlias, NewType]
 
 if TYPE_CHECKING:
     from .atom import Atom
@@ -126,7 +127,10 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
 
             if t.__contravariant__:
                 raise ValueError("TypeVar used in Atom object cannot be contravariant")
-
+        # NewType only exists for the sake of type checkers so we fall back to
+        # the supertype for runtime checks.
+        elif isinstance(t, NewType):
+            extracted.extend(_extract_types(t.__supertype__))
         elif t is Any:
             extracted.append(object)
         else:
