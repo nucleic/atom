@@ -133,6 +133,10 @@ class FloatRange(Value):
         if strict:
             self.set_validate_mode(Validate.FloatRange, (low, high))
         else:
+            if low is not None:
+                low = float(low)
+            if high is not None:
+                high = float(high)
             self.set_validate_mode(Validate.FloatRangePromote, (low, high))
 
 

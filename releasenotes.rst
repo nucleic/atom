@@ -1,6 +1,11 @@
 Atom Release Notes
 ==================
 
+0.12.0 - unreleased
+-------------------
+
+- support for NewType instances in all places in which a type is accepted PR #218
+
 0.11.0 - 27/10/2024
 -------------------
 

@@ -143,77 +143,43 @@ non_optional_handler( Member* member, CAtom* atom )
 PyObject*
 call_object_handler( Member* member, CAtom* atom )
 {
-    cppy::ptr callable( cppy::incref( member->default_value_context ) );
-    cppy::ptr args( PyTuple_New( 0 ) );
-    if( !args )
-        return 0;
-    return callable.call( args );
+    return PyObject_CallNoArgs( member->default_value_context );
 }
 
 
 PyObject*
 call_object_object_handler( Member* member, CAtom* atom )
 {
-    cppy::ptr callable( cppy::incref( member->default_value_context ) );
-    cppy::ptr args( PyTuple_New( 1 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-    return callable.call( args );
+    return PyObject_CallOneArg( member->default_value_context, pyobject_cast( atom ) );
 }
 
 
 PyObject*
 call_object_object_name_handler( Member* member, CAtom* atom )
 {
-    cppy::ptr callable( cppy::incref( member->default_value_context ) );
-    cppy::ptr args( PyTuple_New( 2 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( member->name ) );
-    return callable.call( args );
+    PyObject* args[] = { pyobject_cast( atom ), member->name };
+    return PyObject_Vectorcall( member->default_value_context, args, 2, 0 );
 }
 
 
 PyObject*
 object_method_handler( Member* member, CAtom* atom )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->default_value_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 0 ) );
-    if( !args )
-        return 0;
-    return callable.call( args );
+    return PyObject_CallMethodNoArgs( pyobject_cast( atom ), member->default_value_context );
 }
 
 
 PyObject*
 object_method_name_handler( Member* member, CAtom* atom )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->default_value_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 1 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( member->name ) );
-    return callable.call( args );
+    return PyObject_CallMethodOneArg( pyobject_cast( atom ), member->default_value_context, member->name );
 }
 
 
 PyObject*
 member_method_object_handler( Member* member, CAtom* atom )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->default_value_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 1 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-    return callable.call( args );
+    return PyObject_CallMethodOneArg( pyobject_cast( member ), member->default_value_context, pyobject_cast( atom ) );
 }
 
 
