@@ -105,14 +105,13 @@ Member_dealloc( Member* self )
 
 
 PyObject*
-Member_has_observers( Member* self, PyObject* args )
+Member_has_observers( Member* self, PyObject*const *args, Py_ssize_t n )
 {
-    const size_t n = PyTuple_GET_SIZE( args );
     if( n == 0 )
         return utils::py_bool( self->has_observers() );
     if( n > 1 )
         return cppy::type_error( "has_observers() takes at most 1 argument" );
-    PyObject* types = PyTuple_GET_ITEM( args, 0 );
+    PyObject* types = args[0];
     if( !PyLong_Check( types ) )
         return cppy::type_error( types, "int" );
     uint8_t change_types = PyLong_AsLong( types );
@@ -121,19 +120,18 @@ Member_has_observers( Member* self, PyObject* args )
 
 
 PyObject*
-Member_has_observer( Member* self, PyObject* args )
+Member_has_observer( Member* self, PyObject*const *args, Py_ssize_t n )
 {
-    const size_t n = PyTuple_GET_SIZE( args );
     if( n < 1 || n > 2 )
         return cppy::type_error( "has_observer() expects a callable and an optional change type" );
-    PyObject* observer = PyTuple_GET_ITEM( args, 0 );
+    PyObject* observer = args[0];
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return cppy::type_error( observer, "str or callable" );
 
     uint8_t change_types = ChangeType::Any;
     if ( n == 2 )
     {
-        PyObject* types = PyTuple_GET_ITEM( args, 1 );
+        PyObject* types = args[1];
         if( !PyLong_Check( types ) )
             return cppy::type_error( types, "int" );
         change_types = PyLong_AsLong( types ) & 0xFF;
@@ -182,20 +180,19 @@ Member_static_observers( Member* self )
 
 
 PyObject*
-Member_add_static_observer( Member* self, PyObject* args)
+Member_add_static_observer( Member* self, PyObject*const *args, Py_ssize_t n)
 {
-    const size_t n = PyTuple_GET_SIZE( args );
     if( n < 1 )
         return cppy::type_error( "add_static_observer() requires at least 1 argument" );
     if( n > 2 )
         return cppy::type_error( "add_static_observer() takes at most 2 arugments" );
-    PyObject* observer = PyTuple_GET_ITEM( args, 0 );
+    PyObject* observer = args[0];
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return cppy::type_error( observer, "str or callable" );
     uint8_t change_types = ChangeType::Any;
     if(n == 2)
     {
-        PyObject* types = PyTuple_GET_ITEM( args, 1 );
+        PyObject* types = args[1];
         if( !PyLong_Check( types ) )
             return cppy::type_error( types, "int" );
         change_types = PyLong_AsLong( types ) & 0xFF ;
@@ -231,12 +228,12 @@ Member_get_slot( Member* self, PyObject* object )
 
 
 PyObject*
-Member_set_slot( Member* self, PyObject* args )
+Member_set_slot( Member* self, PyObject*const *args, Py_ssize_t n )
 {
-    if( PyTuple_GET_SIZE( args ) != 2 )
+    if( n != 2 )
         return cppy::type_error( "set_slot() takes exactly 2 arguments" );
-    PyObject* object = PyTuple_GET_ITEM( args, 0 );
-    PyObject* value = PyTuple_GET_ITEM( args, 1 );
+    PyObject* object = args[0];
+    PyObject* value = args[1];
     if( !CAtom::TypeCheck( object ) )
         return cppy::type_error( object, "CAtom" );
     CAtom* atom = catom_cast( object );
@@ -270,12 +267,12 @@ Member_do_getattr( Member* self, PyObject* object )
 
 
 PyObject*
-Member_do_setattr( Member* self, PyObject* args )
+Member_do_setattr( Member* self, PyObject*const *args, Py_ssize_t n )
 {
-    if( PyTuple_GET_SIZE( args ) != 2 )
+    if( n != 2 )
         return cppy::type_error( "do_setattr() takes exactly 2 arguments" );
-    PyObject* object = PyTuple_GET_ITEM( args, 0 );
-    PyObject* value = PyTuple_GET_ITEM( args, 1 );
+    PyObject* object = args[0];
+    PyObject* value = args[1];
     if( !CAtom::TypeCheck( object ) )
         return cppy::type_error( object, "CAtom" );
     if( self->setattr( catom_cast( object ), value ) < 0 )
@@ -296,12 +293,12 @@ Member_do_delattr( Member* self, PyObject* object )
 
 
 PyObject*
-Member_do_post_getattr( Member* self, PyObject* args )
+Member_do_post_getattr( Member* self, PyObject*const *args, Py_ssize_t n )
 {
-    if( PyTuple_GET_SIZE( args ) != 2 )
+    if( n != 2 )
         return cppy::type_error( "do_post_getattr() takes exactly 2 arguments" );
-    PyObject* object = PyTuple_GET_ITEM( args, 0 );
-    PyObject* value = PyTuple_GET_ITEM( args, 1 );
+    PyObject* object = args[0];
+    PyObject* value = args[1];
     if( !CAtom::TypeCheck( object ) )
         return cppy::type_error( object, "CAtom" );
     return self->post_getattr( catom_cast( object ), value );
@@ -309,13 +306,13 @@ Member_do_post_getattr( Member* self, PyObject* args )
 
 
 PyObject*
-Member_do_post_setattr( Member* self, PyObject* args )
+Member_do_post_setattr( Member* self, PyObject*const *args, Py_ssize_t n )
 {
-    if( PyTuple_GET_SIZE( args ) != 3 )
+    if( n != 3 )
         return cppy::type_error( "do_post_setattr() takes exactly 3 arguments" );
-    PyObject* object = PyTuple_GET_ITEM( args, 0 );
-    PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
-    PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
+    PyObject* object = args[0];
+    PyObject* oldvalue = args[1];
+    PyObject* newvalue = args[2];
     if( !CAtom::TypeCheck( object ) )
         return cppy::type_error( object, "CAtom" );
     if( self->post_setattr( catom_cast( object ), oldvalue, newvalue ) < 0 )
@@ -334,13 +331,13 @@ Member_do_default_value( Member* self, PyObject* object )
 
 
 PyObject*
-Member_do_validate( Member* self, PyObject* args )
+Member_do_validate( Member* self, PyObject*const *args, Py_ssize_t n )
 {
-    if( PyTuple_GET_SIZE( args ) != 3 )
+    if( n != 3 )
         return cppy::type_error( "do_validate() takes exactly 3 arguments" );
-    PyObject* object = PyTuple_GET_ITEM( args, 0 );
-    PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
-    PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
+    PyObject* object = args[0];
+    PyObject* oldvalue = args[1];
+    PyObject* newvalue = args[2];
     if( !CAtom::TypeCheck( object ) )
         return cppy::type_error( object, "CAtom" );
     return self->validate( catom_cast( object ), oldvalue, newvalue );
@@ -348,13 +345,13 @@ Member_do_validate( Member* self, PyObject* args )
 
 
 PyObject*
-Member_do_post_validate( Member* self, PyObject* args )
+Member_do_post_validate( Member* self, PyObject*const *args, Py_ssize_t n )
 {
-    if( PyTuple_GET_SIZE( args ) != 3 )
+    if( n != 3 )
         return cppy::type_error( "do_post_validate() takes exactly 3 arguments" );
-    PyObject* object = PyTuple_GET_ITEM( args, 0 );
-    PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
-    PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
+    PyObject* object = args[0];
+    PyObject* oldvalue = args[1];
+    PyObject* newvalue = args[2];
     if( !CAtom::TypeCheck( object ) )
         return cppy::type_error( object, "CAtom" );
     return self->post_validate( catom_cast( object ), oldvalue, newvalue );
@@ -362,13 +359,13 @@ Member_do_post_validate( Member* self, PyObject* args )
 
 
 PyObject*
-Member_do_full_validate( Member* self, PyObject* args )
+Member_do_full_validate( Member* self, PyObject*const *args, Py_ssize_t n )
 {
-    if( PyTuple_GET_SIZE( args ) != 3 )
+    if( n != 3 )
         return cppy::type_error( "do_full_validate() takes exactly 3 arguments" );
-    PyObject* object = PyTuple_GET_ITEM( args, 0 );
-    PyObject* oldvalue = PyTuple_GET_ITEM( args, 1 );
-    PyObject* newvalue = PyTuple_GET_ITEM( args, 2 );
+    PyObject* object = args[0];
+    PyObject* oldvalue = args[1];
+    PyObject* newvalue = args[2];
     if( !CAtom::TypeCheck( object ) )
         return cppy::type_error( object, "CAtom" );
     return self->full_validate( catom_cast( object ), oldvalue, newvalue );
@@ -457,17 +454,18 @@ Member_set_index( Member* self, PyObject* value )
 }
 
 
-template<typename T> bool
-parse_mode_and_context( PyObject* args, PyObject** context, T& mode )
+// Returns borrowed reference to context or null
+template<typename T> PyObject*
+parse_mode_and_context( PyObject*const *args, Py_ssize_t n, T& mode )
 {
-    PyObject* pymode;
-    if( !PyArg_ParseTuple( args, "OO", &pymode, context ) )
-        return false;
-    if( !EnumTypes::from_py_enum( pymode, mode ) )
-        return false;
-    if( !Member::check_context( mode, *context ) )
-        return false;
-    return true;
+
+    if( n != 2 )
+        return 0;
+    if( !EnumTypes::from_py_enum( args[0], mode ) )
+        return 0;
+    if( !Member::check_context( mode, args[1] ) )
+        return 0;
+    return args[1];
 }
 
 
@@ -488,17 +486,14 @@ Member_get_getattr_mode( Member* self, void* ctxt )
 
 
 PyObject*
-Member_set_getattr_mode( Member* self, PyObject* args )
+Member_set_getattr_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     GetAttr::Mode mode;
-    PyObject* context;
-    if( !parse_mode_and_context( args, &context, mode ) )
+    PyObject* context = parse_mode_and_context( args, n, mode );
+    if( !context )
         return 0;
     self->set_getattr_mode( mode );
-    PyObject* old = self->getattr_context;
-    self->getattr_context = context;
-    cppy::incref( context );
-    cppy::xdecref( old );
+    cppy::replace( &self->getattr_context, context );
     Py_RETURN_NONE;
 }
 
@@ -520,17 +515,14 @@ Member_get_setattr_mode( Member* self, void* ctxt )
 
 
 PyObject*
-Member_set_setattr_mode( Member* self, PyObject* args )
+Member_set_setattr_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     SetAttr::Mode mode;
-    PyObject* context;
-    if( !parse_mode_and_context( args, &context, mode ) )
+    PyObject* context = parse_mode_and_context( args, n, mode );
+    if( !context )
         return 0;
     self->set_setattr_mode( mode );
-    PyObject* old = self->setattr_context;
-    self->setattr_context = context;
-    cppy::incref( context );
-    cppy::xdecref( old );
+    cppy::replace( &self->setattr_context, context );
     Py_RETURN_NONE;
 }
 
@@ -552,17 +544,14 @@ Member_get_delattr_mode( Member* self, void* ctxt )
 
 
 PyObject*
-Member_set_delattr_mode( Member* self, PyObject* args )
+Member_set_delattr_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     DelAttr::Mode mode;
-    PyObject* context;
-    if( !parse_mode_and_context( args, &context, mode ) )
+    PyObject* context = parse_mode_and_context( args, n, mode );
+    if( !context )
         return 0;
     self->set_delattr_mode( mode );
-    PyObject* old = self->delattr_context;
-    self->delattr_context = context;
-    cppy::incref( context );
-    cppy::xdecref( old );
+    cppy::replace( &self->delattr_context, context );
     Py_RETURN_NONE;
 }
 
@@ -584,17 +573,14 @@ Member_get_post_getattr_mode( Member* self, void* ctxt )
 
 
 PyObject*
-Member_set_post_getattr_mode( Member* self, PyObject* args )
+Member_set_post_getattr_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     PostGetAttr::Mode mode;
-    PyObject* context;
-    if( !parse_mode_and_context( args, &context, mode ) )
+    PyObject* context = parse_mode_and_context( args, n, mode );
+    if( !context )
         return 0;
     self->set_post_getattr_mode( mode );
-    PyObject* old = self->post_getattr_context;
-    self->post_getattr_context = context;
-    cppy::incref( context );
-    cppy::xdecref( old );
+    cppy::replace(&self->post_getattr_context, context);
     Py_RETURN_NONE;
 }
 
@@ -616,17 +602,14 @@ Member_get_post_setattr_mode( Member* self, void* ctxt )
 
 
 PyObject*
-Member_set_post_setattr_mode( Member* self, PyObject* args )
+Member_set_post_setattr_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     PostSetAttr::Mode mode;
-    PyObject* context;
-    if( !parse_mode_and_context( args, &context, mode ) )
+    PyObject* context = parse_mode_and_context( args, n, mode );
+    if( !context )
         return 0;
     self->set_post_setattr_mode( mode );
-    PyObject* old = self->post_setattr_context;
-    self->post_setattr_context = context;
-    cppy::incref( context );
-    cppy::xdecref( old );
+    cppy::replace( &self->post_setattr_context, context );
     Py_RETURN_NONE;
 }
 
@@ -648,17 +631,14 @@ Member_get_default_value_mode( Member* self, void* ctxt )
 
 
 PyObject*
-Member_set_default_value_mode( Member* self, PyObject* args )
+Member_set_default_value_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     DefaultValue::Mode mode;
-    PyObject* context;
-    if( !parse_mode_and_context( args, &context, mode ) )
+    PyObject* context = parse_mode_and_context( args, n, mode );
+    if( !context )
         return 0;
     self->set_default_value_mode( mode );
-    PyObject* old = self->default_value_context;
-    self->default_value_context = context;
-    cppy::incref( context );
-    cppy::xdecref( old );
+    cppy::replace( &self->default_value_context, context );
     Py_RETURN_NONE;
 }
 
@@ -680,17 +660,14 @@ Member_get_validate_mode( Member* self, void* ctxt )
 
 
 PyObject*
-Member_set_validate_mode( Member* self, PyObject* args )
+Member_set_validate_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     Validate::Mode mode;
-    PyObject* context;
-    if( !parse_mode_and_context( args, &context, mode ) )
+    PyObject* context = parse_mode_and_context( args, n, mode );
+    if( !context )
         return 0;
     self->set_validate_mode( mode );
-    PyObject* old = self->validate_context;
-    self->validate_context = context;
-    cppy::incref( context );
-    cppy::xdecref( old );
+    cppy::replace( &self->validate_context, context );
     Py_RETURN_NONE;
 }
 
@@ -712,17 +689,14 @@ Member_get_post_validate_mode( Member* self, void* ctxt )
 
 
 PyObject*
-Member_set_post_validate_mode( Member* self, PyObject* args )
+Member_set_post_validate_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     PostValidate::Mode mode;
-    PyObject* context;
-    if( !parse_mode_and_context( args, &context, mode ) )
+    PyObject* context = parse_mode_and_context( args, n, mode );
+    if( !context )
         return 0;
     self->set_post_validate_mode( mode );
-    PyObject* old = self->post_validate_context;
-    self->post_validate_context = context;
-    cppy::incref( context );
-    cppy::xdecref( old );
+    cppy::replace( &self->post_validate_context, context );
     Py_RETURN_NONE;
 }
 
@@ -744,17 +718,14 @@ Member_get_getstate_mode( Member* self, void* ctxt )
 
 
 PyObject*
-Member_set_getstate_mode( Member* self, PyObject* args )
+Member_set_getstate_mode( Member* self, PyObject*const *args, Py_ssize_t n )
 {
     GetState::Mode mode;
-    PyObject* context;
-    if( !parse_mode_and_context( args, &context, mode ) )
+    PyObject* context = parse_mode_and_context( args, n, mode );
+    if( !context )
         return 0;
     self->set_getstate_mode( mode );
-    PyObject* old = self->getstate_context;
-    self->getstate_context = context;
-    cppy::incref( context );
-    cppy::xdecref( old );
+    cppy::replace( &self->getstate_context, context );
     Py_RETURN_NONE;
 }
 
@@ -886,19 +857,19 @@ Member_methods[] = {
       "Set the index to which the member is bound. Use with extreme caution!" },
     { "get_slot", ( PyCFunction )Member_get_slot, METH_O,
       "Get the atom's slot value directly." },
-    { "set_slot", ( PyCFunction )Member_set_slot, METH_VARARGS,
+    { "set_slot", ( PyCFunction )Member_set_slot, METH_FASTCALL,
       "Set the atom's slot value directly." },
     { "del_slot", ( PyCFunction )Member_del_slot, METH_O,
       "Delete the atom's slot value directly." },
-    { "has_observers", ( PyCFunction )Member_has_observers, METH_VARARGS,
+    { "has_observers", ( PyCFunction )Member_has_observers, METH_FASTCALL,
       "Get whether or not this member has observers." },
-    { "has_observer", ( PyCFunction )Member_has_observer, METH_VARARGS,
+    { "has_observer", ( PyCFunction )Member_has_observer, METH_FASTCALL,
       "Get whether or not the member already has the given observer." },
     { "copy_static_observers", ( PyCFunction )Member_copy_static_observers, METH_O,
       "Copy the static observers from one member into this member." },
     { "static_observers", ( PyCFunction )Member_static_observers, METH_NOARGS,
       "Get a tuple of the static observers defined for this member" },
-    { "add_static_observer", ( PyCFunction )Member_add_static_observer, METH_VARARGS,
+    { "add_static_observer", ( PyCFunction )Member_add_static_observer, METH_FASTCALL,
       "Add the name of a method to call on all atoms when the member changes." },
     { "remove_static_observer", ( PyCFunction )Member_remove_static_observer, METH_O,
       "Remove the name of a method to call on all atoms when the member changes." },
@@ -906,41 +877,41 @@ Member_methods[] = {
       "Create a clone of this member." },
     { "do_getattr", ( PyCFunction )Member_do_getattr, METH_O,
       "Run the getattr handler for the member." },
-    { "do_setattr", ( PyCFunction )Member_do_setattr, METH_VARARGS,
+    { "do_setattr", ( PyCFunction )Member_do_setattr, METH_FASTCALL,
       "Run the setattr handler for the member." },
     { "do_delattr", ( PyCFunction )Member_do_delattr, METH_O,
       "Run the delattr handler for the member." },
     { "do_default_value", ( PyCFunction )Member_do_default_value, METH_O,
       "Run the default value handler for member." },
-    { "do_validate", ( PyCFunction )Member_do_validate, METH_VARARGS,
+    { "do_validate", ( PyCFunction )Member_do_validate, METH_FASTCALL,
       "Run the validation handler for the member." },
-    { "do_post_getattr", ( PyCFunction )Member_do_post_getattr, METH_VARARGS,
+    { "do_post_getattr", ( PyCFunction )Member_do_post_getattr, METH_FASTCALL,
       "Run the post getattr handler for the member." },
-    { "do_post_setattr", ( PyCFunction )Member_do_post_setattr, METH_VARARGS,
+    { "do_post_setattr", ( PyCFunction )Member_do_post_setattr, METH_FASTCALL,
       "Run the post setattr handler for the member." },
-    { "do_post_validate", ( PyCFunction )Member_do_post_validate, METH_VARARGS,
+    { "do_post_validate", ( PyCFunction )Member_do_post_validate, METH_FASTCALL,
       "Run the post validation handler for the member." },
-    { "do_full_validate", ( PyCFunction )Member_do_full_validate, METH_VARARGS,
+    { "do_full_validate", ( PyCFunction )Member_do_full_validate, METH_FASTCALL,
       "Run the validation and post validation handlers for the member." },
     { "do_should_getstate", ( PyCFunction )Member_do_should_getstate, METH_O,
       "Run the validation and post validation handlers for the member." },
-    { "set_getattr_mode", ( PyCFunction )Member_set_getattr_mode, METH_VARARGS,
+    { "set_getattr_mode", ( PyCFunction )Member_set_getattr_mode, METH_FASTCALL,
       "Set the getattr mode for the member." },
-    { "set_setattr_mode", ( PyCFunction )Member_set_setattr_mode, METH_VARARGS,
+    { "set_setattr_mode", ( PyCFunction )Member_set_setattr_mode, METH_FASTCALL,
       "Set the setattr mode for the member." },
-    { "set_delattr_mode", ( PyCFunction )Member_set_delattr_mode, METH_VARARGS,
+    { "set_delattr_mode", ( PyCFunction )Member_set_delattr_mode, METH_FASTCALL,
       "Set the delattr mode for the member." },
-    { "set_default_value_mode", ( PyCFunction )Member_set_default_value_mode, METH_VARARGS,
+    { "set_default_value_mode", ( PyCFunction )Member_set_default_value_mode, METH_FASTCALL,
       "Set the default value mode for the member." },
-    { "set_validate_mode", ( PyCFunction )Member_set_validate_mode, METH_VARARGS,
+    { "set_validate_mode", ( PyCFunction )Member_set_validate_mode, METH_FASTCALL,
       "Set the validate mode for the member." },
-    { "set_post_getattr_mode", ( PyCFunction )Member_set_post_getattr_mode, METH_VARARGS,
+    { "set_post_getattr_mode", ( PyCFunction )Member_set_post_getattr_mode, METH_FASTCALL,
       "Set the post getattr mode for the member." },
-    { "set_post_setattr_mode", ( PyCFunction )Member_set_post_setattr_mode, METH_VARARGS,
+    { "set_post_setattr_mode", ( PyCFunction )Member_set_post_setattr_mode, METH_FASTCALL,
       "Set the post setattr mode for the member." },
-    { "set_post_validate_mode", ( PyCFunction )Member_set_post_validate_mode, METH_VARARGS,
+    { "set_post_validate_mode", ( PyCFunction )Member_set_post_validate_mode, METH_FASTCALL,
       "Set the post validate mode for the member." },
-    { "set_getstate_mode", ( PyCFunction )Member_set_getstate_mode, METH_VARARGS,
+    { "set_getstate_mode", ( PyCFunction )Member_set_getstate_mode, METH_FASTCALL,
       "Set the getstate mode for the member." },
     { "notify", ( PyCFunction )Member_notify, METH_VARARGS | METH_KEYWORDS,
       "Notify the static observers for the given member and atom." },
