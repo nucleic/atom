@@ -189,19 +189,18 @@ CAtom_get_member( PyObject* self, PyObject* name )
 
 
 PyObject*
-CAtom_observe( CAtom* self, PyObject* args )
+CAtom_observe( CAtom* self, PyObject*const *args, Py_ssize_t n )
 {
-    const size_t n = PyTuple_GET_SIZE( args );
     if( n < 2 || n > 3)
         return cppy::type_error( "observe() takes exactly 2 or 3 arguments" );
-    PyObject* topic = PyTuple_GET_ITEM( args, 0 );
-    PyObject* callback = PyTuple_GET_ITEM( args, 1 );
+    PyObject* topic = args[0];
+    PyObject* callback = args[1];
     if( !PyCallable_Check( callback ) )
         return cppy::type_error( callback, "callable" );
     uint8_t change_types = ChangeType::Any;
     if ( n == 3 )
     {
-        PyObject* types = PyTuple_GET_ITEM( args, 2 );
+        PyObject* types = args[2];
         if( !PyLong_Check( types ) )
             return cppy::type_error( types, "int" );
         change_types = PyLong_AsLong( types ) & 0xFF;
@@ -300,17 +299,15 @@ _CAtom_unobserve_2( CAtom* self, PyObject* topic, PyObject* callback )
 
 
 PyObject*
-CAtom_unobserve( CAtom* self, PyObject* args )
+CAtom_unobserve( CAtom* self, PyObject*const *args, Py_ssize_t n_args )
 {
-    Py_ssize_t n_args = PyTuple_GET_SIZE( args );
-    if( n_args > 2 )
-        return cppy::type_error( "unobserve() takes at most 2 arguments" );
     if( n_args == 0 )
         return _CAtom_unobserve_0( self );
     if( n_args == 1 )
-        return _CAtom_unobserve_1( self, PyTuple_GET_ITEM( args, 0 ) );
-    return _CAtom_unobserve_2( self, PyTuple_GET_ITEM( args, 0 ),
-        PyTuple_GET_ITEM( args, 1 ) );
+        return _CAtom_unobserve_1( self, args[0] );
+    if ( n_args == 2)
+        return _CAtom_unobserve_2( self, args[0], args[1] );
+    return cppy::type_error( "unobserve() takes at most 2 arguments" );
 }
 
 
@@ -322,12 +319,12 @@ CAtom_has_observers( CAtom* self, PyObject* topic )
 
 
 PyObject*
-CAtom_has_observer( CAtom* self, PyObject* args )
+CAtom_has_observer( CAtom* self, PyObject*const *args, Py_ssize_t n )
 {
-    if( PyTuple_GET_SIZE( args ) != 2 )
+    if( n != 2 )
         return cppy::type_error( "has_observer() takes exactly 2 arguments" );
-    PyObject* topic = PyTuple_GET_ITEM( args, 0 );
-    PyObject* callback = PyTuple_GET_ITEM( args, 1 );
+    PyObject* topic = args[0];
+    PyObject* callback = args[1];
     if( !utils::str_check( topic ) )
         return cppy::type_error( topic, "str" );
     if( !PyCallable_Check( callback ) )
@@ -488,13 +485,13 @@ CAtom_methods[] = {
       "Enable or disable notifications for the atom." },
     { "get_member", ( PyCFunction )CAtom_get_member, METH_O,
       "Get the named member for the atom." },
-    { "observe", ( PyCFunction )CAtom_observe, METH_VARARGS,
+    { "observe", ( PyCFunction )CAtom_observe, METH_FASTCALL,
       "Register an observer callback to observe changes on the given topic(s)." },
-    { "unobserve", ( PyCFunction )CAtom_unobserve, METH_VARARGS,
+    { "unobserve", ( PyCFunction )CAtom_unobserve, METH_FASTCALL,
       "Unregister an observer callback for the given topic(s)." },
     { "has_observers", ( PyCFunction )CAtom_has_observers, METH_O,
       "Get whether the atom has observers for a given topic." },
-    { "has_observer", ( PyCFunction )CAtom_has_observer, METH_VARARGS,
+    { "has_observer", ( PyCFunction )CAtom_has_observer, METH_FASTCALL,
       "Get whether the atom has the given observer for a given topic." },
     { "notify", ( PyCFunction )CAtom_notify, METH_VARARGS | METH_KEYWORDS,
       "Call the registered observers for a given topic with positional and keyword arguments." },
