@@ -401,13 +401,12 @@ SortedMap_contains( SortedMap* self, PyObject* key )
 
 
 PyObject*
-SortedMap_get( SortedMap* self, PyObject* args )
+SortedMap_get( SortedMap* self, PyObject*const *args, Py_ssize_t nargs )
 {
-    Py_ssize_t nargs = PyTuple_GET_SIZE( args );
     if( nargs == 1 )
-        return self->getitem( PyTuple_GET_ITEM( args, 0 ), Py_None );
+        return self->getitem( args[0], Py_None );
     if( nargs == 2 )
-        return self->getitem( PyTuple_GET_ITEM( args, 0 ), PyTuple_GET_ITEM( args, 1 ) );
+        return self->getitem( args[0], args[1] );
     std::ostringstream ostr;
     if( nargs > 2 )
         ostr << "get() expected at most 2 arguments, got " << nargs;
@@ -418,13 +417,12 @@ SortedMap_get( SortedMap* self, PyObject* args )
 
 
 PyObject*
-SortedMap_pop( SortedMap* self, PyObject* args )
+SortedMap_pop( SortedMap* self, PyObject*const *args, Py_ssize_t nargs )
 {
-    Py_ssize_t nargs = PyTuple_GET_SIZE( args );
     if( nargs == 1 )
-        return self->pop( PyTuple_GET_ITEM( args, 0 ) );
+        return self->pop( args[0] );
     if( nargs == 2 )
-        return self->getitem( PyTuple_GET_ITEM( args, 0 ), PyTuple_GET_ITEM( args, 1 ) );
+        return self->getitem( args[0], args[1] );
     std::ostringstream ostr;
     if( nargs > 2 )
         ostr << "pop() expected at most 2 arguments, got " << nargs;
@@ -541,9 +539,9 @@ SortedMap_sizeof( SortedMap* self, PyObject* args )
 
 static PyMethodDef
 SortedMap_methods[] = {
-    { "get", ( PyCFunction )SortedMap_get, METH_VARARGS,
+    { "get", ( PyCFunction )SortedMap_get, METH_FASTCALL,
       "" },
-    { "pop", ( PyCFunction )SortedMap_pop, METH_VARARGS,
+    { "pop", ( PyCFunction )SortedMap_pop, METH_FASTCALL,
       "" },
     { "clear", ( PyCFunction)SortedMap_clearmethod, METH_NOARGS,
       "" },
