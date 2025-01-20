@@ -69,7 +69,9 @@ def generate_member_from_type_or_generic(
         m_cls = Enum
         if default is not _NO_DEFAULT:
             if default not in parameters:
-                raise ValueError("Default value does not appear in Literal")
+                raise ValueError(
+                    f"Default value {default} does not appear in Literal: {parameters}"
+                )
             # Make the default value the first in the enum arguments.
             p = list(parameters)
             p.pop(p.index(default))

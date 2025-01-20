@@ -328,3 +328,10 @@ def test_annotations_no_default_for_instance():
 
         class B(Atom, use_annotations=True):
             a: Optional[Iterable] = []
+
+
+def test_annotations_invalid_default_for_literal():
+    with pytest.raises(ValueError):
+
+        class A(Atom, use_annotations=True):
+            a: Literal["a", "b"] = "c"
