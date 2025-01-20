@@ -64,15 +64,8 @@ PyObject*
 object_method_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_validate_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 2 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( oldvalue ) );
-    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( newvalue ) );
-    return callable.call( args );
+    PyObject* args[] = { pyobject_cast( atom ), oldvalue, newvalue };
+    return PyObject_VectorcallMethod( member->post_validate_context, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 );
 }
 
 
@@ -80,16 +73,8 @@ PyObject*
 object_method_name_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( atom ), member->post_validate_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 3 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( member->name ) );
-    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( oldvalue ) );
-    PyTuple_SET_ITEM( args.get(), 2, cppy::incref( newvalue ) );
-    return callable.call( args );
+    PyObject* args[] = { pyobject_cast( atom ), member->name, oldvalue, newvalue };
+    return PyObject_VectorcallMethod( member->post_validate_context, args, 4 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 );
 }
 
 
@@ -97,16 +82,8 @@ PyObject*
 member_method_object_old_new_handler(
     Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    cppy::ptr callable( PyObject_GetAttr( pyobject_cast( member ), member->post_validate_context ) );
-    if( !callable )
-        return 0;
-    cppy::ptr args( PyTuple_New( 3 ) );
-    if( !args )
-        return 0;
-    PyTuple_SET_ITEM( args.get(), 0, cppy::incref( pyobject_cast( atom ) ) );
-    PyTuple_SET_ITEM( args.get(), 1, cppy::incref( oldvalue ) );
-    PyTuple_SET_ITEM( args.get(), 2, cppy::incref( newvalue ) );
-    return callable.call( args );
+    PyObject* args[] = { pyobject_cast( member ), pyobject_cast( atom ), oldvalue, newvalue };
+    return PyObject_VectorcallMethod( member->post_validate_context, args, 4 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 );
 }
 
 
