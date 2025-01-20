@@ -1135,7 +1135,8 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs, uint8_t change_ty
             {
                 callable = it->m_observer;
             }
-            if( !callable.call( argsptr, kwargsptr ) )
+            cppy::ptr ok( callable.call( argsptr, kwargsptr ) );
+            if( !ok )
                 return false;
         }
     }
