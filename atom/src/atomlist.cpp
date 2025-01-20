@@ -785,16 +785,26 @@ public:
     {
         static char *kwlist[] = { "key", "reverse", 0 };
         // Get a reference to builtins (borrowed ref hence the incref)
-        cppy::ptr builtins( cppy::incref( PyImport_AddModule("builtins") ) );
+        cppy::ptr builtins( cppy::xincref( PyImport_AddModule("builtins") ) );
+        if ( !builtins )
+            return 0;
         cppy::ptr super_type( builtins.getattr( "super" ) );
+        if ( !super_type )
+            return 0;
         // Create super args (tuple steals references)
         cppy::ptr super_args( PyTuple_New(2) );
+        if ( !super_args )
+            return 0;
         PyTuple_SET_ITEM( super_args.get(), 0, cppy::incref( pyobject_cast( Py_TYPE(m_list.get()) ) ) );
         PyTuple_SET_ITEM( super_args.get(), 1, cppy::incref( m_list.get() ) );
 
         // Get and call super method
         cppy::ptr super( super_type.call( super_args ) );
+        if ( !super )
+            return 0;
         cppy::ptr meth( super.getattr( "sort" ) );
+        if ( !meth )
+            return 0;
         cppy::ptr res( meth.call(args, kwargs) );
         if( !res )
             return 0;
