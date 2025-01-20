@@ -445,15 +445,10 @@ CAtom_getstate( CAtom* self )
 }
 
 PyObject*
-CAtom_setstate( CAtom* self, PyObject* args )
+CAtom_setstate( CAtom* self, PyObject* state )
 {
-    if( PyTuple_GET_SIZE( args ) != 1 )
-        return cppy::type_error( "__setstate__() takes exactly one argument" );
-    PyObject* state = PyTuple_GET_ITEM( args, 0 );
-    cppy::ptr itemsptr = PyMapping_Items(state);
-    if ( !itemsptr )
-        return 0;
-    cppy::ptr selfptr(pyobject_cast(self), true);
+    if ( !PyMapping_Check(state) )
+        return cppy::type_error("__setstate__ requires a mapping");
 
     // If the -f key is present freeze the object
     bool frozen = PyMapping_HasKey(state, atom_flags);
@@ -463,11 +458,17 @@ CAtom_setstate( CAtom* self, PyObject* args )
             return 0;
     }
 
-    for ( Py_ssize_t i = 0; i < PyMapping_Size(state); i++ ) {
-        PyObject* item = PyList_GET_ITEM(itemsptr.get(), i);
-        PyObject* key = PyTuple_GET_ITEM(item , 0);
-        PyObject* value = PyTuple_GET_ITEM(item , 1);
-        if ( !selfptr.setattr(key, value) )
+    cppy::ptr iter( PyObject_GetIter(state) );
+    if ( !iter )
+        return 0;
+
+    cppy::ptr key;
+    while ( ( key = PyIter_Next( iter.get() ) ) )
+    {
+        cppy::ptr value( PyObject_GetItem( state, key.get() ) );
+        if ( !value )
+            return 0;
+        if ( PyObject_SetAttr( pyobject_cast(self), key.get(), value.get() ) )
             return 0;
     }
 
@@ -501,7 +502,7 @@ CAtom_methods[] = {
       "__sizeof__() -> size of object in memory, in bytes" },
     { "__getstate__", ( PyCFunction )CAtom_getstate, METH_NOARGS,
       "The base implementation of the pickle getstate protocol." },
-    { "__setstate__", ( PyCFunction )CAtom_setstate, METH_VARARGS,
+    { "__setstate__", ( PyCFunction )CAtom_setstate, METH_O,
       "The base implementation of the pickle setstate protocol." },
     { 0 } // sentinel
 };

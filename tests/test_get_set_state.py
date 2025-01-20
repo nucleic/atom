@@ -308,9 +308,9 @@ def test_setstate_errors(caplog):
         t.__setstate__()  # Incorrect number of args
     with pytest.raises(TypeError):
         t.__setstate__({}, False)  # Incorrect number of args
-    with pytest.raises(AttributeError):
+    with pytest.raises(TypeError):
         t.__setstate__(None)  # Not a mapping (no items() method)
-    with pytest.raises(AttributeError):
+    with pytest.raises(TypeError):
         t.__setstate__(["z"])  # Not a mapping (has no items() method)
     with pytest.raises(AttributeError):
         t.__setstate__({"z": 3})  # Invalid attribute
