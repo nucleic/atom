@@ -166,6 +166,7 @@ Member::check_context( Validate::Mode mode, PyObject* context )
             }
             break;
         case Validate::FloatRange:
+        case Validate::FloatRangePromote:
         {
             if( !PyTuple_Check( context ) )
             {
@@ -804,7 +805,12 @@ enum_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalu
         return 0;
     if( res == 1 )
         return cppy::incref( newvalue );
-    return cppy::value_error( "invalid enum value" );
+    return PyErr_Format(
+        PyExc_ValueError,
+        "invalid enum value for '%s' of '%s'",
+        PyUnicode_AsUTF8( member->name ),
+        Py_TYPE( pyobject_cast( atom ) )->tp_name
+    );
 }
 
 
@@ -830,12 +836,22 @@ float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
     if( low != Py_None )
     {
         if( PyFloat_AS_DOUBLE( low ) > value )
-            return cppy::type_error( "range value too small" );
+            return  PyErr_Format(
+                PyExc_ValueError,
+                "range value for '%s' of '%s' too small",
+                PyUnicode_AsUTF8( member->name ),
+                Py_TYPE( pyobject_cast( atom ) )->tp_name
+            );
     }
     if( high != Py_None )
     {
         if( PyFloat_AS_DOUBLE( high ) < value )
-            return cppy::type_error( "range value too large" );
+            return  PyErr_Format(
+                PyExc_ValueError,
+                "range value for '%s' of '%s' too large",
+                PyUnicode_AsUTF8( member->name ),
+                Py_TYPE( pyobject_cast( atom ) )->tp_name
+            );
     }
     return cppy::incref( newvalue );
 }
@@ -844,8 +860,6 @@ float_range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
 PyObject*
 float_range_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( PyFloat_Check( newvalue ) )
-        return float_range_handler( member, atom, oldvalue, newvalue );
     if( PyLong_Check( newvalue ) )
     {
         double value = PyLong_AsDouble( newvalue );
@@ -854,7 +868,7 @@ float_range_promote_handler( Member* member, CAtom* atom, PyObject* oldvalue, Py
         cppy::ptr convertedvalue( PyFloat_FromDouble( value ) );
         return float_range_handler( member, atom, oldvalue, convertedvalue.get() );
     }
-    return validate_type_fail( member, atom, newvalue, "float" );
+    return float_range_handler( member, atom, oldvalue, newvalue );
 }
 
 
@@ -868,12 +882,22 @@ range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
     if( low != Py_None )
     {
         if( PyObject_RichCompareBool( low , newvalue, Py_GT ) )
-            return cppy::type_error( "range value too small" );
+            return  PyErr_Format(
+                PyExc_ValueError,
+                "range value for '%s' of '%s' too small",
+                PyUnicode_AsUTF8( member->name ),
+                Py_TYPE( pyobject_cast( atom ) )->tp_name
+            );
     }
     if( high != Py_None )
     {
         if( PyObject_RichCompareBool( high , newvalue, Py_LT ) )
-            return cppy::type_error( "range value too large" );
+            return  PyErr_Format(
+                PyExc_ValueError,
+                "range value for '%s' of '%s' too large",
+                PyUnicode_AsUTF8( member->name ),
+                Py_TYPE( pyobject_cast( atom ) )->tp_name
+            );
     }
     return cppy::incref( newvalue );
 }
