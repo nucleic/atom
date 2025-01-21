@@ -25,7 +25,7 @@
 namespace atom
 {
 
-struct __attribute__((packed)) MemberModes
+PACK(struct MemberModes
 {
     uint8_t getattr: 4;
     uint8_t post_getattr: 3;
@@ -36,7 +36,7 @@ struct __attribute__((packed)) MemberModes
     uint8_t post_validate: 3;
     uint8_t delattr: 3;
     uint8_t getstate: 3;
-};
+});
 
 struct Member
 {
