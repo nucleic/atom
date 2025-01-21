@@ -174,3 +174,12 @@ def test_handling_wrong_index():
 
     with pytest.raises(AttributeError):
         SlotAtom.v.do_getattr(sa)
+
+
+def test_using_invalid_args():
+    """Test using the invalid arguments."""
+    v = Value()
+    with pytest.raises(TypeError):
+        v.set_getattr_mode(None)
+    with pytest.raises(TypeError):
+        v.set_getattr_mode(7, None)
