@@ -25,12 +25,22 @@
 namespace atom
 {
 
+PACK(struct MemberModes
+{
+    GetAttr::Mode getattr: 4;
+    PostGetAttr::Mode post_getattr: 3;
+    SetAttr::Mode setattr: 4;
+    PostSetAttr::Mode post_setattr: 3;
+    DefaultValue::Mode default_value: 4;
+    Validate::Mode validate: 5;
+    PostValidate::Mode post_validate: 3;
+    DelAttr::Mode delattr: 3;
+    GetState::Mode getstate: 3;
+});
+
 struct Member
 {
     PyObject_HEAD
-    uint64_t modes;
-    uint64_t extra_modes;
-    uint32_t index;
     PyObject* name;
     PyObject* metadata;
     PyObject* getattr_context;
@@ -44,6 +54,8 @@ struct Member
     PyObject* getstate_context;
     ModifyGuard<Member>* modify_guard;
     std::vector<Observer>* static_observers;
+    MemberModes modes;
+    uint32_t index;
 
     static PyType_Spec TypeObject_Spec;
 
@@ -57,101 +69,92 @@ struct Member
 
     GetAttr::Mode get_getattr_mode()
     {
-        return static_cast<GetAttr::Mode>( modes & 0xff );
+        return modes.getattr;
     }
 
     void set_getattr_mode( GetAttr::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0xffffffffffffff00 );
-        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) );
+        modes.getattr = mode;
     }
 
     SetAttr::Mode get_setattr_mode()
     {
-        return static_cast<SetAttr::Mode>( ( modes >> 8 ) & 0xff );
+        return modes.setattr;
     }
 
     void set_setattr_mode( SetAttr::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0xffffffffffff00ff );
-        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 8 );
+        modes.setattr = mode;
     }
 
     PostGetAttr::Mode get_post_getattr_mode()
     {
-        return static_cast<PostGetAttr::Mode>( ( modes >> 16 ) & 0xff );
+        return modes.post_getattr;
     }
 
     void set_post_getattr_mode( PostGetAttr::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0xffffffffff00ffff );
-        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 16 );
+        modes.post_getattr = mode;
     }
 
     PostSetAttr::Mode get_post_setattr_mode()
     {
-        return static_cast<PostSetAttr::Mode>( ( modes >> 24 ) & 0xff );
+        return modes.post_setattr;
     }
 
     void set_post_setattr_mode( PostSetAttr::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0xffffffff00ffffff );
-        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 24 );
+        modes.post_setattr = mode;
     }
 
     DefaultValue::Mode get_default_value_mode()
     {
-        return static_cast<DefaultValue::Mode>( ( modes >> 32 ) & 0xff );
+        return modes.default_value;
     }
 
     void set_default_value_mode( DefaultValue::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0xffffff00ffffffff );
-        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 32 );
+        modes.default_value = mode;
     }
 
     Validate::Mode get_validate_mode()
     {
-        return static_cast<Validate::Mode>( ( modes >> 40 ) & 0xff );
+        return modes.validate;
     }
 
     void set_validate_mode( Validate::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0xffff00ffffffffff );
-        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 40 );
+        modes.validate = mode;
     }
 
     PostValidate::Mode get_post_validate_mode()
     {
-        return static_cast<PostValidate::Mode>( ( modes >> 48 ) & 0xff );
+        return modes.post_validate;
     }
 
     void set_post_validate_mode( PostValidate::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0xff00ffffffffffff );
-        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 48 );
+        modes.post_validate = mode;
     }
 
     DelAttr::Mode get_delattr_mode()
     {
-        return static_cast<DelAttr::Mode>( ( modes >> 56 ) & 0xff );
+        return modes.delattr;
     }
 
     void set_delattr_mode( DelAttr::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0x00ffffffffffffff );
-        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 56 );
+        modes.delattr = mode;
     }
 
     GetState::Mode get_getstate_mode()
     {
-        return static_cast<GetState::Mode>( ( extra_modes ) & 0xff );
+        return modes.getstate;
     }
 
     void set_getstate_mode( GetState::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0xffffffffffffff00 );
-        extra_modes = ( extra_modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) );
+        modes.getstate = mode;
     }
 
     PyObject* getattr( CAtom* atom );
