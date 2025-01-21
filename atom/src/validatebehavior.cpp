@@ -1007,7 +1007,7 @@ handlers[] = {
 PyObject*
 Member::validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( get_validate_mode() >= sizeof( handlers ) )
+    if( get_validate_mode() >= sizeof( handlers ) / sizeof( handler ) )
         return no_op_handler( this, atom, oldvalue, newvalue );  // LCOV_EXCL_LINE
     return handlers[ get_validate_mode() ]( this, atom, oldvalue, newvalue );
 }

@@ -377,9 +377,13 @@ handlers[] = {
     call_object_object_name_value_handler,
     object_method_value_handler,
     object_method_name_value_handler,
-    member_method_object_value_handler
+    member_method_object_value_handler,
+    no_op_handler,
+    no_op_handler,
+    no_op_handler
 };
 
+static_assert( sizeof(handlers) / sizeof(handler) == 16, "Must be exactly 16 handlers" );
 
 } // namespace
 
@@ -387,9 +391,7 @@ handlers[] = {
 int
 Member::setattr( CAtom* atom, PyObject* value )
 {
-    if( get_setattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom, value );  // LCOV_EXCL_LINE
-    return handlers[ get_setattr_mode() ]( this, atom, value );
+    return handlers[ get_setattr_mode() & 0xf ]( this, atom, value );
 }
 
 

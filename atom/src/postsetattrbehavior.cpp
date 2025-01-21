@@ -106,9 +106,13 @@ handlers[] = {
     delegate_handler,
     object_method_old_new_handler,
     object_method_name_old_new_handler,
-    member_method_object_old_new_handler
+    member_method_object_old_new_handler,
+    no_op_handler,
+    no_op_handler,
+    no_op_handler
 };
 
+static_assert( sizeof(handlers) / sizeof(handler) == 8, "Must be exactly 8 handlers" );
 
 }  // namespace
 
@@ -116,9 +120,7 @@ handlers[] = {
 int
 Member::post_setattr( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( get_post_setattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom, oldvalue, newvalue );  // LCOV_EXCL_LINE
-    return handlers[ get_post_setattr_mode() ]( this, atom, oldvalue, newvalue );
+    return handlers[ get_post_setattr_mode() & 0x7 ]( this, atom, oldvalue, newvalue );
 }
 
 

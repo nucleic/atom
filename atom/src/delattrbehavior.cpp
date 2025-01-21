@@ -192,6 +192,7 @@ handlers[] = {
     property_handler
 };
 
+static_assert( sizeof(handlers) / sizeof(handler) == 8, "Must be exactly 8 handlers" );
 
 }  // namespace
 
@@ -199,9 +200,7 @@ handlers[] = {
 int
 Member::delattr( CAtom* atom )
 {
-    if( get_delattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom );  // LCOV_EXCL_LINE
-    return handlers[ get_delattr_mode() ]( this, atom );
+    return handlers[ get_delattr_mode() & 0x7 ]( this, atom );
 }
 
 
