@@ -28,9 +28,6 @@ namespace atom
 struct Member
 {
     PyObject_HEAD
-    uint64_t modes;
-    uint64_t extra_modes;
-    uint32_t index;
     PyObject* name;
     PyObject* metadata;
     PyObject* getattr_context;
@@ -44,6 +41,8 @@ struct Member
     PyObject* getstate_context;
     ModifyGuard<Member>* modify_guard;
     std::vector<Observer>* static_observers;
+    uint64_t modes;
+    uint32_t index;
 
     static PyType_Spec TypeObject_Spec;
 
@@ -134,24 +133,24 @@ struct Member
 
     DelAttr::Mode get_delattr_mode()
     {
-        return static_cast<DelAttr::Mode>( ( modes >> 56 ) & 0xff );
+        return static_cast<DelAttr::Mode>( ( modes >> 56 ) & 0xf );
     }
 
     void set_delattr_mode( DelAttr::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0x00ffffffffffffff );
-        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) << 56 );
+        uint64_t mask = UINT64_C( 0xf0ffffffffffffff );
+        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xf ) << 56 );
     }
 
     GetState::Mode get_getstate_mode()
     {
-        return static_cast<GetState::Mode>( ( extra_modes ) & 0xff );
+        return static_cast<GetState::Mode>( ( modes >> 60 ) & 0xf );
     }
 
     void set_getstate_mode( GetState::Mode mode )
     {
-        uint64_t mask = UINT64_C( 0xffffffffffffff00 );
-        extra_modes = ( extra_modes & mask ) | ( static_cast<uint64_t>( mode & 0xff ) );
+        uint64_t mask = UINT64_C( 0x0fffffffffffffff );
+        modes = ( modes & mask ) | ( static_cast<uint64_t>( mode & 0xf ) << 60 );
     }
 
     PyObject* getattr( CAtom* atom );

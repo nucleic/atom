@@ -390,7 +390,6 @@ Member_clone( Member* self )
         return 0;
     Member* clone = member_cast( pyclone );
     clone->modes = self->modes;
-    clone->extra_modes = self->extra_modes;
     clone->index = self->index;
     clone->name = cppy::incref( self->name );
     if( self->metadata )
