@@ -27,15 +27,15 @@ namespace atom
 
 PACK(struct MemberModes
 {
-    uint8_t getattr: 4;
-    uint8_t post_getattr: 3;
-    uint8_t setattr: 4;
-    uint8_t post_setattr: 3;
-    uint8_t default_value: 4;
-    uint8_t validate: 5;
-    uint8_t post_validate: 3;
-    uint8_t delattr: 3;
-    uint8_t getstate: 3;
+    GetAttr::Mode getattr: 4;
+    PostGetAttr::Mode post_getattr: 3;
+    SetAttr::Mode setattr: 4;
+    PostSetAttr::Mode post_setattr: 3;
+    DefaultValue::Mode default_value: 4;
+    Validate::Mode validate: 5;
+    PostValidate::Mode post_validate: 3;
+    DelAttr::Mode delattr: 3;
+    GetState::Mode getstate: 3;
 });
 
 struct Member
@@ -69,92 +69,92 @@ struct Member
 
     GetAttr::Mode get_getattr_mode()
     {
-        return static_cast<GetAttr::Mode>( modes.getattr );
+        return modes.getattr;
     }
 
     void set_getattr_mode( GetAttr::Mode mode )
     {
-        modes.getattr = static_cast<uint8_t>( mode );
+        modes.getattr = mode;
     }
 
     SetAttr::Mode get_setattr_mode()
     {
-        return static_cast<SetAttr::Mode>( modes.setattr );
+        return modes.setattr;
     }
 
     void set_setattr_mode( SetAttr::Mode mode )
     {
-        modes.setattr = static_cast<uint8_t>( mode );
+        modes.setattr = mode;
     }
 
     PostGetAttr::Mode get_post_getattr_mode()
     {
-        return static_cast<PostGetAttr::Mode>( modes.post_getattr );
+        return modes.post_getattr;
     }
 
     void set_post_getattr_mode( PostGetAttr::Mode mode )
     {
-        modes.post_getattr = static_cast<uint8_t>( mode );
+        modes.post_getattr = mode;
     }
 
     PostSetAttr::Mode get_post_setattr_mode()
     {
-        return static_cast<PostSetAttr::Mode>( modes.post_setattr );
+        return modes.post_setattr;
     }
 
     void set_post_setattr_mode( PostSetAttr::Mode mode )
     {
-        modes.post_setattr = static_cast<uint8_t>( mode );
+        modes.post_setattr = mode;
     }
 
     DefaultValue::Mode get_default_value_mode()
     {
-        return static_cast<DefaultValue::Mode>( modes.default_value );
+        return modes.default_value;
     }
 
     void set_default_value_mode( DefaultValue::Mode mode )
     {
-        modes.default_value = static_cast<uint8_t>( mode );
+        modes.default_value = mode;
     }
 
     Validate::Mode get_validate_mode()
     {
-        return static_cast<Validate::Mode>( modes.validate );
+        return modes.validate;
     }
 
     void set_validate_mode( Validate::Mode mode )
     {
-        modes.validate = static_cast<uint8_t>( mode );
+        modes.validate = mode;
     }
 
     PostValidate::Mode get_post_validate_mode()
     {
-        return static_cast<PostValidate::Mode>( modes.post_validate );
+        return modes.post_validate;
     }
 
     void set_post_validate_mode( PostValidate::Mode mode )
     {
-        modes.post_validate = static_cast<uint8_t>( mode );
+        modes.post_validate = mode;
     }
 
     DelAttr::Mode get_delattr_mode()
     {
-        return static_cast<DelAttr::Mode>( modes.delattr );
+        return modes.delattr;
     }
 
     void set_delattr_mode( DelAttr::Mode mode )
     {
-        modes.delattr = static_cast<uint8_t>( mode );
+        modes.delattr = mode;
     }
 
     GetState::Mode get_getstate_mode()
     {
-        return static_cast<GetState::Mode>( modes.getstate );
+        return modes.getstate;
     }
 
     void set_getstate_mode( GetState::Mode mode )
     {
-        modes.getstate = static_cast<uint8_t>( mode );
+        modes.getstate = mode;
     }
 
     PyObject* getattr( CAtom* atom );

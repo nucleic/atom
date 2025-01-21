@@ -14,7 +14,7 @@ namespace atom
 namespace GetAttr
 {
 
-enum Mode
+enum Mode: uint8_t
 {
     NoOp,
     Slot,
@@ -37,7 +37,7 @@ enum Mode
 namespace PostGetAttr
 {
 
-enum Mode
+enum Mode: uint8_t
 {
     NoOp,
     Delegate,
@@ -53,7 +53,7 @@ enum Mode
 namespace SetAttr
 {
 
-enum Mode
+enum Mode: uint8_t
 {
     NoOp,
     Slot,
@@ -77,7 +77,7 @@ enum Mode
 namespace PostSetAttr
 {
 
-enum Mode
+enum Mode: uint8_t
 {
     NoOp,
     Delegate,
@@ -94,7 +94,7 @@ enum Mode
 namespace DefaultValue
 {
 
-enum Mode
+enum Mode: uint8_t
 {
     NoOp,
     Static,
@@ -119,7 +119,7 @@ enum Mode
 namespace Validate
 {
 
-enum Mode
+enum Mode: uint8_t
 {
     NoOp,
     Bool,
@@ -162,7 +162,7 @@ enum Mode
 namespace PostValidate
 {
 
-enum Mode
+enum Mode: uint8_t
 {
     NoOp,
     Delegate,
@@ -178,7 +178,7 @@ enum Mode
 namespace DelAttr
 {
 
-enum Mode
+enum Mode: uint8_t
 {
     NoOp,
     Slot,
@@ -197,7 +197,7 @@ enum Mode
 namespace GetState
 {
 
-enum Mode
+enum Mode: uint8_t
 {
     Include,  // We want include to be the default behavior
     Exclude,
