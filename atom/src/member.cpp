@@ -458,7 +458,10 @@ parse_mode_and_context( PyObject*const *args, Py_ssize_t n, PyObject** context, 
 {
 
     if( n != 2 )
+    {
+        cppy::type_error( "set mode requires two arguments mode, context" );
         return false;
+    }
     if( !EnumTypes::from_py_enum( args[0], mode ) )
         return false;
     *context = args[1];
