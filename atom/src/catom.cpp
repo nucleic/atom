@@ -451,7 +451,13 @@ CAtom_setstate( CAtom* self, PyObject* state )
         return cppy::type_error("__setstate__ requires a mapping");
 
     // If the -f key is present freeze the object
-    bool frozen = PyMapping_HasKey(state, atom_flags);
+#if PY_VERSION_HEX >= 0x030D0000
+    int frozen = PyMapping_HasKeyWithError( state, atom_flags );
+    if ( frozen == -1 )
+        return 0;
+#else
+    int frozen = PyMapping_HasKey( state, atom_flags );
+#endif
     if ( frozen )
     {
         if ( PyMapping_DelItem(state, atom_flags) == -1 )
