@@ -207,7 +207,7 @@ handlers[] = {
     no_op_handler
 };
 
-static_assert( sizeof(handlers) / sizeof(handler) == 16, "Must be exactly 16 handlers" );
+const auto mask = validate_handlers(handlers, DefaultValue::Mode::Last);
 
 }  // namespace
 
@@ -215,7 +215,7 @@ static_assert( sizeof(handlers) / sizeof(handler) == 16, "Must be exactly 16 han
 PyObject*
 Member::default_value( CAtom* atom )
 {
-    return handlers[ get_default_value_mode() & 0xf ]( this, atom );
+    return handlers[ get_default_value_mode() & mask ]( this, atom );
 }
 
 

@@ -263,7 +263,7 @@ handlers[] = {
     no_op_handler
 };
 
-static_assert( sizeof(handlers) / sizeof(handler) == 16, "Must be exactly 16 handlers" );
+const auto mask = validate_handlers(handlers, GetAttr::Mode::Last);
 
 }  // namespace
 
@@ -271,7 +271,7 @@ static_assert( sizeof(handlers) / sizeof(handler) == 16, "Must be exactly 16 han
 PyObject*
 Member::getattr( CAtom* atom )
 {
-    return handlers[ get_getattr_mode() & 0xf ]( this, atom );
+    return handlers[ get_getattr_mode() & mask ]( this, atom );
 }
 
 }  // namespace atom

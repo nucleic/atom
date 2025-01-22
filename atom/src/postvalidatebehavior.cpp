@@ -103,7 +103,7 @@ handlers[] = {
     no_op_handler
 };
 
-static_assert( sizeof(handlers) / sizeof(handler) == 8, "Must be exactly 8 handlers" );
+const auto mask = validate_handlers(handlers, PostValidate::Mode::Last);
 
 }  // namespace
 
@@ -111,7 +111,7 @@ static_assert( sizeof(handlers) / sizeof(handler) == 8, "Must be exactly 8 handl
 PyObject*
 Member::post_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    return handlers[ get_post_validate_mode() & 0x7 ]( this, atom, oldvalue, newvalue );
+    return handlers[ get_post_validate_mode() & mask ]( this, atom, oldvalue, newvalue );
 }
 
 }  // namespace atom

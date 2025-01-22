@@ -112,7 +112,7 @@ handlers[] = {
     no_op_handler
 };
 
-static_assert( sizeof(handlers) / sizeof(handler) == 8, "Must be exactly 8 handlers" );
+const auto mask = validate_handlers(handlers, PostSetAttr::Mode::Last);
 
 }  // namespace
 
@@ -120,7 +120,7 @@ static_assert( sizeof(handlers) / sizeof(handler) == 8, "Must be exactly 8 handl
 int
 Member::post_setattr( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    return handlers[ get_post_setattr_mode() & 0x7 ]( this, atom, oldvalue, newvalue );
+    return handlers[ get_post_setattr_mode() & mask ]( this, atom, oldvalue, newvalue );
 }
 
 

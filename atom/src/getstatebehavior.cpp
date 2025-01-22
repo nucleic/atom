@@ -129,7 +129,7 @@ handlers[] = {
     include_handler
 };
 
-static_assert( sizeof(handlers) / sizeof(handler) == 8, "Must be exactly 8 handlers" );
+const auto mask = validate_handlers(handlers, GetState::Mode::Last);
 
 }  // namespace
 
@@ -137,7 +137,7 @@ static_assert( sizeof(handlers) / sizeof(handler) == 8, "Must be exactly 8 handl
 PyObject*
 Member::should_getstate( CAtom* atom )
 {
-    return handlers[ get_getstate_mode() & 0x7 ]( this, atom );
+    return handlers[ get_getstate_mode() & mask ]( this, atom );
 }
 
 }  // namespace atom
