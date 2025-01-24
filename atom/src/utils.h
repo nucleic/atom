@@ -129,19 +129,19 @@ inline bool safe_richcompare( PyObject* first, PyObject* second, int opid )
     return false;
 }
 
-inline bool safe_richcompare( cppy::ptr first, PyObject* second, int opid )
+inline bool safe_richcompare( const cppy::ptr &first, PyObject* second, int opid )
 {
     return safe_richcompare( first.get(), second, opid );
 }
 
 
-inline bool safe_richcompare( PyObject* first, cppy::ptr second, int opid )
+inline bool safe_richcompare( PyObject* first, const cppy::ptr &second, int opid )
 {
     return safe_richcompare( first, second.get(), opid );
 }
 
 
-inline bool safe_richcompare( cppy::ptr first, cppy::ptr second, int opid )
+inline bool safe_richcompare( const cppy::ptr &first, const cppy::ptr &second, int opid )
 {
     return safe_richcompare( first.get(), second.get(), opid );
 }
