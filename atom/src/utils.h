@@ -140,7 +140,7 @@ inline bool safe_richcompare( PyObject* first, const cppy::ptr &second, int opid
     return safe_richcompare( first, second.get(), opid );
 }
 
-
+// Passing by reference avoids an extra incref/decref pair
 inline bool safe_richcompare( const cppy::ptr &first, const cppy::ptr &second, int opid )
 {
     return safe_richcompare( first.get(), second.get(), opid );
