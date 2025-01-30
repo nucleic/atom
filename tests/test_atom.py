@@ -350,9 +350,23 @@ def test_init_subclass():
     assert members == {"a": B.a}
 
 
+def test_subclass_init_missing():
+    with pytest.raises(SystemError):
+
+        class A(Atom):
+            def __init_subclass__(cls) -> None:
+                # This is called when subclassing B
+                # Must call super or __atom_members__ is not there
+                cls.members()
+
+        class B(A):
+            pass
+
+
 def test_clone_if_needed():
     class A(Atom):
         def __init_subclass__(cls) -> None:
+            super().__init_subclass__()
             for m in cls.members().values():
                 clone_if_needed(cls, m)
 

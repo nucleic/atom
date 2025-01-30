@@ -8,6 +8,7 @@
 #include <cppy/cppy.h>
 #include "behaviors.h"
 #include "catom.h"
+#include "catommeta.h"
 #include "member.h"
 #include "memberchange.h"
 #include "eventbinder.h"
@@ -52,6 +53,10 @@ bool ready_types()
         return false;
     }
     if( !Member::Ready() )
+    {
+        return false;
+    }
+    if( !CAtomMeta::Ready() )
     {
         return false;
     }
@@ -129,6 +134,14 @@ bool add_objects( PyObject* mod )
 		return false;
 	}
     member.release();
+
+    // CAtomMeta
+    cppy::ptr catommeta( pyobject_cast( CAtomMeta::TypeObject ) );
+    if( PyModule_AddObject( mod, "CAtomMeta", catommeta.get() ) < 0 )
+    {
+        return false;
+    }
+    catommeta.release();
 
     // CAtom
     cppy::ptr catom( pyobject_cast( CAtom::TypeObject ) );

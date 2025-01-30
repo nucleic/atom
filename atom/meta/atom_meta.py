@@ -28,6 +28,7 @@ from typing import (
 
 from ..catom import (
     CAtom,
+    CAtomMeta,
     DefaultValue,
     GetState,
     Member,
@@ -63,7 +64,7 @@ def add_member(cls: "AtomMeta", name: str, member: Member) -> None:
 
     member.set_name(name)
     # The dict is mutable but we do not want to say it too loud
-    cls.__atom_members__[name] = member  # type: ignore
+    cls.__add_member(name, member)  # type: ignore
     cls.__atom_specific_members__ = frozenset(
         set(cls.__atom_specific_members__) | {name}
     )
@@ -501,7 +502,7 @@ class _AtomMetaHelper:
         return cls
 
 
-class AtomMeta(type):
+class AtomMeta(CAtomMeta):
     """The metaclass for classes derived from Atom.
 
     This metaclass computes the memory layout of the members in a given
@@ -515,7 +516,6 @@ class AtomMeta(type):
 
     """
 
-    __atom_members__: Mapping[str, Member]
     __atom_specific_members__: FrozenSet[str]
 
     def __new__(

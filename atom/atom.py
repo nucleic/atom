@@ -38,21 +38,6 @@ class Atom(CAtom, metaclass=AtomMeta):
 
     """
 
-    __atom_members__: ClassVar[Mapping[str, Member]]
-
-    @classmethod
-    def members(cls) -> Mapping[str, Member]:
-        """Get the members dictionary for the type.
-
-        Returns
-        -------
-        result : Mapping[str, Member]
-            The dictionary of members defined on the class. User code
-            should not modify the contents of the dict.
-
-        """
-        return cls.__atom_members__
-
     @contextmanager
     def suppress_notifications(self) -> Iterator[None]:
         """Disable member notifications within in a context.

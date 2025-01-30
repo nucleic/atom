@@ -16,6 +16,21 @@ namespace atom
 namespace utils
 {
 
+// Used to guard python functions that are not thread safe in the free-threaded build
+struct CriticalSection
+{
+    CriticalSection(PyObject* obj) {
+#if defined(Py_GIL_DISABLED)
+        Py_BEGIN_CRITICAL_SECTION(obj);
+#endif
+    }
+    ~CriticalSection() {
+#if defined(Py_GIL_DISABLED)
+        Py_END_CRITICAL_SECTION();
+#endif
+    }
+};
+
 inline PyObject*
 py_bool( bool val )
 {

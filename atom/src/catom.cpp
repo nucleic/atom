@@ -17,6 +17,7 @@
 #include <cppy/cppy.h>
 #include "atomref.h"
 #include "catom.h"
+#include "catommeta.h"
 #include "globalstatic.h"
 #include "methodwrapper.h"
 #include "packagenaming.h"
@@ -41,20 +42,17 @@ static PyObject* atom_flags;
 PyObject*
 CAtom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
-    cppy::ptr membersptr( PyObject_GetAttr( pyobject_cast( type ), atom_members ) );
-    if( !membersptr )
-        return 0;
-    if( !PyDict_CheckExact( membersptr.get() ) )
-        return cppy::system_error( "atom members" );
+    if ( !CAtomMeta::TypeCheck( pyobject_cast(type) ) )
+        return cppy::type_error("catommeta");
     cppy::ptr selfptr( PyType_GenericNew( type, args, kwargs ) );
     if( !selfptr )
         return 0;
     CAtom* atom = catom_cast( selfptr.get() );
-    uint32_t count = static_cast<uint32_t>( PyDict_Size( membersptr.get() ) );
-    if( count > 0 )
+
+    if( uint16_t count = catommeta_cast(type)->slot_count )
     {
-        if( count > MAX_MEMBER_COUNT )
-            return cppy::type_error( "too many members" );
+        // As long as the types of CAtomMeta::slot_count and CAtom::slot_count
+        // are the same the `count < MAX_SLOT_COUNT` does not need checked here
         size_t size = sizeof( PyObject* ) * count;
         void* slots = PyObject_MALLOC( size );
         if( !slots )
@@ -172,19 +170,29 @@ CAtom_set_notifications_enabled( CAtom* self, PyObject* arg )
 
 
 PyObject*
-CAtom_get_member( PyObject* self, PyObject* name )
+CAtom_get_member( PyObject* cls, PyObject* name )
 {
-    if( !PyUnicode_Check( name ) )
-        return cppy::type_error( name, "str" );
-    cppy::ptr membersptr( PyObject_GetAttr( pyobject_cast( Py_TYPE(self) ), atom_members ) );
-    if( !membersptr )
-        return 0;
-    if( !PyDict_CheckExact( membersptr.get() ) )
-        return cppy::system_error( "atom members" );
-    cppy::ptr member( cppy::xincref( PyDict_GetItem( membersptr.get(), name ) ) );
-    if( !member )
-        Py_RETURN_NONE;
-    return member.release();
+    if ( !CAtomMeta::TypeCheck(cls) )
+        return cppy::type_error("get_members must be called on a CAtomMeta instance");
+    return catommeta_cast( cls )->get_member(name);
+}
+
+
+PyObject*
+CAtom_members( PyObject* cls )
+{
+    if ( !CAtomMeta::TypeCheck(cls) )
+        return cppy::type_error("members must be called on a CAtomMeta instance");
+    return catommeta_cast( cls )->members();
+}
+
+
+PyObject*
+CAtom_init_subclass( PyObject* cls )
+{
+    if ( !CAtomMeta::TypeCheck(cls) )
+        return cppy::type_error("init_subclass must be called on a CAtomMeta instance");
+    return catommeta_cast( cls )->init_subclass();
 }
 
 
@@ -412,13 +420,12 @@ CAtom_getstate( CAtom* self )
         }
     }
 
-    cppy::ptr membersptr = selfptr.getattr(atom_members);
-    if ( !membersptr || !PyDict_CheckExact( membersptr.get() ) ) {
-        return cppy::system_error( "atom members" );
-    }
-
+    cppy::ptr membersptr( catommeta_cast( Py_TYPE(selfptr.get()) )->members() );
+    if ( !membersptr )
+        return 0;
     PyObject *name, *member;
     Py_ssize_t pos = 0;
+    utils::CriticalSection lock(membersptr.get());
     while ( PyDict_Next(membersptr.get(), &pos, &name, &member) ) {
         cppy::ptr should_gs = member_cast( member )->should_getstate( self );
         if ( !should_gs ) {
@@ -490,8 +497,10 @@ CAtom_methods[] = {
       "Get whether notification is enabled for the atom." },
     { "set_notifications_enabled", ( PyCFunction )CAtom_set_notifications_enabled, METH_O,
       "Enable or disable notifications for the atom." },
-    { "get_member", ( PyCFunction )CAtom_get_member, METH_O,
+    { "get_member", ( PyCFunction )CAtom_get_member, METH_CLASS | METH_O,
       "Get the named member for the atom." },
+    { "members", ( PyCFunction )CAtom_members, METH_CLASS | METH_NOARGS,
+      "Get members for the atom." },
     { "observe", ( PyCFunction )CAtom_observe, METH_FASTCALL,
       "Register an observer callback to observe changes on the given topic(s)." },
     { "unobserve", ( PyCFunction )CAtom_unobserve, METH_FASTCALL,
@@ -510,6 +519,8 @@ CAtom_methods[] = {
       "The base implementation of the pickle getstate protocol." },
     { "__setstate__", ( PyCFunction )CAtom_setstate, METH_O,
       "The base implementation of the pickle setstate protocol." },
+    { "__init_subclass__", ( PyCFunction )CAtom_init_subclass, METH_CLASS | METH_NOARGS,
+        "Initialize the atom_members for the subclass." },
     { 0 } // sentinel
 };
 

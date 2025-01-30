@@ -25,6 +25,7 @@ ext_modules = [
             "atom/src/atomset.cpp",
             "atom/src/atomref.cpp",
             "atom/src/catom.cpp",
+            "atom/src/catommeta.cpp",
             "atom/src/catommodule.cpp",
             "atom/src/defaultvaluebehavior.cpp",
             "atom/src/delattrbehavior.cpp",
