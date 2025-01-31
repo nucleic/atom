@@ -14,6 +14,7 @@
 #include "modifyguard.h"
 #include "utils.h"
 
+#define MAX_OBSERVER_POOL_COUNT ( static_cast<uint32_t>( 0xffffffff ) )
 
 namespace atom
 {
@@ -78,7 +79,7 @@ public:
 
     int py_traverse( visitproc visit, void* arg );
 
-    void py_clear()
+    void clear()
     {
         m_topics.clear();
         // Clearing the vector may cause arbitrary side effects on item
@@ -87,6 +88,7 @@ public:
         // destructors run for the old items.
         std::vector<Observer> empty;
         m_observers.swap( empty );
+        m_modify_guard = 0;
     }
 
 private:
@@ -99,5 +101,29 @@ private:
 
 };
 
+
+class ObserverPoolManager
+{
+
+public:
+    static ObserverPoolManager* get();
+
+    // Aquire a new ObserverPool. If no free spots are available, allocate a new spot
+    bool aquire_pool(uint32_t &index);
+
+    // Access a pool at the given index
+    inline ObserverPool* access_pool(uint32_t index) {
+        return m_pools.at(index);
+    }
+
+    // Release and free the pool at the given index
+    void release_pool(uint32_t index);
+
+    ObserverPoolManager() {}
+    ~ObserverPoolManager() {}
+private:
+    std::vector<ObserverPool*> m_pools;
+    std::vector<uint32_t> m_free_slots;
+};
 
 } // namespace atom
