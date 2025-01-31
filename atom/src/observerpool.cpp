@@ -5,6 +5,7 @@
 |
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
+#include "globalstatic.h"
 #include "observerpool.h"
 #include "utils.h"
 
@@ -265,6 +266,42 @@ ObserverPool::py_traverse( visitproc visit, void* arg )
             return vret;
     }
     return 0;
+}
+
+
+GLOBAL_STATIC(ObserverPoolManager, global_observer_pool_manager)
+
+
+ObserverPoolManager*
+ObserverPoolManager::get()
+{
+    return global_observer_pool_manager();
+}
+
+
+bool
+ObserverPoolManager::aquire_pool(uint32_t &index)
+{
+    if ( m_free_slots.empty() )
+    {
+        if ( m_pools.size() >= MAX_OBSERVER_POOL_COUNT)
+            return false;
+        index = m_pools.size();
+        m_pools.emplace_back(new ObserverPool);
+        return true;
+    }
+    index = m_free_slots.back();
+    m_free_slots.pop_back();
+    return true;
+}
+
+
+void
+ObserverPoolManager::release_pool(uint32_t index)
+{
+    m_pools.at(index)->clear();
+    m_free_slots.emplace_back(index);
+    // pool size never decreases
 }
 
 

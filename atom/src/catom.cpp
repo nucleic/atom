@@ -102,9 +102,10 @@ CAtom_clear( CAtom* self )
     {
         Py_CLEAR( self->slots[ i ] );
     }
-    if( self->observers )
+    if( self->meta.has_observers )
     {
-        self->observers->py_clear();
+        ObserverPoolManager::get()->release_pool(self->meta.pool_index);
+        self->meta.has_observers = false;
     }
 }
 
@@ -121,9 +122,9 @@ CAtom_traverse( CAtom* self, visitproc visit, void* arg )
     // This was not needed before Python 3.9 (Python issue 35810 and 40217)
     Py_VISIT(Py_TYPE(self));
 #endif
-    if( self->observers )
+    if( self->meta.has_observers )
     {
-        return self->observers->py_traverse( visit, arg );
+        return self->observer_pool()->py_traverse( visit, arg );
     }
 
     return 0;
@@ -147,8 +148,6 @@ CAtom_dealloc( CAtom* self )
     {
         PyObject_FREE( self->slots );
     }
-    delete self->observers;
-    self->observers = 0;
     Py_TYPE(self)->tp_free( pyobject_cast( self ) );
 }
 
@@ -363,8 +362,13 @@ CAtom_sizeof( CAtom* self, PyObject* args )
 {
     Py_ssize_t size = Py_TYPE(self)->tp_basicsize;
     size += sizeof( PyObject* ) * self->get_slot_count();
-    if( self->observers )
-        size += self->observers->py_sizeof();
+    if( self->meta.has_observers )
+    {
+        size += self->observer_pool()->py_sizeof();
+        // account for space in pool manager
+        // why is sizeof( atom::ObserverPool* ) 16 bytes on macos???
+        size += sizeof( atom::ObserverPool* ) + sizeof( uint32_t );
+    }
     return PyLong_FromSsize_t( size );
 }
 
@@ -593,9 +597,18 @@ CAtom::observe( PyObject* topic, PyObject* callback, uint8_t change_types )
     cppy::ptr callbackptr( wrap_callback( callback ) );
     if( !callbackptr )
         return false;
-    if( !observers )
-        observers = new ObserverPool();
-    observers->add( topicptr, callbackptr, change_types );
+    if( !meta.has_observers )
+    {
+        uint32_t index;
+        if ( !ObserverPoolManager::get()->aquire_pool(index) )
+        {
+            cppy::system_error("Observer pool filled");
+            return false;
+        }
+        meta.pool_index = index;
+        meta.has_observers = true;
+    }
+    observer_pool()->add( topicptr, callbackptr, change_types );
     return true;
 }
 
@@ -603,11 +616,11 @@ CAtom::observe( PyObject* topic, PyObject* callback, uint8_t change_types )
 bool
 CAtom::unobserve( PyObject* topic, PyObject* callback )
 {
-    if( !observers )
+    if( !meta.has_observers )
         return true;
     cppy::ptr topicptr( cppy::incref( topic ) );
     cppy::ptr callbackptr( cppy::incref( callback ) );
-    observers->remove( topicptr, callbackptr );
+    observer_pool()->remove( topicptr, callbackptr );
     return true;
 }
 
@@ -615,10 +628,10 @@ CAtom::unobserve( PyObject* topic, PyObject* callback )
 bool
 CAtom::unobserve( PyObject* topic )
 {
-    if( !observers )
+    if( !meta.has_observers )
         return true;
     cppy::ptr topicptr( cppy::incref( topic ) );
-    observers->remove( topicptr );
+    observer_pool()->remove( topicptr );
     return true;
 }
 
@@ -626,9 +639,10 @@ CAtom::unobserve( PyObject* topic )
 bool
 CAtom::unobserve()
 {
-    if( !observers )
+    if( !meta.has_observers )
         return true;
-    observers->py_clear();
+    ObserverPoolManager::get()->release_pool(meta.pool_index);
+    meta.has_observers = false;
     return true;
 }
 
@@ -636,12 +650,12 @@ CAtom::unobserve()
 bool
 CAtom::notify( PyObject* topic, PyObject* args, PyObject* kwargs, uint8_t change_types )
 {
-    if( observers && get_notifications_enabled() )
+    if( meta.has_observers && meta.notifications_enabled )
     {
         cppy::ptr topicptr( cppy::incref( topic ) );
         cppy::ptr argsptr( cppy::incref( args ) );
         cppy::ptr kwargsptr( cppy::xincref( kwargs ) );
-        if( !observers->notify( topicptr, argsptr, kwargsptr, change_types ) )
+        if( !observer_pool()->notify( topicptr, argsptr, kwargsptr, change_types ) )
             return false;
     }
     return true;
