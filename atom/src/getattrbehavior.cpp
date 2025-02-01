@@ -256,8 +256,14 @@ handlers[] = {
     call_object_object_name_handler,
     object_method_handler,
     object_method_name_handler,
-    member_method_object_handler
+    member_method_object_handler,
+    no_op_handler,
+    no_op_handler,
+    no_op_handler,
+    no_op_handler
 };
+
+const auto mask = validate_handlers(handlers, GetAttr::Mode::Last);
 
 }  // namespace
 
@@ -265,9 +271,7 @@ handlers[] = {
 PyObject*
 Member::getattr( CAtom* atom )
 {
-    if( get_getattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom );  // LCOV_EXCL_LINE
-    return handlers[ get_getattr_mode() ]( this, atom );
+    return handlers[ get_getattr_mode() & mask ]( this, atom );
 }
 
 }  // namespace atom
