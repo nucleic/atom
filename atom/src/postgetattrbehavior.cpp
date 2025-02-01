@@ -93,9 +93,13 @@ handlers[] = {
     delegate_handler,
     object_method_value_handler,
     object_method_name_value_handler,
-    member_method_object_value_handler
+    member_method_object_value_handler,
+    no_op_handler,
+    no_op_handler,
+    no_op_handler,
 };
 
+const auto mask = validate_handlers(handlers, PostGetAttr::Mode::Last);
 
 }  // namespace
 
@@ -103,9 +107,7 @@ handlers[] = {
 PyObject*
 Member::post_getattr( CAtom* atom, PyObject* value )
 {
-    if( get_post_getattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom, value );  // LCOV_EXCL_LINE
-    return handlers[ get_post_getattr_mode() ]( this, atom, value );
+    return handlers[ get_post_getattr_mode() & mask ]( this, atom, value );
 }
 
 

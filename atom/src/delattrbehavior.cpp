@@ -192,6 +192,7 @@ handlers[] = {
     property_handler
 };
 
+const auto mask = validate_handlers(handlers, DelAttr::Mode::Last);
 
 }  // namespace
 
@@ -199,9 +200,7 @@ handlers[] = {
 int
 Member::delattr( CAtom* atom )
 {
-    if( get_delattr_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom );  // LCOV_EXCL_LINE
-    return handlers[ get_delattr_mode() ]( this, atom );
+    return handlers[ get_delattr_mode() & mask ]( this, atom );
 }
 
 

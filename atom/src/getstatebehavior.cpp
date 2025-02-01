@@ -124,8 +124,12 @@ handlers[] = {
     include_non_default_handler,
     property_handler,
     object_method_name_handler,
-    member_method_object_handler
+    member_method_object_handler,
+    include_handler,
+    include_handler
 };
+
+const auto mask = validate_handlers(handlers, GetState::Mode::Last);
 
 }  // namespace
 
@@ -133,9 +137,7 @@ handlers[] = {
 PyObject*
 Member::should_getstate( CAtom* atom )
 {
-    if( get_getstate_mode() >= sizeof( handlers ) )
-        return include_handler( this, atom );  // LCOV_EXCL_LINE
-    return handlers[ get_getstate_mode() ]( this, atom );
+    return handlers[ get_getstate_mode() & mask ]( this, atom );
 }
 
 }  // namespace atom
