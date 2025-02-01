@@ -563,13 +563,13 @@ bool CAtom::Ready()
     {
         return false;
     }
-    atom_members = PyUnicode_FromString( "__atom_members__" );
+    atom_members = PyUnicode_InternFromString( "__atom_members__" );
     if( !atom_members )
     {
         return false;
     }
 
-    atom_flags = PyUnicode_FromString( "--frozen" );
+    atom_flags = PyUnicode_InternFromString( "--frozen" );
     if( !atom_flags )
         return false;
 
