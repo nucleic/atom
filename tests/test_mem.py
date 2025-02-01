@@ -145,3 +145,25 @@ def test_pickle_mem_usage(label):
         # not sure why I sometimes see a 2 here but the original buggy version
         # reported values > 50
         assert stat.count < 5
+
+
+def test_atom_sizeof():
+    class Point(Atom):
+        x = Int()
+        y = Int()
+
+    p = Point()
+    atom_size = 32
+    object_size = 16
+    topic_size = 16
+    observer_size = 16
+    assert sys.getsizeof(p) == atom_size + 2 * object_size
+    p.observe("x", lambda c: None)
+    if "darwin" in sys.platform:
+        pool_ptr_size = 24  # wtf???
+    else:
+        pool_ptr_size = 8
+    pool_size = 56 + 4 + pool_ptr_size
+    assert sys.getsizeof(p) == (
+        atom_size + 2 * object_size + pool_size + topic_size + observer_size
+    )
