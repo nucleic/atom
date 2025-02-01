@@ -129,7 +129,7 @@ ObserverPool::add( cppy::ptr& topic, cppy::ptr& observer, uint8_t change_types )
             }
             if( obs_free == obs_end )
             {
-                m_observers.insert( obs_end, Observer( observer, change_types ) );
+                m_observers.emplace( obs_end, observer, change_types );
                 ++topic_it->m_count;
             }
             else
@@ -138,8 +138,8 @@ ObserverPool::add( cppy::ptr& topic, cppy::ptr& observer, uint8_t change_types )
         }
         obs_offset += topic_it->m_count;
     }
-    m_topics.push_back( Topic( topic, 1 ) );
-    m_observers.push_back( Observer(observer, change_types) );
+    m_topics.emplace_back( topic, 1 );
+    m_observers.emplace_back( observer, change_types );
 }
 
 
