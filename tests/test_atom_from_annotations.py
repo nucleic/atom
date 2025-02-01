@@ -309,7 +309,7 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (Dummy, Coerced, member().coerce(lambda v: Dummy(v, 5))),
         (Dummy, ReadOnly, member(1).read_only()),
         (Dummy, Constant, member(1).constant()),
-    ]
+    ],
 )
 def test_annotations_with_default(annotation, member_cls, default):
     class A(Atom, use_annotations=True):
@@ -348,16 +348,15 @@ def test_annotations_no_default_for_instance():
             a: Optional[Iterable] = []
 
 
-<<<<<<< HEAD
 def test_annotations_invalid_default_for_literal():
     with pytest.raises(ValueError):
 
         class A(Atom, use_annotations=True):
             a: Literal["a", "b"] = "c"
-=======
+
+
 def test_setting_metadata():
     class A(Atom, use_annotations=True):
         a: Iterable = member().tag(a=1)
 
     assert A.a.metadata == {"a": 1}
->>>>>>> 228bee9 (allow to mark a member as read_only, constant, or coerced using the member class)
