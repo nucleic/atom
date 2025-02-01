@@ -21,4 +21,4 @@
       m: {{ annotation }} = {{ member_instance }}
 
     reveal_type(A.m)  # N: Revealed type is "{{ member_type }}"
-    reveal_type(A().m)  # N: Revealed type is "{{ member_value_type }}"
+    reveal_type(A(m=[]).m)  # N: Revealed type is "{{ member_value_type }}"

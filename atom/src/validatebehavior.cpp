@@ -494,11 +494,6 @@ fixed_tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
 
     // Create a copy in which to store the validated values
     Py_ssize_t size = PyTuple_GET_SIZE( newvalue );
-    cppy::ptr tuplecopy = PyTuple_New( size );
-    if( !tuplecopy )
-    {
-        return 0;
-    }
 
     // Check the size match the expected size
     Py_ssize_t expected_size = PyTuple_GET_SIZE( member->validate_context );
@@ -513,6 +508,13 @@ fixed_tuple_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* 
             expected_size,
             size
         );
+        return 0;
+    }
+
+    // Create a new tuple to store the validate values
+    cppy::ptr tuplecopy = PyTuple_New( size );
+    if( !tuplecopy )
+    {
         return 0;
     }
 
