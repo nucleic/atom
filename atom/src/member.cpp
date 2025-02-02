@@ -1115,7 +1115,7 @@ Member::notify( CAtom* atom, PyObject* args, PyObject* kwargs, uint8_t change_ty
 {
     if( static_observers && atom->get_notifications_enabled() )
     {
-        ModifyGuard<Member> guard( *this );
+        ModifyGuard<Member> guard( this );
         cppy::ptr argsptr( cppy::incref( args ) );
         cppy::ptr kwargsptr( cppy::xincref( kwargs ) );
         cppy::ptr objectptr( cppy::incref( pyobject_cast( atom ) ) );

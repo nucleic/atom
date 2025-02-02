@@ -104,6 +104,7 @@ CAtom_clear( CAtom* self )
     }
     if( self->meta.has_observers )
     {
+        // This atom is done with the pool, release it even if there are pending guards
         ObserverPoolManager::get()->release_pool(self->meta.pool_index);
         self->meta.has_observers = false;
     }
@@ -600,7 +601,7 @@ CAtom::observe( PyObject* topic, PyObject* callback, uint8_t change_types )
     if( !meta.has_observers )
     {
         uint32_t index;
-        if ( !ObserverPoolManager::get()->aquire_pool(index) )
+        if ( !ObserverPoolManager::get()->acquire_pool(index) )
         {
             cppy::system_error("Observer pool filled");
             return false;
@@ -641,8 +642,14 @@ CAtom::unobserve()
 {
     if( !meta.has_observers )
         return true;
-    ObserverPoolManager::get()->release_pool(meta.pool_index);
-    meta.has_observers = false;
+    observer_pool()->clear();
+    if ( !observer_pool()->has_guard() )
+    {
+        // Do not release the pool unless the guard is released
+        // as a modification task could still need to add stuff back into it
+        ObserverPoolManager::get()->release_pool(meta.pool_index);
+        meta.has_observers = false;
+    }
     return true;
 }
 
