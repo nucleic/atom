@@ -108,7 +108,7 @@ public:
 
     // Access a pool at the given index
     inline ObserverPool* access_pool(uint32_t index) {
-        return &m_pools.at(index);
+        return m_pools.at(index);
     }
 
     // Release and free the pool at the given index
@@ -117,7 +117,7 @@ public:
     ObserverPoolManager() {}
     ~ObserverPoolManager() {}
 private:
-    std::vector<ObserverPool> m_pools;
+    std::vector<ObserverPool*> m_pools;
     std::vector<uint32_t> m_free_slots;
 };
 

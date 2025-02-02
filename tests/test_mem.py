@@ -155,10 +155,10 @@ def test_atom_sizeof():
     p = Point()
     atom_size = 32
     object_size = 16
-    topic_size = 16
-    observer_size = 16
     assert sys.getsizeof(p) == atom_size + 2 * object_size
     p.observe("x", lambda c: None)
+    # topic_size = 16
+    # observer_size = 16
     # if "darwin" in sys.platform:
     #     pool_ptr_size = 24  # wtf???
     # else:

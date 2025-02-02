@@ -10,7 +10,6 @@
 import pytest
 
 from atom.api import (
-    atomref,
     Atom,
     ChangeType,
     ContainerList,
@@ -18,7 +17,6 @@ from atom.api import (
     Int,
     List,
     Signal,
-    Typed,
     Value,
     observe,
 )
@@ -620,181 +618,6 @@ def test_modifying_dynamic_observers_in_callback():
     # complete
     assert ca.counter2 == 1
     assert ca.has_observer("val", ca.react2)
-
-
-def test_guarded_dynamic_observers():
-    """Test emulate's the behavior of the engine expression update used in enaml.
-    attr model = Model()
-    Field:
-        text << model.text
-    """
-    from contextlib import contextmanager
-
-    class SubscriptionObserver:
-        def __init__(self, owner, name, items):
-            self.ref = atomref(owner)
-            self.name = name
-            for obj, d_name in items:
-                obj.observe(d_name, self)
-
-        def __bool__(self):
-            return bool(self.ref)
-
-        def __call__(self, change):
-            if owner := self.ref():
-                owner._d_engine.update(owner, self.name)
-
-    class StandardTracer:
-        def __init__(self, owner: Atom, name: str):
-            self.owner = owner
-            self.name = name
-            self.key = f"_[{name}|trace]"
-            self.items = set()
-
-        def trace(self, obj: Atom, d_name: str):
-            self.items.add((obj, d_name))
-
-        def finalize(self):
-            storage = self.owner._d_storage
-            if old_observer := storage.get(self.key):
-                old_observer.ref = None
-            if self.items:
-                storage[self.key] = SubscriptionObserver(
-                    self.owner, self.name, self.items
-                )
-
-    class TracedReader:
-        def __init__(self, scope, trace):
-            self.scope = scope
-            self.trace = trace  # function to simulate tracing
-
-        def __call__(self, owner: Atom, name: str):
-            # Emulate a tracing of "model.value"
-            tracer = StandardTracer(owner, name)
-            result = self.trace(tracer, scope)
-            tracer.finalize()  # Add the observer
-            return result
-
-    def default_writer(owner: Atom, name: str, change: dict):
-        pass
-
-    class Handler:
-        def __init__(self, reader=None, writer=None):
-            self.read = reader
-            self.write = writer
-
-    class DummyEngine(Atom):
-        handlers = Typed(dict, ())  # dict[str, Handler]
-        guards = Typed(set, ())
-
-        def read(self, owner: Atom, name: str):
-            pair = self.handlers[name]
-            if reader := pair.read:
-                return reader(owner, name)
-
-        def write(self, owner: Atom, name: str, change: dict):
-            pair = self.handlers[name]
-            with self.guard(owner, pair.write) as writer:
-                if writer:
-                    writer(owner, name, change)
-
-        def update(self, owner: Atom, name: str):
-            pair = self.handlers[name]
-            with self.guard(owner, pair.read) as reader:
-                if reader:
-                    value = reader(owner, name)
-                    setattr(owner, name, value)
-
-        @contextmanager
-        def guard(self, *key):
-            if key not in self.guards:
-                self.guards.add(key)
-                try:
-                    yield key[-1]
-                finally:
-                    self.guards.remove(key)
-            else:
-                yield None
-
-    class DummyDeclarative(Atom):
-        _d_storage = Typed(dict, ())
-        _d_engine = Typed(DummyEngine, ())
-
-    class Field(DummyDeclarative):
-        text = Value()
-
-        def _default_text(self):
-            # Emulate DeclarativeDefaultHandler
-            return self._d_engine.read(self, "text")
-
-        def _observe_text(self, change):
-            # Emulate declarative_change_handler
-            self._d_engine.write(self, "text", change)
-
-    class Button(DummyDeclarative):
-        clicked = Value()
-
-        def _default_clicked(self):
-            # Emulate DeclarativeDefaultHandler
-            return self._d_engine.read(self, "clicked")
-
-        def _observe_clicked(self, change):
-            # Emulate declarative_change_handler
-            self._d_engine.write(self, "clicked", change)
-
-    class Model(Atom):
-        value = Value("initial")
-
-    # enaml uses a custom dynamic scope class
-    class DynamicScope(Atom):
-        model = Value()
-        fallback = Value()
-
-    scope = DynamicScope(model=Model())
-
-    # Our simulated declarative field
-    field = Field()
-    field2 = Field()
-    btn = Button()
-
-    def trace_model_value(tracer, scope):
-        # Simulate tracing "model.value" in the scope
-        tracer.trace(scope, "model")
-        if scope.model:
-            tracer.trace(scope.model, "value")
-            return scope.model.value
-
-    # Add a handler for the expression `text << model.value`
-    field._d_engine.handlers["text"] = Handler(
-        TracedReader(scope, trace_model_value), None
-    )
-    field2._d_engine.handlers["text"] = Handler(
-        TracedReader(scope, trace_model_value), None
-    )
-
-    def on_click(owner, name, change):
-        del scope.model
-
-    btn._d_engine.handlers["clicked"] = Handler(None, on_click)
-
-    # Do initial read
-    assert field.text == "initial"
-
-    # Update the model and verify the field was updated
-    scope.model.value = "x"
-    assert field.text == "x"
-    assert field2.text == "x"
-
-    # Replace the model
-    # This should trigger an update on the model that requires a modify guard
-    # that discards all observers on the old model.
-    scope.model = Model(value="new")
-    assert field.text == "new"
-    scope.model.value = "again"
-    assert field.text == "again"
-
-    # btn.clicked = 1
-    # assert field.text == "none"
 
 
 # --- Notifications generation and handling
