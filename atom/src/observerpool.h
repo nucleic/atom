@@ -14,6 +14,7 @@
 #include "modifyguard.h"
 #include "utils.h"
 
+#define MAX_OBSERVER_POOL_COUNT ( static_cast<uint32_t>( 0xffffffff ) )
 
 namespace atom
 {
@@ -46,6 +47,11 @@ public:
 
     ~ObserverPool() {}
 
+    bool has_guard()
+    {
+        return m_modify_guard != nullptr;
+    }
+
     bool has_topic( cppy::ptr& topic );
 
     bool has_observer( cppy::ptr& topic, cppy::ptr& observer )
@@ -60,6 +66,11 @@ public:
     void remove( cppy::ptr& topic, cppy::ptr& observer );
 
     void remove( cppy::ptr& topic );
+
+    void clear();
+
+    // Clear and release back into the pool manager after the guard is released
+    void release( uint32_t pool_index );
 
     bool notify( cppy::ptr& topic, cppy::ptr& args, cppy::ptr& kwargs )
     {
@@ -78,26 +89,36 @@ public:
 
     int py_traverse( visitproc visit, void* arg );
 
-    void py_clear()
-    {
-        m_topics.clear();
-        // Clearing the vector may cause arbitrary side effects on item
-        // decref, including calls into methods which mutate the vector.
-        // To avoid segfaults, first make the vector empty, then let the
-        // destructors run for the old items.
-        std::vector<Observer> empty;
-        m_observers.swap( empty );
-    }
-
 private:
 
     ModifyGuard<ObserverPool>* m_modify_guard;
     std::vector<Topic> m_topics;
     std::vector<Observer> m_observers;
-    ObserverPool(const ObserverPool& other);
-    ObserverPool& operator=(const ObserverPool&);
-
 };
 
+
+class ObserverPoolManager
+{
+
+public:
+    static ObserverPoolManager* get();
+
+    // Aquire a new ObserverPool. If no free spots are available, allocate a new spot
+    bool acquire_pool(uint32_t &index);
+
+    // Access a pool at the given index
+    inline ObserverPool* access_pool(uint32_t index) {
+        return m_pools.at(index);
+    }
+
+    // Release and free the pool at the given index
+    void release_pool(uint32_t index);
+
+    ObserverPoolManager() {}
+    ~ObserverPoolManager() {}
+private:
+    std::vector<ObserverPool*> m_pools;
+    std::vector<uint32_t> m_free_slots;
+};
 
 } // namespace atom

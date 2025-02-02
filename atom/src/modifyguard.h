@@ -25,10 +25,10 @@ class ModifyGuard
 
 public:
 
-    ModifyGuard( _T& owner ) : m_owner( owner )
+    ModifyGuard( _T* owner ) : m_owner( owner )
     {
-        if( !m_owner.get_modify_guard() )
-            m_owner.set_modify_guard( this );
+        if( !m_owner->get_modify_guard() )
+            m_owner->set_modify_guard( this );
     }
 
     ~ModifyGuard()
@@ -43,9 +43,10 @@ public:
             exception_set = true;
         }
 
-        if( m_owner.get_modify_guard() == this )
+        if( m_owner->get_modify_guard() == this )
         {
-            m_owner.set_modify_guard( 0 );
+            m_owner->set_modify_guard( 0 );
+
             std::vector<ModifyTask*>::iterator it;
             std::vector<ModifyTask*>::iterator end = m_tasks.end();
             for( it = m_tasks.begin(); it != end; ++it )
@@ -64,7 +65,7 @@ public:
 
 private:
 
-    _T& m_owner;
+    _T* m_owner;
     std::vector<ModifyTask*> m_tasks;
 
 };

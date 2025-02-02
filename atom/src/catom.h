@@ -13,12 +13,6 @@
 
 
 #define MAX_MEMBER_COUNT ( static_cast<uint32_t>( 0xffff ) )
-#define SLOT_COUNT_MASK ( static_cast<uint32_t>( 0xffff ) )
-#define FLAGS_MASK ( static_cast<uint32_t>( 0xffff0000 ) )
-#define NOTIFICATION_BIT ( static_cast<uint32_t>( 1 << 16 ) )
-#define GUARD_BIT ( static_cast<uint32_t>( 1 << 17 ) )
-#define ATOMREF_BIT ( static_cast<uint32_t>( 1 << 18 ) )
-#define FROZEN_BIT ( static_cast<uint32_t>( 1 << 19 ) )
 #define catom_cast( o ) ( reinterpret_cast<atom::CAtom*>( o ) )
 
 
@@ -26,13 +20,23 @@ namespace atom
 {
 
 
+PACK(struct CAtomMetadata
+{
+  uint32_t pool_index;
+  uint16_t slot_count;
+  bool notifications_enabled: 1;
+  bool has_guards: 1;
+  bool has_atomref: 1;
+  bool is_frozen: 1;
+  bool has_observers: 1; // Whether pool index can be used
+  uint16_t reserverd: 11;
+});
 
 struct CAtom
 {
     PyObject_HEAD
-    uint32_t bitfield;  // lower 16 == slot count, upper 16 == flags
     PyObject** slots;
-    ObserverPool* observers;
+    CAtomMetadata meta;
 
     static PyType_Spec TypeObject_Spec;
 
@@ -42,12 +46,12 @@ struct CAtom
 
     uint32_t get_slot_count()
     {
-        return bitfield & SLOT_COUNT_MASK;
+        return meta.slot_count;
     }
 
     void set_slot_count( uint32_t count )
     {
-        bitfield = ( bitfield & FLAGS_MASK ) | ( count & SLOT_COUNT_MASK );
+        meta.slot_count = count;
     }
 
     PyObject* get_slot( uint32_t index )
@@ -65,75 +69,69 @@ struct CAtom
 
     bool get_notifications_enabled()
     {
-        return ( bitfield & NOTIFICATION_BIT ) != 0;
+        return meta.notifications_enabled;
     }
 
     void set_notifications_enabled( bool enabled )
     {
-        if( enabled )
-            bitfield |= NOTIFICATION_BIT;
-        else
-            bitfield &= ~NOTIFICATION_BIT;
+        meta.notifications_enabled = enabled;
     }
 
     bool has_guards()
     {
-        return ( bitfield & GUARD_BIT ) != 0;
+        return meta.has_guards;
     }
 
     void set_has_guards( bool has_guards )
     {
-        if( has_guards )
-            bitfield |= GUARD_BIT;
-        else
-            bitfield &= ~GUARD_BIT;
+        meta.has_guards = has_guards;
     }
 
     bool has_atomref()
     {
-        return ( bitfield & ATOMREF_BIT ) != 0;
+        return meta.has_atomref;
     }
 
     void set_has_atomref( bool has_ref )
     {
-        if( has_ref )
-            bitfield |= ATOMREF_BIT;
-        else
-            bitfield &= ~ATOMREF_BIT;
+        meta.has_atomref = has_ref;
+    }
+
+    // Caller must make sure the meta.has_observers is true
+    ObserverPool* observer_pool()
+    {
+        return ObserverPoolManager::get()->access_pool(meta.pool_index);
     }
 
     bool has_observers( PyObject* topic )
     {
-        if( observers )
+        if( meta.has_observers )
         {
             cppy::ptr topicptr( cppy::incref( topic ) );
-            return observers->has_topic( topicptr );
+            return observer_pool()->has_topic( topicptr );
         }
         return false;
     }
 
     bool has_observer( PyObject* topic, PyObject* callback )
     {
-        if( observers )
+        if( meta.has_observers )
         {
             cppy::ptr topicptr( cppy::incref( topic ) );
             cppy::ptr callbackptr( cppy::incref( callback ) );
-            return observers->has_observer( topicptr, callbackptr );
+            return observer_pool()->has_observer( topicptr, callbackptr );
         }
         return false;
     }
 
     bool is_frozen()
     {
-        return ( bitfield & FROZEN_BIT ) != 0;
+        return meta.is_frozen;
     }
 
     void set_frozen( bool frozen )
     {
-        if( frozen )
-            bitfield |= FROZEN_BIT;
-        else
-            bitfield &= ~FROZEN_BIT;
+        meta.is_frozen = frozen;
     }
 
     bool observe( PyObject* topic, PyObject* callback )
