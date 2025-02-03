@@ -133,7 +133,7 @@ ObserverPool::add( cppy::ptr& topic, cppy::ptr& observer, uint8_t change_types )
                 ++topic_it->m_count;
             }
             else
-                *obs_free = Observer( observer, change_types );
+                obs_free->replace( observer, change_types );
             return;
         }
         obs_offset += topic_it->m_count;
