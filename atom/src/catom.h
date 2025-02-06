@@ -21,7 +21,7 @@ namespace atom
 
 PACK(struct CAtomInfo {
     uint16_t slot_count;
-    bool notifications_enabled: 1;
+    bool notifications_disabled: 1;
     bool has_guards: 1;
     bool has_atomref: 1;
     bool is_frozen: 1;
@@ -66,12 +66,12 @@ struct CAtom
 
     bool get_notifications_enabled()
     {
-        return info.notifications_enabled;
+        return !info.notifications_disabled;
     }
 
     void set_notifications_enabled( bool enabled )
     {
-        info.notifications_enabled = enabled;
+        info.notifications_disabled = !enabled;
     }
 
     bool has_guards()
