@@ -185,7 +185,7 @@ Member_add_static_observer( Member* self, PyObject*const *args, Py_ssize_t n)
     if( n < 1 )
         return cppy::type_error( "add_static_observer() requires at least 1 argument" );
     if( n > 2 )
-        return cppy::type_error( "add_static_observer() takes at most 2 arugments" );
+        return cppy::type_error( "add_static_observer() takes at most 2 arguments" );
     PyObject* observer = args[0];
     if( !PyUnicode_CheckExact( observer ) && !PyCallable_Check( observer ) )
         return cppy::type_error( observer, "str or callable" );
