@@ -63,7 +63,6 @@ CAtom_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         atom->slots = reinterpret_cast<PyObject**>( slots );
         atom->set_slot_count( count );
     }
-    atom->set_notifications_enabled( true );
     return selfptr.release();
 }
 
