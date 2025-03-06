@@ -97,9 +97,13 @@ handlers[] = {
     delegate_handler,
     object_method_old_new_handler,
     object_method_name_old_new_handler,
-    member_method_object_old_new_handler
+    member_method_object_old_new_handler,
+    no_op_handler,
+    no_op_handler,
+    no_op_handler
 };
 
+const auto mask = validate_handlers(handlers, PostValidate::Mode::Last);
 
 }  // namespace
 
@@ -107,9 +111,7 @@ handlers[] = {
 PyObject*
 Member::post_validate( CAtom* atom, PyObject* oldvalue, PyObject* newvalue )
 {
-    if( get_post_validate_mode() >= sizeof( handlers ) )
-        return no_op_handler( this, atom, oldvalue, newvalue );  // LCOV_EXCL_LINE
-    return handlers[ get_post_validate_mode() ]( this, atom, oldvalue, newvalue );
+    return handlers[ get_post_validate_mode() & mask ]( this, atom, oldvalue, newvalue );
 }
 
 }  // namespace atom
