@@ -8,6 +8,7 @@
 """Metaclass implementing atom members customization."""
 
 import copyreg
+import sys
 import warnings
 from types import FunctionType
 from typing import (
@@ -22,9 +23,15 @@ from typing import (
     Sequence,
     Set,
     Tuple,
+    Type,
     TypeVar,
     Union,
 )
+
+if sys.version_info < (3, 11):
+    from typing_extensions import dataclass_transform
+else:
+    from typing import dataclass_transform
 
 from ..catom import (
     CAtom,
@@ -36,8 +43,33 @@ from ..catom import (
     PostValidate,
     Validate,
 )
+from ..coerced import Coerced
+from ..containerlist import ContainerList
+from ..dict import DefaultDict, Dict as MDict
+from ..enum import Enum
+from ..event import Event
+from ..instance import Instance
+from ..list import List as MList
+from ..property import Property
+from ..scalars import (
+    Bool,
+    Bytes,
+    Callable as MCallable,
+    Constant,
+    Float,
+    FloatRange,
+    Int,
+    Range,
+    ReadOnly,
+    Str,
+    Value,
+)
+from ..set import Set as MSet
+from ..signal import Signal
+from ..tuple import Tuple as MTuple
+from ..typed import Typed
 from .annotation_utils import generate_members_from_cls_namespace
-from .member_modifiers import set_default
+from .member_modifiers import _SENTINEL, member
 from .observation import ExtendedObserver, ObserveHandler
 
 OBSERVE_PREFIX = "_observe_"
@@ -48,7 +80,7 @@ POST_SETATTR_PREFIX = "_post_setattr_"
 POST_VALIDATE_PREFIX = "_post_validate_"
 GETSTATE_PREFIX = "_getstate_"
 
-
+T = TypeVar("T")
 M = TypeVar("M", bound=Member)
 
 
@@ -141,7 +173,7 @@ def _compute_mro(bases: Sequence[type]) -> List[type]:
 
 def _clone_if_needed(
     member: M,
-    members: Dict[str, Member],
+    members: MutableMapping[str, Member],
     specific_members: Set[str],
     owned_members: Set[Member],
 ) -> M:
@@ -177,8 +209,8 @@ class _AtomMetaHelper:
     #: The set of seen @observe decorators
     seen_decorated: Set[ObserveHandler]
 
-    #: set_default() sentinel
-    set_defaults: List[set_default]
+    #: member() sentinel
+    member_modifiers: List[member]
 
     #: Static observer methods: _observe_*
     observes: List[str]
@@ -205,10 +237,14 @@ class _AtomMetaHelper:
         "bases",
         "dct",
         "decorated",
+        "decorated",
+        "defaults",
         "defaults",
         "getstates",
+        "member_modifiers",
         "members",
         "name",
+        "observes",
         "observes",
         "owned_members",
         "post_getattrs",
@@ -217,6 +253,8 @@ class _AtomMetaHelper:
         "seen_decorated",
         "set_defaults",
         "specific_members",
+        "specific_members",
+        "validates",
         "validates",
     )
 
@@ -231,7 +269,7 @@ class _AtomMetaHelper:
         self.defaults = []
         self.validates = []
         self.decorated = []
-        self.set_defaults = []
+        self.member_modifiers = []
         self.post_getattrs = []
         self.post_setattrs = []
         self.post_validates = []
@@ -248,11 +286,11 @@ class _AtomMetaHelper:
         dct = self.dct
         seen_sentinels = set()  # The set of seen sentinels
         for key, value in dct.items():
-            if isinstance(value, set_default):
+            if isinstance(value, member):
                 if value in seen_sentinels:
                     value = value.clone()
                 value.name = key
-                self.set_defaults.append(value)
+                self.member_modifiers.append(value)
                 seen_sentinels.add(value)
                 continue
             if isinstance(value, ObserveHandler):
@@ -314,13 +352,13 @@ class _AtomMetaHelper:
         # with multiple inheritance where the indices of multiple base
         # classes will overlap. When this happens, the members which
         # conflict must be cloned in order to occupy a unique index.
-        conflicts = []
+        conflicts: List[Member] = []
         occupied = set()
-        for member in members.values():
-            if member.index in occupied:
-                conflicts.append(member)
+        for m in members.values():
+            if m.index in occupied:
+                conflicts.append(m)
             else:
-                occupied.add(member.index)
+                occupied.add(m.index)
 
         # Track the first available index
         i = 0
@@ -336,8 +374,8 @@ class _AtomMetaHelper:
         # Do not blow away an overridden item on the current class.
         owned_members = self.owned_members
         cloned = {}
-        for member in conflicts:
-            clone = member.clone()
+        for m in conflicts:
+            clone = m.clone()
             clone.set_index(get_first_free_index())
             owned_members.add(clone)
             members[clone.name] = clone
@@ -382,20 +420,42 @@ class _AtomMetaHelper:
         """
         members = self.members
 
-        def clone_if_needed(m):
+        def clone_if_needed(m: Member) -> Member:
             m = _clone_if_needed(m, members, self.specific_members, self.owned_members)
             self.dct[m.name] = m
             return m
 
-        # set_default() sentinels
-        for sd in self.set_defaults:
+        # member() sentinels
+        for sd in self.member_modifiers:
             assert sd.name  # At this point the name has been set
             if sd.name not in members:
                 msg = "Invalid call to set_default(). '%s' is not a member "
                 msg += "on the '%s' class."
                 raise TypeError(msg % (sd.name, self.name))
             member = clone_if_needed(members[sd.name])
-            member.set_default_value_mode(DefaultValue.Static, sd.value)
+            if sd.default_value is not _SENTINEL:
+                member.set_default_value_mode(DefaultValue.Static, sd.default_value)
+            elif sd.default_factory is not None:
+                member.set_default_value_mode(
+                    DefaultValue.CallObject, sd.default_factory
+                )
+            elif sd.default_args is not None or sd.default_kwargs is not None:
+                if not isinstance(member, (Typed, Instance, Coerced)):
+                    raise TypeError(
+                        "Can specify default args and kwargs only for "
+                        f"Typed, Instance and Coerced member, got {member}."
+                    )
+                t = member.validate_mode[1]
+                if isinstance(t, tuple):
+                    t = t[0]
+                member.set_default_value_mode(
+                    DefaultValue.CallObject,
+                    lambda: t(*sd.default_args, **sd.default_kwargs),
+                )
+            if sd.metadata:
+                if member.metadata is None:
+                    member.metadata = {}
+                member.metadata.update(sd.metadata)
 
         # _default_* methods
         for prefix, method_names, mode_setter in [
@@ -474,7 +534,7 @@ class _AtomMetaHelper:
                         self.name, name, members, "observe decorated"
                     )
 
-    def create_class(self, meta: type) -> type:
+    def create_class(self, meta: Type[T], freeze: bool) -> T:
         """Create the class after adding class variables."""
 
         # Put a reference to the members dict on the class. This is used
@@ -488,11 +548,14 @@ class _AtomMetaHelper:
             m for m in self.specific_members
         )
 
+        # Store wether or not to freeze the new instance after initialization
+        self.dct["__atom_freeze__"] = freeze
+
         # Create the class object.
         # We do it once everything else has been setup so that if users wants
         # to use __init__subclass__ they have access to fully initialized
         # Atom type.
-        cls: type = type.__new__(meta, self.name, self.bases, self.dct)
+        cls: T = type.__new__(meta, self.name, self.bases, self.dct)
 
         # Generate slotnames cache
         # (using a private function that mypy does not know about).
@@ -501,6 +564,39 @@ class _AtomMetaHelper:
         return cls
 
 
+@dataclass_transform(
+    eq_default=False,
+    order_default=False,
+    kw_only_default=True,
+    field_specifiers=(
+        member,
+        Member,
+        Coerced,
+        ContainerList,
+        DefaultDict,
+        MDict,
+        Enum,
+        Event,
+        Instance,
+        MList,
+        Property,
+        Bool,
+        Bytes,
+        MCallable,
+        Constant,
+        Float,
+        FloatRange,
+        Int,
+        Range,
+        ReadOnly,
+        Str,
+        Value,
+        MSet,
+        Signal,
+        MTuple,
+        Typed,
+    ),
+)
 class AtomMeta(type):
     """The metaclass for classes derived from Atom.
 
@@ -517,16 +613,18 @@ class AtomMeta(type):
 
     __atom_members__: Mapping[str, Member]
     __atom_specific_members__: FrozenSet[str]
+    __atom_freeze__: bool
 
     def __new__(
-        meta,
+        meta: Type[T],
         name: str,
         bases: Tuple[type, ...],
         dct: Dict[str, Any],
         enable_weakrefs: bool = False,
         use_annotations: bool = True,
         type_containers: int = 1,
-    ):
+        freeze: bool = False,
+    ) -> T:
         # Ensure there is no weird mro calculation and that we can use our
         # re-implementation of C3
         assert meta.mro is type.mro, "Custom MRO calculation are not supported"
@@ -554,4 +652,12 @@ class AtomMeta(type):
         # Customize the members based on the specified static modifiers
         helper.apply_members_static_behaviors()
 
-        return helper.create_class(meta)
+        return helper.create_class(meta, freeze)
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        new = super().__call__(*args, **kwds)
+        if self.__atom_freeze__:
+            # We get a Atom instance here, so freeze exists
+            new.freeze()  # type: ignore
+
+        return new

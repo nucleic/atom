@@ -40,6 +40,7 @@ from .meta import (
     MissingMemberWarning,
     add_member,
     clone_if_needed,
+    member,
     observe,
     set_default,
 )
@@ -119,6 +120,7 @@ __all__ = [
     "cached_property",
     "clone_if_needed",
     "defaultatomdict",
+    "member",
     "observe",
     "set_default",
 ]
