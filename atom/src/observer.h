@@ -48,6 +48,12 @@ struct Observer
         return (m_change_types & change_types) != 0;
     }
 
+    inline void replace( const cppy::ptr& observer, uint8_t change_types )
+    {
+        m_observer = observer;
+        m_change_types = change_types;
+    }
+
     cppy::ptr m_observer;
     uint8_t m_change_types;
 
