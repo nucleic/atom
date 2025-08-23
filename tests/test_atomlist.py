@@ -8,7 +8,6 @@
 import gc
 from collections import Counter
 from pickle import dumps, loads
-from sys import version_info
 
 import pytest
 

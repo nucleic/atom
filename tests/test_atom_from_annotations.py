@@ -8,7 +8,6 @@
 """Test defining an atom class using typing annotations."""
 
 import logging
-import sys
 from collections import defaultdict
 from typing import (
     Any,
