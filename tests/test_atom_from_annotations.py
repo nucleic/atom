@@ -75,9 +75,6 @@ def test_ignore_class_var():
     assert not isinstance(A.a, Member)
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3, 9), reason="Subscription of Members requires Python 3.9+"
-)
 def test_ignore_annotated_member():
     class A(Atom, use_annotations=True):
         a: List[int] = List(default=[1, 2, 3])
@@ -92,9 +89,6 @@ def test_ignore_str_annotated_member():
     assert A().b == [1, 2, 3]
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3, 9), reason="Subscription of Members requires Python 3.9+"
-)
 def test_ignore_annotated_set_default():
     class A(Atom, use_annotations=True):
         a = Value()
