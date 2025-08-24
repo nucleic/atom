@@ -1,11 +1,12 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021-2024, Nucleic Development Team.
+# Copyright (c) 2021-2025, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 import collections.abc
+import sys
 from collections import defaultdict
 from typing import Any, ClassVar, Literal, MutableMapping, Type
 
@@ -146,7 +147,18 @@ def generate_members_from_cls_namespace(
     cls_name: str, namespace: MutableMapping[str, Any], annotate_type_containers: int
 ) -> None:
     """Generate the member corresponding to a type annotation."""
-    annotations = namespace["__annotations__"]
+    # On 3.14 use annotationlib
+    # cf https://docs.python.org/3.14/library/annotationlib.html
+    if sys.version_info >= (3, 14):
+        import annotationlib
+
+        annotations = (
+            namespace["__annotations__"]
+            if "__annotations__" in namespace
+            else annotationlib.get_annotate_from_class_namespace(namespace)
+        )
+    else:
+        annotations = namespace["__annotations__"]
 
     for name, ann in annotations.items():
         default = namespace.get(name, _NO_DEFAULT)
