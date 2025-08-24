@@ -539,7 +539,7 @@ class AtomMeta(type):
         if enable_weakrefs:
             dct["__slots__"] += ("__weakref__",)
 
-        if use_annotations and "__annotations__" in dct:
+        if use_annotations:
             generate_members_from_cls_namespace(name, dct, type_containers)
 
         # Create the helper used to analyze the namespace and customize members

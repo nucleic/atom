@@ -152,15 +152,17 @@ def generate_members_from_cls_namespace(
     if sys.version_info >= (3, 14):
         import annotationlib
 
-        annotations = (
-            namespace["__annotations__"]
-            if "__annotations__" in namespace
-            else annotationlib.get_annotate_from_class_namespace(namespace)
-        )
-        print(annotations, annotationlib.get_annotate_from_class_namespace(namespace))
+        if "__annotations__" in namespace:
+            annotations = namespace["__annotations__"]
+        else:
+            annotate = annotationlib.get_annotate_from_class_namespace(namespace)
+            annotations = annotationlib.call_annotate_function(
+                annotate, format=annotationlib.Format.FORWARDREF
+            )
     else:
-        annotations = namespace["__annotations__"]
+        annotations = namespace.get("__annotations__", {})
 
+    # XXX handle forward refs
     for name, ann in annotations.items():
         default = namespace.get(name, _NO_DEFAULT)
 
