@@ -33,11 +33,11 @@
   parametrized:
     - member: Property
       member_instance: Property(g, s)
-      member_type: atom.property.Property[builtins.int, Union[builtins.int, builtins.str]]
+      member_type: atom.property.Property[builtins.int, builtins.int | builtins.str]
       member_value_type: builtins.int
     - member: Property
       member_instance: Property(g, s, d)
-      member_type: atom.property.Property[builtins.int, Union[builtins.int, builtins.str]]
+      member_type: atom.property.Property[builtins.int, builtins.int | builtins.str]
       member_value_type: builtins.int
   main: |
     from typing import Union

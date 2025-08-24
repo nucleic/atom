@@ -22,12 +22,12 @@
     member_value_type: builtins.set[builtins.int]
   - member: Set
     member_instance: Set((int, float))
-    member_type: atom.set.Set[Union[builtins.int, builtins.float]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.float]]
+    member_type: atom.set.Set[builtins.int | builtins.float]
+    member_value_type: builtins.set[builtins.int | builtins.float]
   - member: Set
     member_instance: Set((int, float, str))
-    member_type: atom.set.Set[Union[builtins.int, builtins.float, builtins.str]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.float, builtins.str]]
+    member_type: atom.set.Set[builtins.int | builtins.float | builtins.str]
+    member_value_type: builtins.set[builtins.int | builtins.float | builtins.str]
   - member: Set, Int
     member_instance: Set(Int())
     member_type: atom.set.Set[builtins.int]
@@ -48,44 +48,44 @@
   # Ensure that for tuple of types any valid default works
   - member: Set
     member_instance: Set((int, str), default={1})
-    member_type: atom.set.Set[Union[builtins.int, builtins.str]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.str]]
+    member_type: atom.set.Set[builtins.int | builtins.str]
+    member_value_type: builtins.set[builtins.int | builtins.str]
   - member: Set
     member_instance: Set((int, str), default={str(1)})
-    member_type: atom.set.Set[Union[builtins.int, builtins.str]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.str]]
+    member_type: atom.set.Set[builtins.int | builtins.str]
+    member_value_type: builtins.set[builtins.int | builtins.str]
   - member: Set
     member_instance: Set((int, str), default={1, str(1)})
-    member_type: atom.set.Set[Union[builtins.int, builtins.str]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.str]]
+    member_type: atom.set.Set[builtins.int | builtins.str]
+    member_value_type: builtins.set[builtins.int | builtins.str]
   - member: Set
     member_instance: Set((int, str, Z), default={1})
-    member_type: atom.set.Set[Union[builtins.int, builtins.str, main.Z]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.str, main.Z]]
+    member_type: atom.set.Set[builtins.int | builtins.str | main.Z]
+    member_value_type: builtins.set[builtins.int | builtins.str | main.Z]
   - member: Set
     member_instance: Set((int, str, Z), default={str(1)})
-    member_type: atom.set.Set[Union[builtins.int, builtins.str, main.Z]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.str, main.Z]]
+    member_type: atom.set.Set[builtins.int | builtins.str | main.Z]
+    member_value_type: builtins.set[builtins.int | builtins.str | main.Z]
   - member: Set
     member_instance: Set((int, str, Z), default={Z()})
-    member_type: atom.set.Set[Union[builtins.int, builtins.str, main.Z]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.str, main.Z]]
+    member_type: atom.set.Set[builtins.int | builtins.str | main.Z]
+    member_value_type: builtins.set[builtins.int | builtins.str | main.Z]
   - member: Set
     member_instance: Set((int, str, Z), default={1, str(1)})
-    member_type: atom.set.Set[Union[builtins.int, builtins.str, main.Z]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.str, main.Z]]
+    member_type: atom.set.Set[builtins.int | builtins.str | main.Z]
+    member_value_type: builtins.set[builtins.int | builtins.str | main.Z]
   - member: Set
     member_instance: Set((int, str, Z), default={1, Z()})
-    member_type: atom.set.Set[Union[builtins.int, builtins.str, main.Z]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.str, main.Z]]
+    member_type: atom.set.Set[builtins.int | builtins.str | main.Z]
+    member_value_type: builtins.set[builtins.int | builtins.str | main.Z]
   - member: Set
     member_instance: Set((int, str, Z), default={str(1), Z()})
-    member_type: atom.set.Set[Union[builtins.int, builtins.str, main.Z]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.str, main.Z]]
+    member_type: atom.set.Set[builtins.int | builtins.str | main.Z]
+    member_value_type: builtins.set[builtins.int | builtins.str | main.Z]
   - member: Set
     member_instance: Set((int, str, Z), default={1, str(1), Z()})
-    member_type: atom.set.Set[Union[builtins.int, builtins.str, main.Z]]
-    member_value_type: builtins.set[Union[builtins.int, builtins.str, main.Z]]
+    member_type: atom.set.Set[builtins.int | builtins.str | main.Z]
+    member_value_type: builtins.set[builtins.int | builtins.str | main.Z]
   - member: Set, Int
     member_instance: Set(Int(), default={2})
     member_type: atom.set.Set[builtins.int]
