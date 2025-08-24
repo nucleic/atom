@@ -156,9 +156,12 @@ def generate_members_from_cls_namespace(
             annotations = namespace["__annotations__"]
         else:
             annotate = annotationlib.get_annotate_from_class_namespace(namespace)
-            annotations = annotationlib.call_annotate_function(
-                annotate, format=annotationlib.Format.FORWARDREF
-            )
+            if annotate is None:
+                annotations = {}
+            else:
+                annotations = annotationlib.call_annotate_function(
+                    annotate, format=annotationlib.Format.FORWARDREF
+                )
     else:
         annotations = namespace.get("__annotations__", {})
 
