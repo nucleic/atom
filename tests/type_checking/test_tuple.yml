@@ -60,32 +60,32 @@
     member_value_type: builtins.tuple[builtins.int | builtins.str, ...]
   - member: Tuple
     member_instance: Tuple((int, str, bytes), default=(1,))
-    member_type: atom.tuple.Tuple[builtins.int | builtins.str |builtins.bytes]
-    member_value_type: builtins.tuple[builtins.int | builtins.str |builtins.bytes, ...]
+    member_type: atom.tuple.Tuple[builtins.int | builtins.str | uiltins.bytes]
+    member_value_type: builtins.tuple[builtins.int | builtins.str | uiltins.bytes, ...]
   - member: Tuple
     member_instance: Tuple((int, str, bytes), default=(str(1),))
-    member_type: atom.tuple.Tuple[builtins.int | builtins.str |builtins.bytes]
-    member_value_type: builtins.tuple[builtins.int | builtins.str |builtins.bytes, ...]
+    member_type: atom.tuple.Tuple[builtins.int | builtins.str | uiltins.bytes]
+    member_value_type: builtins.tuple[builtins.int | builtins.str | uiltins.bytes, ...]
   - member: Tuple
     member_instance: Tuple((int, str, bytes), default=(bytes(1),))
-    member_type: atom.tuple.Tuple[builtins.int | builtins.str |builtins.bytes]
-    member_value_type: builtins.tuple[builtins.int | builtins.str |builtins.bytes, ...]
+    member_type: atom.tuple.Tuple[builtins.int | builtins.str | uiltins.bytes]
+    member_value_type: builtins.tuple[builtins.int | builtins.str | uiltins.bytes, ...]
   - member: Tuple
     member_instance: Tuple((int, str, bytes), default=(1, str(1),))
-    member_type: atom.tuple.Tuple[builtins.int | builtins.str |builtins.bytes]
-    member_value_type: builtins.tuple[builtins.int | builtins.str |builtins.bytes, ...]
+    member_type: atom.tuple.Tuple[builtins.int | builtins.str | uiltins.bytes]
+    member_value_type: builtins.tuple[builtins.int | builtins.str | uiltins.bytes, ...]
   - member: Tuple
     member_instance: Tuple((int, str, bytes), default=(1, bytes(1),))
-    member_type: atom.tuple.Tuple[builtins.int | builtins.str |builtins.bytes]
-    member_value_type: builtins.tuple[builtins.int | builtins.str |builtins.bytes, ...]
+    member_type: atom.tuple.Tuple[builtins.int | builtins.str | uiltins.bytes]
+    member_value_type: builtins.tuple[builtins.int | builtins.str | uiltins.bytes, ...]
   - member: Tuple
     member_instance: Tuple((int, str, bytes), default=(str(1), bytes(1)))
-    member_type: atom.tuple.Tuple[builtins.int | builtins.str |builtins.bytes]
-    member_value_type: builtins.tuple[builtins.int | builtins.str |builtins.bytes, ...]
+    member_type: atom.tuple.Tuple[builtins.int | builtins.str | uiltins.bytes]
+    member_value_type: builtins.tuple[builtins.int | builtins.str | uiltins.bytes, ...]
   - member: Tuple
     member_instance: Tuple((int, str, bytes), default=(1, str(1), bytes(1)))
-    member_type: atom.tuple.Tuple[builtins.int | builtins.str |builtins.bytes]
-    member_value_type: builtins.tuple[builtins.int | builtins.str |builtins.bytes, ...]
+    member_type: atom.tuple.Tuple[builtins.int | builtins.str | uiltins.bytes]
+    member_value_type: builtins.tuple[builtins.int | builtins.str | uiltins.bytes, ...]
   - member: Tuple, Int
     member_instance: Tuple(Int(), default=(2,))
     member_type: atom.tuple.Tuple[builtins.int]
