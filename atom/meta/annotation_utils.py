@@ -157,6 +157,7 @@ def generate_members_from_cls_namespace(
             if "__annotations__" in namespace
             else annotationlib.get_annotate_from_class_namespace(namespace)
         )
+        print(annotations, annotationlib.get_annotate_from_class_namespace(namespace))
     else:
         annotations = namespace["__annotations__"]
 
