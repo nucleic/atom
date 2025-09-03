@@ -173,7 +173,7 @@ def test_set_handler():
     "member, expected, mode",
     [
         (Typed(int, ("101",), {"base": 2}), 5, DefaultValue.CallObject),
-        (Typed(int, factory=lambda: (5)), 5, DefaultValue.CallObject),
+        (Typed(int, factory=lambda: 5), 5, DefaultValue.CallObject),
         (
             ForwardTyped(lambda: int, ("101",), {"base": 2}),
             5,
@@ -181,14 +181,14 @@ def test_set_handler():
         ),
         (ForwardTyped(lambda: int, factory=lambda: (5)), 5, DefaultValue.CallObject),
         (Instance(int, ("101",), {"base": 2}), 5, DefaultValue.CallObject),
-        (Instance(int, factory=lambda: (5)), 5, DefaultValue.CallObject),
+        (Instance(int, factory=lambda: 5), 5, DefaultValue.CallObject),
         (
             ForwardInstance(lambda: int, ("101",), {"base": 2}),
             5,
             DefaultValue.MemberMethod_Object,
         ),
         (
-            ForwardInstance(lambda: int, factory=lambda: (5)),
+            ForwardInstance(lambda: int, factory=lambda: 5),
             5,
             DefaultValue.CallObject,
         ),
