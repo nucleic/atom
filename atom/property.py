@@ -91,7 +91,7 @@ class Property(Member):
         function will still be callable.
 
         """
-        mode, ignored = self.getattr_mode
+        mode, _ignored = self.getattr_mode
         self.set_getattr_mode(mode, func)
         return func
 

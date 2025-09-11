@@ -43,7 +43,7 @@ class Event(Member):
 
         """
         super(Event, self).set_name(name)
-        mode, kind = self.validate_mode
+        _mode, kind = self.validate_mode
         if isinstance(kind, Member):
             kind.set_name(name)
 
@@ -55,6 +55,6 @@ class Event(Member):
 
         """
         super(Event, self).set_index(index)
-        mode, kind = self.validate_mode
+        _mode, kind = self.validate_mode
         if isinstance(kind, Member):
             kind.set_index(index)
