@@ -112,7 +112,7 @@ jobs:
           pip install git+https://github.com/nucleic/cppy@main
       - name: Install project
         env:
-          CPPFLAGS: --coverage
+          CFLAGS: --coverage
         # Build extensions manually to allow getting C coverage data
         run: |
           pip install -e .
