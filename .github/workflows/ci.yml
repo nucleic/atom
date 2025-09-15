@@ -113,9 +113,10 @@ jobs:
       - name: Install project
         env:
           CFLAGS: --coverage
-        # Build extensions manually to allow getting C coverage data
+        # Use legcay command to install the library to be able to measure
+        # coverage of C++ code.
         run: |
-          pip install -e .
+          python setup.py develop
       - name: Test with pytest
         run: |
           pip install -r test_requirements.txt
