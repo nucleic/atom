@@ -172,8 +172,9 @@ EventBinder::New( Member* member, CAtom* atom )
     else
     {
         pybinder = PyType_GenericAlloc( TypeObject, 0 );
-        if( !pybinder )
-            return 0;
+        if( !pybinder ) {
+            return 0;  // LCOV_EXCL_LINE (allocation failed, impossible)
+        }
     }
     Py_INCREF( pyobject_cast( atom ) );
     Py_INCREF( pyobject_cast( member ) );

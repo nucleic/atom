@@ -36,11 +36,11 @@ add_long( cppy::ptr& dict_ptr, const char* name, T value )
     cppy::ptr pyint( PyLong_FromLong( static_cast<long>( value ) ) );
     if( !pyint )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed long creation, impossible)
     }
     if( PyDict_SetItemString( dict_ptr.get(), name, pyint.get() ) != 0 )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed dict insertion, impossible)
     }
     pyint.release(); // Release the reference since the operation succeeded
     return true;
@@ -53,36 +53,36 @@ make_enum( cppy::ptr& enum_cls, const char* name, cppy::ptr& dict_ptr )
     cppy::ptr pyname( PyUnicode_FromString( name ) );
     if( !pyname )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed name creation)
     }
     cppy::ptr pydict( PyDict_Copy( dict_ptr.get() ) );
     if( !pydict )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed dict copy)
     }
     cppy::ptr modname( PyUnicode_FromString( PACKAGE_PREFIX ) );
     if( !modname )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed module name creation)
     }
     cppy::ptr kwargs( PyDict_New() );
     if( !kwargs )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed kwargs creation, impossible)
     }
     if( PyDict_SetItemString( kwargs.get(), "module", modname.get() ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed kwargs insertion, impossible)
     }
     cppy::ptr callargs( PyTuple_Pack( 2, pyname.get(), pydict.get() ) );
     if( !callargs )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed call args creation)
     }
     cppy::ptr enumclass( enum_cls.call( callargs, kwargs ) );
     if( !enumclass )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed enum creation)
     }
     return enumclass.release();
 }
@@ -95,17 +95,17 @@ bool init_enumtypes()
     cppy::ptr intenum_mod( PyImport_ImportModule( "enum" ) );
     if( !intenum_mod )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed to import enum module, impossible)
     }
     cppy::ptr enum_cls( intenum_mod.getattr( "IntEnum" ) );
     if( !enum_cls )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed to load IntEnum class, impossible
     }
     cppy::ptr flag_cls( intenum_mod.getattr( "IntFlag" ) );
     if( !flag_cls )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed to load IntFlag class, impossible
     }
 
     {
@@ -130,7 +130,7 @@ bool init_enumtypes()
         PyGetAttr = make_enum( enum_cls, "GetAttr", dict_ptr );
         if( !PyGetAttr )
         {
-               return false;
+               return false;  // LCOV_EXCL_LINE (enum creation failed, impossible)
         }
     }
 
@@ -157,7 +157,7 @@ bool init_enumtypes()
         PySetAttr = make_enum( enum_cls, "SetAttr", dict_ptr );
         if( !PySetAttr )
         {
-               return false;
+               return false;  // LCOV_EXCL_LINE (enum creation failed, impossible)
         }
     }
 
@@ -179,7 +179,7 @@ bool init_enumtypes()
         PyDelAttr = make_enum( enum_cls, "DelAttr", dict_ptr );
         if( !PyDelAttr )
         {
-               return false;
+               return false;  // LCOV_EXCL_LINE (enum creation failed, impossible)
         }
     }
 
@@ -198,7 +198,7 @@ bool init_enumtypes()
         PyPostGetAttr = make_enum( enum_cls, "PostGetAttr", dict_ptr );
         if( !PyPostGetAttr )
         {
-               return false;
+               return false;  // LCOV_EXCL_LINE (enum creation failed, impossible)
         }
     }
 
@@ -217,7 +217,7 @@ bool init_enumtypes()
         PyPostSetAttr = make_enum( enum_cls, "PostSetAttr", dict_ptr );
         if( !PyPostSetAttr )
         {
-               return false;
+               return false;  // LCOV_EXCL_LINE (enum creation failed, impossible)
         }
     }
 
@@ -245,7 +245,7 @@ bool init_enumtypes()
         PyDefaultValue = make_enum( enum_cls, "DefaultValue", dict_ptr );
         if( !PyDefaultValue )
         {
-               return false;
+               return false;  // LCOV_EXCL_LINE (enum creation failed, impossible)
         }
     }
 
@@ -291,7 +291,7 @@ bool init_enumtypes()
         PyValidate = make_enum( enum_cls, "Validate", dict_ptr );
         if( !PyValidate )
         {
-               return false;
+               return false;  // LCOV_EXCL_LINE (enum creation failed, impossible)
         }
     }
 
@@ -310,7 +310,7 @@ bool init_enumtypes()
         PyPostValidate = make_enum( enum_cls, "PostValidate", dict_ptr );
         if( !PyPostValidate )
         {
-            return false;
+            return false;  // LCOV_EXCL_LINE (enum creation failed, impossible)
         }
     }
 
@@ -331,7 +331,7 @@ bool init_enumtypes()
         PyChangeType = make_enum( flag_cls, "ChangeType", dict_ptr );
         if( !PyChangeType )
         {
-            return false;
+            return false;  // LCOV_EXCL_LINE (enum creation failed, impossible)
         }
     }
 
@@ -351,7 +351,7 @@ bool init_enumtypes()
         PyGetState = make_enum( enum_cls, "GetState", dict_ptr );
         if( !PyGetState )
         {
-            return false;
+            return false;  // LCOV_EXCL_LINE (enum creation failed, impossible)
         }
     }
 

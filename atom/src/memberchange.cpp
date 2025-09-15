@@ -33,23 +33,23 @@ created( CAtom* atom, Member* member, PyObject* value )
     cppy::ptr dict( PyDict_New() );
     if( !dict )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed dict creation)
     }
     if( PyDict_SetItem( dict.get(),  typestr, createstr ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  valuestr, value ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     return dict.release();
 }
@@ -61,27 +61,27 @@ updated( CAtom* atom, Member* member, PyObject* oldvalue, PyObject* newvalue )
     cppy::ptr dict( PyDict_New() );
     if( !dict )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (dict creation failed)
     }
     if( PyDict_SetItem( dict.get(),  typestr, updatestr ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  oldvaluestr, oldvalue ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  valuestr, newvalue ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     return dict.release();
 }
@@ -93,23 +93,23 @@ deleted( CAtom* atom, Member* member, PyObject* value )
     cppy::ptr dict( PyDict_New() );
     if( !dict )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed dict creation)
     }
     if( PyDict_SetItem( dict.get(),  typestr, deletestr ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  valuestr, value ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     return dict.release();
 }
@@ -121,23 +121,23 @@ event( CAtom* atom, Member* member, PyObject* value )
     cppy::ptr dict( PyDict_New() );
     if( !dict )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed dict creation)
     }
     if( PyDict_SetItem( dict.get(),  typestr, eventstr ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  objectstr, pyobject_cast( atom ) ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  namestr, member->name ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     if( PyDict_SetItem( dict.get(),  valuestr, value ) != 0 )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed item setting)
     }
     return dict.release();
 }

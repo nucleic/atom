@@ -29,43 +29,43 @@ bool ready_types()
     using namespace atom;
     if( !AtomList::Ready() )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     if( !AtomCList::Ready() )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     if( !AtomDict::Ready() )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     if( !DefaultAtomDict::Ready() )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     if( !AtomSet::Ready() )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     if( !AtomRef::Ready() )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     if( !Member::Ready() )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     if( !CAtom::Ready() )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     if( !EventBinder::Ready() )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     if( !SignalConnector::Ready() )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     return true;
 }
@@ -78,7 +78,7 @@ bool add_objects( PyObject* mod )
     cppy::ptr atom_list( pyobject_cast( AtomList::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomlist", atom_list.get() ) < 0 )
 	{
-		return false;
+		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
     atom_list.release();
 
@@ -86,7 +86,7 @@ bool add_objects( PyObject* mod )
     cppy::ptr atom_clist( pyobject_cast( AtomCList::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomclist", atom_clist.get() ) < 0 )
 	{
-		return false;
+		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
     atom_clist.release();
 
@@ -94,7 +94,7 @@ bool add_objects( PyObject* mod )
     cppy::ptr atom_dict( pyobject_cast( AtomDict::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomdict", atom_dict.get() ) < 0 )
 	{
-		return false;
+		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
     atom_dict.release();
 
@@ -102,7 +102,7 @@ bool add_objects( PyObject* mod )
     cppy::ptr defaultatom_dict( pyobject_cast( DefaultAtomDict::TypeObject ) );
 	if( PyModule_AddObject( mod, "defaultatomdict", defaultatom_dict.get() ) < 0 )
 	{
-		return false;
+		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
     defaultatom_dict.release();
 
@@ -110,7 +110,7 @@ bool add_objects( PyObject* mod )
     cppy::ptr atom_set( pyobject_cast( AtomSet::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomset", atom_set.get() ) < 0 )
 	{
-		return false;
+		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
     atom_set.release();
 
@@ -118,7 +118,7 @@ bool add_objects( PyObject* mod )
     cppy::ptr atom_ref( pyobject_cast( AtomRef::TypeObject ) );
 	if( PyModule_AddObject( mod, "atomref", atom_ref.get() ) < 0 )
 	{
-		return false;
+		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
     atom_ref.release();
 
@@ -126,7 +126,7 @@ bool add_objects( PyObject* mod )
     cppy::ptr member( pyobject_cast( Member::TypeObject ) );
 	if( PyModule_AddObject( mod, "Member", member.get() ) < 0 )
 	{
-		return false;
+		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
     member.release();
 
@@ -134,7 +134,7 @@ bool add_objects( PyObject* mod )
     cppy::ptr catom( pyobject_cast( CAtom::TypeObject ) );
 	if( PyModule_AddObject( mod, "CAtom", catom.get() ) < 0 )
 	{
-		return false;
+		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
     catom.release();
 
@@ -168,23 +168,23 @@ catom_modexec( PyObject *mod )
 {
     if( !ready_types() )
     {
-        return -1;
+        return -1;  // LCOV_EXCL_LINE (failed type creation)
     }
     if( !atom::init_enumtypes() )
     {
-        return -1;
+        return -1;  // LCOV_EXCL_LINE (failed enum creation)
     }
     if( !atom::init_memberchange() )
     {
-        return -1;
+        return -1;  // LCOV_EXCL_LINE (failed type creation)
     }
     if( !atom::init_containerlistchange() )
     {
-        return -1;
+        return -1;  // LCOV_EXCL_LINE (failed type creation)
     }
     if( !add_objects( mod ) )
     {
-        return -1;
+        return -1;  // LCOV_EXCL_LINE (failed type addition to module)
     }
 
 

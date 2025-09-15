@@ -561,17 +561,17 @@ bool CAtom::Ready()
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     atom_members = PyUnicode_InternFromString( "__atom_members__" );
     if( !atom_members )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed to intern string, impossible)
     }
 
     atom_flags = PyUnicode_InternFromString( "--frozen" );
     if( !atom_flags )
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed to intern string, impossible)
 
     return true;
 }

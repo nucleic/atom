@@ -224,7 +224,7 @@ AtomMethodWrapper::Ready()
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type init)
     }
     return true;
 }
