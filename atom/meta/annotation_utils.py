@@ -8,9 +8,9 @@
 import collections.abc
 import sys
 from collections import defaultdict
-from typing import Any, ClassVar, Literal, MutableMapping, Type
+from typing import Any, ClassVar, Final, Literal, MutableMapping, Type
 
-from ..catom import Member
+from ..catom import Member, SetAttr
 from ..dict import DefaultDict, Dict as ADict
 from ..enum import Enum
 from ..instance import Instance
@@ -44,9 +44,18 @@ def generate_member_from_type_or_generic(
     type_generic: Any, default: Any, annotate_type_containers: int
 ) -> Member:
     """Generate a member from a type or generic alias."""
-    # Here we special case Literal to generate an Enum member.
     types: tuple[type, ...]
-    if get_origin(type_generic) is Literal:
+    origin = get_origin(type_generic)
+    # For final we create the member corresponding to the inner type and set
+    # the access mode as ReadOnly
+    if origin is Final:
+        member = generate_member_from_type_or_generic(
+            get_args(type_generic)[0], default, annotate_type_containers
+        )
+        member.set_setattr_mode(SetAttr.ReadOnly, None)
+        return member
+    # Here we special case Literal to generate an Enum member.
+    elif origin is Literal:
         types = ()
     else:
         types = extract_types(type_generic)
