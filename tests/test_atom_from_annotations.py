@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Copyright (c) 2021-2024, Nucleic Development Team.
+# Copyright (c) 2021-2025, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -8,7 +8,6 @@
 """Test defining an atom class using typing annotations."""
 
 import logging
-import sys
 from collections import defaultdict
 from typing import (
     Any,
@@ -75,9 +74,6 @@ def test_ignore_class_var():
     assert not isinstance(A.a, Member)
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3, 9), reason="Subscription of Members requires Python 3.9+"
-)
 def test_ignore_annotated_member():
     class A(Atom, use_annotations=True):
         a: List[int] = List(default=[1, 2, 3])
@@ -92,9 +88,6 @@ def test_ignore_str_annotated_member():
     assert A().b == [1, 2, 3]
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3, 9), reason="Subscription of Members requires Python 3.9+"
-)
 def test_ignore_annotated_set_default():
     class A(Atom, use_annotations=True):
         a = Value()

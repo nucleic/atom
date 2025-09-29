@@ -1,10 +1,11 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2021-2024, Nucleic Development Team.
+# Copyright (c) 2021-2025, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
+import sys
 from itertools import chain
 from types import GenericAlias, UnionType
 from typing import (
@@ -21,6 +22,13 @@ from typing import (
     get_args,
     get_origin,
 )
+
+if sys.version_info >= (3, 14):
+    import annotationlib
+
+    _INVALID_TYPES = (str, annotationlib.ForwardRef)
+else:
+    _INVALID_TYPES = (str,)
 
 GENERICS = (type(List), type(List[int]), GenericAlias)
 
@@ -76,7 +84,7 @@ class ChangeDict(_ChangeDict, total=False):
 
 def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
     """Extract a tuple of types from a type-like object"""
-    if isinstance(kind, str):
+    if isinstance(kind, _INVALID_TYPES):
         raise TypeError(
             f"Str-based annotations ({kind!r}) are not supported in atom Members."
         )

@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2024, Nucleic Development Team.
+| Copyright (c) 2013-2025, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -172,8 +172,9 @@ EventBinder::New( Member* member, CAtom* atom )
     else
     {
         pybinder = PyType_GenericAlloc( TypeObject, 0 );
-        if( !pybinder )
-            return 0;
+        if( !pybinder ) {
+            return 0;  // LCOV_EXCL_LINE (allocation failed, impossible)
+        }
     }
     Py_INCREF( pyobject_cast( atom ) );
     Py_INCREF( pyobject_cast( member ) );

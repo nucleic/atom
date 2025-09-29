@@ -1,12 +1,11 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021-2024, Nucleic Development Team.
+# Copyright (c) 2021-2025, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
 #------------------------------------------------------------------------------
 - case: member
-  skip: sys.version_info < (3, 9)
   main: |
     from atom.api import Member
 
@@ -15,7 +14,6 @@
     reveal_type(m)  # N: Revealed type is "atom.catom.Member[builtins.int, builtins.str]"
 
 - case: generic_alias_as_type
-  skip: sys.version_info < (3, 9)
   parametrized:
     - member: Typed
       member_instance: Typed(list[int], optional=False)
@@ -31,16 +29,16 @@
       member_value_type: builtins.list[builtins.int]
     - member: Instance
       member_instance: Instance((list[int], int), optional=False)
-      member_type: atom.instance.Instance[Union[builtins.list[builtins.int], builtins.int]]
-      member_value_type: Union[builtins.list[builtins.int], builtins.int]
+      member_type: atom.instance.Instance[builtins.list[builtins.int] | builtins.int]
+      member_value_type: builtins.list[builtins.int] | builtins.int
     - member: ForwardInstance
       member_instance: ForwardInstance(lambda:list[int], optional=False)
       member_type: atom.instance.ForwardInstance[builtins.list[builtins.int]]
       member_value_type: builtins.list[builtins.int]
     - member: ForwardInstance
       member_instance: ForwardInstance(lambda:(list[int], int), optional=False)
-      member_type: atom.instance.ForwardInstance[Union[builtins.list[builtins.int], builtins.int]]
-      member_value_type: Union[builtins.list[builtins.int], builtins.int]
+      member_type: atom.instance.ForwardInstance[builtins.list[builtins.int] | builtins.int]
+      member_value_type: builtins.list[builtins.int] | builtins.int
   main: |
     from atom.api import Atom, {{ member }}
 

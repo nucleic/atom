@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2024, Nucleic Development Team.
+| Copyright (c) 2013-2025, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -290,8 +290,9 @@ SortedMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         return 0;
 
     PyObject* self = PyType_GenericNew( type, 0, 0 );
-    if( !self )
-        return 0;
+    if( !self ) {
+        return 0;  // LCOV_EXCL_LINE (allocation failed, very unlikely)
+    }
     SortedMap* cself = reinterpret_cast<SortedMap*>( self );
     cself->m_items = new SortedMap::Items();
 
@@ -301,8 +302,9 @@ SortedMap_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
         if( PyDict_Check( map ) )
         {
             seq = PyObject_GetIter( PyDict_Items( map ) );
-            if( !seq )
-                return 0;
+            if( !seq ) {
+                return 0;  // LCOV_EXCL_LINE (dict items failed, very unlikely)
+            }
         }
         else
         {
@@ -600,7 +602,7 @@ bool SortedMap::Ready()
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed to create type, very unlikely)
     }
     return true;
 }
@@ -618,13 +620,13 @@ sortedmap_modexec( PyObject *mod )
 {
     if( !SortedMap::Ready() )
     {
-        return -1;
+        return -1;  // LCOV_EXCL_LINE (failed to init type, very unlikely)
     }
 
     cppy::ptr sortedmap( pyobject_cast( SortedMap::TypeObject ) );
 	if( PyModule_AddObject( mod, "sortedmap", sortedmap.get() ) < 0 )
 	{
-		return false;
+		return false;  // LCOV_EXCL_LINE (failed to add type to module, very unlikely)
 	}
     sortedmap.release();
 

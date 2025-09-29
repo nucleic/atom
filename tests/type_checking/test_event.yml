@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021-2024, Nucleic Development Team.
+# Copyright (c) 2021-2025, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -18,10 +18,10 @@
     member_type: atom.event.Event[builtins.int]
   - member: Event
     member_instance: Event((int, float))
-    member_type: atom.event.Event[Union[builtins.int, builtins.float]]
+    member_type: atom.event.Event[builtins.int | builtins.float]
   - member: Event
     member_instance: Event((int, float, str))
-    member_type: atom.event.Event[Union[builtins.int, builtins.float, builtins.str]]
+    member_type: atom.event.Event[builtins.int | builtins.float | builtins.str]
   - member: Event, Int
     member_instance: Event(Int())
     member_type: atom.event.Event[builtins.int]

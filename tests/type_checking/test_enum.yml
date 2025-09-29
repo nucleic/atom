@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021-2024, Nucleic Development Team.
+# Copyright (c) 2021-2025, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -38,6 +38,6 @@
       e4 = e.removed(2)
 
     reveal_type(A.e1)  # N: Revealed type is "atom.enum.Enum[builtins.int]"
-    reveal_type(A.e2)  # N: Revealed type is "atom.enum.Enum[Union[builtins.int, builtins.str]]"
-    reveal_type(A.e3)  # N: Revealed type is "atom.enum.Enum[Union[builtins.int, builtins.str]]"
+    reveal_type(A.e2)  # N: Revealed type is "atom.enum.Enum[builtins.int | builtins.str]"
+    reveal_type(A.e3)  # N: Revealed type is "atom.enum.Enum[builtins.int | builtins.str]"
     reveal_type(A.e4)  # N: Revealed type is "atom.enum.Enum[builtins.int]"

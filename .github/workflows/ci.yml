@@ -24,9 +24,9 @@ jobs:
       matrix:
         python-version: ['3.11']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
@@ -62,13 +62,13 @@ jobs:
       matrix:
         python-version: ['3.10']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -94,15 +94,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14-dev']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Get history and tags for SCM versioning to work
         run: |
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -112,18 +112,19 @@ jobs:
           pip install git+https://github.com/nucleic/cppy@main
       - name: Install project
         env:
-          CPPFLAGS: --coverage
-        # Build extensions manually to allow getting C coverage data
+          CFLAGS: --coverage
+        # Use legcay command to install the library to be able to measure
+        # coverage of C++ code.
         run: |
-          pip install -e .
+          python setup.py develop
       - name: Test with pytest
         run: |
           pip install -r test_requirements.txt
           python -X dev -m pytest tests --ignore=tests/type_checking --cov --cov-report xml -v -W error
-      - name: Generate C++ coverage reports
-        if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
-        run: |
-          bash -c "find . -type f -name '*.gcno' -exec gcov -pb --all-blocks {} +" || true
+      # - name: Generate C++ coverage reports
+      #   if: (github.event_name != 'schedule' && matrix.os != 'windows-latest')
+      #   run: |
+      #     bash -c "find . -type f -name '*.gcno' -exec gcov -pb --all-blocks {} +" || true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:

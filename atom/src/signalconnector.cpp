@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2024, Nucleic Development Team.
+| Copyright (c) 2013-2025, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -186,8 +186,9 @@ SignalConnector::New( atom::Member* member, atom::CAtom* atom )
     else
     {
         pyconnector = PyType_GenericAlloc( SignalConnector::TypeObject, 0 );
-        if( !pyconnector )
-            return 0;
+        if( !pyconnector ) {
+            return 0;  // LCOV_EXCL_LINE (allocation failed, impossible)
+        }
     }
     Py_INCREF( pyobject_cast( atom ) );
     Py_INCREF( pyobject_cast( member ) );

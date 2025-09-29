@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2024, Nucleic Development Team.
+| Copyright (c) 2013-2025, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -34,8 +34,9 @@ PyObject*
 Member_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
     cppy::ptr selfptr( PyType_GenericNew( type, args, kwargs ) );
-    if( !selfptr )
-        return 0;
+    if( !selfptr ) {
+        return 0;  // LCOV_EXCL_LINE (allocation failed, impossible)
+    }
     Member* member = member_cast( selfptr.get() );
     member->name = cppy::incref( undefined );
     member->set_getattr_mode( GetAttr::Slot );
@@ -1151,13 +1152,13 @@ bool Member::Ready()
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (type creation failed, very unlikely)
     }
 
     undefined = PyUnicode_FromString( "<undefined>" );
     if( !undefined )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (string creation failed, very unlikely)
     }
 
     return true;

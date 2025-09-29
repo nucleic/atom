@@ -31,7 +31,7 @@ init_methods()
     update = PyObject_GetAttrString( pyobject_cast( &PySet_Type ),  "update" );
     if( !update )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed to load set 'update' method, impossible)
     }
     return true;
 }
@@ -94,7 +94,7 @@ PyObject* AtomSet_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     cppy::ptr self( PySet_Type.tp_new( type, args, kwargs ) );
 	if( !self )
 	{
-		return 0;
+		return 0;  // LCOV_EXCL_LINE (failed instance creation)
 	}
     atomset_cast( self.get() )->pointer = new CAtomPointer();
     return self.release();
@@ -330,7 +330,7 @@ PyObject* AtomSet::New( CAtom* atom, Member* validator )
     cppy::ptr self( PySet_Type.tp_new( AtomSet::TypeObject, 0, 0 ) );
 	if( !self )
 	{
-		return 0;
+		return 0;  // LCOV_EXCL_LINE (failed instance creation)
 	}
     cppy::xincref( pyobject_cast( validator ) );
     atomset_cast( self.get() )->m_value_validator = validator;
@@ -369,13 +369,13 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 bool AtomSet::Ready()
 {
 	if( !SetMethods::init_methods() ) {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed method lookup, impossible)
     }
     // The reference will be handled by the module to which we will add the type
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type creation)
     }
     return true;
 }

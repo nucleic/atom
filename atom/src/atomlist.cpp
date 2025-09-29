@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2024, Nucleic Development Team.
+| Copyright (c) 2013-2025, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
@@ -41,7 +41,7 @@ namespace ListMethods
             if( strcmp( method->ml_name, name ) == 0 )
                 return method->ml_meth;
         }
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed method lookup)
     }
 
     static bool
@@ -84,17 +84,17 @@ ListSubtype_New( PyTypeObject* subtype, Py_ssize_t size )
     if( size < 0 )
         return cppy::system_error( "negative list size" );
     if( static_cast<size_t>( size ) > PY_SSIZE_T_MAX / sizeof( PyObject* ) )
-        return PyErr_NoMemory();  // LCOV_EXCL_LINE
+        return PyErr_NoMemory();  // LCOV_EXCL_LINE (memory error)
     cppy::ptr ptr( PyType_GenericNew( subtype, 0, 0 ) );
     if( !ptr )
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed instance creation)
     PyListObject* op = reinterpret_cast<PyListObject*>( ptr.get() );
     if( size > 0 )
     {
         size_t nbytes = size * sizeof( PyObject* );
         op->ob_item = reinterpret_cast<PyObject**>( PyMem_Malloc( nbytes ) );
         if( !op->ob_item )
-            return PyErr_NoMemory();  // LCOV_EXCL_LINE
+            return PyErr_NoMemory();  // LCOV_EXCL_LINE (memory error)
         memset( op->ob_item, 0, nbytes );
     }
 #if PY_VERSION_HEX >= 0x03090000
@@ -128,7 +128,7 @@ public:
             return 0;
         if( PyList_Append( m_list.get(), item.get() ) != 0 )
         {
-            return 0;
+            return 0;  // LCOV_EXCL_LINE (failed append, impossible)
         }
         return cppy::incref( Py_None );
     }
@@ -144,7 +144,7 @@ public:
             return 0;
         if( PyList_Insert( m_list.get(), index, valptr.get() ) != 0)
         {
-            return 0;
+            return 0;  // LCOV_EXCL_LINE (failed insert, impossible)
         }
         return cppy::incref( Py_None );
 
@@ -272,7 +272,7 @@ AtomList_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
     cppy::ptr ptr( PyList_Type.tp_new( type, args, kwargs ) );
     if( !ptr )
     {
-        return 0;
+        return 0;  // LCOV_EXCL_LINE (failed instance creation)
     }
     atomlist_cast( ptr.get() )->pointer = new CAtomPointer();
     return ptr.release();
@@ -439,13 +439,13 @@ AtomList::New( Py_ssize_t size, CAtom* atom, Member* validator )
 bool AtomList::Ready()
 {
     if( !ListMethods::init_methods() ) {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed method lookup, impossible)
     }
     // The reference will be handled by the module to which we will add the type
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type creation)
     }
     return true;
 }
@@ -497,122 +497,122 @@ init_containerlistchange()
     PySStr::typestr = PyUnicode_InternFromString( "type" );
     if( !PySStr::typestr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::namestr = PyUnicode_InternFromString( "name" );
     if( !PySStr::namestr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::objectstr = PyUnicode_InternFromString( "object" );
     if( !PySStr::objectstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::valuestr = PyUnicode_InternFromString( "value" );
     if( !PySStr::valuestr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::operationstr = PyUnicode_InternFromString( "operation" );
     if( !PySStr::operationstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::itemstr = PyUnicode_InternFromString( "item" );
     if( !PySStr::itemstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::itemsstr = PyUnicode_InternFromString( "items" );
     if( !PySStr::itemsstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::indexstr = PyUnicode_InternFromString( "index" );
     if( !PySStr::indexstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::keystr = PyUnicode_InternFromString( "key" );
     if( !PySStr::keystr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::reversestr = PyUnicode_InternFromString( "reverse" );
     if( !PySStr::reversestr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::containerstr = PyUnicode_InternFromString( "container" );
     if( !PySStr::containerstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::__delitem__str = PyUnicode_InternFromString( "__delitem__" );
     if( !PySStr::typestr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::__iadd__str = PyUnicode_InternFromString( "__iadd__" );
     if( !PySStr::__iadd__str )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::__imul__str = PyUnicode_InternFromString( "__imul__" );
     if( !PySStr::__imul__str )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::__setitem__str = PyUnicode_InternFromString( "__setitem__" );
     if( !PySStr::__setitem__str )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::appendstr = PyUnicode_InternFromString( "append" );
     if( !PySStr::appendstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::extendstr = PyUnicode_InternFromString( "extend" );
     if( !PySStr::extendstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::insertstr = PyUnicode_InternFromString( "insert" );
     if( !PySStr::insertstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::popstr = PyUnicode_InternFromString( "pop" );
     if( !PySStr::popstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::removestr = PyUnicode_InternFromString( "remove" );
     if( !PySStr::removestr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::sortstr = PyUnicode_InternFromString( "sort" );
     if( !PySStr::sortstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::olditemstr = PyUnicode_InternFromString( "olditem" );
     if( !PySStr::olditemstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::newitemstr = PyUnicode_InternFromString( "newitem" );
     if( !PySStr::newitemstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::countstr = PyUnicode_InternFromString( "count" );
     if( !PySStr::countstr )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     alloced = true;
     return true;
@@ -1205,7 +1205,7 @@ bool AtomCList::Ready()
     // Ensure the parent type was created
     if( !AtomList::TypeObject )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (parent type not created, impossible)
     }
     AtomCList_Type_slots[0].pfunc = void_cast( AtomList::TypeObject );
 
@@ -1213,7 +1213,7 @@ bool AtomCList::Ready()
 	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
     if( !TypeObject )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type creation)
     }
     return true;
 }

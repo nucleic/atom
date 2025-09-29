@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2024, Nucleic Development Team.
+# Copyright (c) 2013-2025, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -8,7 +8,6 @@
 import gc
 from collections import Counter
 from pickle import dumps, loads
-from sys import version_info
 
 import pytest
 
@@ -105,10 +104,7 @@ def test_list_traversal(model, kind):
     if kind == "typed":
         referents.append(getattr(model, kind).item)
     referents.append(m)
-    # Under Python 3.9+ heap allocated type instance keep a reference to the
-    # type
-    if version_info >= (3, 9):
-        referents.append(atomclist if model is CyclicContainerModel else atomlist)
+    referents.append(atomclist if model is CyclicContainerModel else atomlist)
 
     assert Counter(gc.get_referents(l1)) == Counter(referents)
 

@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------------------------------
-# Copyright (c) 2013-2024, Nucleic Development Team.
+# Copyright (c) 2013-2025, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -100,7 +100,7 @@ def c(x: object) -> int:
         (ReadOnly(int), [1], [1], [1.0]),
         (Bool(), [True, False], [True, False], "r"),
         (Int(strict=True), [1], [1], [1.0]),
-        (Int(strict=False), [1, 1.0, int(1)], 3 * [1], ["a"]),
+        (Int(strict=False), [1, 1.0, (1)], 3 * [1], ["a"]),
         (Range(0, 2), [0, 2], [0, 2], [-1, 3, ""]),
         (Range(2, 0), [0, 2], [0, 2], [-1, 3]),
         (Range(0), [0, 3], [0, 3], [-1]),
@@ -111,7 +111,7 @@ def c(x: object) -> int:
             [sys.maxsize, sys.maxsize + 2],
             [sys.maxsize - 1, sys.maxsize + 3],
         ),
-        (Float(), [1, int(1), 1.1], [1.0, 1.0, 1.1], [""]),
+        (Float(), [1, (1), 1.1], [1.0, 1.0, 1.1], [""]),
         (Float(strict=True), [1.1], [1.1], [1]),
         (FloatRange(0.0, 0.5), [0.0, 0.5], [0.0, 0.5], [-0.1, 0.6]),
         (FloatRange(0.5, 0.0), [0.0, 0.5], [0.0, 0.5], [-0.1, 0.6]),

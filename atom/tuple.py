@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2024, Nucleic Development Team.
+# Copyright (c) 2013-2025, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -75,7 +75,7 @@ class Tuple(Member):
         item = self.item
         if item is not None:
             clone.item = item_clone = item.clone()
-            mode, ctxt = self.validate_mode
+            mode, _ctxt = self.validate_mode
             clone.set_validate_mode(mode, item_clone)
         else:
             clone.item = None

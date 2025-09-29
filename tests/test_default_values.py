@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------
-# Copyright (c) 2013-2024, Nucleic Development Team.
+# Copyright (c) 2013-2025, Nucleic Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -173,22 +173,22 @@ def test_set_handler():
     "member, expected, mode",
     [
         (Typed(int, ("101",), {"base": 2}), 5, DefaultValue.CallObject),
-        (Typed(int, factory=lambda: int(5)), 5, DefaultValue.CallObject),
+        (Typed(int, factory=lambda: 5), 5, DefaultValue.CallObject),
         (
             ForwardTyped(lambda: int, ("101",), {"base": 2}),
             5,
             DefaultValue.MemberMethod_Object,
         ),
-        (ForwardTyped(lambda: int, factory=lambda: int(5)), 5, DefaultValue.CallObject),
+        (ForwardTyped(lambda: int, factory=lambda: (5)), 5, DefaultValue.CallObject),
         (Instance(int, ("101",), {"base": 2}), 5, DefaultValue.CallObject),
-        (Instance(int, factory=lambda: int(5)), 5, DefaultValue.CallObject),
+        (Instance(int, factory=lambda: 5), 5, DefaultValue.CallObject),
         (
             ForwardInstance(lambda: int, ("101",), {"base": 2}),
             5,
             DefaultValue.MemberMethod_Object,
         ),
         (
-            ForwardInstance(lambda: int, factory=lambda: int(5)),
+            ForwardInstance(lambda: int, factory=lambda: 5),
             5,
             DefaultValue.CallObject,
         ),

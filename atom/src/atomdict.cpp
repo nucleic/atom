@@ -84,7 +84,7 @@ PyObject* AtomDict_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 	cppy::ptr self( PyDict_Type.tp_new( type, args, kwargs ) );
 	if( !self )
 	{
-		return 0;
+		return 0;  // LCOV_EXCL_LINE (failed instance creation)
 	}
     atomdict_cast( self.get() )->pointer = new CAtomPointer();
     return self.release();
@@ -437,7 +437,7 @@ PyObject* DefaultAtomDict::New( CAtom* atom, Member* key_validator, Member* valu
     cppy::ptr self( PyDict_Type.tp_new( DefaultAtomDict::TypeObject, 0, 0 ) );
 	if( !self )
 	{
-		return 0;
+		return 0;  // LCOV_EXCL_LINE (failed instance creation)
 	}
     cppy::xincref( pyobject_cast( key_validator ) );
     atomdict_cast( self.get() )->m_key_validator = key_validator;
@@ -462,7 +462,7 @@ bool DefaultAtomDict::Ready()
 	);
     if( !TypeObject )
     {
-        return false;
+        return false;  // LCOV_EXCL_LINE (failed type creation)
     }
     return true;
 }
