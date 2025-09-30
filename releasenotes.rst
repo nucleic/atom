@@ -4,6 +4,9 @@ Atom Release Notes
 0.12.0 - unreleased
 -------------------
 
+- add support for Python 3.14 PR #219
+- support for Final in member annotations, which sets the member setattr mode
+  as read-only PR #249
 - support for NewType instances in all places in which a type is accepted PR #218
 
 0.11.0 - 27/10/2024

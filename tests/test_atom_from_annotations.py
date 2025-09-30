@@ -15,6 +15,7 @@ from typing import (
     ClassVar,
     DefaultDict as TDefaultDict,
     Dict as TDict,
+    Final,
     Iterable,
     List as TList,
     Literal,
@@ -44,6 +45,7 @@ from atom.api import (
     List,
     Member,
     Set,
+    SetAttr,
     Str,
     Subclass,
     Tuple,
@@ -135,6 +137,7 @@ def test_reject_non_member_annotated_set_default():
             a: int = set_default(1)
 
 
+@pytest.mark.parametrize("final", [True, False])
 @pytest.mark.parametrize(
     "annotation, member",
     [
@@ -154,9 +157,14 @@ def test_reject_non_member_annotated_set_default():
         (Literal[1, 2, "a"], Enum),
     ],
 )
-def test_annotation_use(annotation, member):
+def test_annotation_use(final, annotation, member):
+    if final:
+        ann = Final[annotation]
+    else:
+        ann = annotation
+
     class A(Atom, use_annotations=True):
-        a: annotation
+        a: ann
 
     assert isinstance(A.a, member)
     if member is Typed:
@@ -173,7 +181,11 @@ def test_annotation_use(annotation, member):
     else:
         assert A.a.default_value_mode == member().default_value_mode
 
+    if final:
+        assert A.a.setattr_mode[0] is SetAttr.ReadOnly
 
+
+@pytest.mark.parametrize("final", [True, False])
 @pytest.mark.parametrize(
     "annotation, member, validate_mode",
     [
@@ -182,14 +194,21 @@ def test_annotation_use(annotation, member):
         (int | str, Instance, (int, str)),
     ],
 )
-def test_union_in_annotation(annotation, member, validate_mode):
+def test_union_in_annotation(final, annotation, member, validate_mode):
+    if final:
+        annotation = Final[annotation]
+
     class A(Atom, use_annotations=True):
         a: annotation
 
     assert isinstance(A.a, member)
     assert A.a.validate_mode[1] == validate_mode
 
+    if final:
+        assert A.a.setattr_mode[0] is SetAttr.ReadOnly
 
+
+@pytest.mark.parametrize("final", [True, False])
 @pytest.mark.parametrize(
     "annotation, member, depth",
     [
@@ -236,9 +255,14 @@ def test_union_in_annotation(annotation, member, validate_mode):
         ),
     ],
 )
-def test_annotated_containers_no_default(annotation, member, depth):
+def test_annotated_containers_no_default(final, annotation, member, depth):
+    if final:
+        ann = Final[annotation]
+    else:
+        ann = annotation
+
     class A(Atom, use_annotations=True, type_containers=depth):
-        a: annotation
+        a: ann
 
     assert isinstance(A.a, type(member))
     if depth == 0:
@@ -270,7 +294,11 @@ def test_annotated_containers_no_default(annotation, member, depth):
             if isinstance(member.item, List):
                 assert type(A.a.item.item) is type(member.item.item)
 
+    if final:
+        assert A.a.setattr_mode[0] is SetAttr.ReadOnly
 
+
+@pytest.mark.parametrize("final", [True, False])
 @pytest.mark.parametrize(
     "annotation, member, default",
     [
@@ -298,9 +326,14 @@ def test_annotated_containers_no_default(annotation, member, depth):
         (Literal[1, 2, "a"], Enum, 2),
     ],
 )
-def test_annotations_with_default(annotation, member, default):
+def test_annotations_with_default(final, annotation, member, default):
+    if final:
+        ann = Final[annotation]
+    else:
+        ann = annotation
+
     class A(Atom, use_annotations=True):
-        a: annotation = default
+        a: ann = default
 
     assert isinstance(A.a, member)
     if member is Subclass:
@@ -309,6 +342,9 @@ def test_annotations_with_default(annotation, member, default):
         assert A.a.default_value_mode[1] == default
     elif member is not Instance:
         assert A.a.default_value_mode == member(default=default).default_value_mode
+
+    if final:
+        assert A.a.setattr_mode[0] is SetAttr.ReadOnly
 
 
 def test_annotations_no_default_for_instance():
