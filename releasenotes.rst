@@ -1,6 +1,11 @@
 Atom Release Notes
 ==================
 
+0.12.1 - 02/10/2025
+-------------------
+
+Identical to 0.12.0, this release is only to fix a release process issue.
+
 0.12.0 - 02/10/2025
 -------------------
 
