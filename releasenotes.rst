@@ -1,7 +1,7 @@
 Atom Release Notes
 ==================
 
-0.12.0 - unreleased
+0.12.0 - 02/10/2025
 -------------------
 
 - remove version_info attribute from version.py
