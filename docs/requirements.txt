@@ -1,4 +1,5 @@
 sphinx>=5
 sphinx-rtd-theme>=1
 graphviz
+packaging
 git+https://github.com/nucleic/cppy@main

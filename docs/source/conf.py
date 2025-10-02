@@ -15,10 +15,12 @@
 import os
 import sys
 
+from packaging.version import parse
+
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath("../"))
 
-from atom.version import version_info
+from atom.version import __version__
 
 # -- Project information -----------------------------------------------------
 
@@ -27,9 +29,10 @@ copyright = "2013-2025, Nucleic Development Team"
 author = "Nucleic Development Team"
 
 # The short X.Y version.
-version = "{}.{}.{}".format(*version_info)
+_v = parse(__version__)
+version = "{}.{}".format(_v.major, _v.minor)
 # The full version, including alpha/beta/rc tags.
-release = "{}.{}.{}".format(*version_info)
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
