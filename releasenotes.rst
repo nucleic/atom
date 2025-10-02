@@ -4,6 +4,7 @@ Atom Release Notes
 0.12.0 - unreleased
 -------------------
 
+- remove version_info attribute from version.py
 - add support for Python 3.14 PR #219
 - support for Final in member annotations, which sets the member setattr mode
   as read-only PR #249
