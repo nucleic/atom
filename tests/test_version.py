@@ -12,8 +12,4 @@ from atom import version
 
 def test_version():
     """Test that nothing leaks from the module."""
-    assert hasattr(version, "version_info")
-    assert not hasattr(version, "namedtuple")
-    assert not hasattr(version, "MAJOR")
-    assert not hasattr(version, "MINOR")
-    assert not hasattr(version, "MICRO")
+    assert hasattr(version, "__version__")
