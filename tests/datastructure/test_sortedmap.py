@@ -8,6 +8,7 @@
 """Test the sortedmap that acts like an ordered dictionary."""
 
 import gc
+import sys
 
 import pytest
 
@@ -33,12 +34,52 @@ def test_sortedmap_init():
     assert smap.items() == [(1, 2)]
     smap = sortedmap({1: 2})
     assert smap.items() == [(1, 2)]
+    copy = sortedmap(smap)
+    assert copy.items() == [(1, 2)]
 
     with pytest.raises(TypeError):
         sortedmap(1)
+    with pytest.raises(TypeError):
+        sortedmap(a=1)
+    with pytest.raises(TypeError):
+        sortedmap(1, 2)
     with pytest.raises(TypeError) as excinfo:
         sortedmap([1])
-    assert "pairs" in excinfo.exconly()
+    assert "sequence of key, value pairs" in excinfo.exconly()
+    with pytest.raises(TypeError) as excinfo:
+        sortedmap([[1]])
+    assert "pairs of objects" in excinfo.exconly()
+
+
+def test_sortedmap_gen_err():
+    """Test that iterator error is raised"""
+
+    def generator(throw):
+        yield ("a", 1)
+        if throw:
+            raise ValueError()
+
+    smap = sortedmap(generator(throw=False))
+    assert smap["a"] == 1
+    with pytest.raises(ValueError):
+        smap = sortedmap(generator(throw=True))
+
+
+def test_sortedmap_refcnt():
+    """Test that constructor does not leak references"""
+    k = object()
+    v = object()
+    rck = sys.getrefcount(k)
+    rcv = sys.getrefcount(v)
+    smap = sortedmap([(k, v)])
+    assert smap[k] == v
+    del smap
+    smap = sortedmap({k: v})
+    assert smap[k] == v
+    del smap
+    gc.collect()
+    assert sys.getrefcount(k) == rck
+    assert sys.getrefcount(v) == rcv
 
 
 def test_traverse():
