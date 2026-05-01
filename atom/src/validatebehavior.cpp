@@ -881,23 +881,37 @@ range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
     PyObject* high = PyTuple_GET_ITEM( member->validate_context, 1 );
     if( low != Py_None )
     {
-        if( PyObject_RichCompareBool( low , newvalue, Py_GT ) )
+        switch (PyObject_RichCompareBool( low , newvalue, Py_GT ))
+        {
+        case 0:
+            break;
+        case 1:
             return  PyErr_Format(
                 PyExc_ValueError,
                 "range value for '%s' of '%s' too small",
                 PyUnicode_AsUTF8( member->name ),
                 Py_TYPE( pyobject_cast( atom ) )->tp_name
             );
+        default:
+            return 0;
+        }
     }
     if( high != Py_None )
     {
-        if( PyObject_RichCompareBool( high , newvalue, Py_LT ) )
+        switch( PyObject_RichCompareBool( high , newvalue, Py_LT ) )
+        {
+        case 0:
+            break;
+        case 1:
             return  PyErr_Format(
                 PyExc_ValueError,
                 "range value for '%s' of '%s' too large",
                 PyUnicode_AsUTF8( member->name ),
                 Py_TYPE( pyobject_cast( atom ) )->tp_name
             );
+        default:
+            return 0;
+        }
     }
     return cppy::incref( newvalue );
 }
