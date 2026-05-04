@@ -27,9 +27,11 @@ namespace
 void
 MethodWrapper_dealloc( MethodWrapper* self )
 {
+    PyTypeObject *tp = Py_TYPE( self );
     Py_CLEAR( self->im_selfref );
     Py_CLEAR( self->im_func );
-    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
+    tp->tp_free( pyobject_cast( self ) );
+    Py_DECREF( tp );
 }
 
 
@@ -133,10 +135,12 @@ namespace
 void
 AtomMethodWrapper_dealloc( AtomMethodWrapper* self )
 {
+    PyTypeObject *tp = Py_TYPE( self );
     Py_CLEAR( self->im_func );
     // manual destructor since Python malloc'd and zero'd the struct
     self->pointer.~CAtomPointer();
-    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
+    tp->tp_free( pyobject_cast( self ) );
+    Py_DECREF( tp );
 }
 
 
@@ -210,7 +214,7 @@ PyTypeObject* AtomMethodWrapper::TypeObject = NULL;
 
 PyType_Spec AtomMethodWrapper::TypeObject_Spec = {
 	PACKAGE_TYPENAME( "AtomMethodWrapper" ),             /* tp_name */
-	sizeof( MethodWrapper ),                         /* tp_basicsize */
+	sizeof( AtomMethodWrapper ),                         /* tp_basicsize */
 	0,                                               /* tp_itemsize */
 	Py_TPFLAGS_DEFAULT,                              /* tp_flags */
     AtomMethodWrapper_Type_slots                           /* slots */
