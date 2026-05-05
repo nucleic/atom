@@ -179,7 +179,7 @@ def test_set_handler():
             5,
             DefaultValue.MemberMethod_Object,
         ),
-        (ForwardTyped(lambda: int, factory=lambda: (5)), 5, DefaultValue.CallObject),
+        (ForwardTyped(lambda: int, factory=lambda: 5), 5, DefaultValue.CallObject),
         (Instance(int, ("101",), {"base": 2}), 5, DefaultValue.CallObject),
         (Instance(int, factory=lambda: 5), 5, DefaultValue.CallObject),
         (
