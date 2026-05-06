@@ -160,6 +160,28 @@ def test_enforce_read_only_cached_property():
         p.setter(set)
 
 
+def test_cached_property_error():
+    """Test using a cached property that returns an error."""
+    v = 0
+
+    class Obj(Atom):
+        def _get_x(self):
+            nonlocal v
+            v += 1
+            if v & 1:
+                raise ValueError("get_x failed!")
+            return v
+
+        x = Property(_get_x, cached=True)
+
+    o = Obj()
+    with pytest.raises(ValueError) as excinfo:
+        o.x  # This puts null in the slot
+    assert "get_x failed" in excinfo.exconly()
+    assert o.x == 2
+    assert o.x == 2
+
+
 def test_observed_property():
     """Test observing a property."""
 
