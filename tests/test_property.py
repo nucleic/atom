@@ -178,7 +178,8 @@ def test_cached_property_error():
     with pytest.raises(ValueError) as excinfo:
         o.x  # This puts null in the slot
     assert "get_x failed" in excinfo.exconly()
-    assert o.x == v
+    assert o.x == 2
+    assert o.x == 2
 
 
 def test_observed_property():
