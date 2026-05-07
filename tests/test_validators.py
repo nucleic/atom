@@ -434,3 +434,28 @@ def test_custom_validate(mode, factory):
     with pytest.raises(TypeError) as excinfo:
         type(v).v.set_validate_mode(getattr(Validate, mode), 1)
     assert "str" in excinfo.exconly()
+
+
+def test_validate_range_error():
+    class CustomInt(int):
+        def __gt__(self, other):
+            raise TypeError("Cannot be compared")
+
+        def __lt__(self, other):
+            raise TypeError("Cannot be compared")
+
+    class Obj(Atom):
+        x = Range(low=0)
+        y = Range(high=10)
+
+    o = Obj()
+    o.x = 1
+    o.y = 9
+    with pytest.raises(ValueError):
+        o.x = -1
+    with pytest.raises(ValueError):
+        o.y = 11
+    with pytest.raises(TypeError):
+        o.x = CustomInt(-1)
+    with pytest.raises(TypeError):
+        o.y = CustomInt(11)
