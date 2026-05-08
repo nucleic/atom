@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 import gc
+import sys
 from collections import Counter
 from pickle import dumps, loads
 
@@ -649,3 +650,35 @@ def test_container_repeat(container_model, kind):
     for change in (container_model.change, container_model.get_static_change(kind)):
         assert change["operation"] == "__imul__"
         assert change["count"] == 2
+
+
+def test_insert_args():
+    class Obj(Atom):
+        items = List()
+
+    obj = Obj()
+    with pytest.raises(TypeError):
+        obj.items.insert(None, None)
+    with pytest.raises(TypeError):
+        obj.items.insert(0, None, None)
+    with pytest.raises(OverflowError):
+        obj.items.insert(2**64 + 1, 0)
+
+
+def test_validate_seq_refcnt():
+    class Item(Atom):
+        name = Value()
+
+    class Obj(Atom):
+        items = List(Item)
+
+    a = Item(name="a")
+    b = Item(name="b")
+    rca = sys.getrefcount(a)
+    rcb = sys.getrefcount(b)
+    obj = Obj()
+    obj.items.extend([a, b])
+    del obj
+    gc.collect()
+    assert sys.getrefcount(a) == rca
+    assert sys.getrefcount(b) == rcb
