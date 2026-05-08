@@ -9,7 +9,7 @@
 
 import pytest
 
-from atom.api import Atom, Dict, Int, List, atomdict, atomlist
+from atom.api import Atom, Coerced, Dict, Int, List, atomdict, atomlist
 
 
 @pytest.fixture
@@ -186,3 +186,13 @@ def test_update(atom_dict):
         atom_dict.fullytyped.update({"": 1})
     with pytest.raises(TypeError):
         atom_dict.fullytyped.update({"": ""})
+
+
+def test_coerced_setdefault():
+    class Obj(Atom):
+        items = Dict(key=Coerced(str))
+
+    o = Obj()
+    o.items["1"] = "a"
+    o.items.setdefault(1, "b")  # key 1 gets coerced to '1'
+    assert o.items["1"] == "a"
