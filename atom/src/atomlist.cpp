@@ -97,11 +97,7 @@ ListSubtype_New( PyTypeObject* subtype, Py_ssize_t size )
             return PyErr_NoMemory();  // LCOV_EXCL_LINE (memory error)
         memset( op->ob_item, 0, nbytes );
     }
-#if PY_VERSION_HEX >= 0x03090000
     Py_SET_SIZE( op, size );
-#else
-    Py_SIZE( op ) = size;
-#endif
     op->allocated = size;
     return ptr.release();
 }
@@ -133,12 +129,14 @@ public:
         return cppy::incref( Py_None );
     }
 
-    PyObject* insert( PyObject* args )
+    PyObject* insert( PyObject*const *args, Py_ssize_t nargsf )
     {
-        Py_ssize_t index;
-        PyObject* value;
-        if( !PyArg_ParseTuple( args, "nO:insert", &index, &value ) )
-            return 0;
+        if ( PyVectorcall_NARGS(nargsf) != 2 || !PyLong_Check( args[0] ) )
+            return cppy::type_error("signature is insert(index: int, value: Any)");
+        Py_ssize_t index = PyLong_AsSsize_t( args[0] );
+        if ( PyErr_Occurred() )
+            return 0; // out of range
+        PyObject* value = args[1];
         cppy::ptr valptr( validate_single( value ) );
         if( !valptr )
             return 0;
@@ -248,7 +246,10 @@ protected:
                     PyObject* val = vd->full_validate( atm, Py_None, b );
                     if( !val )
                         return 0;
-                    PyList_SET_ITEM( templist.get(), i, cppy::incref( val ) );
+                    PyList_SET_ITEM( templist.get(), i, val );
+                    // b is a borrowed reference but PyList_SET_ITEM does not decrement
+                    // the refcount of the replaced object so it must be released here
+                    Py_DECREF( b );
                 }
                 item = templist;
             }
@@ -288,11 +289,7 @@ int AtomList_clear( AtomList* self )
 int AtomList_traverse( AtomList* self, visitproc visit, void* arg )
 {
 	Py_VISIT( self->validator );
-#if PY_VERSION_HEX >= 0x03090000
-    // This was not needed before Python 3.9 (Python issue 35810 and 40217)
     Py_VISIT(Py_TYPE(self));
-#endif
-    // PyList_type is not heap allocated so it does visit the type
 	return PyList_Type.tp_traverse( pyobject_cast( self ), visit, arg );
 }
 
@@ -315,9 +312,9 @@ AtomList_append( AtomList* self, PyObject* value )
 
 
 PyObject*
-AtomList_insert( AtomList* self, PyObject* args )
+AtomList_insert( AtomList* self, PyObject*const *args, Py_ssize_t nargsf )
 {
-    return AtomListHandler( self ).insert( args );
+    return AtomListHandler( self ).insert( args, nargsf );
 }
 
 
@@ -384,7 +381,7 @@ PyDoc_STRVAR( a_extend_doc,
 
 static PyMethodDef AtomList_methods[] = {
     { "append", ( PyCFunction )AtomList_append, METH_O, a_append_doc },
-    { "insert", ( PyCFunction )AtomList_insert, METH_VARARGS, a_insert_doc },
+    { "insert", ( PyCFunction )AtomList_insert, METH_FASTCALL, a_insert_doc },
     { "extend", ( PyCFunction )AtomList_extend, METH_O, a_extend_doc },
     { "__reduce_ex__", ( PyCFunction )AtomList_reduce_ex, METH_O, "" },
     { 0 }  /* sentinel */
@@ -550,7 +547,7 @@ init_containerlistchange()
         return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
     PySStr::__delitem__str = PyUnicode_InternFromString( "__delitem__" );
-    if( !PySStr::typestr )
+    if( !PySStr::__delitem__str )
     {
         return false;  // LCOV_EXCL_LINE (failed interned string creation)
     }
@@ -664,10 +661,10 @@ public:
         return res.release();
     }
 
-    PyObject* insert( PyObject* args )
+    PyObject* insert( PyObject*const *args, Py_ssize_t nargsf )
     {
         Py_ssize_t size = PyList_GET_SIZE( m_list.get() );
-        cppy::ptr res( AtomListHandler::insert( args ) );
+        cppy::ptr res( AtomListHandler::insert( args, nargsf ) );
         if( !res )
             return 0;
         if( observer_check() )
@@ -678,10 +675,10 @@ public:
             if( PyDict_SetItem( c.get(), PySStr::operationstr, PySStr::insertstr ) != 0 )
                 return 0;
             // if the superclass call succeeds, then this is safe.
-            Py_ssize_t where = PyLong_AsSsize_t( PyTuple_GET_ITEM( args, 0 ) );
+            PyObject* index = args[0];
+            Py_ssize_t where = PyLong_AsSsize_t( index );
             clip_index( where, size );
-            cppy::ptr index( PyLong_FromSsize_t( where ) );
-            if( PyDict_SetItem( c.get(), PySStr::indexstr, index.get() ) != 0 )
+            if( PyDict_SetItem( c.get(), PySStr::indexstr, index ) != 0 )
                 return 0;
             if( PyDict_SetItem( c.get(), PySStr::itemstr, m_validated.get() ) != 0)
                 return 0;
@@ -711,12 +708,11 @@ public:
         return res.release();
     }
 
-    PyObject* pop( PyObject* args )
+    PyObject* pop( PyObject*const *args, Py_ssize_t nargsf )
     {
         Py_ssize_t size = PyList_GET_SIZE( m_list.get() );
-        int nargs = (int)PyTuple_GET_SIZE( args);
-        PyObject **stack = &PyTuple_GET_ITEM(args, 0);
-        cppy::ptr res( ListMethods::pop( m_list.get(), stack, nargs ) );
+        const int nargs = PyVectorcall_NARGS(nargsf);
+        cppy::ptr res( ListMethods::pop( m_list.get(), args, nargs ) );
         if( !res )
             return 0;
         if( observer_check() )
@@ -728,11 +724,13 @@ public:
                 return 0;
             // if the superclass call succeeds, then this is safe.
             Py_ssize_t i = -1;
-            if( PyTuple_GET_SIZE( args ) == 1 )
-                i = PyLong_AsSsize_t( PyTuple_GET_ITEM( args, 0 ) );
+            if( nargs == 1 )
+                i = PyLong_AsSsize_t( args[0] );
             if( i < 0 )
                 i += size;
             cppy::ptr index( PyLong_FromSsize_t( i ) );
+            if ( !index )
+                return 0; // LCOV_EXCL_LINE
             if( PyDict_SetItem( c.get(), PySStr::indexstr, index.get() ) != 0 )
                 return 0;
             if( PyDict_SetItem( c.get(), PySStr::itemstr, res.get() ) != 0 )
@@ -1053,9 +1051,9 @@ AtomCList_append( AtomCList* self, PyObject* value )
 
 
 PyObject*
-AtomCList_insert( AtomCList* self, PyObject* args )
+AtomCList_insert( AtomCList* self, PyObject*const *args, Py_ssize_t nargsf )
 {
-    return AtomCListHandler( self ).insert( args );
+    return AtomCListHandler( self ).insert( args, nargsf );
 }
 
 
@@ -1067,9 +1065,9 @@ AtomCList_extend( AtomCList* self, PyObject* value )
 
 
 PyObject*
-AtomCList_pop( AtomCList* self, PyObject* args )
+AtomCList_pop( AtomCList* self, PyObject*const *args, Py_ssize_t nargsf )
 {
-    return AtomCListHandler( self ).pop( args );
+    return AtomCListHandler( self ).pop( args, nargsf );
 }
 
 
@@ -1144,9 +1142,9 @@ cmp(x, y) -> -1, 0, 1");
 static PyMethodDef
 AtomCList_methods[] = {
     { "append", ( PyCFunction )AtomCList_append, METH_O, c_append_doc },
-    { "insert", ( PyCFunction )AtomCList_insert, METH_VARARGS, c_insert_doc },
+    { "insert", ( PyCFunction )AtomCList_insert, METH_FASTCALL, c_insert_doc },
     { "extend", ( PyCFunction )AtomCList_extend, METH_O, c_extend_doc },
-    { "pop", ( PyCFunction )AtomCList_pop, METH_VARARGS, c_pop_doc },
+    { "pop", ( PyCFunction )AtomCList_pop, METH_FASTCALL, c_pop_doc },
     { "remove", ( PyCFunction )AtomCList_remove, METH_O, c_remove_doc },
     { "reverse", ( PyCFunction )AtomCList_reverse, METH_NOARGS, c_reverse_doc },
     { "sort", ( PyCFunction )AtomCList_sort, METH_VARARGS | METH_KEYWORDS, c_sort_doc },
