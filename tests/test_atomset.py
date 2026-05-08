@@ -124,3 +124,30 @@ def test_operations(atom_set, member, op, valid, result, invalid):
     if invalid is not None:
         with pytest.raises(TypeError):
             op(getattr(atom_set, member), invalid)
+
+
+def test_set_errors():
+    """Test extremely unlikely cases"""
+
+    class NonIterableSet(set):
+        def __iter__(self):
+            raise ValueError("Cannot iter")
+
+    class IterableErrorSet(set):
+        def __iter__(self):
+            def gen():
+                yield from set(self)
+                raise ValueError("Bad iter")
+
+            return gen()
+
+    class Obj(Atom):
+        items = Set(str)
+
+    obj = Obj()
+    with pytest.raises(ValueError) as excinfo:
+        obj.items.update(NonIterableSet("a"))
+    assert "Cannot iter" in excinfo.exconly()
+    with pytest.raises(ValueError) as excinfo:
+        obj.items.update(IterableErrorSet("a"))
+    assert "Bad iter" in excinfo.exconly()
