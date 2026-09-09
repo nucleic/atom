@@ -6,11 +6,21 @@
 | The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #include <cppy/cppy.h>
+
+#if PY_VERSION_HEX < 0x030D0000
+// Can be removed when Python < 3.13 is no longer supported
+static inline int PyWeakref_GetRef(PyObject *ref, PyObject **pobj) {
+    PyObject *obj = PyWeakref_GET_OBJECT(ref);
+    *pobj = obj;
+    Py_XINCREF(*pobj);
+    return 1;
+}
+#endif
+
 #include "methodwrapper.h"
 #include "catom.h"
 #include "catompointer.h"
 #include "packagenaming.h"
-
 
 namespace atom
 {
@@ -38,10 +48,12 @@ MethodWrapper_dealloc( MethodWrapper* self )
 PyObject*
 MethodWrapper__call__( MethodWrapper* self, PyObject* args, PyObject* kwargs )
 {
-    PyObject* im_self = PyWeakref_GET_OBJECT( self->im_selfref );
+    PyObject* raw_im_self = nullptr;
+    PyWeakref_GetRef( self->im_selfref, &raw_im_self );
+    cppy::ptr im_self( raw_im_self );
     if( im_self != Py_None )
     {
-        cppy::ptr method( PyMethod_New( self->im_func, im_self ) );
+        cppy::ptr method( PyMethod_New( self->im_func, im_self.get() ) );
         if( !method )
             return 0;
         return PyObject_Call( method.get(), args, kwargs );
@@ -57,8 +69,12 @@ MethodWrapper_richcompare( MethodWrapper* self, PyObject* other, int op )
     {
         if( PyMethod_Check( other ) && PyMethod_GET_SELF( other ) )
         {
+            PyObject* raw_im_self = nullptr;
+            PyWeakref_GetRef( self->im_selfref, &raw_im_self );
+            cppy::ptr im_self( raw_im_self ); // Automatically handles DECREF when exiting scope
+
             if( ( self->im_func == PyMethod_GET_FUNCTION( other ) ) &&
-                ( PyWeakref_GET_OBJECT( self->im_selfref ) == PyMethod_GET_SELF( other ) ) )
+                ( im_self.get() == PyMethod_GET_SELF( other ) ) )
                 Py_RETURN_TRUE;
             Py_RETURN_FALSE;
         }
@@ -80,7 +96,10 @@ MethodWrapper_richcompare( MethodWrapper* self, PyObject* other, int op )
 int
 MethodWrapper__bool__( MethodWrapper* self )
 {
-    if( PyWeakref_GET_OBJECT( self->im_selfref ) != Py_None )
+    PyObject* raw_im_self = nullptr;
+    PyWeakref_GetRef( self->im_selfref, &raw_im_self );
+    cppy::ptr im_self( raw_im_self );
+    if( im_self.get() != Py_None )
         return 1;
     return 0;
 }
