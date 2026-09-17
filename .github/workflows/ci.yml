@@ -77,14 +77,10 @@ jobs:
       - name: Install project
         run: |
           pip install .
-      - name: Run Mypy
+      - name: Validate static assertions
         run: |
-          pip install mypy pytest
-          mypy atom
-      - name: Test with pytest
-        run: |
-          pip install pytest-mypy-plugins regex
-          python -X dev -m pytest tests/type_checking -v
+          pip install -r test_requirements.txt
+          python -X dev -m mypy tests/type_checking --config-file pyproject.toml
   tests:
     name: Unit tests
     runs-on: ${{ matrix.os }}
