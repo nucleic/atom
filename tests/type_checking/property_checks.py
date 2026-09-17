@@ -1,6 +1,4 @@
-from typing import Never, Union
-
-from typing_extensions import assert_type
+from typing import Never, Union, assert_type
 
 from atom.api import Atom, Property, cached_property
 

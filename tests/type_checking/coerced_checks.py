@@ -1,6 +1,6 @@
 import _io
 
-from typing_extensions import assert_type
+from typing import assert_type
 
 from atom.api import Atom, Coerced
 
