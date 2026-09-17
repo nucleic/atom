@@ -88,6 +88,7 @@ assert_type(AKeyValueTripleTuple().m, dict[int | str | bytes, int | float | str]
 assert_type(AMemberKey.m, Dict[int, int | float])
 assert_type(AMemberKey().m, dict[int, int | float])
 
+
 # The additional classes below exercise the single-element tuple variants and the member-
 # based key/value shorthand that are easy to miss in a manual suite. They are redundant in
 # meaning but important as coverage for the constructor overloads.
