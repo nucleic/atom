@@ -1,8 +1,18 @@
-from typing import Any
+from typing import Any, assert_type
 
-from typing import assert_type
-
-from atom.api import Atom, Bool, Bytes, Constant, Float, FloatRange, Int, Range, ReadOnly, Str, Value
+from atom.api import (
+    Atom,
+    Bool,
+    Bytes,
+    Constant,
+    Float,
+    FloatRange,
+    Int,
+    Range,
+    ReadOnly,
+    Str,
+    Value,
+)
 
 
 def g() -> int:

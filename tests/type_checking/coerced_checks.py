@@ -1,5 +1,4 @@
 import _io
-
 from typing import assert_type
 
 from atom.api import Atom, Coerced
@@ -27,7 +26,7 @@ class ACoercedTuple(Atom):
 class ACoercedStringIO(Atom):
     # StringIO inputs with a default factory-like initialization should still resolve to the
     # concrete StringIO type on the instance.
-    m = Coerced(_io.StringIO, kwargs=dict(initial_value="1"))
+    m = Coerced(_io.StringIO, kwargs={"initial_value": "1"})
 
 
 class ACoercedFactory(Atom):

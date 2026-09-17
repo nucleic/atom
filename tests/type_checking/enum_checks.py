@@ -2,7 +2,6 @@ from typing import assert_type
 
 from atom.api import Atom, Enum
 
-
 # Enum descriptors hold the member kind on the class while the instance sees the
 # specific enum value; helper methods may widen the enum value union.
 e = Enum(1, 2)

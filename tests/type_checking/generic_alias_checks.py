@@ -1,6 +1,6 @@
 from typing import assert_type
 
-from atom.api import Atom, ForwardInstance, ForwardTyped, Instance, Member, Typed
+from atom.api import Atom, ForwardTyped, Instance, Member, Typed
 
 
 # Generic aliases are accepted as raw type arguments and should infer the same

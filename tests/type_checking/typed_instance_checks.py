@@ -1,8 +1,7 @@
 import _io
-
 from typing import assert_type
 
-from atom.api import Atom, ForwardInstance, ForwardTyped, Instance, Int, List, Typed
+from atom.api import Atom, ForwardInstance, ForwardTyped, Instance, List, Typed
 
 
 def resolver() -> type[_io.StringIO]:
@@ -36,7 +35,7 @@ class AForwardTypedDefault(Atom):
 
 
 class AInstanceDefault(Atom):
-    m = Instance((_io.StringIO, str), kwargs=dict(initial_value=str(1)))
+    m = Instance((_io.StringIO, str), kwargs={"initial_value": str(1)})
 
 
 class AForwardInstanceDefault(Atom):
