@@ -15,14 +15,13 @@ from typing import (
     Literal,
     Optional,
     Sequence,
+    Self,
     Set,
     Tuple,
     Type,
     TypeVar,
     overload,
 )
-
-from typing_extensions import Self
 
 from .atom import Atom
 from .property import Property
@@ -76,7 +75,12 @@ class Member(Generic[T, S]):
     setattr_mode: Tuple[SetAttr, Any] = ...
     validate_mode: Tuple[Validate, Any] = ...
     getstate_mode: Tuple[GetState, Any] = ...
-    def __init__(self) -> None: ...
+    # Runtime constructors normalize a broad set of keyword and positional arguments
+    # before delegating to the validation machinery. The public stubs intentionally keep
+    # this initializer permissive while the specialized __new__ overloads capture the
+    # type-level API contract. This avoids duplicating the runtime normalization logic in
+    # the .pyi files while still allowing the checker to validate the supported calls.
+    def __init__(self, *args: Any, **kwargs: Any) -> None: ...
     @overload
     def __get__(self, instance: None, owner: Type[Atom]) -> Self: ...
     @overload
