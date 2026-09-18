@@ -1,5 +1,7 @@
+mypy
+pyrefly
+ty
 pytest
 pytest-cov
-pytest-mypy-plugins
 pytest-benchmark
 psutil
