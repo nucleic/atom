@@ -38,3 +38,21 @@ def test_dead_atomref():
     assert "AtomRef" in repr(ref)
 
     ref.__sizeof__()
+
+
+def test_atomref_errors():
+    """Test invalid arguments"""
+    a = Atom()
+
+    with pytest.raises(TypeError) as excinfo:
+        atomref()
+    assert "argument" in excinfo.exconly()
+    with pytest.raises(TypeError) as excinfo:
+        atomref(None)
+    assert "CAtom" in excinfo.exconly()
+
+    ref = atomref(a)
+    with pytest.raises(TypeError):
+        ref(atom=a)
+    with pytest.raises(TypeError):
+        ref(a)

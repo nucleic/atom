@@ -19,10 +19,13 @@ struct AtomRef
 {
 	PyObject_HEAD
     CAtomPointer pointer;  // constructed with placement new
+    vectorcallfunc vectorcall;
 
 	static PyType_Spec TypeObject_Spec;
 
     static PyTypeObject* TypeObject;
+
+	static PyObject* call( PyObject* self, PyObject*const *args, size_t nargsf, PyObject* kwnames );
 
 	static bool Ready();
 

@@ -51,6 +51,7 @@ get( CAtom* atom )
     }
     // placement new since Python malloc'd and zero'd the struct
     new( &atomref_cast( pyref )->pointer ) CAtomPointer( atom );
+    atomref_cast( pyref )->vectorcall = AtomRef::call;
     ( *ref_map() )[ atom ] = cppy::incref( pyref );
     atom->set_has_atomref( true );
     return pyref;
@@ -69,6 +70,7 @@ clear( CAtom* atom )
 namespace
 {
 
+
 PyObject*
 AtomRef_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
@@ -86,23 +88,35 @@ AtomRef_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
+PyObject*
+AtomRef_vnew( PyObject* type, PyObject*const *args, size_t nargsf, PyObject* kwnames )
+{
+    if ( kwnames )
+        return cppy::type_error("atomref takes no kwargs");
+    if ( PyVectorcall_NARGS(nargsf) != 1 )
+        return cppy::type_error("atomref takes exactly 1 argument");
+    PyObject* atom = args[0];
+    if ( !CAtom::TypeCheck( atom ) )
+        return cppy::type_error( atom, "CAtom" );
+    return SharedAtomRef::get( catom_cast( atom ) );
+}
+
 void
 AtomRef_dealloc( AtomRef* self )
 {
     // manual destructor since Python malloc'd and zero'd the struct
+    PyTypeObject* tp = Py_TYPE( self );
     self->pointer.~CAtomPointer();
-    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
+    tp->tp_free( pyobject_cast( self ) );
+    Py_DECREF( tp );
 }
 
 
 PyObject*
-AtomRef_call( AtomRef* self, PyObject* args, PyObject* kwargs )
+AtomRef_call( AtomRef* self, PyObject*const *args, size_t nargsf, PyObject* kwnames )
 {
-    static char *kwlist[] = { 0 };
-    if( !PyArg_ParseTupleAndKeywords( args, kwargs, ":__call__", kwlist ) )
-    {
-        return 0;
-    }
+    if ( kwnames || PyVectorcall_NARGS(nargsf) )
+        return cppy::type_error("atomref.__call__() takes no args or kwargs");
     PyObject* obj = pyobject_cast( self->pointer.data() );
     return cppy::incref( obj ? obj : Py_None );
 }
@@ -123,7 +137,10 @@ AtomRef_repr( AtomRef* self )
         cppy::ptr repr( PyObject_Repr( obj ) );
         if( !repr )
             return 0;
-        ostr << PyUnicode_AsUTF8( repr.get() );
+        const char* s = PyUnicode_AsUTF8( repr.get() );
+        if ( !s )
+            return 0;
+        ostr << s;
     }
     ostr << ")";
     return PyUnicode_FromString( ostr.str().c_str() );
@@ -131,7 +148,7 @@ AtomRef_repr( AtomRef* self )
 
 
 PyObject*
-AtomRef_sizeof( AtomRef* self, PyObject* args )
+AtomRef_sizeof( AtomRef* self )
 {
     Py_ssize_t size = Py_TYPE(self)->tp_basicsize;
     size += sizeof( CAtomPointer );
@@ -159,7 +176,10 @@ static PyType_Slot AtomRef_Type_slots[] = {
     { Py_tp_repr, void_cast( AtomRef_repr ) },                    /* tp_repr */
     { Py_tp_methods, void_cast( AtomRef_methods ) },              /* tp_methods */
     { Py_tp_new, void_cast( AtomRef_new ) },                      /* tp_new */
-    { Py_tp_call, void_cast( AtomRef_call ) },                    /* tp_call */
+#if defined(Py_tp_vectorcall)
+    { Py_tp_vectorcall, void_cast( AtomRef_vnew ) },              /* tp_vectorcall */
+#endif
+    { Py_tp_call, void_cast( PyVectorcall_Call ) },               /* tp_call */
     { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },            /* tp_alloc */
     { Py_nb_bool, void_cast( AtomRef__bool__ ) },                 /* nb_bool */
     { 0, 0 },
@@ -175,10 +195,15 @@ PyType_Spec AtomRef::TypeObject_Spec = {
 	PACKAGE_TYPENAME( "atomref" ),             /* tp_name */
 	sizeof( AtomRef ),                          /* tp_basicsize */
 	0,                                          /* tp_itemsize */
-	Py_TPFLAGS_DEFAULT,                          /* tp_flags */
+	Py_TPFLAGS_DEFAULT
+	| Py_TPFLAGS_HAVE_VECTORCALL,               /* tp_flags */
     AtomRef_Type_slots                          /* slots */
 };
 
+PyObject* AtomRef::call( PyObject* self, PyObject*const *args, size_t nargsf, PyObject* kwnames )
+{
+    return AtomRef_call( atomref_cast(self), args, nargsf, kwnames);
+}
 
 bool AtomRef::Ready()
 {
@@ -188,6 +213,7 @@ bool AtomRef::Ready()
     {
         return false;  // LCOV_EXCL_LINE (failed type init)
     }
+    TypeObject->tp_vectorcall_offset = offsetof(AtomRef, vectorcall);
     return true;
 }
 
