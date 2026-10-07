@@ -11,7 +11,16 @@ from collections import defaultdict
 
 import pytest
 
-from atom.api import Atom, DefaultDict, Instance, Int, List, atomlist, defaultatomdict
+from atom.api import (
+    Atom,
+    Coerced,
+    DefaultDict,
+    Instance,
+    Int,
+    List,
+    atomlist,
+    defaultatomdict,
+)
 
 
 @pytest.fixture
@@ -237,3 +246,11 @@ def test_coerced_missing():
     content = a.d[1]
     assert isinstance(content, atomlist)
     assert content is a.d[1]
+
+
+def test_coerced_key_missing():
+    class Obj(Atom):
+        items = DefaultDict(key=Coerced(str), missing=lambda: "missing")
+
+    o = Obj()
+    o.items[1]  # key 1 gets coerced to '1'
