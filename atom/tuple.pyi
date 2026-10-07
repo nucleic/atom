@@ -12,10 +12,9 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    Unpack,
     overload,
 )
-
-from typing_extensions import Unpack
 
 from .catom import Member
 

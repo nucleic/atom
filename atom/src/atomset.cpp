@@ -67,6 +67,8 @@ PyObject* validate_value( AtomSet* set, PyObject* value )
 PyObject* validate_set( AtomSet* set, PyObject* value )
 {
     cppy::ptr val_set( PySet_New( 0 ) );
+	if ( !val_set )
+		return 0;  // LCOV_EXCL_LINE set new failed
 	cppy::ptr value_iter = PyObject_GetIter(value);
 	if( !value_iter ) {
 		return 0;
@@ -85,6 +87,8 @@ PyObject* validate_set( AtomSet* set, PyObject* value )
             return 0;
         }
 	}
+	if ( PyErr_Occurred() )
+		return 0;
 	return val_set.release();
 }
 
@@ -111,11 +115,7 @@ int AtomSet_clear( AtomSet* self )
 int AtomSet_traverse( AtomSet* self, visitproc visit, void* arg )
 {
 	Py_VISIT( self->m_value_validator );
-#if PY_VERSION_HEX >= 0x03090000
-    // This was not needed before Python 3.9 (Python issue 35810 and 40217)
     Py_VISIT(Py_TYPE(self));
-#endif
-    // PySet_type is not heap allocated so it does visit the type
 	return PySet_Type.tp_traverse( pyobject_cast( self ), visit, arg );
 }
 
@@ -346,7 +346,8 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 	{
 		// Method call return Py_None or 0. We make sure to decref Py_None and
 		// return -1 in case of error.
-		r_temp = PyObject_CallFunctionObjArgs( SetMethods::update, pyobject_cast( set ), value, NULL );
+		PyObject* args[] = { pyobject_cast( set ), value };
+		r_temp = PyObject_Vectorcall( SetMethods::update, args, 2 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 );
 		return !r_temp ? -1 : 0;
 	}
 	cppy::ptr temp( cppy::incref( value ) );
@@ -361,7 +362,8 @@ int AtomSet::Update( AtomSet* set, PyObject* value )
 	}
 	// Method call return Py_None or 0. We make sure to decref Py_None and
 	// return -1 in case of error.
-	r_temp = PyObject_CallFunctionObjArgs( SetMethods::update, pyobject_cast( set ), temp.get(), NULL );
+	PyObject* args[] = { pyobject_cast( set ), temp.get() };
+	r_temp = PyObject_Vectorcall( SetMethods::update, args, 2 | PY_VECTORCALL_ARGUMENTS_OFFSET, 0 );
 	return !r_temp ? -1 : 0;
 }
 
