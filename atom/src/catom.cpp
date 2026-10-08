@@ -130,6 +130,7 @@ CAtom_traverse( CAtom* self, visitproc visit, void* arg )
 void
 CAtom_dealloc( CAtom* self )
 {
+    PyTypeObject* tp = Py_TYPE( self );
     if( self->has_guards() )
     {
         CAtom::clear_guards( self );
@@ -146,7 +147,8 @@ CAtom_dealloc( CAtom* self )
     }
     delete self->observers;
     self->observers = 0;
-    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
+    tp->tp_free( pyobject_cast( self ) );
+    Py_DECREF( tp );
 }
 
 

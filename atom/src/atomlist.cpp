@@ -296,11 +296,13 @@ int AtomList_traverse( AtomList* self, visitproc visit, void* arg )
 void
 AtomList_dealloc( AtomList* self )
 {
+    PyTypeObject* tp = Py_TYPE( self );
     PyObject_GC_UnTrack( self );
     cppy::clear( &self->validator );
     delete self->pointer;
     self->pointer = 0;
     PyList_Type.tp_dealloc( pyobject_cast( self ) );
+    Py_DECREF( tp );
 }
 
 
@@ -1034,12 +1036,14 @@ int AtomCList_traverse( AtomCList* self, visitproc visit, void* arg )
 void
 AtomCList_dealloc( AtomCList* self )
 {
+    PyTypeObject* tp = Py_TYPE( self );
     PyObject_GC_UnTrack( self );
     cppy::clear( &self->member );
     cppy::clear( &atomlist_cast( self )->validator );
     delete atomlist_cast( self )->pointer;
     atomlist_cast( self )->pointer = 0;
     PyList_Type.tp_dealloc( pyobject_cast( self ) );
+    Py_DECREF( tp );
 }
 
 

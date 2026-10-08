@@ -94,11 +94,13 @@ Member_traverse( Member* self, visitproc visit, void* arg )
 void
 Member_dealloc( Member* self )
 {
+    PyTypeObject* tp = Py_TYPE( self );
     PyObject_GC_UnTrack( self );
     Member_clear( self );
     delete self->static_observers;
     self->static_observers = 0;
-    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
+    tp->tp_free( pyobject_cast( self ) );
+    Py_DECREF( tp );
 }
 
 
