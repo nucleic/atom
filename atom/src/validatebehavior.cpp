@@ -893,6 +893,7 @@ range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
                 Py_TYPE( pyobject_cast( atom ) )->tp_name
             );
         default:
+            // Exception occurred during comparison
             return 0;
         }
     }
@@ -910,6 +911,7 @@ range_handler( Member* member, CAtom* atom, PyObject* oldvalue, PyObject* newval
                 Py_TYPE( pyobject_cast( atom ) )->tp_name
             );
         default:
+            // Exception occurred during comparison
             return 0;
         }
     }

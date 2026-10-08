@@ -109,8 +109,11 @@ inline bool safe_richcompare( PyObject* first, PyObject* second, int opid )
 
     // Clear the error if one happened because we attempted an invalid
     // comparison.
-    if( PyErr_Occurred() )
+    if( PyErr_Occurred() ) {
+        if( !PyErr_ExceptionMatches( PyExc_TypeError ) )
+            return false;  // or propagate somehow
         PyErr_Clear();
+    }
 
     // Fallback to the Python 2 default 3 way compare.
     int c = fallback_3way_compare( first, second );
