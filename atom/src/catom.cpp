@@ -403,6 +403,7 @@ CAtom_getstate( CAtom* self )
             if (!value ) {
                 // Following CPython impl it is not an error if the attribute is
                 // not present.
+                PyErr_Clear();
                 continue;
             }
             else if ( PyDict_SetItem(stateptr.get(), name, value.get()) ) {
@@ -475,6 +476,9 @@ CAtom_setstate( CAtom* self, PyObject* state )
             return 0;
         if ( PyObject_SetAttr( pyobject_cast(self), key.get(), value.get() ) )
             return 0;
+    }
+    if ( PyErr_Occurred() ) {
+        return 0;
     }
 
     if ( frozen )

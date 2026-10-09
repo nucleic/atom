@@ -87,8 +87,9 @@ PyObject* validate_set( AtomSet* set, PyObject* value )
             return 0;
         }
 	}
-	if ( PyErr_Occurred() )
+	if ( PyErr_Occurred() ) {
 		return 0;
+	}
 	return val_set.release();
 }
 
