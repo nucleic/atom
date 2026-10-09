@@ -76,88 +76,80 @@ bool add_objects( PyObject* mod )
 
     // atomlist
     cppy::ptr atom_list( pyobject_cast( AtomList::TypeObject ) );
-	if( PyModule_AddObject( mod, "atomlist", atom_list.get() ) < 0 )  // LCOV_EXCL_BR_LINE
+	if( PyModule_AddObjectRef( mod, "atomlist", atom_list.get() ) < 0 )  // LCOV_EXCL_BR_LINE
 	{
 		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
-    atom_list.release();
 
     // atomclist
     cppy::ptr atom_clist( pyobject_cast( AtomCList::TypeObject ) );
-	if( PyModule_AddObject( mod, "atomclist", atom_clist.get() ) < 0 )  // LCOV_EXCL_BR_LINE
+	if( PyModule_AddObjectRef( mod, "atomclist", atom_clist.get() ) < 0 )  // LCOV_EXCL_BR_LINE
 	{
 		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
-    atom_clist.release();
 
     // atomdict
     cppy::ptr atom_dict( pyobject_cast( AtomDict::TypeObject ) );
-	if( PyModule_AddObject( mod, "atomdict", atom_dict.get() ) < 0 )  // LCOV_EXCL_BR_LINE
+	if( PyModule_AddObjectRef( mod, "atomdict", atom_dict.get() ) < 0 )  // LCOV_EXCL_BR_LINE
 	{
 		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
-    atom_dict.release();
 
     // defaultatomdict
     cppy::ptr defaultatom_dict( pyobject_cast( DefaultAtomDict::TypeObject ) );
-	if( PyModule_AddObject( mod, "defaultatomdict", defaultatom_dict.get() ) < 0 )  // LCOV_EXCL_BR_LINE
+	if( PyModule_AddObjectRef( mod, "defaultatomdict", defaultatom_dict.get() ) < 0 )  // LCOV_EXCL_BR_LINE
 	{
 		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
-    defaultatom_dict.release();
 
     // atomset
     cppy::ptr atom_set( pyobject_cast( AtomSet::TypeObject ) );
-	if( PyModule_AddObject( mod, "atomset", atom_set.get() ) < 0 )  // LCOV_EXCL_BR_LINE
+	if( PyModule_AddObjectRef( mod, "atomset", atom_set.get() ) < 0 )  // LCOV_EXCL_BR_LINE
 	{
 		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
-    atom_set.release();
 
     // atomref
     cppy::ptr atom_ref( pyobject_cast( AtomRef::TypeObject ) );
-	if( PyModule_AddObject( mod, "atomref", atom_ref.get() ) < 0 )  // LCOV_EXCL_BR_LINE
+	if( PyModule_AddObjectRef( mod, "atomref", atom_ref.get() ) < 0 )  // LCOV_EXCL_BR_LINE
 	{
 		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
-    atom_ref.release();
 
     // Member
     cppy::ptr member( pyobject_cast( Member::TypeObject ) );
-	if( PyModule_AddObject( mod, "Member", member.get() ) < 0 )  // LCOV_EXCL_BR_LINE
+	if( PyModule_AddObjectRef( mod, "Member", member.get() ) < 0 )  // LCOV_EXCL_BR_LINE
 	{
 		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
-    member.release();
 
     // CAtom
     cppy::ptr catom( pyobject_cast( CAtom::TypeObject ) );
-	if( PyModule_AddObject( mod, "CAtom", catom.get() ) < 0 )
+	if( PyModule_AddObjectRef( mod, "CAtom", catom.get() ) < 0 )  // LCOV_EXCL_BR_LINE
 	{
 		return false;  // LCOV_EXCL_LINE (failed type addition to module)
 	}
-    catom.release();
 
-    cppy::incref( PyGetAttr );
-    cppy::incref( PySetAttr );
-    cppy::incref( PyDelAttr );
-    cppy::incref( PyPostGetAttr );
-    cppy::incref( PyPostSetAttr );
-    cppy::incref( PyDefaultValue );
-    cppy::incref( PyValidate );
-    cppy::incref( PyPostValidate );
-    cppy::incref( PyGetState );
-    cppy::incref( PyChangeType );
-    PyModule_AddObject( mod, "GetAttr", PyGetAttr );
-    PyModule_AddObject( mod, "SetAttr", PySetAttr );
-    PyModule_AddObject( mod, "DelAttr", PyDelAttr );
-    PyModule_AddObject( mod, "PostGetAttr", PyPostGetAttr );
-    PyModule_AddObject( mod, "PostSetAttr", PyPostSetAttr );
-    PyModule_AddObject( mod, "DefaultValue", PyDefaultValue );
-    PyModule_AddObject( mod, "Validate", PyValidate );
-    PyModule_AddObject( mod, "PostValidate", PyPostValidate );
-    PyModule_AddObject( mod, "GetState", PyGetState );
-    PyModule_AddObject( mod, "ChangeType", PyChangeType );
+    if (PyModule_AddObjectRef( mod, "GetAttr", PyGetAttr ) < 0)
+        return false;
+    if (PyModule_AddObjectRef( mod, "SetAttr", PySetAttr ) < 0)
+        return false;
+    if (PyModule_AddObjectRef( mod, "DelAttr", PyDelAttr ) < 0)
+        return false;
+    if (PyModule_AddObjectRef( mod, "PostGetAttr", PyPostGetAttr ) < 0)
+        return false;
+    if (PyModule_AddObjectRef( mod, "PostSetAttr", PyPostSetAttr ) < 0)
+        return false;
+    if (PyModule_AddObjectRef( mod, "DefaultValue", PyDefaultValue ) < 0)
+        return false;
+    if (PyModule_AddObjectRef( mod, "Validate", PyValidate ) < 0)
+        return false;
+    if (PyModule_AddObjectRef( mod, "PostValidate", PyPostValidate ) < 0)
+        return false;
+    if (PyModule_AddObjectRef( mod, "GetState", PyGetState ) < 0)
+        return false;
+    if (PyModule_AddObjectRef( mod, "ChangeType", PyChangeType ) < 0)
+        return false;
 
 	return true;
 }

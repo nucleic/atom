@@ -94,11 +94,13 @@ Member_traverse( Member* self, visitproc visit, void* arg )
 void
 Member_dealloc( Member* self )
 {
+    PyTypeObject* tp = Py_TYPE( self );
     PyObject_GC_UnTrack( self );
     Member_clear( self );
     delete self->static_observers;
     self->static_observers = 0;
-    Py_TYPE(self)->tp_free( pyobject_cast( self ) );
+    tp->tp_free( pyobject_cast( self ) );
+    Py_DECREF( tp );
 }
 
 
@@ -917,12 +919,10 @@ Member_methods[] = {
       "Notify the static observers for the given member and atom." },
     { "tag", ( PyCFunction )Member_tag, METH_VARARGS | METH_KEYWORDS,
       "Tag the member with metatdata. " },
-#if PY_VERSION_HEX >= 0x03090000
     // Generic aliases have been added in 3.9 and allow to index types
     // This removes the need to quote explicit member type annotations
     { "__class_getitem__", (PyCFunction)Py_GenericAlias, METH_O|METH_CLASS,
       "See PEP 585"},
-#endif
     { 0 } // sentinel
 };
 

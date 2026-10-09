@@ -87,8 +87,9 @@ PyObject* validate_set( AtomSet* set, PyObject* value )
             return 0;
         }
 	}
-	if ( PyErr_Occurred() )
+	if ( PyErr_Occurred() ) {
 		return 0;
+	}
 	return val_set.release();
 }
 
@@ -122,11 +123,13 @@ int AtomSet_traverse( AtomSet* self, visitproc visit, void* arg )
 
 void AtomSet_dealloc( AtomSet* self )
 {
+    PyTypeObject* tp = Py_TYPE( self );
 	PyObject_GC_UnTrack( self );
 	cppy::clear( &self->m_value_validator );
 	delete atomset_cast( self )->pointer;
     atomset_cast( self )->pointer = 0;
 	PySet_Type.tp_dealloc( pyobject_cast( self ) );
+    Py_DECREF( tp );
 }
 
 

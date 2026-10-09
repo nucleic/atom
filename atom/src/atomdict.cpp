@@ -110,12 +110,14 @@ int AtomDict_traverse( AtomDict* self, visitproc visit, void* arg )
 
 void AtomDict_dealloc( AtomDict* self )
 {
+    PyTypeObject* tp = Py_TYPE( self );
 	PyObject_GC_UnTrack( self );
 	cppy::clear( &self->m_key_validator );
 	cppy::clear( &self->m_value_validator );
     delete atomdict_cast( self )->pointer;
     atomdict_cast( self )->pointer = 0;
 	PyDict_Type.tp_dealloc( pyobject_cast( self ) );
+    Py_DECREF( tp );
 }
 
 
@@ -345,8 +347,7 @@ PyType_Spec AtomDict::TypeObject_Spec = {
 	0,                                          /* tp_itemsize */
 	Py_TPFLAGS_DEFAULT
 	| Py_TPFLAGS_BASETYPE
-	| Py_TPFLAGS_HAVE_GC
-	| Py_TPFLAGS_HAVE_VERSION_TAG,              /* tp_flags */
+	| Py_TPFLAGS_HAVE_GC,              /* tp_flags */
     AtomDict_Type_slots                         /* slots */
 };
 
@@ -428,8 +429,7 @@ PyType_Spec DefaultAtomDict::TypeObject_Spec = {
 	0,                                          /* tp_itemsize */
 	Py_TPFLAGS_DEFAULT
 	| Py_TPFLAGS_BASETYPE
-	| Py_TPFLAGS_HAVE_GC
-	| Py_TPFLAGS_HAVE_VERSION_TAG,              /* tp_flags */
+	| Py_TPFLAGS_HAVE_GC,              /* tp_flags */
     DefaultAtomDict_Type_slots                  /* slots */
 };
 
@@ -458,8 +458,9 @@ bool DefaultAtomDict::Ready()
 	// This will work only if we create this type after the standard AtomDict
     // The reference will be handled by the module to which we will add the type
 	cppy::ptr bases( PyTuple_New( 1 ) );
-	if ( !bases )
+	if ( !bases ) {
 		return false; // LCOV_EXCL_LINE (failed tuple creation)
+	}
 	PyTuple_SET_ITEM( bases.get(), 0, cppy::incref( pyobject_cast( AtomDict::TypeObject ) ) );
 	TypeObject = pytype_cast(
 		PyType_FromSpecWithBases( &TypeObject_Spec, bases.get() )

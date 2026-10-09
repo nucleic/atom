@@ -170,8 +170,9 @@ struct SortedMap
                     self->setitem( PySequence_Fast_GET_ITEM( pair.get(), 0 ),
                                    PySequence_Fast_GET_ITEM( pair.get(), 1 ) );
                 }
-                if ( PyErr_Occurred() )
+                if ( PyErr_Occurred() ) {
                     return 0; // error during iteration
+                }
             }
         }
 
