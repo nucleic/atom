@@ -183,6 +183,8 @@ cached_property_handler( Member* member, CAtom* atom )
     if( value )
         return value.release();
     value = property_handler( member, atom );
+    if( !value )
+        return 0;
     atom->set_slot( member->index, value.get() );  // exception-safe
     return value.release();
 }

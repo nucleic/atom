@@ -148,16 +148,26 @@ bool add_objects( PyObject* mod )
     cppy::incref( PyPostValidate );
     cppy::incref( PyGetState );
     cppy::incref( PyChangeType );
-    PyModule_AddObject( mod, "GetAttr", PyGetAttr );
-    PyModule_AddObject( mod, "SetAttr", PySetAttr );
-    PyModule_AddObject( mod, "DelAttr", PyDelAttr );
-    PyModule_AddObject( mod, "PostGetAttr", PyPostGetAttr );
-    PyModule_AddObject( mod, "PostSetAttr", PyPostSetAttr );
-    PyModule_AddObject( mod, "DefaultValue", PyDefaultValue );
-    PyModule_AddObject( mod, "Validate", PyValidate );
-    PyModule_AddObject( mod, "PostValidate", PyPostValidate );
-    PyModule_AddObject( mod, "GetState", PyGetState );
-    PyModule_AddObject( mod, "ChangeType", PyChangeType );
+    if (PyModule_AddObject( mod, "GetAttr", PyGetAttr ) < 0)
+        return false;
+    if (PyModule_AddObject( mod, "SetAttr", PySetAttr ) < 0)
+        return false;
+    if (PyModule_AddObject( mod, "DelAttr", PyDelAttr ) < 0)
+        return false;
+    if (PyModule_AddObject( mod, "PostGetAttr", PyPostGetAttr ) < 0)
+        return false;
+    if (PyModule_AddObject( mod, "PostSetAttr", PyPostSetAttr ) < 0)
+        return false;
+    if (PyModule_AddObject( mod, "DefaultValue", PyDefaultValue ) < 0)
+        return false;
+    if (PyModule_AddObject( mod, "Validate", PyValidate ) < 0)
+        return false;
+    if (PyModule_AddObject( mod, "PostValidate", PyPostValidate ) < 0)
+        return false;
+    if (PyModule_AddObject( mod, "GetState", PyGetState ) < 0)
+        return false;
+    if (PyModule_AddObject( mod, "ChangeType", PyChangeType ) < 0)
+        return false;
 
 	return true;
 }
