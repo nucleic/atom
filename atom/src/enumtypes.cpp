@@ -38,11 +38,12 @@ add_long( cppy::ptr& dict_ptr, const char* name, T value )
     {
         return false;  // LCOV_EXCL_LINE (failed long creation, impossible)
     }
+    // PyDict_SetItemString does not steal a reference so cppy::ptr
+    // must decref the pyint reference after insertion.
     if( PyDict_SetItemString( dict_ptr.get(), name, pyint.get() ) != 0 )
     {
         return false;  // LCOV_EXCL_LINE (failed dict insertion, impossible)
     }
-    pyint.release(); // Release the reference since the operation succeeded
     return true;
 }
 
