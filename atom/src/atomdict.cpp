@@ -461,7 +461,6 @@ bool DefaultAtomDict::Ready()
 	if ( !bases ) {
 		return false; // LCOV_EXCL_LINE (failed tuple creation)
 	}
-	Py_INCREF( pyobject_cast( AtomDict::TypeObject ) );
 	PyTuple_SET_ITEM( bases.get(), 0, cppy::incref( pyobject_cast( AtomDict::TypeObject ) ) );
 	TypeObject = pytype_cast(
 		PyType_FromSpecWithBases( &TypeObject_Spec, bases.get() )
