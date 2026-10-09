@@ -1,7 +1,7 @@
 Atom Release Notes
 ==================
 
-0.13.0 - unreleased
+0.13.0 - 09/10/2026
 -------------------
 
 - add support for Python 3.15 PR #273
