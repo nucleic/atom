@@ -38,8 +38,9 @@ public:
         // boolean tests (PyObject_IsTrue) to fail for wrong reasons.
         bool exception_set = false;
 #if PY_VERSION_HEX >= 0x030D0000
-        PyObject *exc = PyErr_GetRaisedException();
+        PyObject *exc;
         if( PyErr_Occurred() ){
+            exc = PyErr_GetRaisedException();
             exception_set = true;
         }
 #else
