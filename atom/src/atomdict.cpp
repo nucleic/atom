@@ -347,8 +347,7 @@ PyType_Spec AtomDict::TypeObject_Spec = {
 	0,                                          /* tp_itemsize */
 	Py_TPFLAGS_DEFAULT
 	| Py_TPFLAGS_BASETYPE
-	| Py_TPFLAGS_HAVE_GC
-	| Py_TPFLAGS_HAVE_VERSION_TAG,              /* tp_flags */
+	| Py_TPFLAGS_HAVE_GC,              /* tp_flags */
     AtomDict_Type_slots                         /* slots */
 };
 
@@ -430,8 +429,7 @@ PyType_Spec DefaultAtomDict::TypeObject_Spec = {
 	0,                                          /* tp_itemsize */
 	Py_TPFLAGS_DEFAULT
 	| Py_TPFLAGS_BASETYPE
-	| Py_TPFLAGS_HAVE_GC
-	| Py_TPFLAGS_HAVE_VERSION_TAG,              /* tp_flags */
+	| Py_TPFLAGS_HAVE_GC,              /* tp_flags */
     DefaultAtomDict_Type_slots                  /* slots */
 };
 

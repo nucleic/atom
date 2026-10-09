@@ -234,9 +234,9 @@ PyTypeObject* AtomMethodWrapper::TypeObject = NULL;
 PyType_Spec AtomMethodWrapper::TypeObject_Spec = {
 	PACKAGE_TYPENAME( "AtomMethodWrapper" ),             /* tp_name */
 	sizeof( AtomMethodWrapper ),                         /* tp_basicsize */
-	0,                                               /* tp_itemsize */
-	Py_TPFLAGS_DEFAULT,                              /* tp_flags */
-    AtomMethodWrapper_Type_slots                           /* slots */
+	0,                                                   /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT,                                  /* tp_flags */
+    AtomMethodWrapper_Type_slots                         /* slots */
 };
 
 
