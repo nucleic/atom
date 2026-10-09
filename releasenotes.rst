@@ -1,6 +1,13 @@
 Atom Release Notes
 ==================
 
+0.13.0 - unreleased
+-------------------
+
+- add support for Python 3.15 PR #273
+- improve type stubs and checks them against mypy, pyrefly and ty PR #274
+- C API improvements
+
 0.12.1 - 02/10/2025
 -------------------
 
