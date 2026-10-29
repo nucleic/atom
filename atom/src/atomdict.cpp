@@ -155,17 +155,21 @@ PyObject* AtomDict_setdefault( AtomDict* self, PyObject* args )
 	cppy::ptr key_ptr( validate_key( self, key ) );
 	if ( !key_ptr )
 		return 0;
-	PyObject* value = PyDict_GetItem( pyobject_cast( self ), key_ptr.get() );
+	PyObject* value = PyDict_GetItemWithError( pyobject_cast( self ), key_ptr.get() );
 	if( value )
 	{
 		return cppy::incref( value );
+	}
+	if( PyErr_Occurred() )
+	{
+		return 0;
 	}
 	if( AtomDict_ass_subscript( self, key_ptr.get(), dfv ) < 0 )
 	{
 		return 0;
 	}
 	// Get the dictionary from the dict itself in case it was coerced.
-	return cppy::incref( PyDict_GetItem( pyobject_cast( self ), key_ptr.get() ) );
+	return cppy::xincref( PyDict_GetItemWithError( pyobject_cast( self ), key_ptr.get() ) );
 }
 
 
@@ -310,7 +314,7 @@ static PyObject* DefaultAtomDict_missing( DefaultAtomDict* self, PyObject* key )
 			return 0;
 		}
 		// Get the dictionary from the dict itself in case it was coerced.
-		value_ptr = cppy::incref( PyDict_GetItem( pyobject_cast( self ), key_ptr.get() ) );
+		value_ptr = cppy::xincref( PyDict_GetItem( pyobject_cast( self ), key_ptr.get() ) );
 	}
 	return value_ptr.release();
 }
