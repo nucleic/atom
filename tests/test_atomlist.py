@@ -528,6 +528,16 @@ def test_container_pop(container_model, kind):
         assert change["item"] == 0
 
 
+def test_container_pop_index_object_raises_typeerror():
+    model = ContainerModel()
+    model.untyped = [10, 20, 30]
+    model.typed = [10, 20, 30]
+    with pytest.raises(TypeError):
+        model.untyped.pop(Indexer(0))
+    with pytest.raises(TypeError):
+        model.typed.pop(Indexer(0))
+
+
 @pytest.mark.parametrize("kind", ("untyped", "typed"))
 def test_container_reverse(container_model, kind):
     mlist = getattr(container_model, kind)

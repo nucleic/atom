@@ -191,6 +191,16 @@ def test_setdefault_coercion():
     assert content is a.d[1]
 
 
+def test_missing_raises_key_hash_error():
+    class BadKey:
+        def __hash__(self):
+            raise RuntimeError("hash failed")
+
+    d = DefaultDict(missing=int)
+    with pytest.raises(RuntimeError, match="hash failed"):
+        d[BadKey()]
+
+
 def test_update(default_atom_dict):
     """Test update a dict."""
     default_atom_dict.untyped.update({"": 1})
