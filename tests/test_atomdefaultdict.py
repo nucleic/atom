@@ -198,6 +198,7 @@ def test_missing_raises_key_hash_error():
 
     class A(Atom):
         d = DefaultDict(missing=int)
+
     with pytest.raises(RuntimeError, match="hash failed"):
         A().d[BadKey()]
 
