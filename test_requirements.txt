@@ -1,7 +1,7 @@
 mypy
 pyrefly
 ty
-pytest
+pytest < 9.2
 pytest-cov
 pytest-benchmark
 psutil
