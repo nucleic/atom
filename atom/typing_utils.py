@@ -27,7 +27,7 @@ from typing import (
 try:
     import typing_extensions
 except ImportError:  # pragma: no cover
-    typing_extensions = None
+    typing_extensions = None  # type: ignore[assignment]
 
 _TYPE_ALIAS_TYPES = tuple(
     alias_type
