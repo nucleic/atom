@@ -119,8 +119,6 @@ def _resolve_generic_origin(kind: Any) -> Any:
     while current is not None and id(current) not in seen:
         seen.add(id(current))
         origin = get_origin(current)
-        if origin is None:
-            origin = getattr(current, "__origin__", None)
 
         if origin is None:
             value = getattr(current, "__value__", None)
@@ -148,7 +146,6 @@ def _resolve_generic_origin(kind: Any) -> Any:
 
 def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
     """Extract a tuple of types from a type-like object"""
-    kind = _resolve_type_alias(kind)
     if isinstance(kind, _INVALID_TYPES):
         raise TypeError(
             f"Str-based annotations ({kind!r}) are not supported in atom Members."
