@@ -162,6 +162,7 @@ def test_generic_type_alias_in_annotation():
     assert isinstance(A.a, Typed)
     assert A.a.validate_mode[1] is ndarray
 
+
 def test_generic_type_alias_inside_generic_in_annotation():
     try:
         from typing_extensions import TypeAliasType
