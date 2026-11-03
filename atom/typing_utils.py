@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # --------------------------------------------------------------------------------------
 import sys
+import typing
 from itertools import chain
 from types import GenericAlias, UnionType
 from typing import (
@@ -21,6 +22,20 @@ from typing import (
     Union,
     get_args,
     get_origin,
+)
+
+try:
+    import typing_extensions
+except ImportError:  # pragma: no cover
+    typing_extensions = None
+
+_TYPE_ALIAS_TYPES = tuple(
+    alias_type
+    for alias_type in (
+        getattr(typing, "TypeAliasType", None),
+        getattr(typing_extensions, "TypeAliasType", None),
+    )
+    if alias_type is not None
 )
 
 if sys.version_info >= (3, 14):
@@ -82,8 +97,23 @@ class ChangeDict(_ChangeDict, total=False):
     reverse: bool  # operation in ("sort")
 
 
+def _resolve_type_alias(kind: Any, seen: set[int] | None = None) -> Any:
+    """Resolve type aliases to their underlying annotation."""
+    if not _TYPE_ALIAS_TYPES or not isinstance(kind, _TYPE_ALIAS_TYPES):
+        return kind
+
+    if seen is None:
+        seen = set()
+    kind_id = id(kind)
+    if kind_id in seen:
+        raise TypeError(f"Cyclic type alias {kind!r} is not supported.")
+    seen.add(kind_id)
+    return _resolve_type_alias(kind.__value__, seen)
+
+
 def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
     """Extract a tuple of types from a type-like object"""
+    kind = _resolve_type_alias(kind)
     if isinstance(kind, _INVALID_TYPES):
         raise TypeError(
             f"Str-based annotations ({kind!r}) are not supported in atom Members."

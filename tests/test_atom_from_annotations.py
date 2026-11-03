@@ -110,6 +110,21 @@ def test_ignore_str_annotated_set_default():
     assert B().a == 1
 
 
+def test_type_alias_in_annotation():
+    try:
+        from typing_extensions import TypeAliasType
+    except ImportError:
+        pytest.skip("typing_extensions.TypeAliasType is unavailable")
+
+    Alias = TypeAliasType("Alias", list[int])
+
+    class A(Atom, use_annotations=True, type_containers=1):
+        a: Alias
+
+    assert isinstance(A.a, List)
+    assert isinstance(A.a.item, Int)
+
+
 def test_reject_bare_member_annotated_member():
     with pytest.raises(ValueError) as e:
 
