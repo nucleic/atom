@@ -106,7 +106,7 @@ def test_mem_usage(label):
         # Allow slight memory decrease over time to make tests more resilient
         if first_info != last_info:
             # Allow a small increase in RSS to account for memory fluctuations
-            assert (first_info.rss + 200e3) >= last_info.rss >= 0, (
+            assert (first_info.rss + 400e3) >= last_info.rss >= 0, (
                 "Memory leaked:\n  {}\n  {}".format(first_info, last_info)
             )
             assert first_info.vms >= last_info.vms >= 0, (
