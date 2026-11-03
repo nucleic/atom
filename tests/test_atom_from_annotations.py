@@ -125,19 +125,32 @@ def test_type_alias_in_annotation():
     assert isinstance(A.a.item, Int)
 
 
-def test_optional_type_alias_in_annotation():
+def test_bare_type_alias_in_annotation():
     try:
         from typing_extensions import TypeAliasType
     except ImportError:
         pytest.skip("typing_extensions.TypeAliasType is unavailable")
 
-    Alias = TypeAliasType("Alias", Optional[int])
+    Alias = TypeAliasType("Alias", int)
 
     class A(Atom, use_annotations=True):
         a: Alias
 
-    assert isinstance(A.a, Typed)
-    assert A.a.validate_mode[1] is int
+    assert isinstance(A.a, Int)
+
+def test_type_alias_to_union_in_annotation():
+    try:
+        from typing_extensions import TypeAliasType
+    except ImportError:
+        pytest.skip("typing_extensions.TypeAliasType is unavailable")
+
+    Alias = TypeAliasType("Alias", int | str)
+
+    class A(Atom, use_annotations=True):
+        a: Alias
+
+    assert isinstance(A.a, Instance)
+    assert A.a.validate_mode[1] == (int, str)
 
 
 def test_generic_type_alias_in_annotation():
@@ -161,6 +174,12 @@ def test_generic_type_alias_in_annotation():
 
     assert isinstance(A.a, Typed)
     assert A.a.validate_mode[1] is ndarray
+
+    class B(Atom, use_annotations=True):
+        a: NDArray[int | str]
+
+    assert isinstance(B.a, Typed)
+    assert B.a.validate_mode[1] is ndarray
 
 
 def test_generic_type_alias_inside_generic_in_annotation():

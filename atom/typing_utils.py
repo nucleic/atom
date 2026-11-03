@@ -97,20 +97,6 @@ class ChangeDict(_ChangeDict, total=False):
     reverse: bool  # operation in ("sort")
 
 
-def _resolve_type_alias(kind: Any, seen: set[int] | None = None) -> Any:
-    """Resolve type aliases to their underlying annotation."""
-    if not _TYPE_ALIAS_TYPES or not isinstance(kind, _TYPE_ALIAS_TYPES):
-        return kind
-
-    if seen is None:
-        seen = set()
-    kind_id = id(kind)
-    if kind_id in seen:
-        raise TypeError(f"Cyclic type alias {kind!r} is not supported.")
-    seen.add(kind_id)
-    return _resolve_type_alias(kind.__value__, seen)
-
-
 def _resolve_generic_origin(kind: Any) -> Any:
     """Resolve alias-backed generic origins to their runtime type."""
     seen: set[int] = set()
@@ -120,24 +106,13 @@ def _resolve_generic_origin(kind: Any) -> Any:
         seen.add(id(current))
         origin = get_origin(current)
 
-        if origin is None:
-            value = getattr(current, "__value__", None)
-            if value is not None and value is not current:
-                current = value
-                continue
-            return None
-
+        # Extract a type alias
         if _TYPE_ALIAS_TYPES and isinstance(origin, _TYPE_ALIAS_TYPES):
             current = origin.__value__
             continue
 
         if isinstance(origin, type):
             return origin
-
-        value = getattr(origin, "__value__", None)
-        if value is not None and value is not origin:
-            current = value
-            continue
 
         return None
 
