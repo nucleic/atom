@@ -1,7 +1,7 @@
 Atom Release Notes
 ==================
 
-0.14.0 - unreleased
+0.14.0 - 03/11/2026
 -------------------
 
 - add support for type aliases in annotations used to generate a member PR #280
