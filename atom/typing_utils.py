@@ -112,7 +112,7 @@ def _resolve_type_alias(kind: Any, seen: set[int] | None = None) -> Any:
 
 
 def _resolve_generic_origin(kind: Any) -> Any:
-    """Resolve alias-like generic origins to their underlying runtime type."""
+    """Resolve alias-backed generic origins to their runtime type."""
     seen: set[int] = set()
     current = kind
 
@@ -121,16 +121,26 @@ def _resolve_generic_origin(kind: Any) -> Any:
         origin = get_origin(current)
         if origin is None:
             origin = getattr(current, "__origin__", None)
-        if origin is not None:
-            if isinstance(origin, type):
-                return origin
-            current = origin
+
+        if origin is None:
+            value = getattr(current, "__value__", None)
+            if value is not None and value is not current:
+                current = value
+                continue
+            return None
+
+        if _TYPE_ALIAS_TYPES and isinstance(origin, _TYPE_ALIAS_TYPES):
+            current = origin.__value__
             continue
 
-        value = getattr(current, "__value__", None)
-        if value is not None and value is not current:
+        if isinstance(origin, type):
+            return origin
+
+        value = getattr(origin, "__value__", None)
+        if value is not None and value is not origin:
             current = value
             continue
+
         return None
 
     return None
@@ -145,17 +155,16 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
         )
 
     ret: List[Any]
-    origin = _resolve_generic_origin(kind)
-    if origin is not None or isinstance(kind, GENERICS):
-        args = get_args(kind)
-        if origin is Union:
-            ret = list(chain.from_iterable(extract_types(a) for a in args))
-        else:
-            ret = [origin or kind]
-    elif UNION and isinstance(kind, UNION):
+    origin = get_origin(kind)
+    if origin is Union or (UNION and isinstance(kind, UNION)):
         ret = list(chain.from_iterable(extract_types(a) for a in get_args(kind)))
     else:
-        ret = [kind]
+        if origin is not None and not isinstance(origin, type):
+            origin = _resolve_generic_origin(kind)
+        if origin is not None or isinstance(kind, GENERICS):
+            ret = [origin or kind]
+        else:
+            ret = [kind]
 
     extracted: List[type] = []
     for t in ret:
