@@ -20,7 +20,13 @@ from ..set import Set as ASet
 from ..subclass import Subclass
 from ..tuple import FixedTuple, Tuple as ATuple
 from ..typed import Typed
-from ..typing_utils import extract_types, get_args, get_origin, is_optional
+from ..typing_utils import (
+    _TYPE_ALIAS_TYPES,
+    extract_types,
+    get_args,
+    get_origin,
+    is_optional,
+)
 from .member_modifiers import set_default
 
 _NO_DEFAULT = object()
@@ -44,6 +50,11 @@ def generate_member_from_type_or_generic(
     type_generic: Any, default: Any, annotate_type_containers: int
 ) -> Member:
     """Generate a member from a type or generic alias."""
+    if _TYPE_ALIAS_TYPES and isinstance(type_generic, _TYPE_ALIAS_TYPES):
+        return generate_member_from_type_or_generic(
+            type_generic.__value__, default, annotate_type_containers
+        )
+
     types: tuple[type, ...]
     origin = get_origin(type_generic)
     # For final we create the member corresponding to the inner type and set
