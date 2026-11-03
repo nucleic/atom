@@ -5,6 +5,7 @@ Atom Release Notes
 -------------------
 
 - add support for type aliases in annotations used to generate a member PR #280
+- fix corner cases in C API closing #277 and #278 PR #279
 
 0.13.0 - 09/10/2026
 -------------------

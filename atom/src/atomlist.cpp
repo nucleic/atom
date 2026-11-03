@@ -727,7 +727,11 @@ public:
             // if the superclass call succeeds, then this is safe.
             Py_ssize_t i = -1;
             if( nargs == 1 )
+            {
                 i = PyLong_AsSsize_t( args[0] );
+                if( PyErr_Occurred() )
+                    return 0;
+            }
             if( i < 0 )
                 i += size;
             cppy::ptr index( PyLong_FromSsize_t( i ) );
