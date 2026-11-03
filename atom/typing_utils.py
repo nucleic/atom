@@ -111,6 +111,31 @@ def _resolve_type_alias(kind: Any, seen: set[int] | None = None) -> Any:
     return _resolve_type_alias(kind.__value__, seen)
 
 
+def _resolve_generic_origin(kind: Any) -> Any:
+    """Resolve alias-like generic origins to their underlying runtime type."""
+    seen: set[int] = set()
+    current = kind
+
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        origin = get_origin(current)
+        if origin is None:
+            origin = getattr(current, "__origin__", None)
+        if origin is not None:
+            if isinstance(origin, type):
+                return origin
+            current = origin
+            continue
+
+        value = getattr(current, "__value__", None)
+        if value is not None and value is not current:
+            current = value
+            continue
+        return None
+
+    return None
+
+
 def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
     """Extract a tuple of types from a type-like object"""
     kind = _resolve_type_alias(kind)
@@ -120,13 +145,13 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
         )
 
     ret: List[Any]
-    if isinstance(kind, GENERICS):
+    origin = _resolve_generic_origin(kind)
+    if origin is not None or isinstance(kind, GENERICS):
         args = get_args(kind)
-        origin = get_origin(kind)
         if origin is Union:
             ret = list(chain.from_iterable(extract_types(a) for a in args))
         else:
-            ret = [origin]
+            ret = [origin or kind]
     elif UNION and isinstance(kind, UNION):
         ret = list(chain.from_iterable(extract_types(a) for a in get_args(kind)))
     else:

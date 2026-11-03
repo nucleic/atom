@@ -125,6 +125,29 @@ def test_type_alias_in_annotation():
     assert isinstance(A.a.item, Int)
 
 
+def test_generic_type_alias_in_annotation():
+    try:
+        from typing_extensions import TypeAliasType
+    except ImportError:
+        pytest.skip("typing_extensions.TypeAliasType is unavailable")
+
+    from typing import Generic
+
+    S = TypeVar("S")
+    T = TypeVar("T")
+
+    class ndarray(Generic[S, T]):
+        pass
+
+    NDArray = TypeAliasType("NDArray", ndarray[tuple[int, ...], T], type_params=(T,))
+
+    class A(Atom, use_annotations=True):
+        a: NDArray[int]
+
+    assert isinstance(A.a, Typed)
+    assert A.a.validate_mode[1] is ndarray
+
+
 def test_reject_bare_member_annotated_member():
     with pytest.raises(ValueError) as e:
 
