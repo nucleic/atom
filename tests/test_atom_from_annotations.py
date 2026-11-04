@@ -138,6 +138,7 @@ def test_bare_type_alias_in_annotation():
 
     assert isinstance(A.a, Int)
 
+
 def test_type_alias_to_union_in_annotation():
     try:
         from typing_extensions import TypeAliasType
