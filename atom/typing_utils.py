@@ -97,26 +97,37 @@ class ChangeDict(_ChangeDict, total=False):
     reverse: bool  # operation in ("sort")
 
 
-def _resolve_generic_origin(kind: Any) -> Any:
-    """Resolve alias-backed generic origins to their runtime type."""
-    seen: set[int] = set()
+def _resolve_type_alias(kind: Any, seen: set[int] | None = None) -> Any:
+    """Resolve a type alias down to its underlying runtime value."""
+    seen = set() if seen is None else seen
     current = kind
 
-    while current is not None and id(current) not in seen:
+    while True:
+        if id(current) in seen:
+            raise RuntimeError(
+                f"Failed to resolve type alias for {kind}, which is recursive."
+            )  # pragma: no cover
         seen.add(id(current))
-        origin = get_origin(current)
 
-        # Extract a type alias
-        if _TYPE_ALIAS_TYPES and isinstance(origin, _TYPE_ALIAS_TYPES):
-            current = origin.__value__
+        if _TYPE_ALIAS_TYPES and isinstance(current, _TYPE_ALIAS_TYPES):
+            current = current.__value__
             continue
 
+        return current
+
+
+def _resolve_generic_origin(kind: Any, seen: set[int] | None = None) -> Any:
+    """Resolve alias-backed generic origins to their concrete runtime type."""
+    seen = set() if seen is None else seen
+    current = _resolve_type_alias(kind, seen)
+
+    while True:
+        origin = get_origin(current)
+        if origin is None:
+            return current if isinstance(current, type) else None
         if isinstance(origin, type):
             return origin
-
-        return None
-
-    return None
+        current = _resolve_type_alias(origin, seen)
 
 
 def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
@@ -126,15 +137,18 @@ def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
             f"Str-based annotations ({kind!r}) are not supported in atom Members."
         )
 
+    kind = _resolve_type_alias(kind)
+
     ret: List[Any]
     origin = get_origin(kind)
     if origin is Union or (UNION and isinstance(kind, UNION)):
         ret = list(chain.from_iterable(extract_types(a) for a in get_args(kind)))
     else:
-        if origin is not None and not isinstance(origin, type):
-            origin = _resolve_generic_origin(kind)
-        if origin is not None or isinstance(kind, GENERICS):
-            ret = [origin or kind]
+        resolved_origin = _resolve_generic_origin(kind)
+        if resolved_origin is not None:
+            ret = [resolved_origin]
+        elif isinstance(kind, GENERICS):
+            ret = [kind]
         else:
             ret = [kind]
 
