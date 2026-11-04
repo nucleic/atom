@@ -98,39 +98,59 @@ class ChangeDict(_ChangeDict, total=False):
 
 
 def _resolve_type_alias(kind: Any, seen: set[int] | None = None) -> Any:
-    """Resolve type aliases to their underlying annotation."""
-    if not _TYPE_ALIAS_TYPES or not isinstance(kind, _TYPE_ALIAS_TYPES):
-        return kind
+    """Resolve a type alias down to its underlying runtime value."""
+    seen = set() if seen is None else seen
+    current = kind
 
-    if seen is None:
-        seen = set()
-    kind_id = id(kind)
-    if kind_id in seen:
-        raise TypeError(f"Cyclic type alias {kind!r} is not supported.")
-    seen.add(kind_id)
-    return _resolve_type_alias(kind.__value__, seen)
+    while True:
+        if id(current) in seen:
+            raise RuntimeError(
+                f"Failed to resolve type alias for {kind}, which is recursive."
+            )  # pragma: no cover
+        seen.add(id(current))
+
+        if _TYPE_ALIAS_TYPES and isinstance(current, _TYPE_ALIAS_TYPES):
+            current = current.__value__
+            continue
+
+        return current
+
+
+def _resolve_generic_origin(kind: Any, seen: set[int] | None = None) -> Any:
+    """Resolve alias-backed generic origins to their concrete runtime type."""
+    seen = set() if seen is None else seen
+    current = _resolve_type_alias(kind, seen)
+
+    while True:
+        origin = get_origin(current)
+        if origin is None:
+            return current if isinstance(current, type) else None
+        if isinstance(origin, type):
+            return origin
+        current = _resolve_type_alias(origin, seen)
 
 
 def _extract_types(kind: TypeLike) -> Tuple[type, ...]:
     """Extract a tuple of types from a type-like object"""
-    kind = _resolve_type_alias(kind)
     if isinstance(kind, _INVALID_TYPES):
         raise TypeError(
             f"Str-based annotations ({kind!r}) are not supported in atom Members."
         )
 
+    kind = _resolve_type_alias(kind)
+
     ret: List[Any]
-    if isinstance(kind, GENERICS):
-        args = get_args(kind)
-        origin = get_origin(kind)
-        if origin is Union:
-            ret = list(chain.from_iterable(extract_types(a) for a in args))
-        else:
-            ret = [origin]
-    elif UNION and isinstance(kind, UNION):
+    origin = get_origin(kind)
+    if origin is Union or (UNION and isinstance(kind, UNION)):
         ret = list(chain.from_iterable(extract_types(a) for a in get_args(kind)))
     else:
-        ret = [kind]
+        resolved_origin = _resolve_generic_origin(kind)
+        if resolved_origin is not None:
+            ret = [resolved_origin]
+        elif isinstance(kind, GENERICS):
+            ret = [kind]
+        else:
+            ret = [kind]
 
     extracted: List[type] = []
     for t in ret:
