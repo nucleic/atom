@@ -169,6 +169,24 @@ def test_alias_of_alias_in_annotation():
     assert A.a.validate_mode[1] == (int, str)
 
 
+def test_deep_alias_chain_in_annotation():
+    try:
+        from typing_extensions import TypeAliasType
+    except ImportError:
+        pytest.skip("typing_extensions.TypeAliasType is unavailable")
+
+    Inner = TypeAliasType("Inner", int | str)
+    Middle = TypeAliasType("Middle", Inner)
+    Outer = TypeAliasType("Outer", list[Middle])
+
+    class A(Atom, use_annotations=True, type_containers=1):
+        a: Outer
+
+    assert isinstance(A.a, List)
+    assert isinstance(A.a.item, Instance)
+    assert A.a.item.validate_mode[1] == (int, str)
+
+
 def test_nested_type_alias_in_annotation():
     try:
         from typing_extensions import TypeAliasType
