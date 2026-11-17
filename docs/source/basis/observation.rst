@@ -171,6 +171,31 @@ dictionary can contains additional information (note that ``'value'`` and
         a.s.connect(print_pair)
         a.s('a', 1)
 
+Extended observers
+------------------
+
+Atom supports observing a member of a nested Atom object up to one level deep
+using the format ``"<member>.<attr>"``. This is called an extended observer and 
+uses a combination of static and dynamic observers.
+
+.. code-block:: python
+
+    from atom.api import Atom, Int, Typed, observe
+    class Point(Atom):
+        x = Int()
+        y = Int()
+
+    class Item(Atom):
+        pos = Typed(Point, ())
+
+        @observe("pos.x")
+        def on_change(self, change):
+            print(change)
+
+    item = Item()
+    item.pos.x = 1 # Invokes on_change with change event for "x"
+    item.pos = Point(x=2, y=0) # Does NOT invoke on_change. Add a separate "pos" argument to @observe if this is needed.
+    item.pos.x = 3 # Invokes on_change with change event for "x"
 
 Suppressing notifications
 -------------------------
